@@ -120,6 +120,13 @@ public class CounterexampleCheckAlgorithm implements Algorithm, StatisticsProvid
   public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException {
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
+    //DEBUG
+
+    System.out.println("CCA.run algorithm?   "+algorithm.getClass().getName());
+    System.out.println("CCA.run checker?   "+checker.getClass().getName());
+
+    //GUBED
+
     while (reached.hasWaitingState()) {
       status = status.update(algorithm.run(reached));
       assert ARGUtils.checkARG(reached);
@@ -176,6 +183,12 @@ public class CounterexampleCheckAlgorithm implements Algorithm, StatisticsProvid
     ARGState rootState = (ARGState)reached.getFirstState();
 
     Set<ARGState> statesOnErrorPath = ARGUtils.getAllStatesOnPathsTo(errorState);
+
+    //DEBUG
+
+    System.out.println("CCA.checkCounterexample checkerName?   "+checkerName);
+
+    //GUBED
 
     logger.log(Level.INFO, "Error path found, starting counterexample check with " + checkerName + ".");
     boolean feasibility;

@@ -236,6 +236,10 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     final PrecisionAdjustment precisionAdjustment =
         cpa.getPrecisionAdjustment();
 
+    //DEBUG
+    System.out.println("CPAAlgorithm.run0 cpa?   "+ cpa.getClass().getName());
+    //GUBED
+
     while (reachedSet.hasWaitingState()) {
       shutdownNotifier.shutdownIfNecessary();
 
