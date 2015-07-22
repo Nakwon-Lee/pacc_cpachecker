@@ -137,6 +137,10 @@ public class CounterexampleCPAChecker implements CounterexampleChecker {
   private boolean checkCounterexample(ARGState pRootState, ARGState pErrorState, Set<ARGState> pErrorPathStates,
       Path automatonFile) throws IOException, CPAException, InterruptedException {
 
+    //DEBUG
+    System.out.println("CounterexampleCPAChecker cpa?  "+cpa.getClass().getName());
+    //GUBED
+
     try (Writer w = Files.openOutputFile(automatonFile)) {
       ARGUtils.producePathAutomaton(w, pRootState, pErrorPathStates,
           "CounterexampleToCheck", cpa.getCounterexamples().get(pErrorState));

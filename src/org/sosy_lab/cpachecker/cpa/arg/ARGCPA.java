@@ -122,6 +122,11 @@ public class ARGCPA extends AbstractSingleWrapperCPA implements
     super(cpa);
     config.inject(this);
     this.logger = logger;
+
+    //DEBUG
+    System.out.println("ARGCPA cpa?   "+ cpa.getClass().getName());
+    //GUBED
+
     abstractDomain = new FlatLatticeDomain();
     transferRelation = new ARGTransferRelation(cpa.getTransferRelation());
 

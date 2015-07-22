@@ -100,7 +100,16 @@ public class CompositeCPA implements ConfigurableProgramAnalysis, StatisticsProv
 
       PredicateAbstractionManager abmgr = null;
 
+      //DEBUG
+      System.out.print("CompositeCPA cpas?   ");
+      //GUBED
+
       for (ConfigurableProgramAnalysis sp : cpas) {
+
+         //DEBUG
+        System.out.print(sp.getClass().getName()+"  ");
+        //GUBED
+
         if (sp instanceof org.sosy_lab.cpachecker.cpa.predicate.PredicateCPA) {
           abmgr = ((org.sosy_lab.cpachecker.cpa.predicate.PredicateCPA)sp).getPredicateManager();
         }
@@ -123,6 +132,10 @@ public class CompositeCPA implements ConfigurableProgramAnalysis, StatisticsProv
         }
         mergeOperators.add(merge);
       }
+
+      //DEBUG
+      System.out.println(" ");
+      //GUBED
 
       ImmutableList<StopOperator> stopOps = stopOperators.build();
 
