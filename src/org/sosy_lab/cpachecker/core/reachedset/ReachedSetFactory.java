@@ -97,6 +97,7 @@ public class ReachedSetFactory {
 
   public ReachedSet create() {
     WaitlistFactory waitlistFactory = traversalMethod;
+    //WaitlistFactory waitlistFactory = Waitlist.TraversalMethod.RANDOM_PATH;
 
     if (useAutomatonInformation) {
       waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);

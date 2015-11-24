@@ -131,6 +131,7 @@ public class CounterexampleCheckAlgorithm implements Algorithm, StatisticsProvid
       status = status.update(algorithm.run(reached));
       assert ARGUtils.checkARG(reached);
 
+      //find error state
       ARGState lastState = (ARGState)reached.getLastState();
 
       Deque<ARGState> errorStates = new ArrayDeque<>();
@@ -185,9 +186,7 @@ public class CounterexampleCheckAlgorithm implements Algorithm, StatisticsProvid
     Set<ARGState> statesOnErrorPath = ARGUtils.getAllStatesOnPathsTo(errorState);
 
     //DEBUG
-
     System.out.println("CCA.checkCounterexample checkerName?   "+checkerName);
-
     //GUBED
 
     logger.log(Level.INFO, "Error path found, starting counterexample check with " + checkerName + ".");

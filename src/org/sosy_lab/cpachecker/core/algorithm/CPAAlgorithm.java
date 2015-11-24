@@ -132,7 +132,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     @Option(secure=true, description="Which strategy to use for forced coverings (empty for none)",
             name="forcedCovering")
     @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
-    private Class<? extends ForcedCovering> forcedCoveringClass = null;
+    private Class<? extends ForcedCovering> forcedCoveringClass;
 
     @Option(secure=true, description="Do not report 'False' result, return UNKNOWN instead. "
         + " Useful for incomplete analysis with no counterexample checking.")
@@ -154,6 +154,17 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
       this.logger = logger;
       this.shutdownNotifier = pShutdownNotifier;
       this.iterationListener = pIterationListener;
+
+      //DEBUG
+      /*
+      try {
+        forcedCoveringClass = (Class<? extends ForcedCovering>) Class.forName("org.sosy_lab.cpachecker.cpa.predicate.PredicateForcedCovering");
+      } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      */
+      //GUBED
 
       if (forcedCoveringClass != null) {
         forcedCovering = Classes.createInstance(ForcedCovering.class, forcedCoveringClass,
@@ -305,7 +316,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
                   Functions.<AbstractState>identity(),
                   successor);
           if (!precAdjustmentOptional.isPresent()) {
-            continue;
+            continue; //skip this successor
           }
           precAdjustmentResult = precAdjustmentOptional.get();
         } finally {
