@@ -51,7 +51,9 @@ import org.sosy_lab.cpachecker.core.interfaces.Refiner;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.ReachedSetList;
 import org.sosy_lab.cpachecker.cpa.value.refiner.UnsoundRefiner;
+import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.InvalidComponentException;
 import org.sosy_lab.cpachecker.exceptions.RefinementFailedException;
@@ -62,7 +64,7 @@ import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @Options(prefix="cegar")
-public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
+public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsProvider {
 
   private static class CEGARStatistics implements Statistics {
 
@@ -82,7 +84,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
 
     @Override
     public String getName() {
-      return "CEGAR algorithm";
+      return "CEGAR snappable algorithm";
     }
 
     @Override
@@ -196,7 +198,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
     return (Refiner)refinerObj;
   }
 
-  public CEGARAlgorithm(Algorithm algorithm, ConfigurableProgramAnalysis pCpa, Configuration config, LogManager logger) throws InvalidConfigurationException, CPAException {
+  public CEGARSnappableAlgorithm(Algorithm algorithm, ConfigurableProgramAnalysis pCpa, Configuration config, LogManager logger) throws InvalidConfigurationException, CPAException {
     config.inject(this);
     this.algorithm = algorithm;
     this.logger = logger;
@@ -216,7 +218,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
    * @throws InvalidConfigurationException
    * @throws CPAException
    */
-  public CEGARAlgorithm(Algorithm algorithm, Refiner pRefiner, Configuration config, LogManager logger) throws InvalidConfigurationException {
+  public CEGARSnappableAlgorithm(Algorithm algorithm, Refiner pRefiner, Configuration config, LogManager logger) throws InvalidConfigurationException {
     config.inject(this);
     this.algorithm = algorithm;
     this.logger = logger;
@@ -224,14 +226,21 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
   }
 
   @Override
-  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(ReachedSet pReachedSet)
+      throws CPAException, InterruptedException, CPAEnabledAnalysisPropertyViolationException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public AlgorithmStatus run(ReachedSetList reachedList) throws CPAException, InterruptedException {
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
-    int initialReachedSetSize = reached.size();
+    int initialReachedSetSize = reachedList.size();
     boolean refinedInPreviousIteration = false;
 
     //DEBUG
-    System.out.println("CEGARAlgorithme run st");
+    System.out.println("CEGARSnappableAlgorithm run st");
     //GUBED
 
     stats.totalTimer.start();
@@ -240,17 +249,21 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       do {
         refinementSuccessful = false;
 
+        //DEBUG
+        //should change snapshot
+        //GUBED
+
         // run algorithm
-        status = status.update(algorithm.run(reached));
+        status = status.update(algorithm.run(reachedList.getFirst()));
 
         // if there is any target state do refinement
-        if (refinementNecessary(reached)) {
-          refinementSuccessful = refine(reached);
+        if (refinementNecessary(reachedList.getFirst())) {
+          refinementSuccessful = refine(reachedList.getFirst());
           refinedInPreviousIteration = true;
           // assert that reached set is free of target states,
           // if refinement was successful and initial reached set was empty (i.e. stopAfterError=true)
           if (refinementSuccessful && initialReachedSetSize == 1) {
-            assert !from(reached).anyMatch(IS_TARGET_STATE);
+            assert !from(reachedList.getFirst()).anyMatch(IS_TARGET_STATE);
           }
         }
 
@@ -261,10 +274,12 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
             break;
           }
 
-          ((UnsoundRefiner)mRefiner).forceRestart(reached);
+          ((UnsoundRefiner)mRefiner).forceRestart(reachedList.getFirst());
           refinementSuccessful        = true;
           refinedInPreviousIteration  = false;
         }
+
+        reachedList.addFirst(reachedList.getFirst().clone());
 
       } while (refinementSuccessful);
 
@@ -272,7 +287,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       stats.totalTimer.stop();
 
       //DEBUG
-      System.out.println("CEGARAlgorithme run st");
+      System.out.println("CEGARSnappableAlgorithme run st");
       //GUBED
     }
     return status;

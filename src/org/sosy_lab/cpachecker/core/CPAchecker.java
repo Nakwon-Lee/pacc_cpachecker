@@ -59,6 +59,7 @@ import org.sosy_lab.cpachecker.core.CoreComponentsFactory.SpecAutomatonCompositi
 import org.sosy_lab.cpachecker.core.algorithm.Algorithm;
 import org.sosy_lab.cpachecker.core.algorithm.Algorithm.AlgorithmStatus;
 import org.sosy_lab.cpachecker.core.algorithm.ExternalCBMCAlgorithm;
+import org.sosy_lab.cpachecker.core.algorithm.SnappableAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.impact.ImpactAlgorithm;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
@@ -66,6 +67,7 @@ import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.Targetable;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.ReachedSetList;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.ParserException;
 import org.sosy_lab.cpachecker.util.LoopStructure;
@@ -108,6 +110,30 @@ public class CPAchecker {
     @Override
     public int getReachedSetSize() {
       return reached.size();
+    }
+
+    @Override
+    public void stop() {
+      shutdownNotifier.requestShutdown("A stop request was received via the JMX interface.");
+    }
+
+  }
+
+  private static class CPAcheckerSnappableBean extends AbstractMBean implements CPAcheckerMXBean {
+
+    private final ReachedSetList reachedSetList;
+    private final ShutdownNotifier shutdownNotifier;
+
+    public CPAcheckerSnappableBean(ReachedSetList pReachedSetList, LogManager logger, ShutdownNotifier pShutdownNotifier) {
+      super("org.sosy_lab.cpachecker:type=CPAchecker", logger);
+      reachedSetList = pReachedSetList;
+      shutdownNotifier = pShutdownNotifier;
+      register();
+    }
+
+    @Override
+    public int getReachedSetSize() {
+      return reachedSetList.size();
     }
 
     @Override
@@ -216,6 +242,7 @@ public class CPAchecker {
     factory = new CoreComponentsFactory(pConfiguration, pLogManager, shutdownNotifier);
   }
 
+  @SuppressWarnings("null")
   public CPAcheckerResult run(String programDenotation) {
 
     logger.log(Level.INFO, "CPAchecker", getVersion(), "started");
@@ -278,10 +305,33 @@ public class CPAchecker {
             violatedPropertyDescription, null, stats);
       }
 
+      ReachedSetList reachedSetList = null;
+
+      //DEBUG
+      if(algorithm instanceof SnappableAlgorithm){
+        reachedSetList = new ReachedSetList();
+        reachedSetList.add(reached);
+      }
+      //GUBED
+
       // run analysis
       result = Result.UNKNOWN; // set to unknown so that the result is correct in case of exception
 
-      AlgorithmStatus status = runAlgorithm(algorithm, reached, stats);
+      //DEBUG
+      System.out.println("CPAchecker runAlgorithm st");
+      //GUBED
+
+      AlgorithmStatus status;
+
+      if(reachedSetList == null){
+        status = runAlgorithm(algorithm, reached, stats);
+      }else{
+        //the algorithm must be a snappablealgorithm
+        status = runAlgorithm(algorithm, reachedSetList, stats);
+      }
+      //DEBUG
+      System.out.println("CPAchecker runAlgorithm ed");
+      //GUBED
 
       violatedPropertyDescription = findViolatedProperties(reached);
       if (violatedPropertyDescription != null) {
@@ -396,6 +446,38 @@ public class CPAchecker {
         // either run only once (if stopAfterError == true)
         // or until the waitlist is empty
       } while (!stopAfterError && reached.hasWaitingState());
+
+      logger.log(Level.INFO, "Stopping analysis ...");
+      return status;
+
+    } finally {
+      stats.stopAnalysisTimer();
+
+      // unregister management interface for CPAchecker
+      mxbean.unregister();
+    }
+  }
+
+  private AlgorithmStatus runAlgorithm(final Algorithm algorithm,
+      final ReachedSetList reachedList,
+      final MainCPAStatistics stats) throws CPAException, InterruptedException {
+
+    logger.log(Level.INFO, "Starting analysis ...");
+
+    AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
+
+    // register management interface for CPAchecker
+    CPAcheckerSnappableBean mxbean = new CPAcheckerSnappableBean(reachedList, logger, shutdownNotifier);
+
+    stats.startAnalysisTimer();
+    try {
+
+      do {
+        status = status.update(((SnappableAlgorithm)algorithm).run(reachedList));
+
+        // either run only once (if stopAfterError == true)
+        // or until the waitlist is empty
+      } while (!stopAfterError && reachedList.getFirst().hasWaitingState());
 
       logger.log(Level.INFO, "Stopping analysis ...");
       return status;
