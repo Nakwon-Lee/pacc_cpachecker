@@ -27,6 +27,11 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.*;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.div;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -224,7 +229,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
   }
 
   @Override
-  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException, IOException {
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
     int initialReachedSetSize = reached.size();
@@ -239,6 +244,33 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       boolean refinementSuccessful;
       do {
         refinementSuccessful = false;
+
+        ReachedSet tRS = null;
+
+        ObjectOutputStream oos = null;
+        ObjectInputStream ois = null;
+        try
+        {
+           ByteArrayOutputStream bos =
+                 new ByteArrayOutputStream(); // A
+           oos = new ObjectOutputStream(bos); // B
+           // serialize and pass the object
+           oos.writeObject(reached);   // C
+           oos.flush();               // D
+           ByteArrayInputStream bin =
+                 new ByteArrayInputStream(bos.toByteArray()); // E
+           ois = new ObjectInputStream(bin);                  // F
+           // return the new object
+           tRS = (ReachedSet)ois.readObject(); // G
+
+           oos.close();
+           ois.close();
+        }
+        catch(Exception e)
+        {
+           System.out.println("Exception in ObjectCloner = " + e);
+           //throw(e);
+        }
 
         // run algorithm
         status = status.update(algorithm.run(reached));

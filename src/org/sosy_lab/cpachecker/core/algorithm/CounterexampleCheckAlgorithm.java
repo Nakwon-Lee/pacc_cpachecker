@@ -27,6 +27,7 @@ import static com.google.common.collect.FluentIterable.from;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.toPercent;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class CounterexampleCheckAlgorithm implements Algorithm, StatisticsProvid
   }
 
   @Override
-  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException, IOException {
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
     //DEBUG

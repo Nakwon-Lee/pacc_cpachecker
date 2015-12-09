@@ -23,11 +23,13 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm;
 
+import java.io.IOException;
+
 import javax.annotation.CheckReturnValue;
 
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
-import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
+import org.sosy_lab.cpachecker.exceptions.CPAException;
 
 public interface Algorithm {
 
@@ -38,8 +40,9 @@ public interface Algorithm {
    * @return information about how reliable the result is
    * @throws CPAException
    * @throws InterruptedException
+   * @throws IOException
    */
-  AlgorithmStatus run(ReachedSet reachedSet) throws CPAException, InterruptedException, CPAEnabledAnalysisPropertyViolationException;
+  AlgorithmStatus run(ReachedSet reachedSet) throws CPAException, InterruptedException, CPAEnabledAnalysisPropertyViolationException, IOException;
 
   /**
    * This class serves as an indication how a result produced by an {@link Algorithm}

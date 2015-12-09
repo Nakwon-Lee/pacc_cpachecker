@@ -27,6 +27,6 @@ import java.util.LinkedList;
 
 
 @SuppressWarnings("serial")
-public class ReachedSetList extends LinkedList<ReachedSetCloneable> {
+public class ReachedSetList extends LinkedList<ReachedSet> {
 
 }

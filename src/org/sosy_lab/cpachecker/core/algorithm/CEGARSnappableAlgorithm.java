@@ -279,7 +279,9 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
           refinedInPreviousIteration  = false;
         }
 
-        reachedList.addFirst(reachedList.getFirst().clone());
+        //DEBUG
+        //reachedList.addFirst(reachedList.getFirst());
+        //GUBED
 
       } while (refinementSuccessful);
 

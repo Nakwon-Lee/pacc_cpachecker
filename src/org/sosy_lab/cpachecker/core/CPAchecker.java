@@ -428,7 +428,7 @@ public class CPAchecker {
 
   private AlgorithmStatus runAlgorithm(final Algorithm algorithm,
       final ReachedSet reached,
-      final MainCPAStatistics stats) throws CPAException, InterruptedException {
+      final MainCPAStatistics stats) throws CPAException, InterruptedException, IOException {
 
     logger.log(Level.INFO, "Starting analysis ...");
 

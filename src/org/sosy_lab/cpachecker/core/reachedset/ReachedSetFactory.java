@@ -30,6 +30,7 @@ import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonFailedMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlistCloneable;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
@@ -83,6 +84,10 @@ public class ReachedSetFactory {
       description = "traverse in the order defined by the values of an automaton variable")
   String byAutomatonVariable = null;
 
+  @Option(secure=true, name = "traversal.useCloneable",
+      description = "use cloneable waitlist and reached set")
+  boolean useCloneable = false;
+
   @Option(secure=true, name = "reachedSet",
       description = "which reached set implementation to use?"
       + "\nNORMAL: just a simple set"
@@ -99,39 +104,76 @@ public class ReachedSetFactory {
     WaitlistFactory waitlistFactory = traversalMethod;
     //WaitlistFactory waitlistFactory = Waitlist.TraversalMethod.RANDOM_PATH;
 
-    if (useAutomatonInformation) {
-      waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);
-      waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
-    }
-    if (useReversePostorder) {
-      waitlistFactory = ReversePostorderSortedWaitlist.factory(waitlistFactory);
-    }
-    if (usePostorder) {
-      waitlistFactory = PostorderSortedWaitlist.factory(waitlistFactory);
-    }
-    if (useLoopstack) {
-      waitlistFactory = LoopstackSortedWaitlist.factory(waitlistFactory);
-    }
-    if (useCallstack) {
-      waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
-    }
-    if (useExplicitInformation) {
-      waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
-    }
-    if (byAutomatonVariable != null) {
-      waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
-    }
+    if (useCloneable){
+      if (useAutomatonInformation) {
+        waitlistFactory = AutomatonMatchesWaitlistCloneable.factory(waitlistFactory);
+        waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
+      }
+      if (useReversePostorder) {
+        waitlistFactory = ReversePostorderSortedWaitlist.factory(waitlistFactory);
+      }
+      if (usePostorder) {
+        waitlistFactory = PostorderSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useLoopstack) {
+        waitlistFactory = LoopstackSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useCallstack) {
+        waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useExplicitInformation) {
+        waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
+      }
+      if (byAutomatonVariable != null) {
+        waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
+      }
 
-    switch (reachedSet) {
-    case PARTITIONED:
-      return new PartitionedReachedSet(waitlistFactory);
+      switch (reachedSet) {
+      case PARTITIONED:
+        return new PartitionedReachedSet(waitlistFactory);
 
-    case LOCATIONMAPPED:
-      return new LocationMappedReachedSet(waitlistFactory);
+      case LOCATIONMAPPED:
+        return new LocationMappedReachedSet(waitlistFactory);
 
-    case NORMAL:
-    default:
-      return new DefaultReachedSet(waitlistFactory);
+      case NORMAL:
+      default:
+        return new DefaultReachedSet(waitlistFactory);
+      }
+    }else{
+      if (useAutomatonInformation) {
+        waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);
+        waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
+      }
+      if (useReversePostorder) {
+        waitlistFactory = ReversePostorderSortedWaitlist.factory(waitlistFactory);
+      }
+      if (usePostorder) {
+        waitlistFactory = PostorderSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useLoopstack) {
+        waitlistFactory = LoopstackSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useCallstack) {
+        waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useExplicitInformation) {
+        waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
+      }
+      if (byAutomatonVariable != null) {
+        waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
+      }
+
+      switch (reachedSet) {
+      case PARTITIONED:
+        return new PartitionedReachedSet(waitlistFactory);
+
+      case LOCATIONMAPPED:
+        return new LocationMappedReachedSet(waitlistFactory);
+
+      case NORMAL:
+      default:
+        return new DefaultReachedSet(waitlistFactory);
+      }
     }
   }
 }

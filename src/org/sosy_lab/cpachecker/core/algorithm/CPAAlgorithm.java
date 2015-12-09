@@ -224,7 +224,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
   }
 
   @Override
-  public AlgorithmStatus run(final ReachedSet reachedSet) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(final ReachedSet reachedSet) throws InterruptedException, CPAException   {
     stats.totalTimer.start();
     try {
       return run0(reachedSet);
@@ -240,7 +240,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     }
   }
 
-  private AlgorithmStatus run0(final ReachedSet reachedSet) throws CPAException, InterruptedException {
+  private AlgorithmStatus run0(final ReachedSet reachedSet) throws InterruptedException, CPAException   {
     final TransferRelation transferRelation = cpa.getTransferRelation();
     final MergeOperator mergeOperator = cpa.getMergeOperator();
     final StopOperator stopOperator = cpa.getStopOperator();
