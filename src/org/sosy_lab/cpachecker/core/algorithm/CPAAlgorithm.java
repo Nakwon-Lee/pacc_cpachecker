@@ -155,17 +155,6 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
       this.shutdownNotifier = pShutdownNotifier;
       this.iterationListener = pIterationListener;
 
-      //DEBUG
-      /*
-      try {
-        forcedCoveringClass = (Class<? extends ForcedCovering>) Class.forName("org.sosy_lab.cpachecker.cpa.predicate.PredicateForcedCovering");
-      } catch (ClassNotFoundException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-      */
-      //GUBED
-
       if (forcedCoveringClass != null) {
         forcedCovering = Classes.createInstance(ForcedCovering.class, forcedCoveringClass,
             new Class<?>[] {Configuration.class, LogManager.class, ConfigurableProgramAnalysis.class},
@@ -240,6 +229,8 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     }
   }
 
+  int a = 0;
+
   private AlgorithmStatus run0(final ReachedSet reachedSet) throws InterruptedException, CPAException   {
     final TransferRelation transferRelation = cpa.getTransferRelation();
     final MergeOperator mergeOperator = cpa.getMergeOperator();
@@ -248,7 +239,15 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
         cpa.getPrecisionAdjustment();
 
     //DEBUG
+
     System.out.println("CPAAlgorithm.run0 cpa?   "+ cpa.getClass().getName());
+    /*
+    a++;
+    if(a == 16)
+    {
+      System.out.println("");
+    }
+    */
     //GUBED
 
     while (reachedSet.hasWaitingState()) {

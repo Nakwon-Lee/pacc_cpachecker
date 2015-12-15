@@ -84,6 +84,17 @@ public class CounterexampleTraceInfo {
           );
     }
 
+    //DEBUG
+    public static CounterexampleTraceInfo feasibleFC() {
+      return new CounterexampleTraceInfo(false,
+          null,
+          null,
+          null,
+          null
+          );
+    }
+    //GUBED
+
     /**
      * checks whether this trace is a real bug or a spurious counterexample
      * @return true if this trace is spurious, false otherwise

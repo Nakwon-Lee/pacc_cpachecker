@@ -27,11 +27,7 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.*;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.div;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -245,6 +241,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       do {
         refinementSuccessful = false;
 
+        /*
         ReachedSet tRS = null;
 
         ObjectOutputStream oos = null;
@@ -271,6 +268,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
            System.out.println("Exception in ObjectCloner = " + e);
            //throw(e);
         }
+        */
 
         // run algorithm
         status = status.update(algorithm.run(reached));
@@ -304,7 +302,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       stats.totalTimer.stop();
 
       //DEBUG
-      System.out.println("CEGARAlgorithme run st");
+      System.out.println("CEGARAlgorithme run ed");
       //GUBED
     }
     return status;

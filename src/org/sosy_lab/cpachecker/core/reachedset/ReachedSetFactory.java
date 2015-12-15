@@ -30,7 +30,6 @@ import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonFailedMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlist;
-import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlistCloneable;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
@@ -104,6 +103,7 @@ public class ReachedSetFactory {
     WaitlistFactory waitlistFactory = traversalMethod;
     //WaitlistFactory waitlistFactory = Waitlist.TraversalMethod.RANDOM_PATH;
 
+    /*
     if (useCloneable){
       if (useAutomatonInformation) {
         waitlistFactory = AutomatonMatchesWaitlistCloneable.factory(waitlistFactory);
@@ -139,7 +139,8 @@ public class ReachedSetFactory {
       default:
         return new DefaultReachedSet(waitlistFactory);
       }
-    }else{
+    }else{*/
+
       if (useAutomatonInformation) {
         waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);
         waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
@@ -174,6 +175,6 @@ public class ReachedSetFactory {
       default:
         return new DefaultReachedSet(waitlistFactory);
       }
-    }
+    //}
   }
 }

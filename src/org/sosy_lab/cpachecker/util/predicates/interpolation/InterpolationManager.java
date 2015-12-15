@@ -182,6 +182,8 @@ public final class InterpolationManager {
   private final LoopStructure loopStructure;
   private final VariableClassification variableClassification;
 
+  private boolean useFC = false;
+
   public InterpolationManager(
       PathFormulaManager pPmgr,
       Solver pSolver,
@@ -214,6 +216,42 @@ public final class InterpolationManager {
       interpolator = null;
     }
   }
+  //DEBUG
+  public InterpolationManager(
+      PathFormulaManager pPmgr,
+      Solver pSolver,
+      Optional<LoopStructure> pLoopStructure,
+      Optional<VariableClassification> pVarClassification,
+      Configuration config,
+      ShutdownNotifier pShutdownNotifier,
+      LogManager pLogger, boolean pFC) throws InvalidConfigurationException {
+    config.inject(this, InterpolationManager.class);
+
+    logger = pLogger;
+    shutdownNotifier = pShutdownNotifier;
+    fmgr = pSolver.getFormulaManager();
+    bfmgr = fmgr.getBooleanFormulaManager();
+    pmgr = pPmgr;
+    solver = pSolver;
+    loopStructure = pLoopStructure.orNull();
+    variableClassification = pVarClassification.orNull();
+
+    if (itpTimeLimit.isEmpty()) {
+      executor = null;
+    } else {
+      // important to use daemon threads here, because we never have the chance to stop the executor
+      executor = Executors.newSingleThreadExecutor(Threads.threadFactoryBuilder().setDaemon(true).build());
+    }
+
+    if (reuseInterpolationEnvironment) {
+      interpolator = new Interpolator<>();
+    } else {
+      interpolator = null;
+    }
+
+    useFC = pFC;
+  }
+  //GUBED
 
   public Appender dumpCounterexample(CounterexampleTraceInfo cex) {
     return fmgr.dumpFormula(bfmgr.and(cex.getCounterExampleFormulas()));
@@ -770,7 +808,15 @@ public final class InterpolationManager {
 
       } else {
         // this is a real bug
-        info = getErrorPath(f, itpProver, elementsOnPath);
+        //DEBUG
+        //this is not for forced covering!! if it is for forced covering, it should not be needed
+        //GUBED
+        if(!useFC){
+          info = getErrorPath(f, itpProver, elementsOnPath);
+        }else{
+          info = CounterexampleTraceInfo.feasibleFC();
+        }
+
       }
 
       logger.log(Level.ALL, "Counterexample information:", info);

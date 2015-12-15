@@ -129,7 +129,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
                                                    predicateCpa.getCfa().getVarClassification(),
                                                    config,
                                                    predicateCpa.getShutdownNotifier(),
-                                                   pLogger);
+                                                   pLogger,true);
     fmgr = predicateCpa.getSolver().getFormulaManager();
     predAbsMgr = predicateCpa.getPredicateManager();
     impact = new ImpactUtility(config, fmgr, predAbsMgr);
@@ -160,6 +160,9 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     ARGReachedSet arg = new ARGReachedSet(pReached, argCpa);
 
     List<ARGState> parentList = getAbstractionPathTo(argState);
+
+    int attempts = 0;
+
     for (final AbstractState coveringCandidate : pReached.getReached(pState)) {
       if (pState == coveringCandidate) {
         continue;
@@ -215,6 +218,13 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
         if (!interpolantInfo.isSpurious()) {
           logger.log(Level.FINER, "Forced covering unsuccessful.");
+          //DEBUG
+
+          attempts++;
+          if(attempts > 3){
+            break;
+          }
+          //GUBED
           continue; // forced covering not possible
         }
 
