@@ -75,6 +75,8 @@ public abstract class RefinementStrategy {
   private final StatInt numberOfAffectedStates = new StatInt(StatKind.SUM, "Number of affected states");
   private final StatInt totalPathLengthToInfeasibility = new StatInt(StatKind.AVG, "Length of refined path (in blocks)");
 
+  private boolean useImpact = false;
+
   protected AbstractStatistics basicRefinementStatistics = new AbstractStatistics() {
     @Override
     public void printStatistics(PrintStream out, Result pResult, ReachedSet pReached) {
@@ -98,6 +100,14 @@ public abstract class RefinementStrategy {
     solver = pSolver;
     bfmgr = solver.getFormulaManager().getBooleanFormulaManager();
   }
+
+  //DEBUG
+  public RefinementStrategy(Solver pSolver, boolean pUseImpact) {
+    solver = pSolver;
+    bfmgr = solver.getFormulaManager().getBooleanFormulaManager();
+    useImpact = pUseImpact;
+  }
+  //GUBED
 
   public boolean needsInterpolants() {
     return true;
@@ -209,7 +219,7 @@ public abstract class RefinementStrategy {
     if (infeasiblePartOfART == lastElement) {
       pathLengthToInfeasibility++;
 
-      if (changedElements.isEmpty()) {
+      if (changedElements.isEmpty() && !useImpact) {
         // The only reason why this might appear is that the very last block is
         // infeasible in itself, however, we check for such cases during strengthen,
         // so they shouldn't appear here.

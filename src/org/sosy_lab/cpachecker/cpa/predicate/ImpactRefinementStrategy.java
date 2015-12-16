@@ -94,7 +94,9 @@ class ImpactRefinementStrategy extends RefinementStrategy {
       final Solver pSolver,
       final PredicateAbstractionManager pPredAbsMgr)
           throws InvalidConfigurationException {
-    super(pSolver);
+    //DEBUG
+    super(pSolver, true);
+    //GUBED
 
     bfmgr = pSolver.getFormulaManager().getBooleanFormulaManager();
     predAbsMgr = pPredAbsMgr;
