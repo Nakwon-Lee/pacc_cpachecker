@@ -305,7 +305,9 @@ public class CPAchecker {
             violatedPropertyDescription, null, stats);
       }
 
+      //DEBUG
       ReachedSetList reachedSetList = null;
+      //GUBED
 
       //DEBUG
       if(algorithm instanceof SnappableAlgorithm){
