@@ -107,6 +107,12 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   private final PredicateAbstractionManager predAbsMgr;
   private final ImpactUtility impact;
 
+  private static int numOfAffectedStates = 0;
+
+  public static int getNumOfAffectedStates(){
+    return numOfAffectedStates;
+  }
+
   public PredicateForcedCovering(Configuration config, LogManager pLogger,
       ConfigurableProgramAnalysis pCpa) throws InvalidConfigurationException {
     logger = pLogger;
@@ -177,6 +183,9 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
       if (stop.isForcedCoveringPossible(pState, coveringCandidate, pPrecision)) {
         stats.attemptedForcedCoverings++;
+        //DEBUG
+        System.out.println("attempting forced covering: "+ stats.attemptedForcedCoverings);
+        //GUBED
         logger.log(Level.ALL, "Candidate for forced-covering is", coveringCandidate);
 
         // A) find common parent of argState and coveringCandidate
@@ -230,6 +239,9 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
 
         stats.successfulForcedCoverings++;
+        //DEBUG
+        System.out.println("successed forced covering: "+ stats.successfulForcedCoverings);
+        //GUBED
         logger.log(Level.FINER, "Forced covering successful.");
 
         List<BooleanFormula> interpolants = interpolantInfo.getInterpolants();
@@ -251,11 +263,17 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
           boolean stateChanged = impact.strengthenStateWithInterpolant(
                                                 itp, element, lastAbstraction);
           if (stateChanged) {
+            numOfAffectedStates++;
             arg.removeCoverageOf(element);
           }
 
           lastAbstraction = getPredicateState(element).getAbstractionFormula();
         }
+
+        //DEBUG
+        System.out.println("removed coverage count: "+ARGReachedSet.getRemovedCoverageCount());
+        System.out.println("num of affected states: "+numOfAffectedStates);
+        //GUBED
 
         // For debugging, run stop operator on this element.
         // However, ARGStopSep may return false although it is covered,

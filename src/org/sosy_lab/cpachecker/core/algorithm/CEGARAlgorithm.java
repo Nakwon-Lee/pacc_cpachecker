@@ -327,6 +327,10 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
     stats.maxReachedSizeBeforeRefinement = Math.max(stats.maxReachedSizeBeforeRefinement, reached.size());
     sizeOfReachedSetBeforeRefinement = reached.size();
 
+    //DEBUG
+    System.out.println("refinement st ");
+    //GUBED
+
     stats.refinementTimer.start();
     boolean refinementResult;
     try {
@@ -337,6 +341,9 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       throw e;
     } finally {
       stats.refinementTimer.stop();
+      //DEBUG
+      System.out.println("refinement ed ");
+      //GUBED
     }
 
     logger.log(Level.FINE, "Refinement successful:", refinementResult);

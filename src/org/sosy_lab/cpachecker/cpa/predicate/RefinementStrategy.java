@@ -216,9 +216,13 @@ public abstract class RefinementStrategy {
     }
 
     numberOfAffectedStates.setNextValue(changedElements.size());
+    //DEBUG
+    System.out.println("number of affected states: " + numberOfAffectedStates);
+    //GUBED
     if (infeasiblePartOfART == lastElement) {
       pathLengthToInfeasibility++;
 
+      //if it is impact, it is not exception that there is no changed element
       if (changedElements.isEmpty() && !useImpact) {
         // The only reason why this might appear is that the very last block is
         // infeasible in itself, however, we check for such cases during strengthen,
@@ -229,6 +233,10 @@ public abstract class RefinementStrategy {
 
     // Hook
     finishRefinementOfPath(infeasiblePartOfART, changedElements, pReached, pRepeatedCounterexample);
+
+    //DEBUG
+    System.out.println("removed coverage count: "+ ARGReachedSet.getRemovedCoverageCount());
+    //GUBED
 
     // Update global statistics
     truePathPrefixStates.setNextValue(truePrefixStates);
