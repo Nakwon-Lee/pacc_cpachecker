@@ -25,8 +25,8 @@ package org.sosy_lab.cpachecker.core.reachedset;
 
 import java.util.LinkedList;
 
-
-@SuppressWarnings("serial")
 public class ReachedSetList extends LinkedList<ReachedSet> {
+
+  private static final long serialVersionUID = 4196096771940032943L;
 
 }
