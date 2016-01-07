@@ -23,8 +23,7 @@
  */
 package org.sosy_lab.cpachecker.core.reachedset;
 
-import java.io.Serializable;
+public interface ReachedSetCloneable extends ReachedSet, Cloneable {
 
-public interface ReachedSetCloneable extends ReachedSet, Serializable {
-  public ReachedSet clone();
+  public ReachedSetCloneable clone();
 }

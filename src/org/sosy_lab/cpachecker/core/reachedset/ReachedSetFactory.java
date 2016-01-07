@@ -84,7 +84,7 @@ public class ReachedSetFactory {
   String byAutomatonVariable = null;
 
   @Option(secure=true, name = "traversal.useCloneable",
-      description = "use cloneable waitlist and reached set")
+      description = "use cloneable reached set")
   boolean useCloneable = false;
 
   @Option(secure=true, name = "reachedSet",
@@ -164,16 +164,30 @@ public class ReachedSetFactory {
         waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
       }
 
-      switch (reachedSet) {
-      case PARTITIONED:
-        return new PartitionedReachedSet(waitlistFactory);
+      if (useCloneable){
+        switch (reachedSet) {
+        case PARTITIONED:
+          return new PartitionedReachedSetCloneable(waitlistFactory);
 
-      case LOCATIONMAPPED:
-        return new LocationMappedReachedSet(waitlistFactory);
+        case LOCATIONMAPPED:
+          return new LocationMappedReachedSet(waitlistFactory);
 
-      case NORMAL:
-      default:
-        return new DefaultReachedSet(waitlistFactory);
+        case NORMAL:
+        default:
+          return new DefaultReachedSetCloneable(waitlistFactory);
+        }
+      }else{
+        switch (reachedSet) {
+        case PARTITIONED:
+          return new PartitionedReachedSet(waitlistFactory);
+
+        case LOCATIONMAPPED:
+          return new LocationMappedReachedSet(waitlistFactory);
+
+        case NORMAL:
+        default:
+          return new DefaultReachedSet(waitlistFactory);
+        }
       }
     //}
   }

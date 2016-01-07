@@ -50,7 +50,10 @@ public abstract class AbstractSortedWaitlistCloneable<K extends Comparable<K>> i
 
   private static final long serialVersionUID = -8160471700162734350L;
 
-  private final WaitlistFactory wrappedWaitlist;
+  //DEBUG
+  //private final WaitlistFactory wrappedWaitlist;
+  protected final WaitlistFactory wrappedWaitlist;
+  //GUBED
 
   // invariant: all entries in this map are non-empty
   private final NavigableMap<K, Waitlist> waitlist = new TreeMap<>();

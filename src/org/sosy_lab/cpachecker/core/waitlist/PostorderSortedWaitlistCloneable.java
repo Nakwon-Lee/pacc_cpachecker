@@ -54,4 +54,9 @@ public class PostorderSortedWaitlistCloneable extends AbstractSortedWaitlistClon
       }
     };
   }
+
+  @Override
+  public PostorderSortedWaitlistCloneable clone(){
+    return new PostorderSortedWaitlistCloneable(wrappedWaitlist);
+  }
 }

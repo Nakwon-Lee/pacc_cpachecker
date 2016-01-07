@@ -58,6 +58,7 @@ import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationExc
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.InvalidComponentException;
 import org.sosy_lab.cpachecker.exceptions.RefinementFailedException;
+import org.sosy_lab.cpachecker.util.CameraForSnapshot;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -250,6 +251,15 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
       do {
         refinementSuccessful = false;
 
+        //DEBUG
+        //copy the solution
+        ReachedSetList tempReachedList;
+        //tempReachedList = clone(reachedList);
+        //GUBED
+
+        //making neighbor start
+        //do rollback by some probability
+
         // run algorithm
         try {
           status = status.update(algorithm.run(reachedList.getFirst()));
@@ -282,10 +292,18 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         }
 
         //DEBUG
-        //reachedList.addFirst(reachedList.getFirst());
+        //take a snapshot and evaluate
+        try {
+          CameraForSnapshot.takeSnapshot(reachedList.getFirst());
+        } catch (Exception e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
         //GUBED
+
         //DEBUG
-        //should change snapshot
+        //if cloned list is better than current one, replace current list to cloned list
+        //reahcedList = tempReachedList;
         //GUBED
 
       } while (refinementSuccessful);

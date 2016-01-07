@@ -55,4 +55,9 @@ public class LoopstackSortedWaitlistCloneable extends AbstractSortedWaitlistClon
       }
     };
   }
+
+  @Override
+  public LoopstackSortedWaitlistCloneable clone(){
+    return new LoopstackSortedWaitlistCloneable(wrappedWaitlist);
+  }
 }

@@ -36,6 +36,7 @@ import org.sosy_lab.common.Pair;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.waitlist.AbstractSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
 
@@ -53,7 +54,9 @@ class DefaultReachedSetCloneable implements ReachedSetCloneable {
   private final Set<AbstractState> unmodifiableReached;
   private AbstractState lastState = null;
   private AbstractState firstState = null;
-  private final Waitlist waitlist;
+  //DEBUG
+  protected final Waitlist waitlist;
+  //GUBED
 
   DefaultReachedSetCloneable(WaitlistFactory waitlistFactory) {
     reached = new LinkedHashMap<>();
@@ -281,7 +284,11 @@ class DefaultReachedSetCloneable implements ReachedSetCloneable {
   }
 
   @Override
-  public ReachedSet clone(){
+  public ReachedSetCloneable clone(){
+    if (waitlist instanceof AbstractSortedWaitlist){
+      AbstractSortedWaitlist absortwaitlist = (AbstractSortedWaitlist)waitlist;
+      return new DefaultReachedSetCloneable(absortwaitlist.getWLF());
+    }
     return null;
   }
 }

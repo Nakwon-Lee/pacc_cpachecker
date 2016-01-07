@@ -58,4 +58,10 @@ public class CallstackSortedWaitlistCloneable extends AbstractSortedWaitlistClon
       }
     };
   }
+
+  @Override
+  public CallstackSortedWaitlistCloneable clone(){
+
+    return new CallstackSortedWaitlistCloneable(wrappedWaitlist);
+  }
 }

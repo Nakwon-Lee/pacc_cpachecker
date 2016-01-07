@@ -67,6 +67,7 @@ import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.Targetable;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.ReachedSetCloneable;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetList;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.ParserException;
@@ -311,8 +312,10 @@ public class CPAchecker {
 
       //DEBUG
       if(algorithm instanceof SnappableAlgorithm){
-        reachedSetList = new ReachedSetList();
-        reachedSetList.add(reached);
+        if(reached instanceof ReachedSetCloneable){
+          reachedSetList = new ReachedSetList();
+          reachedSetList.add((ReachedSetCloneable)reached);
+        }
       }
       //GUBED
 

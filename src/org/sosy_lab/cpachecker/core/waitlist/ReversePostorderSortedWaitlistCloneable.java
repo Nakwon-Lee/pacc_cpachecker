@@ -54,4 +54,9 @@ public class ReversePostorderSortedWaitlistCloneable extends AbstractSortedWaitl
       }
     };
   }
+
+  @Override
+  public ReversePostorderSortedWaitlistCloneable clone(){
+    return new ReversePostorderSortedWaitlistCloneable(wrappedWaitlist);
+  }
 }

@@ -60,4 +60,9 @@ public class ExplicitSortedWaitlistCloneable extends AbstractSortedWaitlistClone
       }
     };
   }
+
+  @Override
+  public ExplicitSortedWaitlistCloneable clone(){
+    return new ExplicitSortedWaitlistCloneable(wrappedWaitlist);
+  }
 }

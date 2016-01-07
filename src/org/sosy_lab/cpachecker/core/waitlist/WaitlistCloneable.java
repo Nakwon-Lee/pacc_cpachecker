@@ -23,8 +23,6 @@
  */
 package org.sosy_lab.cpachecker.core.waitlist;
 
-import java.io.Serializable;
-
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 
 /**
@@ -41,21 +39,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
  *
  * The iterators provided by implementations may be unmodifiable.
  */
-public interface WaitlistCloneable extends Waitlist, Serializable {
-
-  /**
-   * Simple factory interface for waitlist implementations.
-   */
-  public static interface WaitlistFactory {
-
-    /**
-     * Create a fresh new empty instance of a waitlist.
-     * The factory should keep no references to the new instance,
-     * because clients of this interface may assume that nobody else will modify
-     * the new waitlist except themselves.
-     */
-    Waitlist createWaitlistInstance();
-  }
+public interface WaitlistCloneable extends Waitlist, Cloneable {
 
   /**
    * Enum containing standard waitlist strategies.

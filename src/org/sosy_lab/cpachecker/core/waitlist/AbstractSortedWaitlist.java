@@ -48,7 +48,10 @@ import com.google.errorprone.annotations.ForOverride;
  */
 public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements Waitlist {
 
+  //DEBUG
   private final WaitlistFactory wrappedWaitlist;
+  //protected final WaitlistFactory wrappedWaitlist;
+  //GUBED
 
   // invariant: all entries in this map are non-empty
   private final NavigableMap<K, Waitlist> waitlist = new TreeMap<>();
@@ -144,6 +147,10 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
       size--;
     }
     return result;
+  }
+
+  public WaitlistFactory getWLF(){
+    return wrappedWaitlist;
   }
 
   @Override

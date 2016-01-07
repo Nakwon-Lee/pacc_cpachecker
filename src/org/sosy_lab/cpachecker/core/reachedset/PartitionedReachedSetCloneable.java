@@ -31,6 +31,7 @@ import java.util.Set;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Partitionable;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.waitlist.AbstractSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -118,7 +119,11 @@ public class PartitionedReachedSetCloneable extends DefaultReachedSetCloneable {
   }
 
   @Override
-  public ReachedSet clone(){
+  public ReachedSetCloneable clone(){
+    if (waitlist instanceof AbstractSortedWaitlist){
+      AbstractSortedWaitlist absortwaitlist = (AbstractSortedWaitlist)waitlist;
+      return new PartitionedReachedSetCloneable(absortwaitlist.getWLF());
+    }
     return null;
   }
 }
