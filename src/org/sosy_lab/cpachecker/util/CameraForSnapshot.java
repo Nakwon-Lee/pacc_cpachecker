@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -42,7 +43,7 @@ public class CameraForSnapshot {
 
     clonedReached = pReached.clone();
 
-    AbstractState clonedRoot;
+    AbstractState clonedRoot = null;
 
     Set<ARGState> tset = ARGUtils.getRootStates(pReached);
 
@@ -51,6 +52,7 @@ public class CameraForSnapshot {
     root = tset.iterator().next();
 
     assert tset.size() == 1:"roots must be only one";
+    assert root instanceof ARGState:"root is not ARGState";
 
     ObjectOutputStream oos = null;
     ObjectInputStream ois = null;
@@ -75,15 +77,52 @@ public class CameraForSnapshot {
       ois.close();
     }
 
+    cloningReachedSetWithClonedARG(clonedReached, (ARGState)clonedRoot, pReached);
+
     return clonedReached;
+  }
+
+  private static void cloningReachedSetWithClonedARG(ReachedSetCloneable pClonedReached, ARGState pRoot, ReachedSetCloneable pReached){
+
+    Set<ARGState> clonedARG = new HashSet<>();
+
+    DFS(clonedARG,pRoot);
+
+    for (AbstractState as : pReached.asCollection()){
+      assert as instanceof ARGState : "state is not ARGState";
+      ARGState args = (ARGState) as;
+      ARGState k = null;
+      for (ARGState s : clonedARG){
+        if(args.getStateId() == s.getStateId()){
+          k = s;
+          break;
+        }
+      }
+      pClonedReached.add(k, pReached.getPrecision(as));
+    }
+
+    for (AbstractState as : pReached.getWaitlist()){
+      assert as instanceof ARGState : "state is not ARGState";
+      ARGState args = (ARGState) as;
+      ARGState k = null;
+      for (ARGState s : clonedARG){
+        if(args.getStateId() == s.getStateId()){
+          k = s;
+          break;
+        }
+      }
+      pClonedReached.
+    }
   }
 
   public static ReachedSetList takeSnapshot(ReachedSetList pReachedList){
     return null;
   }
 
-  private void DFS(){
-
+  private static void DFS(Set<ARGState> pset, ARGState root){
+    pset.add(root);
+    for (ARGState s : root.getChildren()){
+      DFS(pset,s);
+    }
   }
-
 }
