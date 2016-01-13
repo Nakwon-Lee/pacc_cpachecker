@@ -28,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -98,7 +99,10 @@ public class CameraForSnapshot {
           break;
         }
       }
-      pClonedReached.add(k, pReached.getPrecision(as));
+      if(k != null){
+        pClonedReached.add(k, pReached.getPrecision(as));
+        pClonedReached.removeOnlyFromWaitlist(k);
+      }
     }
 
     for (AbstractState as : pReached.getWaitlist()){
@@ -111,12 +115,29 @@ public class CameraForSnapshot {
           break;
         }
       }
-      pClonedReached.
+      if(k != null){
+        pClonedReached.reAddToWaitlist(k);
+      }
     }
   }
 
-  public static ReachedSetList takeSnapshot(ReachedSetList pReachedList){
-    return null;
+  public static ReachedSetList takeSnapshotList(ReachedSetList pReachedList){
+    ReachedSetList clonedReachedList = new ReachedSetList();
+    Iterator<ReachedSetCloneable> it = pReachedList.descendingIterator();
+    int i = 0;
+    while(it.hasNext()){
+      if(i >= 3){
+        break;
+      }
+      try {
+        clonedReachedList.addFirst(takeSnapshot(it.next()));
+        i++;
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    return clonedReachedList;
   }
 
   private static void DFS(Set<ARGState> pset, ARGState root){

@@ -56,12 +56,14 @@ class DefaultReachedSetCloneable implements ReachedSetCloneable {
   private AbstractState firstState = null;
   //DEBUG
   protected final Waitlist waitlist;
+  protected final WaitlistFactory waitlistFactory;
   //GUBED
 
-  DefaultReachedSetCloneable(WaitlistFactory waitlistFactory) {
+  DefaultReachedSetCloneable(WaitlistFactory pwaitlistFactory) {
     reached = new LinkedHashMap<>();
     unmodifiableReached = Collections.unmodifiableSet(reached.keySet());
-    waitlist = waitlistFactory.createWaitlistInstance();
+    waitlist = pwaitlistFactory.createWaitlistInstance();
+    waitlistFactory = pwaitlistFactory;
   }
 
   @Override

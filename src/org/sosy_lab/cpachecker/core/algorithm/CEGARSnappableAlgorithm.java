@@ -253,8 +253,7 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
 
         //DEBUG
         //copy the solution
-        ReachedSetList tempReachedList;
-        //tempReachedList = clone(reachedList);
+        ReachedSetList tempReachedList = CameraForSnapshot.takeSnapshotList(reachedList);
         //GUBED
 
         //making neighbor start
@@ -262,20 +261,20 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
 
         // run algorithm
         try {
-          status = status.update(algorithm.run(reachedList.getFirst()));
+          status = status.update(algorithm.run(tempReachedList.getLast()));
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
 
         // if there is any target state do refinement
-        if (refinementNecessary(reachedList.getFirst())) {
-          refinementSuccessful = refine(reachedList.getFirst());
+        if (refinementNecessary(tempReachedList.getLast())) {
+          refinementSuccessful = refine(tempReachedList.getLast());
           refinedInPreviousIteration = true;
           // assert that reached set is free of target states,
           // if refinement was successful and initial reached set was empty (i.e. stopAfterError=true)
           if (refinementSuccessful && initialReachedSetSize == 1) {
-            assert !from(reachedList.getFirst()).anyMatch(IS_TARGET_STATE);
+            assert !from(tempReachedList.getLast()).anyMatch(IS_TARGET_STATE);
           }
         }
 
@@ -286,7 +285,7 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
             break;
           }
 
-          ((UnsoundRefiner)mRefiner).forceRestart(reachedList.getFirst());
+          ((UnsoundRefiner)mRefiner).forceRestart(tempReachedList.getLast());
           refinementSuccessful        = true;
           refinedInPreviousIteration  = false;
         }
@@ -294,7 +293,7 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         //DEBUG
         //take a snapshot and evaluate
         try {
-          CameraForSnapshot.takeSnapshot(reachedList.getFirst());
+          reachedList.addLast(CameraForSnapshot.takeSnapshot(tempReachedList.getLast()));
         } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
