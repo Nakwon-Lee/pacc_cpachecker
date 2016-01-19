@@ -250,6 +250,9 @@ public class CPAchecker {
 
     MainCPAStatistics stats = null;
     ReachedSet reached = null;
+    //DEBUG
+    ReachedSetList reachedSetList = null;
+    //GUBED
     Result result = Result.NOT_YET_STARTED;
     String violatedPropertyDescription = "";
 
@@ -307,10 +310,6 @@ public class CPAchecker {
       }
 
       //DEBUG
-      ReachedSetList reachedSetList = null;
-      //GUBED
-
-      //DEBUG
       if(algorithm instanceof SnappableAlgorithm){
         if(reached instanceof ReachedSetCloneable){
           reachedSetList = new ReachedSetList();
@@ -338,19 +337,40 @@ public class CPAchecker {
       System.out.println("CPAchecker runAlgorithm ed");
       //GUBED
 
-      violatedPropertyDescription = findViolatedProperties(reached);
-      if (violatedPropertyDescription != null) {
-        if (!status.isPrecise()) {
-          result = Result.UNKNOWN;
+      if(reachedSetList == null){
+
+        violatedPropertyDescription = findViolatedProperties(reached);
+        if (violatedPropertyDescription != null) {
+          if (!status.isPrecise()) {
+            result = Result.UNKNOWN;
+          } else {
+            result = Result.FALSE;
+          }
         } else {
-          result = Result.FALSE;
+          violatedPropertyDescription = "";
+          result = analyzeResult(reached, status.isSound());
+          if (unknownAsTrue && result == Result.UNKNOWN) {
+            result = Result.TRUE;
+          }
         }
-      } else {
-        violatedPropertyDescription = "";
-        result = analyzeResult(reached, status.isSound());
-        if (unknownAsTrue && result == Result.UNKNOWN) {
-          result = Result.TRUE;
+
+      }else{
+        //DEBUG
+        violatedPropertyDescription = findViolatedProperties(reachedSetList.getLast());
+        if (violatedPropertyDescription != null) {
+          if (!status.isPrecise()) {
+            result = Result.UNKNOWN;
+          } else {
+            result = Result.FALSE;
+          }
+        } else {
+          violatedPropertyDescription = "";
+          result = analyzeResult(reachedSetList.getLast(), status.isSound());
+          if (unknownAsTrue && result == Result.UNKNOWN) {
+            result = Result.TRUE;
+          }
         }
+        //GUBED
       }
 
     } catch (IOException e) {
@@ -383,8 +403,15 @@ public class CPAchecker {
     } finally {
       shutdownNotifier.unregister(interruptThreadOnShutdown);
     }
-    return new CPAcheckerResult(result,
-        violatedPropertyDescription, reached, stats);
+    if(reachedSetList == null){
+      return new CPAcheckerResult(result,
+          violatedPropertyDescription, reached, stats);
+    }else{
+      //DEBUG
+      return new CPAcheckerResult(result,
+          violatedPropertyDescription, reachedSetList.getLast(), stats);
+      //GUBED
+    }
   }
 
   private void checkIfOneValidFile(String fileDenotation) throws InvalidConfigurationException {
@@ -482,7 +509,7 @@ public class CPAchecker {
 
         // either run only once (if stopAfterError == true)
         // or until the waitlist is empty
-      } while (!stopAfterError && reachedList.getFirst().hasWaitingState());
+      } while (!stopAfterError && reachedList.getLast().hasWaitingState());
 
       logger.log(Level.INFO, "Stopping analysis ...");
       return status;
