@@ -59,6 +59,8 @@ import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.InvalidComponentException;
 import org.sosy_lab.cpachecker.exceptions.RefinementFailedException;
 import org.sosy_lab.cpachecker.util.CameraForSnapshot;
+import org.sosy_lab.cpachecker.util.snapshot.Fitness;
+import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -259,22 +261,24 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         //making neighbor start
         //do rollback by some probability
 
+        long start_t = System.currentTimeMillis();
+
         // run algorithm
         try {
-          status = status.update(algorithm.run(tempReachedList.getLast()));
+          status = status.update(algorithm.run(tempReachedList.getLast().left));
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
 
         // if there is any target state do refinement
-        if (refinementNecessary(tempReachedList.getLast())) {
-          refinementSuccessful = refine(tempReachedList.getLast());
+        if (refinementNecessary(tempReachedList.getLast().left)) {
+          refinementSuccessful = refine(tempReachedList.getLast().left);
           refinedInPreviousIteration = true;
           // assert that reached set is free of target states,
           // if refinement was successful and initial reached set was empty (i.e. stopAfterError=true)
           if (refinementSuccessful && initialReachedSetSize == 1) {
-            assert !from(tempReachedList.getLast()).anyMatch(IS_TARGET_STATE);
+            assert !from(tempReachedList.getLast().left).anyMatch(IS_TARGET_STATE);
           }
         }
 
@@ -285,15 +289,18 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
             break;
           }
 
-          ((UnsoundRefiner)mRefiner).forceRestart(tempReachedList.getLast());
+          ((UnsoundRefiner)mRefiner).forceRestart(tempReachedList.getLast().left);
           refinementSuccessful        = true;
           refinedInPreviousIteration  = false;
         }
 
+        long end_t = System.currentTimeMillis();
+
         //DEBUG
         //take a snapshot and evaluate
         try {
-          reachedList.addLast(CameraForSnapshot.takeSnapshot(tempReachedList.getLast()));
+          reachedList.addLast(new Pair<>(CameraForSnapshot.takeSnapshot(tempReachedList.getLast().left),new Fitness()));
+          reachedList.getLast().right.eachRunTime = end_t-start_t;
         } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();

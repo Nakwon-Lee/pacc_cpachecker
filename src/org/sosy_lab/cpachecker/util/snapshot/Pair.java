@@ -2,7 +2,7 @@
  *  CPAchecker is a tool for configurable software verification.
  *  This file is part of CPAchecker.
  *
- *  Copyright (C) 2007-2015  Dirk Beyer
+ *  Copyright (C) 2007-2016  Dirk Beyer
  *  All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +21,16 @@
  *  CPAchecker web page:
  *    http://cpachecker.sosy-lab.org
  */
-package org.sosy_lab.cpachecker.core.reachedset;
+package org.sosy_lab.cpachecker.util.snapshot;
 
-import java.util.LinkedList;
 
-import org.sosy_lab.cpachecker.util.snapshot.Fitness;
-import org.sosy_lab.cpachecker.util.snapshot.Pair;
+public class Pair<L,R> {
 
-public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness>> {
+  public L left;
+  public R right;
 
-  private static final long serialVersionUID = 4196096771940032943L;
-
+  public Pair(L pLeft, R pRight){
+    left = pLeft;
+    right = pRight;
+  }
 }

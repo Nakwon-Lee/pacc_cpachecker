@@ -36,6 +36,8 @@ import org.sosy_lab.cpachecker.core.reachedset.ReachedSetCloneable;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetList;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.arg.ARGUtils;
+import org.sosy_lab.cpachecker.util.snapshot.Fitness;
+import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
 public class CameraForSnapshot {
   public static ReachedSetCloneable takeSnapshot(ReachedSetCloneable pReached) throws Exception{
@@ -123,14 +125,15 @@ public class CameraForSnapshot {
 
   public static ReachedSetList takeSnapshotList(ReachedSetList pReachedList){
     ReachedSetList clonedReachedList = new ReachedSetList();
-    Iterator<ReachedSetCloneable> it = pReachedList.descendingIterator();
+    Iterator<Pair<ReachedSetCloneable, Fitness>> it = pReachedList.descendingIterator();
     int i = 0;
     while(it.hasNext()){
       if(i >= 3){
         break;
       }
       try {
-        clonedReachedList.addFirst(takeSnapshot(it.next()));
+        Pair<ReachedSetCloneable, Fitness> next = it.next();
+        clonedReachedList.addFirst(new Pair<>(takeSnapshot(next.left),next.right));
         i++;
       } catch (Exception e) {
         // TODO Auto-generated catch block

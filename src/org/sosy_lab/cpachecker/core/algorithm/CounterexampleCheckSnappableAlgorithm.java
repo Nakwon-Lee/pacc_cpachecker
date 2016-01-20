@@ -27,6 +27,7 @@ import static com.google.common.collect.FluentIterable.from;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.toPercent;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -118,7 +119,7 @@ public class CounterexampleCheckSnappableAlgorithm implements SnappableAlgorithm
   }
 
   @Override
-  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException, IOException {
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
     //DEBUG
@@ -192,18 +193,18 @@ public class CounterexampleCheckSnappableAlgorithm implements SnappableAlgorithm
 
     //GUBED
 
-    while (pReachedSetList.getFirst().hasWaitingState()) {
+    while (pReachedSetList.getLast().left.hasWaitingState()) {
       status = status.update(((SnappableAlgorithm)algorithm).run(pReachedSetList));
-      assert ARGUtils.checkARG(pReachedSetList.getFirst());
+      assert ARGUtils.checkARG(pReachedSetList.getLast().left);
 
       //find error state
-      ARGState lastState = (ARGState)pReachedSetList.getFirst().getLastState();
+      ARGState lastState = (ARGState)pReachedSetList.getLast().left.getLastState();
 
       Deque<ARGState> errorStates = new ArrayDeque<>();
       if (lastState != null && lastState.isTarget()) {
         errorStates.add(lastState);
       } else {
-        from(pReachedSetList.getFirst())
+        from(pReachedSetList.getLast().left)
           .transform(AbstractStates.toState(ARGState.class))
           .filter(AbstractStates.IS_TARGET_STATE)
           .filter(Predicates.not(Predicates.in(checkedTargetStates)))
@@ -221,14 +222,14 @@ public class CounterexampleCheckSnappableAlgorithm implements SnappableAlgorithm
         boolean foundCounterexample = false;
         while (!errorStates.isEmpty()) {
           ARGState errorState = errorStates.pollFirst();
-          if (!pReachedSetList.getFirst().contains(errorState)) {
+          if (!pReachedSetList.getLast().left.contains(errorState)) {
             // errorState was already removed due to earlier loop iterations
             continue;
           }
 
           status = AlgorithmStatus.SOUND_AND_PRECISE.withSound(
-              checkCounterexample(errorState, pReachedSetList.getFirst(), status.isSound()));
-          if (pReachedSetList.getFirst().contains(errorState)) {
+              checkCounterexample(errorState, pReachedSetList.getLast().left, status.isSound()));
+          if (pReachedSetList.getLast().left.contains(errorState)) {
             checkedTargetStates.add(errorState);
             foundCounterexample = true;
           }

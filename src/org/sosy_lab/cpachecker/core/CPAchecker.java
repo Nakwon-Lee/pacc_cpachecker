@@ -75,6 +75,8 @@ import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.automaton.TargetLocationProvider;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
+import org.sosy_lab.cpachecker.util.snapshot.Fitness;
+import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -313,7 +315,7 @@ public class CPAchecker {
       if(algorithm instanceof SnappableAlgorithm){
         if(reached instanceof ReachedSetCloneable){
           reachedSetList = new ReachedSetList();
-          reachedSetList.add((ReachedSetCloneable)reached);
+          reachedSetList.add(new Pair<>((ReachedSetCloneable)reached,new Fitness()));
         }
       }
       //GUBED
@@ -356,7 +358,7 @@ public class CPAchecker {
 
       }else{
         //DEBUG
-        violatedPropertyDescription = findViolatedProperties(reachedSetList.getLast());
+        violatedPropertyDescription = findViolatedProperties(reachedSetList.getLast().left);
         if (violatedPropertyDescription != null) {
           if (!status.isPrecise()) {
             result = Result.UNKNOWN;
@@ -365,7 +367,7 @@ public class CPAchecker {
           }
         } else {
           violatedPropertyDescription = "";
-          result = analyzeResult(reachedSetList.getLast(), status.isSound());
+          result = analyzeResult(reachedSetList.getLast().left, status.isSound());
           if (unknownAsTrue && result == Result.UNKNOWN) {
             result = Result.TRUE;
           }
@@ -409,7 +411,7 @@ public class CPAchecker {
     }else{
       //DEBUG
       return new CPAcheckerResult(result,
-          violatedPropertyDescription, reachedSetList.getLast(), stats);
+          violatedPropertyDescription, reachedSetList.getLast().left, stats);
       //GUBED
     }
   }
@@ -509,7 +511,7 @@ public class CPAchecker {
 
         // either run only once (if stopAfterError == true)
         // or until the waitlist is empty
-      } while (!stopAfterError && reachedList.getLast().hasWaitingState());
+      } while (!stopAfterError && reachedList.getLast().left.hasWaitingState());
 
       logger.log(Level.INFO, "Stopping analysis ...");
       return status;
