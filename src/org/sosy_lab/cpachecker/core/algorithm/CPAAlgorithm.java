@@ -59,8 +59,10 @@ import org.sosy_lab.cpachecker.core.interfaces.StopOperator;
 import org.sosy_lab.cpachecker.core.interfaces.TransferRelation;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGMergeJoinCPAEnabledAnalysis;
+import org.sosy_lab.cpachecker.cpa.predicate.PredicateForcedCovering;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.snapshot.Fitness;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -212,6 +214,18 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     status = AlgorithmStatus.SOUND_AND_PRECISE.withPrecise(!pIsImprecise);
   }
 
+  public boolean setFitnessFC(Fitness pFitness){
+    if(forcedCovering != null){
+      if(forcedCovering instanceof PredicateForcedCovering){
+        PredicateForcedCovering pFC = (PredicateForcedCovering) forcedCovering;
+        pFitness.nOfAttemptedFC = pFC.getAttemptedFC();
+        pFitness.nOfSuccessfulFC = pFC.getSuccesfullFC();
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public AlgorithmStatus run(final ReachedSet reachedSet) throws InterruptedException, CPAException   {
     stats.totalTimer.start();
@@ -278,8 +292,11 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
           boolean stop = forcedCovering.tryForcedCovering(state, precision, reachedSet);
 
           if (stop) {
+            //DEBUG
             // TODO: remove state from reached set?
-            continue;
+            return status;
+            //continue;
+            //DEBUG
           }
         } finally {
           stats.forcedCoveringTimer.stop();

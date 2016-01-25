@@ -26,4 +26,11 @@ package org.sosy_lab.cpachecker.util.snapshot;
 
 public class Fitness {
   public long eachRunTime;
+  public int nOfRefinements;
+  public int nOfAttemptedFC;
+  public int nOfSuccessfulFC;
+
+  public void printFitness(){
+    System.out.println("Fitness: "+ eachRunTime + ", " + nOfRefinements+", "+nOfAttemptedFC+", "+nOfSuccessfulFC);
+  }
 }

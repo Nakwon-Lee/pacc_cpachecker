@@ -113,6 +113,14 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     return numOfAffectedStates;
   }
 
+  public int getAttemptedFC(){
+    return stats.attemptedForcedCoverings;
+  }
+
+  public int getSuccesfullFC(){
+    return stats.successfulForcedCoverings;
+  }
+
   public PredicateForcedCovering(Configuration config, LogManager pLogger,
       ConfigurableProgramAnalysis pCpa) throws InvalidConfigurationException {
     logger = pLogger;

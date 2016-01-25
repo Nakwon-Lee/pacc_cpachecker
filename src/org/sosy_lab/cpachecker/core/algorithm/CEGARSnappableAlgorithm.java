@@ -301,6 +301,14 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         try {
           reachedList.addLast(new Pair<>(CameraForSnapshot.takeSnapshot(tempReachedList.getLast().left),new Fitness()));
           reachedList.getLast().right.eachRunTime = end_t-start_t;
+          reachedList.getLast().right.nOfRefinements = stats.countRefinements;
+          if(algorithm instanceof CPAAlgorithm){
+            CPAAlgorithm algo = (CPAAlgorithm)algorithm;
+            if(!algo.setFitnessFC(reachedList.getLast().right)){
+              throw new Exception();
+            }
+          }
+          reachedList.getLast().right.printFitness();
         } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
