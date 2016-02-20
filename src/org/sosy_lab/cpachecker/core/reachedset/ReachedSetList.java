@@ -23,13 +23,68 @@
  */
 package org.sosy_lab.cpachecker.core.reachedset;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.sosy_lab.cpachecker.util.snapshot.Fitness;
 import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
-public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness>> {
+public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness>> implements Comparable<ReachedSetList> {
 
   private static final long serialVersionUID = 4196096771940032943L;
 
+  @Override
+  //return the negative integer value when this instance is more fitted than the given instance
+  public int compareTo(ReachedSetList pO) {
+    Pair<ReachedSetCloneable, Fitness> thisSet = this.getLast();
+    Pair<ReachedSetCloneable, Fitness> pOSet = pO.getLast();
+
+    //need to match the snapshot number
+    if(thisSet.number > pOSet.number){
+      Iterator<Pair<ReachedSetCloneable, Fitness>> it = this.descendingIterator();
+      while(it.hasNext()){
+        Pair<ReachedSetCloneable, Fitness> curr = it.next();
+        if(pOSet.number == curr.number){
+          thisSet = curr;
+          break;
+        }
+      }
+    }else if(thisSet.number < pOSet.number) {
+      Iterator<Pair<ReachedSetCloneable, Fitness>> it = pO.descendingIterator();
+      while(it.hasNext()){
+        Pair<ReachedSetCloneable, Fitness> curr = it.next();
+        if(thisSet.number == curr.number){
+          pOSet = curr;
+          break;
+        }
+      }
+    }
+
+    assert thisSet.number == pOSet.number : "two reachedsets must have pair of having same number";
+
+    return compareFitness(thisSet.right, pOSet.right);
+  }
+
+  private int compareFitness(Fitness pThis, Fitness pO){
+    if(pThis.refinementSuccessful && pO.refinementSuccessful){ //both are true
+      return 0;
+    }else if(pThis.refinementSuccessful && !pO.refinementSuccessful){
+      return -1;
+    }else if(!pThis.refinementSuccessful && pO.refinementSuccessful){
+      return 1;
+    }
+
+    //if it reach here, both refinementSuccessful are false
+    if(pThis.nOfRefinements < pO.nOfRefinements){
+      return -1;
+    }else if(pThis.nOfRefinements > pO.nOfRefinements){
+      return 1;
+    }
+
+    //if it reach here, both nOfRefienemnts are same
+    if( ){
+
+    }
+    return 0;
+  }
 }

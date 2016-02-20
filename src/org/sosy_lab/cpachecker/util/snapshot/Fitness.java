@@ -29,6 +29,23 @@ public class Fitness {
   public int nOfRefinements;
   public int nOfAttemptedFC;
   public int nOfSuccessfulFC;
+  public boolean refinementSuccessful;
+
+  public Fitness(){
+    eachRunTime = 0;
+    nOfRefinements = 0;
+    nOfAttemptedFC = 0;
+    nOfSuccessfulFC = 0;
+    refinementSuccessful = false;
+  }
+
+  public Fitness(Fitness pFitness){
+    eachRunTime = pFitness.eachRunTime;
+    nOfRefinements = pFitness.nOfRefinements;
+    nOfAttemptedFC = pFitness.nOfAttemptedFC;
+    nOfSuccessfulFC = pFitness.nOfSuccessfulFC;
+    refinementSuccessful = false;
+  }
 
   public void printFitness(){
     System.out.println("Fitness: "+ eachRunTime + ", " + nOfRefinements+", "+nOfAttemptedFC+", "+nOfSuccessfulFC);

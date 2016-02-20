@@ -133,7 +133,7 @@ public class CameraForSnapshot {
       }
       try {
         Pair<ReachedSetCloneable, Fitness> next = it.next();
-        clonedReachedList.addFirst(new Pair<>(takeSnapshot(next.left),next.right));
+        clonedReachedList.addFirst(new Pair<>(takeSnapshot(next.left),next.right,next.number));
         i++;
       } catch (Exception e) {
         // TODO Auto-generated catch block

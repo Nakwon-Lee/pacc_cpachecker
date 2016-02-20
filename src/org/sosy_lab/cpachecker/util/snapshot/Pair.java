@@ -29,8 +29,11 @@ public class Pair<L,R> {
   public L left;
   public R right;
 
-  public Pair(L pLeft, R pRight){
+  public int number;
+
+  public Pair(L pLeft, R pRight, int pNum){
     left = pLeft;
     right = pRight;
+    number = pNum;
   }
 }

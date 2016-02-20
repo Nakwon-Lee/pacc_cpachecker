@@ -260,6 +260,30 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
 
         //making neighbor start
         //do rollback by some probability
+        if(Math.random() > 0.7){//do three tenth
+          double nOfRollback = Math.random()*3; //three is connected to the limited number of snapshots
+          int j=0;
+          for(int i = 1; i<nOfRollback; i++){
+            if(tempReachedList.size() > 1){
+              tempReachedList.removeLast();
+            }else{
+              break;
+            }
+            j++;
+            if(j>=2){
+              break;
+            }
+          }
+        }
+
+        assert tempReachedList.getLast().right != null : "fitness must not null";
+        stats.countRefinements = tempReachedList.getLast().right.nOfRefinements;
+        if(algorithm instanceof CPAAlgorithm){
+          CPAAlgorithm algo = (CPAAlgorithm)algorithm;
+          if(!algo.setStatsOfFC(tempReachedList.getLast().right)){
+            throw new Exception();
+          }
+        }
 
         long start_t = System.currentTimeMillis();
 
@@ -297,22 +321,42 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         long end_t = System.currentTimeMillis();
 
         //DEBUG
-        //take a snapshot and evaluate
-        try {
-          reachedList.addLast(new Pair<>(CameraForSnapshot.takeSnapshot(tempReachedList.getLast().left),new Fitness()));
-          reachedList.getLast().right.eachRunTime = end_t-start_t;
-          reachedList.getLast().right.nOfRefinements = stats.countRefinements;
+        //evaluate
+        try{
+          tempReachedList.getLast().right.eachRunTime += (end_t-start_t);
+          tempReachedList.getLast().right.nOfRefinements = stats.countRefinements;
           if(algorithm instanceof CPAAlgorithm){
             CPAAlgorithm algo = (CPAAlgorithm)algorithm;
-            if(!algo.setFitnessFC(reachedList.getLast().right)){
+            if(!algo.setFitnessFC(tempReachedList.getLast().right)){
               throw new Exception();
             }
           }
-          reachedList.getLast().right.printFitness();
-        } catch (Exception e) {
-          // TODO Auto-generated catch block
+          tempReachedList.getLast().right.refinementSuccessful = refinementSuccessful;
+          //tempReachedList.getLast().right.printFitness();
+        }catch(Exception e){
           e.printStackTrace();
         }
+
+        //compare neighbour and current solution
+        if(tempReachedList.compareTo(reachedList) < 0){
+
+        }
+          try {
+            reachedList.addLast(new Pair<>(CameraForSnapshot.takeSnapshot(tempReachedList.getLast().left),new Fitness(tempReachedList.getLast().right),tempReachedList.getLast().number + 1));
+            reachedList.getLast().right.eachRunTime += (end_t-start_t);
+            reachedList.getLast().right.nOfRefinements = stats.countRefinements;
+            if(algorithm instanceof CPAAlgorithm){
+              CPAAlgorithm algo = (CPAAlgorithm)algorithm;
+              if(!algo.setFitnessFC(reachedList.getLast().right)){
+                throw new Exception();
+              }
+            }
+            reachedList.getLast().right.refinementSuccessful = refinementSuccessful;
+            reachedList.getLast().right.printFitness();
+          } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
         //GUBED
 
         //DEBUG
@@ -320,7 +364,9 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         //reahcedList = tempReachedList;
         //GUBED
 
-      } while (refinementSuccessful);
+      } while (refinementSuccessful) {
+        ;
+      }
 
     } finally {
       stats.totalTimer.stop();

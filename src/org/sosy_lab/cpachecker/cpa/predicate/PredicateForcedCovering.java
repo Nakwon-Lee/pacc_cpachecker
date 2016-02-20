@@ -117,8 +117,16 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     return stats.attemptedForcedCoverings;
   }
 
+  public void setAttemptedFC(int pInt){
+    stats.attemptedForcedCoverings = pInt;
+  }
+
   public int getSuccesfullFC(){
     return stats.successfulForcedCoverings;
+  }
+
+  public void setSuccesfullFC(int pInt){
+    stats.successfulForcedCoverings = pInt;
   }
 
   public PredicateForcedCovering(Configuration config, LogManager pLogger,
