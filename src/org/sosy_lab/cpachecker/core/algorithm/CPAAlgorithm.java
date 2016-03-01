@@ -214,7 +214,8 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     status = AlgorithmStatus.SOUND_AND_PRECISE.withPrecise(!pIsImprecise);
   }
 
-  public boolean setStatsOfFC(Fitness pFitness){
+//DEBUG
+  public boolean setStatsOfFC(Fitness pFitness) throws Exception{
     if(forcedCovering != null){
       if(forcedCovering instanceof PredicateForcedCovering){
         PredicateForcedCovering pFC = (PredicateForcedCovering) forcedCovering;
@@ -223,7 +224,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
         return true;
       }
     }
-    return false;
+    throw new Exception();
   }
 
   public boolean setFitnessFC(Fitness pFitness){
@@ -237,6 +238,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     }
     return false;
   }
+  //GUBED
 
   @Override
   public AlgorithmStatus run(final ReachedSet reachedSet) throws InterruptedException, CPAException   {

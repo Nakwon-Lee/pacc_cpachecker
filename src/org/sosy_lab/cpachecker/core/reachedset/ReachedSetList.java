@@ -82,9 +82,7 @@ public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness
     }
 
     //if it reach here, both nOfRefienemnts are same
-    if( ){
 
-    }
     return 0;
   }
 }

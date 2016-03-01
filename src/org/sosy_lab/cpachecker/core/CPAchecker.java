@@ -315,7 +315,7 @@ public class CPAchecker {
       if(algorithm instanceof SnappableAlgorithm){
         if(reached instanceof ReachedSetCloneable){
           reachedSetList = new ReachedSetList();
-          reachedSetList.add(new Pair<>((ReachedSetCloneable)reached,new Fitness()));
+          reachedSetList.add(new Pair<>((ReachedSetCloneable)reached,new Fitness(),0));
         }
       }
       //GUBED
