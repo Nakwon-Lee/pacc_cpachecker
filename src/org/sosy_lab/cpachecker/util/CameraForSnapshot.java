@@ -40,6 +40,9 @@ import org.sosy_lab.cpachecker.util.snapshot.Fitness;
 import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
 public class CameraForSnapshot {
+
+  private final static int numOfSnapshot = 3;
+
   public static ReachedSetCloneable takeSnapshot(ReachedSetCloneable pReached) throws Exception{
 
     ReachedSetCloneable clonedReached = null;
@@ -128,7 +131,7 @@ public class CameraForSnapshot {
     Iterator<Pair<ReachedSetCloneable, Fitness>> it = pReachedList.descendingIterator();
     int i = 0;
     while(it.hasNext()){
-      if(i >= 3){
+      if(i >= numOfSnapshot){
         break;
       }
       try {
@@ -148,5 +151,9 @@ public class CameraForSnapshot {
     for (ARGState s : root.getChildren()){
       DFS(pset,s);
     }
+  }
+
+  public static int getNumOfSnapshot(){
+    return numOfSnapshot;
   }
 }

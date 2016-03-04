@@ -61,6 +61,8 @@ public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness
     }
 
     assert thisSet.number == pOSet.number : "two reachedsets must have pair of having same number";
+    //fitness must be compared btw same indexed snapshot
+    //different indices of snapshot are not related to each other, reasonable?
 
     return compareFitness(thisSet.right, pOSet.right);
   }

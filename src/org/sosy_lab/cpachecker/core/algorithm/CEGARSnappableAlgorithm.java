@@ -254,14 +254,15 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         refinementSuccessful = false;
 
         //DEBUG
-        //copy the solution with limited number of snapshots (initially 3?)
+        //copy the solution with limited number of snapshots (initially 3, CameraForSnapshot.numOfSnapshot by method CameraForSnapshot.getNumOfSnapshot() )
         ReachedSetList tempReachedList = CameraForSnapshot.takeSnapshotList(reachedList);
         //GUBED
 
         //making neighbor start
-        //do rollback by some probability
+
+        //1. do rollback by some probability
         if(Math.random() > 0.7){//do three tenth
-          double nOfRollback = Math.random()*3; //three is connected to the limited number of snapshots
+          double nOfRollback = Math.random()*CameraForSnapshot.getNumOfSnapshot(); //getNumOfSnapshot() is limited number of snapshots
           int j=0;
           for(int i = 1; i<nOfRollback; i++){
             if(tempReachedList.size() > 1){
@@ -277,7 +278,10 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         }
 
         assert tempReachedList.getLast().right != null : "fitness must not be null";
+
+        //Update the refinements count of CEGARStatistics
         stats.countRefinements = tempReachedList.getLast().right.nOfRefinements;
+
         if(algorithm instanceof CPAAlgorithm){
           CPAAlgorithm algo = (CPAAlgorithm)algorithm;
           try{

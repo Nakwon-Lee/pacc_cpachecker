@@ -24,7 +24,7 @@
 package org.sosy_lab.cpachecker.util.snapshot;
 
 
-public class Fitness {
+public class Fitness implements Comparable<Fitness>{
   public long eachRunTime;
   public int nOfRefinements;
   public int nOfAttemptedFC;
@@ -49,5 +49,27 @@ public class Fitness {
 
   public void printFitness(){
     System.out.println("Fitness: "+ eachRunTime + ", " + nOfRefinements+", "+nOfAttemptedFC+", "+nOfSuccessfulFC);
+  }
+
+  @Override
+  public int compareTo(Fitness pO) {
+    if(refinementSuccessful && pO.refinementSuccessful){ //both are true
+      return 0;
+    }else if(refinementSuccessful && !pO.refinementSuccessful){
+      return -1;
+    }else if(!refinementSuccessful && pO.refinementSuccessful){
+      return 1;
+    }
+
+    //if it reach here, both refinementSuccessful are false
+    if(nOfRefinements < pO.nOfRefinements){
+      return -1;
+    }else if(nOfRefinements > pO.nOfRefinements){
+      return 1;
+    }
+
+    //if it reach here, both nOfRefienemnts are same
+
+    return 0;
   }
 }
