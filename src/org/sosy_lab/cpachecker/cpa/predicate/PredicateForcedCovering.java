@@ -109,6 +109,10 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
   private static int numOfAffectedStates = 0;
 
+  //DEBUG
+  private final boolean randomizedFC = true;
+  //GUBED
+
   public static int getNumOfAffectedStates(){
     return numOfAffectedStates;
   }
@@ -183,9 +187,25 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
     List<ARGState> parentList = getAbstractionPathTo(argState);
 
+    //DEBUG
     int attempts = 0;
+    int attemptslimit;
+    if(randomizedFC){
+      attemptslimit = (int)(Math.random() * 5); //random number of attempts
+    }else{
+      attemptslimit = 3;
+    }
+    //GUBED
 
-    for (final AbstractState coveringCandidate : pReached.getReached(pState)) {
+    //DEBUG
+    Collection<AbstractState> pReachedColl = pReached.getReached(pState);
+    List<AbstractState> pReachedList = new ArrayList<>(pReachedColl);
+    if(randomizedFC){
+      Collections.shuffle(pReachedList);
+    }
+    //GUBED
+
+    for (final AbstractState coveringCandidate : pReachedList) {
       if (pState == coveringCandidate) {
         continue;
       }
@@ -246,11 +266,11 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
           //DEBUG
 
           attempts++;
-          if(attempts > 3){
+          if(attempts > attemptslimit){
             break;
           }
           //GUBED
-          continue; // forced covering not possible
+          continue; // forced covering is not possible
         }
 
 

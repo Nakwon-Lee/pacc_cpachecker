@@ -40,16 +40,8 @@ public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness
     Pair<ReachedSetCloneable, Fitness> pOSet = pO.getLast();
 
     //need to match the snapshot number
-    if(thisSet.number > pOSet.number){
-      Iterator<Pair<ReachedSetCloneable, Fitness>> it = this.descendingIterator();
-      while(it.hasNext()){
-        Pair<ReachedSetCloneable, Fitness> curr = it.next();
-        if(pOSet.number == curr.number){
-          thisSet = curr;
-          break;
-        }
-      }
-    }else if(thisSet.number < pOSet.number) {
+    //this must be the tempReachedList
+    if(thisSet.number <= pOSet.number) {
       Iterator<Pair<ReachedSetCloneable, Fitness>> it = pO.descendingIterator();
       while(it.hasNext()){
         Pair<ReachedSetCloneable, Fitness> curr = it.next();
@@ -60,11 +52,15 @@ public class ReachedSetList extends LinkedList<Pair<ReachedSetCloneable, Fitness
       }
     }
 
-    assert thisSet.number == pOSet.number : "two reachedsets must have pair of having same number";
+    assert thisSet.number >= pOSet.number : "tempReachedList must be longer than or equal to original";
     //fitness must be compared btw same indexed snapshot
     //different indices of snapshot are not related to each other, reasonable?
 
-    return compareFitness(thisSet.right, pOSet.right);
+    if(thisSet.number > pOSet.number){
+      return thisSet.right.compareToBigger(pOSet.right);
+    }else{
+      return thisSet.right.compareTo(pOSet.right);
+    }
   }
 
   private int compareFitness(Fitness pThis, Fitness pO){

@@ -48,28 +48,65 @@ public class Fitness implements Comparable<Fitness>{
   }
 
   public void printFitness(){
-    System.out.println("Fitness: "+ eachRunTime + ", " + nOfRefinements+", "+nOfAttemptedFC+", "+nOfSuccessfulFC);
+    System.out.println("Fitness: "+refinementSuccessful+","+ eachRunTime + ", " + nOfRefinements+", "+nOfAttemptedFC+", "+nOfSuccessfulFC);
   }
 
   @Override
   public int compareTo(Fitness pO) {
-    if(refinementSuccessful && pO.refinementSuccessful){ //both are true
+    if(!refinementSuccessful && !pO.refinementSuccessful){ //both are false
       return 0;
     }else if(refinementSuccessful && !pO.refinementSuccessful){
-      return -1;
+      return 1;
     }else if(!refinementSuccessful && pO.refinementSuccessful){
+      return -1;
+    }
+
+    if(nOfSuccessfulFC < pO.nOfSuccessfulFC){
+      return 1;
+    }else if(nOfSuccessfulFC > pO.nOfSuccessfulFC){
+      return -1;
+    }
+
+    if(nOfAttemptedFC < pO.nOfAttemptedFC){
+      return -1;
+    }else if(nOfAttemptedFC > pO.nOfAttemptedFC){
       return 1;
     }
 
-    //if it reach here, both refinementSuccessful are false
     if(nOfRefinements < pO.nOfRefinements){
       return -1;
     }else if(nOfRefinements > pO.nOfRefinements){
       return 1;
     }
 
-    //if it reach here, both nOfRefienemnts are same
-
     return 0;
+  }
+
+  public int compareToBigger(Fitness pO){
+    if(!refinementSuccessful && !pO.refinementSuccessful){ //both are false
+      return 0;
+    }else if(refinementSuccessful && !pO.refinementSuccessful){
+      return 1;
+    }else if(!refinementSuccessful && pO.refinementSuccessful){
+      return -1;
+    }
+
+    if(nOfSuccessfulFC < pO.nOfSuccessfulFC){
+      return 1;
+    }else if(nOfSuccessfulFC > pO.nOfSuccessfulFC){
+      return -1;
+    }
+
+    if(nOfAttemptedFC < pO.nOfAttemptedFC){
+      return -1;
+    }else if(nOfAttemptedFC > pO.nOfAttemptedFC){
+      return 1;
+    }
+
+    if(nOfRefinements-1 <= pO.nOfRefinements){
+      return -1;
+    }else{
+      return 1;
+    }
   }
 }

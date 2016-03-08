@@ -271,15 +271,17 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
               break;
             }
             j++;
-            if(j>=2){
+            if(j>= CameraForSnapshot.getNumOfSnapshot()-1){
               break;
             }
           }
         }
 
+        tempReachedList.getLast().number++;
+
         assert tempReachedList.getLast().right != null : "fitness must not be null";
 
-        //Update the refinements count of CEGARStatistics
+        //2. Update the status of statistics
         stats.countRefinements = tempReachedList.getLast().right.nOfRefinements;
 
         if(algorithm instanceof CPAAlgorithm){
@@ -290,6 +292,8 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
             e.printStackTrace();
           }
         }
+
+        //making neighbor end
 
         long start_t = System.currentTimeMillis();
 
@@ -338,7 +342,7 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
             }
           }
           tempReachedList.getLast().right.refinementSuccessful = refinementSuccessful;
-          //tempReachedList.getLast().right.printFitness();
+          tempReachedList.getLast().right.printFitness();
         }catch(Exception e){
           e.printStackTrace();
         }
@@ -346,7 +350,14 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         //compare neighbour and current solution
         if(tempReachedList.compareTo(reachedList) < 0){
           try {
-            reachedList.addLast(new Pair<>(CameraForSnapshot.takeSnapshot(tempReachedList.getLast().left),new Fitness(tempReachedList.getLast().right),tempReachedList.getLast().number + 1));
+
+            while(tempReachedList.getLast().number <= reachedList.getLast().number){
+              reachedList.removeLast();
+            }
+
+            assert tempReachedList.getLast().number > reachedList.getLast().number: "tempReachedList must be longer as one";
+
+            reachedList.addLast(new Pair<>(CameraForSnapshot.takeSnapshot(tempReachedList.getLast().left),new Fitness(tempReachedList.getLast().right),tempReachedList.getLast().number));
             reachedList.getLast().right.eachRunTime += (end_t-start_t);
             reachedList.getLast().right.nOfRefinements = stats.countRefinements;
             if(algorithm instanceof CPAAlgorithm){
