@@ -347,6 +347,10 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
           e.printStackTrace();
         }
 
+        if(tempReachedList.getLast().right.nOfAttemptedFC == 0 && tempReachedList.getLast().number == 2){
+          System.out.println("number2 and attemptedFC 0");
+        }
+
         //compare neighbour and current solution
         if(tempReachedList.compareTo(reachedList) < 0){
           try {

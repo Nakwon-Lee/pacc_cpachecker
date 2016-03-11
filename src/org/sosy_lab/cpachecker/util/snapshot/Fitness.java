@@ -36,7 +36,7 @@ public class Fitness implements Comparable<Fitness>{
     nOfRefinements = 0;
     nOfAttemptedFC = 0;
     nOfSuccessfulFC = 0;
-    refinementSuccessful = false;
+    refinementSuccessful = true;
   }
 
   public Fitness(Fitness pFitness){

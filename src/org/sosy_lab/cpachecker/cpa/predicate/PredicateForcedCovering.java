@@ -191,7 +191,10 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     int attempts = 0;
     int attemptslimit;
     if(randomizedFC){
-      attemptslimit = (int)(Math.random() * 5); //random number of attempts
+      attemptslimit = (int)(Math.random() * 4.9) - 1; //random number of attempts
+      if(attemptslimit == 0){
+        System.out.println("attemptslimt can be zero");
+      }
     }else{
       attemptslimit = 3;
     }
@@ -209,6 +212,13 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
       if (pState == coveringCandidate) {
         continue;
       }
+
+      //DEBUG
+      if(attempts > attemptslimit){
+        break;
+      }
+      attempts++;
+      //GUBED
 
       if (stop.stop(argState, Collections.singleton(coveringCandidate), pPrecision)
           || argState.isCovered()) {
@@ -263,13 +273,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
         if (!interpolantInfo.isSpurious()) {
           logger.log(Level.FINER, "Forced covering unsuccessful.");
-          //DEBUG
 
-          attempts++;
-          if(attempts > attemptslimit){
-            break;
-          }
-          //GUBED
           continue; // forced covering is not possible
         }
 
