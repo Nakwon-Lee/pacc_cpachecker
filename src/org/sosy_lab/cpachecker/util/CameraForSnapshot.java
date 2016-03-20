@@ -126,6 +126,14 @@ public class CameraForSnapshot {
     }
   }
 
+  public static ReachedSetList takeSnapshotListVer2(ReachedSetList pReachedList){
+    //TODO cloning given ReachedSetList with waitlist only version
+    ReachedSetList clonedReachedList = new ReachedSetList();
+
+
+    return null;
+  }
+
   public static ReachedSetList takeSnapshotList(ReachedSetList pReachedList){
     ReachedSetList clonedReachedList = new ReachedSetList();
     Iterator<Pair<ReachedSetCloneable, Fitness>> it = pReachedList.descendingIterator();

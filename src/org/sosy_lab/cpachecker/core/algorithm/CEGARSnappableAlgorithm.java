@@ -254,8 +254,12 @@ public class CEGARSnappableAlgorithm implements SnappableAlgorithm, StatisticsPr
         refinementSuccessful = false;
 
         //DEBUG
+        //Ver.A. copy the reachedSet
         //copy the solution with limited number of snapshots (initially 3, CameraForSnapshot.numOfSnapshot by method CameraForSnapshot.getNumOfSnapshot() )
         ReachedSetList tempReachedList = CameraForSnapshot.takeSnapshotList(reachedList);
+
+        //Ver.B. only copy the waitList
+
         //GUBED
 
         //making neighbor start
