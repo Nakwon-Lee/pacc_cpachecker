@@ -308,14 +308,27 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
           if (stop) {
             //DEBUG
             // TODO: remove state from reached set?
-            return status;
-            //continue;
+            //return status;
+            continue;
             //DEBUG
           }
         } finally {
           stats.forcedCoveringTimer.stop();
         }
       }
+
+      /*
+      //DEBUG
+      if (reachedSet instanceof SearchInfoReachedSet){
+        SearchInfoReachedSet tReached = (SearchInfoReachedSet)reachedSet;
+        SearchInfo<Integer> tInfo = tReached.getSearchInfo(state);
+        assert tInfo != null: "tInfo is null!";
+        System.out.println(tInfo.toString());
+
+      }
+    //GUBED
+     *
+     */
 
       stats.transferTimer.start();
       Collection<? extends AbstractState> successors;

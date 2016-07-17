@@ -46,6 +46,11 @@ public class SimpleWaitlist extends AbstractWaitlist<Deque<AbstractState>> {
 
   @Override
   public AbstractState pop() {
+
+    //DEBUG
+    System.out.println("waitlist.size "+waitlist.size());
+    //GUBED
+
     switch (traversal) {
     case BFS:
       return waitlist.removeFirst();

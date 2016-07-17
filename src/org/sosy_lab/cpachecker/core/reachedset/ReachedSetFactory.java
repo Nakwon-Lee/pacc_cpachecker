@@ -23,19 +23,23 @@
  */
 package org.sosy_lab.cpachecker.core.reachedset;
 
+import org.sosy_lab.common.configuration.ClassOption;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonFailedMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.DynamicWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.PostorderSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ReversePostorderSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
+import org.sosy_lab.cpachecker.core.waitlist.Waitlist.TraversalMethod;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariableWaitlist;
 
@@ -87,6 +91,19 @@ public class ReachedSetFactory {
       description = "use cloneable reached set")
   boolean useCloneable = false;
 
+  @Option(secure=true, name = "traversal.searchInfoable",
+      description = "use searchinfoable")
+  boolean searchInfoable = false;
+
+  @Option(secure=true, name = "traversal.nOfVars",
+      description = "number of variables for search info")
+  int nOfVars = 0;
+
+  @Option(secure=true, name = "traversal.searchformula",
+      description = "the name of using searchformula")
+  @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
+  Class<? extends SearchStrategyFormula<Integer>> searchFormClass;
+
   @Option(secure=true, name = "reachedSet",
       description = "which reached set implementation to use?"
       + "\nNORMAL: just a simple set"
@@ -102,6 +119,11 @@ public class ReachedSetFactory {
   public ReachedSet create() {
     WaitlistFactory waitlistFactory = traversalMethod;
     //WaitlistFactory waitlistFactory = Waitlist.TraversalMethod.RANDOM_PATH;
+    if (traversalMethod == TraversalMethod.DYNAMIC){
+      assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
+      assert searchFormClass != null : "searchFormClass must not be null";
+      waitlistFactory = DynamicWaitlist.factory(nOfVars, searchFormClass);
+    }
 
     /*
     if (useCloneable){
@@ -140,55 +162,77 @@ public class ReachedSetFactory {
         return new DefaultReachedSet(waitlistFactory);
       }
     }else{*/
+    if (useAutomatonInformation) {
+      waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);
+      waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
+      }
+    if (useReversePostorder) {
+      waitlistFactory = ReversePostorderSortedWaitlist.factory(waitlistFactory);
+      }
+    if (usePostorder) {
+      waitlistFactory = PostorderSortedWaitlist.factory(waitlistFactory);
+      }
+    if (useLoopstack) {
+      waitlistFactory = LoopstackSortedWaitlist.factory(waitlistFactory);
+      }
+    if (useCallstack) {
+      waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
+      }
+    if (useExplicitInformation) {
+      waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
+      }
+    if (byAutomatonVariable != null) {
+      waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
+      }
 
-      if (useAutomatonInformation) {
-        waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);
-        waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
-      }
-      if (useReversePostorder) {
-        waitlistFactory = ReversePostorderSortedWaitlist.factory(waitlistFactory);
-      }
-      if (usePostorder) {
-        waitlistFactory = PostorderSortedWaitlist.factory(waitlistFactory);
-      }
-      if (useLoopstack) {
-        waitlistFactory = LoopstackSortedWaitlist.factory(waitlistFactory);
-      }
-      if (useCallstack) {
-        waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
-      }
-      if (useExplicitInformation) {
-        waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
-      }
-      if (byAutomatonVariable != null) {
-        waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
-      }
+    if (useCloneable){
+      switch (reachedSet) {
+      case PARTITIONED:
+        return new PartitionedReachedSetCloneable(waitlistFactory);
 
-      if (useCloneable){
-        switch (reachedSet) {
-        case PARTITIONED:
-          return new PartitionedReachedSetCloneable(waitlistFactory);
+      case LOCATIONMAPPED:
+        return new LocationMappedReachedSet(waitlistFactory);
 
-        case LOCATIONMAPPED:
-          return new LocationMappedReachedSet(waitlistFactory);
+      case NORMAL:
 
-        case NORMAL:
-        default:
-          return new DefaultReachedSetCloneable(waitlistFactory);
+      default:
+        return new DefaultReachedSetCloneable(waitlistFactory);
         }
-      }else{
-        switch (reachedSet) {
-        case PARTITIONED:
-          return new PartitionedReachedSet(waitlistFactory);
 
-        case LOCATIONMAPPED:
-          return new LocationMappedReachedSet(waitlistFactory);
+    }else{
+     if(searchInfoable){
+       switch (reachedSet) {
+       case PARTITIONED:
+         return new PartitionedReachedSet(waitlistFactory);
 
-        case NORMAL:
-        default:
-          return new DefaultReachedSet(waitlistFactory);
-        }
-      }
-    //}
+       case LOCATIONMAPPED:
+         return new LocationMappedReachedSet(waitlistFactory);
+
+       case NORMAL:
+
+       default:
+         return new DefaultReachedSet(waitlistFactory);
+         }
+
+     }else{
+       switch (reachedSet) {
+       case PARTITIONED:
+         return new PartitionedReachedSet(waitlistFactory);
+
+       case LOCATIONMAPPED:
+         return new LocationMappedReachedSet(waitlistFactory);
+
+       case NORMAL:
+
+       default:
+         return new DefaultReachedSet(waitlistFactory);
+
+       }
+
+     }
+
+    }
+
   }
+
 }

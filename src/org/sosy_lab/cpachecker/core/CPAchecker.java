@@ -27,7 +27,9 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.common.ShutdownNotifier.interruptCurrentThreadOnShutdown;
 import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -464,6 +466,21 @@ public class CPAchecker {
       final ReachedSet reached,
       final MainCPAStatistics stats) throws CPAException, InterruptedException, IOException {
 
+  //DEBUG
+    try{
+      File file = new File("numofcoveringcandies.txt");
+
+      FileWriter fw = new FileWriter(file, true);
+
+      fw.write("Start\n");
+      fw.flush();
+
+      fw.close();
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    //GUBED
+
     logger.log(Level.INFO, "Starting analysis ...");
 
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
@@ -487,11 +504,27 @@ public class CPAchecker {
     } finally {
       stats.stopAnalysisTimer();
 
+      //DEBUG
+      try{
+        File file = new File("numofcoveringcandies.txt");
+
+        FileWriter fw = new FileWriter(file, true);
+
+        fw.write("End\n");
+        fw.flush();
+
+        fw.close();
+      }catch(Exception e){
+        e.printStackTrace();
+      }
+      //GUBED
+
       // unregister management interface for CPAchecker
       mxbean.unregister();
     }
   }
 
+  //DEBUG
   private AlgorithmStatus runAlgorithm(final Algorithm algorithm,
       final ReachedSetList reachedList,
       final MainCPAStatistics stats) throws CPAException, InterruptedException {
@@ -523,7 +556,8 @@ public class CPAchecker {
       mxbean.unregister();
     }
   }
-
+//GUBED
+  
   private @Nullable String findViolatedProperties(final ReachedSet reached) {
     Set<String> descriptions = from(reached).filter(IS_TARGET_STATE)
                         .transform(new Function<AbstractState, String>() {

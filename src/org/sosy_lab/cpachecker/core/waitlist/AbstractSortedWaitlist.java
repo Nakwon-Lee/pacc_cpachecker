@@ -29,6 +29,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -120,6 +121,22 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
   @Override
   public final AbstractState pop() {
     Entry<K, Waitlist> highestEntry = null;
+    //DEBUG
+    if (waitlist.size() > 0){
+      for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+        System.out.print(entry.getValue().getClass().getName());
+        System.out.println(" "+entry.getValue().size());
+
+        AbstractState state;
+        Iterator<AbstractState> it = entry.getValue().iterator();
+        while (it.hasNext()){
+          state = it.next();
+          System.out.print(AbstractStates.extractLocation(state).getReversePostorderId()+", ");
+        }
+        System.out.println("");
+      }
+    }
+    //GUBED
     highestEntry = waitlist.lastEntry();
     Waitlist localWaitlist = highestEntry.getValue();
     assert !localWaitlist.isEmpty();

@@ -27,6 +27,8 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.getPredicateState;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.toPercent;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,6 +83,9 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     private int successfulForcedCoverings = 0;
     private int wasAlreadyCovered = 0;
 
+    //DEBUG
+    //GUBED
+
     @Override
     public String getName() {
       return "Predicate Forced Covering";
@@ -110,7 +115,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   private static int numOfAffectedStates = 0;
 
   //DEBUG
-  private final boolean randomizedFC = true;
+  private final boolean randomizedFC = false;
   //GUBED
 
   public static int getNumOfAffectedStates(){
@@ -196,7 +201,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         System.out.println("attemptslimt can be zero");
       }
     }else{
-      attemptslimit = 3;
+      attemptslimit = 100000;
     }
     //GUBED
 
@@ -205,6 +210,22 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     List<AbstractState> pReachedList = new ArrayList<>(pReachedColl);
     if(randomizedFC){
       Collections.shuffle(pReachedList);
+    }
+    //GUBED
+
+    //DEBUG
+    try{
+      File file = new File("numofcoveringcandies.txt");
+
+      FileWriter fw = new FileWriter(file, true);
+
+      fw.write(Integer.toString(pReachedList.size()));
+      fw.write(", ");
+      fw.flush();
+
+      fw.close();
+    }catch(Exception e){
+      e.printStackTrace();
     }
     //GUBED
 
