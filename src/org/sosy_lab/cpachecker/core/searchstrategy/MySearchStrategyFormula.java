@@ -26,23 +26,28 @@ package org.sosy_lab.cpachecker.core.searchstrategy;
 import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
-public class DFSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
-  public DFSearchStrategyFormula(Integer nOfVars){
+public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
+
+  // 0: treedepth, 1: number of branches, 2: reversepostorder, 3: constant
+
+  public MySearchStrategyFormula(Integer nOfVars){
     super();
-    correlations.put("TreeDepth", 1);
+    correlations.put("RPOrder", 1);
   }
 
   @Override
   public int compare(SearchInfo<String, Integer> pO1, SearchInfo<String, Integer> pO2) {
+
     Integer ret = 0;
 
-    if (pO1.getInfos().get("TreeDepth") > pO2.getInfos().get("TreeDepth")){
+    if (pO1.getInfos().get("RPOrder") > pO2.getInfos().get("RPOrder")){
       ret = 1;
-    }else if (pO1.getInfos().get("TreeDepth") < pO2.getInfos().get("TreeDepth")){
+    }else if (pO1.getInfos().get("RPOrder") < pO2.getInfos().get("RPOrder")){
       ret = -1;
     }
 
     return ret;
   }
+
 }

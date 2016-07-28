@@ -23,11 +23,12 @@
  */
 package org.sosy_lab.cpachecker.core.interfaces;
 
-import java.util.List;
+import java.util.LinkedHashMap;
 
-public interface SearchInfo<T> {
+public interface SearchInfo<K,V> extends Comparable<SearchInfo<K,V>>{
   @Override
   public String toString();
 
-  public List<T> getInfos();
+  public LinkedHashMap<K,V> getInfos();
+
 }

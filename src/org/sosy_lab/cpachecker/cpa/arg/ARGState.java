@@ -73,6 +73,12 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
 
   private final int stateId;
 
+  //DEBUG
+  private int treeDepth = 0;
+  private int nOfBranches = 0;
+  private int nOfBranchesMine = 0;
+  //GUBED
+
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
 
   public ARGState(@Nullable AbstractState pWrappedState, @Nullable ARGState pParentElement) {
@@ -101,7 +107,20 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (!parents.contains(pOtherParent)) {
       assert !pOtherParent.children.contains(this);
       parents.add(pOtherParent);
-      pOtherParent.children.add(this);
+
+      //DEBUG
+      if (treeDepth <= pOtherParent.treeDepth) {
+        treeDepth = pOtherParent.treeDepth + 1;
+      }
+
+      nOfBranches = pOtherParent.nOfBranches + pOtherParent.nOfBranchesMine + nOfBranches + 1;
+      //GUBED
+
+        pOtherParent.children.add(this);
+
+        //DEBUG
+        pOtherParent.nOfBranchesMine++;
+        //GUBED
     } else {
       assert pOtherParent.children.contains(this);
     }
@@ -250,6 +269,11 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     assert (children.contains(child));
     children.remove(child);
     child.parents.remove(this);
+    //DEBUG
+    child.updateTreeDepth();
+    child.updateNOfBranches();
+    nOfBranchesMine--;
+    //GUBED
   }
 
   // small and less important stuff
@@ -370,6 +394,10 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     for (ARGState child : children) {
       assert (child.parents.contains(this));
       child.parents.remove(this);
+      //DEBUG
+      child.updateTreeDepth();
+      child.updateNOfBranches();
+      //GUBED
     }
     children.clear();
 
@@ -377,6 +405,9 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     for (ARGState parent : parents) {
       assert (parent.children.contains(this));
       parent.children.remove(this);
+      //DEBUG
+      parent.nOfBranchesMine--;
+      //GUBED
     }
     parents.clear();
 
@@ -447,4 +478,37 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
 
     destroyed = true;
   }
+
+  //DEBUG
+  public void updateTreeDepth(){
+
+    treeDepth = 0;
+
+    for (ARGState tPar : parents){
+      if (treeDepth <= tPar.treeDepth){
+        treeDepth = tPar.treeDepth + 1;
+      }
+    }
+  }
+
+  public void updateNOfBranches(){
+    nOfBranches = 0;
+
+    for (ARGState tPar : parents){
+      nOfBranches = tPar.nOfBranches + nOfBranches;
+    }
+  }
+
+  public int getTreeDepth(){
+    return treeDepth;
+  }
+
+  public int getNOfBranches(){
+    return nOfBranches;
+  }
+
+  public int getNOfBranchesMine(){
+    return nOfBranchesMine;
+  }
+  //GUBED
 }

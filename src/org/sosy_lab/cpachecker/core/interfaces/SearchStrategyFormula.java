@@ -23,14 +23,9 @@
  */
 package org.sosy_lab.cpachecker.core.interfaces;
 
-import java.util.List;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 
-public interface SearchStrategyFormula<T> {
-  public List<T> getCorrelations();
-
-  public int calcSearchFitness(SearchInfo<Integer> pSinfo);
-
-  public int getMinFitness();
-
-  public int getMaxFitness();
+public interface SearchStrategyFormula<K,V> extends Comparator<SearchInfo<K,V>>{
+  public LinkedHashMap<K,V> getCorrelations();
 }

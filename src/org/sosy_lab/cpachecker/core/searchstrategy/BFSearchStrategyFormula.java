@@ -23,41 +23,27 @@
  */
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
-import java.util.List;
-
 import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
-
 
 public class BFSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
   public BFSearchStrategyFormula(Integer nOfVars){
-
     super();
-
-    for (int i=0;i < nOfVars; i++){
-      correlations.add(-1);
-    }
-    correlations.add(0);
+    correlations.put("TreeDepth", -1);
   }
 
   @Override
-  public List<Integer> getCorrelations(){
-    return correlations;
-  }
+  public int compare(SearchInfo<String, Integer> pO1, SearchInfo<String, Integer> pO2) {
+    Integer ret = 0;
 
-  @Override
-  public int calcSearchFitness(SearchInfo<Integer> pSinfo) {
-    assert correlations.size() == pSinfo.getInfos().size()+1 : "number of variables must be same";
-    int result = 0;
-
-    for (int i=0;i < correlations.size()-1;i++) {
-      result = result + ( correlations.get(i) * pSinfo.getInfos().get(i) );
+    if (pO1.getInfos().get("TreeDepth") > pO2.getInfos().get("TreeDepth")){
+      ret = -1;
+    }else if (pO1.getInfos().get("TreeDepth") < pO2.getInfos().get("TreeDepth")){
+      ret = 1;
     }
 
-    result = result + correlations.get(correlations.size()-1);
-
-    return result;
-   }
+    return ret;
+  }
 
 }

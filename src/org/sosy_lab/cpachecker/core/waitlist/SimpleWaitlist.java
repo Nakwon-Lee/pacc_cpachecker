@@ -48,7 +48,7 @@ public class SimpleWaitlist extends AbstractWaitlist<Deque<AbstractState>> {
   public AbstractState pop() {
 
     //DEBUG
-    System.out.println("waitlist.size "+waitlist.size());
+    //System.out.println("waitlist.size "+waitlist.size());
     //GUBED
 
     switch (traversal) {

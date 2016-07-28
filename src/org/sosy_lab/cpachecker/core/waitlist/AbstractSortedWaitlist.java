@@ -28,8 +28,8 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.util.AbstractStates;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -55,7 +55,7 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
   //GUBED
 
   // invariant: all entries in this map are non-empty
-  private final NavigableMap<K, Waitlist> waitlist = new TreeMap<>();
+  private final NavigableMap<K, Waitlist> waitlist;
 
   private int size = 0;
 
@@ -63,8 +63,10 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
    * Constructor that needs a factory for the waitlist implementation that
    * should be used to store states with the same sorting key.
    */
+
   protected AbstractSortedWaitlist(WaitlistFactory pSecondaryStrategy) {
     wrappedWaitlist = Preconditions.checkNotNull(pSecondaryStrategy);
+    waitlist = new TreeMap<>();
   }
 
   /**
@@ -119,24 +121,36 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
   }
 
   @Override
-  public final AbstractState pop() {
+  //DEBUG
+  //originally final method but I modify it as non-final
+  //GUBED
+  public AbstractState pop() {
     Entry<K, Waitlist> highestEntry = null;
     //DEBUG
-    if (waitlist.size() > 0){
-      for (Entry<K, Waitlist> entry : waitlist.entrySet()){
-        System.out.print(entry.getValue().getClass().getName());
-        System.out.println(" "+entry.getValue().size());
 
-        AbstractState state;
-        Iterator<AbstractState> it = entry.getValue().iterator();
-        while (it.hasNext()){
-          state = it.next();
-          System.out.print(AbstractStates.extractLocation(state).getReversePostorderId()+", ");
+    if (this instanceof CallstackSortedWaitlist){
+      if (waitlist.size() > 0){
+        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+          System.out.print(entry.getValue().getClass().getName());
+          System.out.println(" "+entry.getValue().size()+"  key: "+entry.getKey());
+          }
         }
-        System.out.println("");
-      }
     }
+
+    if (this instanceof DynamicSortedWaitlist){
+      if (waitlist.size() > 0){
+        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+          K key = entry.getKey();
+          if (key instanceof SimpleSearchInfo){
+            SimpleSearchInfo skey = (SimpleSearchInfo) key;
+            System.out.print(skey.getInfos().get("RPOrder")+ " ");
+            }
+          }
+        }
+    }
+
     //GUBED
+
     highestEntry = waitlist.lastEntry();
     Waitlist localWaitlist = highestEntry.getValue();
     assert !localWaitlist.isEmpty();

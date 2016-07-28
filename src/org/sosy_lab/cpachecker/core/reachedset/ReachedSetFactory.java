@@ -33,13 +33,12 @@ import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonFailedMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
-import org.sosy_lab.cpachecker.core.waitlist.DynamicWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.PostorderSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ReversePostorderSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
-import org.sosy_lab.cpachecker.core.waitlist.Waitlist.TraversalMethod;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariableWaitlist;
 
@@ -95,6 +94,10 @@ public class ReachedSetFactory {
       description = "use searchinfoable")
   boolean searchInfoable = false;
 
+  @Option(secure=true, name = "traversal.dynamic",
+      description = "use dynamicsortedwaitlist")
+  boolean dynamicWaitlist = false;
+
   @Option(secure=true, name = "traversal.nOfVars",
       description = "number of variables for search info")
   int nOfVars = 0;
@@ -102,7 +105,7 @@ public class ReachedSetFactory {
   @Option(secure=true, name = "traversal.searchformula",
       description = "the name of using searchformula")
   @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
-  Class<? extends SearchStrategyFormula<Integer>> searchFormClass;
+  Class<? extends SearchStrategyFormula<String,Integer>> searchFormClass;
 
   @Option(secure=true, name = "reachedSet",
       description = "which reached set implementation to use?"
@@ -119,11 +122,13 @@ public class ReachedSetFactory {
   public ReachedSet create() {
     WaitlistFactory waitlistFactory = traversalMethod;
     //WaitlistFactory waitlistFactory = Waitlist.TraversalMethod.RANDOM_PATH;
+    /*
     if (traversalMethod == TraversalMethod.DYNAMIC){
       assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
       assert searchFormClass != null : "searchFormClass must not be null";
       waitlistFactory = DynamicWaitlist.factory(nOfVars, searchFormClass);
     }
+    */
 
     /*
     if (useCloneable){
@@ -162,6 +167,12 @@ public class ReachedSetFactory {
         return new DefaultReachedSet(waitlistFactory);
       }
     }else{*/
+
+    if (dynamicWaitlist) {
+      assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
+      assert searchFormClass != null : "searchFormClass must not be null";
+      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, nOfVars, searchFormClass);
+    }
     if (useAutomatonInformation) {
       waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);
       waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);

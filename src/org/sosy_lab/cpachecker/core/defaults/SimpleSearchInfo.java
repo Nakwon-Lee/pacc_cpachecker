@@ -23,36 +23,46 @@
  */
 package org.sosy_lab.cpachecker.core.defaults;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 
-public class SimpleSearchInfo implements SearchInfo<Integer> {
+public class SimpleSearchInfo implements SearchInfo<String, Integer> {
 
-  private final List<Integer> vars;
+  private final LinkedHashMap<String, Integer> vars;
 
-  public SimpleSearchInfo() {
+  private final Comparator<SearchInfo<String, Integer>> searchForm;
+
+  public SimpleSearchInfo(Comparator<SearchInfo<String, Integer>> pSForm) {
     // TODO Auto-generated constructor stub
-    vars = new LinkedList<>();
+    vars = new LinkedHashMap<>();
+    searchForm = pSForm;
   }
 
    @Override
   public String toString(){
      String str = "";
 
-     for(int i=0;i<vars.size();i++){
-       str = str.concat(String.valueOf(vars.get(i)));
+     for(Entry<String, Integer> ent : vars.entrySet()){
+       str = str.concat(ent.getKey()+": "+ent.getValue()+" ");
      }
 
      return str;
    }
 
   @Override
-  public List<Integer> getInfos() {
+  public LinkedHashMap<String, Integer> getInfos() {
     // TODO Auto-generated method stub
     return vars;
+  }
+
+  @Override
+  public int compareTo(SearchInfo<String, Integer> pO) {
+    // TODO Auto-generated method stub
+    return searchForm.compare(this, pO);
   }
 
 }

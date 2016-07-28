@@ -23,26 +23,19 @@
  */
 package org.sosy_lab.cpachecker.core.defaults;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
 
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 
-
-public abstract class AbstractSearchStrategyFormula implements SearchStrategyFormula<Integer> {
-  protected final List<Integer> correlations;
+public abstract class AbstractSearchStrategyFormula implements SearchStrategyFormula<String, Integer> {
+  protected final LinkedHashMap<String, Integer> correlations;
 
   protected AbstractSearchStrategyFormula(){
-    correlations = new LinkedList<>();
+    correlations = new LinkedHashMap<>();
   }
 
-  @Override
-  public int getMinFitness(){
-    return Integer.MIN_VALUE;
+  public LinkedHashMap<String, Integer> getCorrelations(){
+    return correlations;
   }
 
-  @Override
-  public int getMaxFitness(){
-    return Integer.MAX_VALUE;
-  }
 }
