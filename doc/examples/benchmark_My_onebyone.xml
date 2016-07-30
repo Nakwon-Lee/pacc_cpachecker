@@ -4,19 +4,19 @@
   Example file that demonstrates the use of CPAchecker.
   This file can and should be used as a base for building own benchmark definitions.
 -->
-<benchmark tool="cpachecker" timelimit="600" hardtimelimit="660" memlimit="8000" cpuCores="4">
+<benchmark tool="cpachecker" timelimit="320" hardtimelimit="350" memlimit="4000" cpuCores="1">
 
   <!-- Note that all paths to ../../test/programs need to be changed if you move this file. -->
 
   <!-- Global sourcefiles are used in every run definition. -->
   <sourcefiles name="simple">
-    <includesfile>/home/nwlee/sv-benchmarks-master/c/Simple.set</includesfile>
+    <includesfile>/home/nwlee/sv-benchmarks-master/c/Simple-dy.set</includesfile>
   </sourcefiles>
 
   <!-- Global options for all run definitions. -->
   <!-- Set the Java heap size to some value lower than the memlimit.
        Note that Java does not use SI units, but IEC units (factor 1024). -->
-  <option name="-heap">7000M</option>
+  <option name="-heap">3000M</option>
 
   <!--
     Always use property files as specification
@@ -35,22 +35,13 @@
     to have more meaningful names in the result tables.
   -->
 
-  <rundefinition name="Impact_FC_DFS">
+  <rundefinition name="Dy">
     <!-- Recommended option "-noout", as the CPAchecker output files
          are normally not interesting for benchmarks. -->
-    <option name="-My-FC-DFS"/>
+    <option name="-Dy-RPO"/>
     <option name="-preprocess"/>
     <option name="-noout"/>
   </rundefinition>
-
-  <rundefinition name="Impact_nFC_DFS">
-    <!-- Recommended option "-noout", as the CPAchecker output files
-         are normally not interesting for benchmarks. -->
-    <option name="-My-nFC-DFS"/>
-    <option name="-preprocess"/>
-    <option name="-noout"/>
-  </rundefinition>
-
 
   <!--
     Search the CPAchecker output for some values.

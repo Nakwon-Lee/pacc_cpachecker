@@ -32,6 +32,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
 public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo<String, Integer>> {
@@ -103,11 +104,15 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo<Str
     int tBran = tARGState.getNOfBranches();
     int tBranMine = tARGState.getNOfBranchesMine();
     int tRPOrder = AbstractStates.extractLocation(pState).getReversePostorderId();
+    CallstackState callstackState =
+        AbstractStates.extractStateByType(pState, CallstackState.class);
+    int tCStack = (callstackState != null) ? callstackState.getDepth() : 0;
 
     SimpleSearchInfo newInfo = new SimpleSearchInfo(searchForm);
     newInfo.getInfos().put("TreeDepth", tDep);
     newInfo.getInfos().put("NofBranches", tBran+tBranMine);
     newInfo.getInfos().put("RPOrder", tRPOrder);
+    newInfo.getInfos().put("CallStack", tCStack);
 
     assert newInfo.getInfos().size() == nOfVars : "number of variables and size of info list should be same";
 
