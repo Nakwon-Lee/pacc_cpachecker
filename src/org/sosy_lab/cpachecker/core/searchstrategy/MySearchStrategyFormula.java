@@ -29,7 +29,7 @@ import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
 
-  // 0: treedepth, 1: number of branches, 2: reversepostorder, 3: constant
+  // 0: treedepth, 1: number of branches, 2: reversepostorder, 3: callstack
 
   public MySearchStrategyFormula(Integer nOfVars){
     super();
@@ -41,10 +41,16 @@ public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
 
     Integer ret = 0;
 
-    if (pO1.getInfos().get("RPOrder") > pO2.getInfos().get("RPOrder")){
+    if (pO1.getInfos().get("CallStack") > pO2.getInfos().get("CallStack")){
       ret = 1;
-    }else if (pO1.getInfos().get("RPOrder") < pO2.getInfos().get("RPOrder")){
+    }else if (pO1.getInfos().get("CallStack") < pO2.getInfos().get("CallStack")){
       ret = -1;
+    }else{
+      if (pO1.getInfos().get("RPOrder") > pO2.getInfos().get("RPOrder")){
+        ret = 1;
+      }else if (pO1.getInfos().get("RPOrder") < pO2.getInfos().get("RPOrder")){
+        ret = -1;
+      }
     }
 
     return ret;

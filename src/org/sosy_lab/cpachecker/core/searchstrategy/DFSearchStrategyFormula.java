@@ -37,12 +37,17 @@ public class DFSearchStrategyFormula extends AbstractSearchStrategyFormula {
   public int compare(SearchInfo<String, Integer> pO1, SearchInfo<String, Integer> pO2) {
     Integer ret = 0;
 
-    if (pO1.getInfos().get("TreeDepth") > pO2.getInfos().get("TreeDepth")){
+    if (pO1.getInfos().get("CallStack") > pO2.getInfos().get("CallStack")){
       ret = 1;
-    }else if (pO1.getInfos().get("TreeDepth") < pO2.getInfos().get("TreeDepth")){
+    }else if (pO1.getInfos().get("CallStack") < pO2.getInfos().get("CallStack")){
       ret = -1;
+    }else{
+      if (pO1.getInfos().get("TreeDepth") > pO2.getInfos().get("TreeDepth")){
+        ret = 1;
+      }else if (pO1.getInfos().get("TreeDepth") < pO2.getInfos().get("TreeDepth")){
+        ret = -1;
+      }
     }
-
     return ret;
   }
 }
