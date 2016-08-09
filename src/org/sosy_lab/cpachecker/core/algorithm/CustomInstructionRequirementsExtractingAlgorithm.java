@@ -48,8 +48,8 @@ import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGCPA;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
-import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
+import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.ci.AppliedCustomInstructionParser;
 import org.sosy_lab.cpachecker.util.ci.CustomInstructionApplications;
@@ -132,7 +132,13 @@ public class CustomInstructionRequirementsExtractingAlgorithm implements Algorit
 
     logger.log(Level.INFO, " Start analysing to compute requirements.");
 
-    AlgorithmStatus status = analysis.run(pReachedSet);
+    AlgorithmStatus status = null;
+    try {
+      status = analysis.run(pReachedSet);
+    } catch (IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
 
     // analysis was unsound
     if (!status.isSound()) {

@@ -23,6 +23,8 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm.testgen.iteration;
 
+import java.io.IOException;
+
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.log.LogManager;
@@ -32,8 +34,8 @@ import org.sosy_lab.cpachecker.core.algorithm.testgen.util.StartupConfig;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetFactory;
-import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
+import org.sosy_lab.cpachecker.exceptions.CPAException;
 
 
 public abstract class AbstractIterationStrategy implements TestGenIterationStrategy {
@@ -72,7 +74,13 @@ public abstract class AbstractIterationStrategy implements TestGenIterationStrat
   @Override
   public AlgorithmStatus runAlgorithm() throws CPAEnabledAnalysisPropertyViolationException, CPAException, InterruptedException {
     stats.beforeCpaAlgortihm();
-    AlgorithmStatus status = model.getAlgorithm().run(model.getLocalReached());
+    AlgorithmStatus status = null;
+    try {
+      status = model.getAlgorithm().run(model.getLocalReached());
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     stats.afterCpaAlgortihm(model.getAlgorithm());
     updateReached();
     return status;

@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm.pcc;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -91,13 +92,18 @@ public class ResultCheckAlgorithm implements Algorithm, StatisticsProvider {
 
   @Override
   public AlgorithmStatus run(ReachedSet pReachedSet) throws CPAException, InterruptedException {
-    AlgorithmStatus status;
+    AlgorithmStatus status = null;
 
     logger.log(Level.INFO, "Start analysis.");
 
     try {
       stats.analysisTimer.start();
-      status = analysisAlgorithm.run(pReachedSet);
+      try {
+        status = analysisAlgorithm.run(pReachedSet);
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     } finally {
       stats.analysisTimer.stop();
       logger.log(Level.INFO, "Analysis stopped.");

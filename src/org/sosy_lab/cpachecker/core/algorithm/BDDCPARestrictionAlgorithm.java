@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;
 
@@ -92,7 +93,12 @@ public class BDDCPARestrictionAlgorithm implements Algorithm, StatisticsProvider
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
     while (reached.hasWaitingState()) {
-      status = status.update(algorithm.run(reached));
+      try {
+        status = status.update(algorithm.run(reached));
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       assert ARGUtils.checkARG(reached);
 
       final AbstractState lastState = reached.getLastState();

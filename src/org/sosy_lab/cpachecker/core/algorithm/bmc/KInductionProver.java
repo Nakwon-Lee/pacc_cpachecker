@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.*;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -464,7 +465,12 @@ class KInductionProver implements AutoCloseable {
           Precision precision = cpa.getInitialPrecision(mainEntryNode, StateSpacePartition.getDefaultPartition());
           precision = excludeEdges(precision, CFAUtils.leavingEdges(loopHead));
           pReachedSet.add(cpa.getInitialState(mainEntryNode, StateSpacePartition.getDefaultPartition()), precision);
-          algorithm.run(pReachedSet);
+          try {
+            algorithm.run(pReachedSet);
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
           Collection<AbstractState> loopHeadStates = new ArrayList<>();
           Iterables.addAll(loopHeadStates, filterLocation(pReachedSet, loopHead));
           pReachedSet.clear();
