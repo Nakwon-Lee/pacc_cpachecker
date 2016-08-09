@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.*;
 import static com.google.common.collect.FluentIterable.from;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -497,7 +498,12 @@ public class LiveVariables {
     logger.log(Level.INFO, "Starting live variables collection ...");
     try {
       do {
-        analysisParts.algorithm.run(analysisParts.reachedSet);
+        try {
+          analysisParts.algorithm.run(analysisParts.reachedSet);
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       } while (analysisParts.reachedSet.hasWaitingState());
 
     } catch (CPAException | InterruptedException e) {
