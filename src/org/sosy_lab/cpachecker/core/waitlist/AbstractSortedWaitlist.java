@@ -143,7 +143,7 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
           K key = entry.getKey();
           if (key instanceof SimpleSearchInfo){
             SimpleSearchInfo skey = (SimpleSearchInfo) key;
-            System.out.print(skey.getInfos().get("RPOrder")+ " ");
+            System.out.print(skey.getInfos().get("BlkDepth")+ " ");
             }
           }
         }

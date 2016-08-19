@@ -24,12 +24,11 @@
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
 import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
+import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 
 public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
-
-  // 0: treedepth, 1: number of branches, 2: reversepostorder, 3: callstack
 
   public MySearchStrategyFormula(Integer nOfVars){
     super();
@@ -37,19 +36,31 @@ public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
   }
 
   @Override
-  public int compare(SearchInfo<String, Integer> pO1, SearchInfo<String, Integer> pO2) {
+  public int compare(SearchInfo pO1, SearchInfo pO2) {
 
     Integer ret = 0;
 
-    if (pO1.getInfos().get("CallStack") > pO2.getInfos().get("CallStack")){
-      ret = 1;
-    }else if (pO1.getInfos().get("CallStack") < pO2.getInfos().get("CallStack")){
+    assert pO1 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
+    assert pO2 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
+
+    SimpleSearchInfo spO1 = (SimpleSearchInfo)pO1;
+    SimpleSearchInfo spO2 = (SimpleSearchInfo)pO2;
+
+    if (spO1.getInfos().get("BlkDepth") > spO2.getInfos().get("BlkDepth")) {
       ret = -1;
+    }else if (spO1.getInfos().get("BlkDepth") < spO2.getInfos().get("BlkDepth")) {
+      ret = 1;
     }else{
-      if (pO1.getInfos().get("RPOrder") > pO2.getInfos().get("RPOrder")){
+      if (spO1.getInfos().get("CallStack") > spO2.getInfos().get("CallStack")){
         ret = 1;
-      }else if (pO1.getInfos().get("RPOrder") < pO2.getInfos().get("RPOrder")){
+      }else if (spO1.getInfos().get("CallStack") < spO2.getInfos().get("CallStack")){
         ret = -1;
+      }else{
+        if (spO1.getInfos().get("RPOrder") > spO2.getInfos().get("RPOrder")){
+          ret = 1;
+        }else if (spO1.getInfos().get("RPOrder") < spO2.getInfos().get("RPOrder")){
+          ret = -1;
+        }
       }
     }
 

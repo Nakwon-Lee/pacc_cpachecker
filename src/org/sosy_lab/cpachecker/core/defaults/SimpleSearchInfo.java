@@ -30,13 +30,13 @@ import java.util.Map.Entry;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 
-public class SimpleSearchInfo implements SearchInfo<String, Integer> {
+public class SimpleSearchInfo implements SearchInfo {
 
   private final LinkedHashMap<String, Integer> vars;
 
-  private final Comparator<SearchInfo<String, Integer>> searchForm;
+  private final Comparator<SearchInfo> searchForm;
 
-  public SimpleSearchInfo(Comparator<SearchInfo<String, Integer>> pSForm) {
+  public SimpleSearchInfo(Comparator<SearchInfo> pSForm) {
     // TODO Auto-generated constructor stub
     vars = new LinkedHashMap<>();
     searchForm = pSForm;
@@ -53,14 +53,13 @@ public class SimpleSearchInfo implements SearchInfo<String, Integer> {
      return str;
    }
 
-  @Override
   public LinkedHashMap<String, Integer> getInfos() {
     // TODO Auto-generated method stub
     return vars;
   }
 
   @Override
-  public int compareTo(SearchInfo<String, Integer> pO) {
+  public int compareTo(SearchInfo pO) {
     // TODO Auto-generated method stub
     return searchForm.compare(this, pO);
   }

@@ -21,63 +21,55 @@
  *  CPAchecker web page:
  *    http://cpachecker.sosy-lab.org
  */
-package org.sosy_lab.cpachecker.core.waitlist;
+package org.sosy_lab.cpachecker.core.reachedset;
 
 import org.sosy_lab.common.Classes;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
+import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfoable;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
+import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
-public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
+
+public class PartitionedReachedSetSearchInfo extends PartitionedReachedSet implements SearchInfoReachedSet {
 
   private int nOfVars;
 
   private SearchStrategyFormula searchForm;
 
-  protected DynamicSortedWaitlist(WaitlistFactory pSecondaryStrategy, int nVars, Class<? extends SearchStrategyFormula> pSSForm) throws InvalidConfigurationException {
-    super(pSecondaryStrategy);
-
+  public PartitionedReachedSetSearchInfo(WaitlistFactory pWaitlistFactory, int nVars, Class<? extends SearchStrategyFormula> pSSForm) {
+    super(pWaitlistFactory);
+    // TODO Auto-generated constructor stub
     nOfVars = nVars;
 
     assert pSSForm != null : "pSSForm must not be null!";
 
-    searchForm = Classes.createInstance(SearchStrategyFormula.class, pSSForm,
-        new Class<?>[] {Integer.class},
-        new Object[] {nOfVars});
-  }
-
-  @Override
-  public AbstractState pop(){
-    AbstractState ret = super.pop();
-    assert ret instanceof SearchInfoable : "poped state must be a SearchIfoable";
-    SearchInfoable siaRet = (SearchInfoable) ret;
-    SearchInfo siRet = siaRet.getSearchInfo();
-    assert siRet instanceof SimpleSearchInfo : "poped state must have SimpleSearchInfo";
-    SimpleSearchInfo ssiRet = (SimpleSearchInfo)siRet;
-    System.out.println("sel! "+ssiRet.getInfos().get("BlkDepth"));
-    return ret;
-  }
-
-  @Override
-  protected SearchInfo getSortKey(AbstractState pState) {
-    assert pState instanceof SearchInfoable : "given state must be a SearchInfoable";
-    SearchInfoable siPstate = (SearchInfoable)pState;
-    SearchInfo tSInfo = siPstate.getSearchInfo();
-    if (tSInfo == null) {
-      tSInfo = makeSearchInfo(pState);
+    try {
+      searchForm = Classes.createInstance(SearchStrategyFormula.class, pSSForm,
+          new Class<?>[] {Integer.class},
+          new Object[] {nOfVars});
+    } catch (InvalidConfigurationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
-    return tSInfo;
   }
 
-//temporal solution... SearchInfo should be ARG base! (SimpleSearchInfo)
-  public SearchInfo makeSearchInfo(AbstractState pState) {
+  @Override
+  public void add(AbstractState pState, Precision pPrecision) {
+    super.add(pState, pPrecision);
+    assert pState instanceof SearchInfoable : "given state must be a SearchInfoable";
+    makeSearchInfo(pState);
+  }
+
+  //temporal solution... SearchInfo should be ARG base! (SimpleSearchInfo)
+  @Override
+  public void makeSearchInfo(AbstractState pState) {
     // TODO Auto-generated method stub
     assert pState instanceof SearchInfoable : "given state must be a SearchInfoable";
     SearchInfoable tSIState = (SearchInfoable)pState;
@@ -112,24 +104,6 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
     assert newInfo.getInfos().size() == nOfVars : "number of variables and size of info list should be same";
 
     tSIState.setSearchInfo(newInfo);
-
-    return newInfo;
   }
 
-  public static WaitlistFactory factory(final WaitlistFactory pSecondaryStrategy, final int pNOfVars, final Class<? extends SearchStrategyFormula> pSSForm) {
-    return new WaitlistFactory() {
-
-      @Override
-      public Waitlist createWaitlistInstance() {
-        try {
-          return new DynamicSortedWaitlist(pSecondaryStrategy, pNOfVars, pSSForm);
-        } catch (InvalidConfigurationException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-
-        return null;
-      }
-    };
-  }
 }

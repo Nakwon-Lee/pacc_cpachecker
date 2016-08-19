@@ -44,12 +44,14 @@ import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.defaults.AbstractSingleWrapperState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
+import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
+import org.sosy_lab.cpachecker.core.interfaces.SearchInfoable;
 import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Sets;
 
-public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable {
+public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable, SearchInfoable {
 
   private static final long serialVersionUID = 2608287648397165040L;
 
@@ -74,9 +76,9 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   private final int stateId;
 
   //DEBUG
+  private SearchInfo searchinfo;
   private int treeDepth = 0;
-  private int nOfBranches = 0;
-  private int nOfBranchesMine = 0;
+  private int blkDepth = 0;
   //GUBED
 
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
@@ -113,14 +115,10 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
         treeDepth = pOtherParent.treeDepth + 1;
       }
 
-      nOfBranches = pOtherParent.nOfBranches + pOtherParent.nOfBranchesMine + nOfBranches + 1;
+      blkDepth = pOtherParent.blkDepth;
       //GUBED
 
         pOtherParent.children.add(this);
-
-        //DEBUG
-        pOtherParent.nOfBranchesMine++;
-        //GUBED
     } else {
       assert pOtherParent.children.contains(this);
     }
@@ -271,8 +269,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     child.parents.remove(this);
     //DEBUG
     child.updateTreeDepth();
-    child.updateNOfBranches();
-    nOfBranchesMine--;
     //GUBED
   }
 
@@ -396,7 +392,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       child.parents.remove(this);
       //DEBUG
       child.updateTreeDepth();
-      child.updateNOfBranches();
       //GUBED
     }
     children.clear();
@@ -405,9 +400,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     for (ARGState parent : parents) {
       assert (parent.children.contains(this));
       parent.children.remove(this);
-      //DEBUG
-      parent.nOfBranchesMine--;
-      //GUBED
     }
     parents.clear();
 
@@ -491,24 +483,27 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     }
   }
 
-  public void updateNOfBranches(){
-    nOfBranches = 0;
-
-    for (ARGState tPar : parents){
-      nOfBranches = tPar.nOfBranches + nOfBranches;
-    }
-  }
-
   public int getTreeDepth(){
     return treeDepth;
   }
 
-  public int getNOfBranches(){
-    return nOfBranches;
+  public int getBlkDepth(){
+    return blkDepth;
   }
 
-  public int getNOfBranchesMine(){
-    return nOfBranchesMine;
+  public void incBlkDepth(){
+    blkDepth++;
+  }
+
+  @Override
+  public SearchInfo getSearchInfo() {
+    return searchinfo;
+  }
+
+  @Override
+  public void setSearchInfo(SearchInfo pSInfo) {
+    // TODO Auto-generated method stub
+    searchinfo = pSInfo;
   }
   //GUBED
 }

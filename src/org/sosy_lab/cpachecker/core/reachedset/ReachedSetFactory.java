@@ -105,7 +105,7 @@ public class ReachedSetFactory {
   @Option(secure=true, name = "traversal.searchformula",
       description = "the name of using searchformula")
   @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
-  Class<? extends SearchStrategyFormula<String,Integer>> searchFormClass;
+  Class<? extends SearchStrategyFormula> searchFormClass;
 
   @Option(secure=true, name = "reachedSet",
       description = "which reached set implementation to use?"

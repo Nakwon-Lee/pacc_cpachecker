@@ -27,7 +27,7 @@ import java.util.LinkedHashMap;
 
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 
-public abstract class AbstractSearchStrategyFormula implements SearchStrategyFormula<String, Integer> {
+public abstract class AbstractSearchStrategyFormula implements SearchStrategyFormula {
   protected final LinkedHashMap<String, Integer> correlations;
 
   protected AbstractSearchStrategyFormula(){

@@ -24,10 +24,8 @@
 package org.sosy_lab.cpachecker.core.reachedset;
 
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 public interface SearchInfoReachedSet extends ReachedSet {
-  public SearchInfo getSearchInfo(AbstractState pState);
 
-  public SearchInfo makeSearchInfo(AbstractState pState);
+  public void makeSearchInfo(AbstractState pState);
 }

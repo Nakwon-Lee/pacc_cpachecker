@@ -24,6 +24,7 @@
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
 import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
+import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 public class BFSearchStrategyFormula extends AbstractSearchStrategyFormula {
@@ -34,17 +35,23 @@ public class BFSearchStrategyFormula extends AbstractSearchStrategyFormula {
   }
 
   @Override
-  public int compare(SearchInfo<String, Integer> pO1, SearchInfo<String, Integer> pO2) {
+  public int compare(SearchInfo pO1, SearchInfo pO2) {
     Integer ret = 0;
 
-    if (pO1.getInfos().get("CallStack") > pO2.getInfos().get("CallStack")){
+    assert pO1 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
+    assert pO2 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
+
+    SimpleSearchInfo spO1 = (SimpleSearchInfo)pO1;
+    SimpleSearchInfo spO2 = (SimpleSearchInfo)pO2;
+
+    if (spO1.getInfos().get("CallStack") > spO2.getInfos().get("CallStack")){
       ret = 1;
-    }else if (pO1.getInfos().get("CallStack") < pO2.getInfos().get("CallStack")){
+    }else if (spO1.getInfos().get("CallStack") < spO2.getInfos().get("CallStack")){
       ret = -1;
     }else{
-      if (pO1.getInfos().get("TreeDepth") > pO2.getInfos().get("TreeDepth")){
+      if (spO1.getInfos().get("TreeDepth") > spO2.getInfos().get("TreeDepth")){
         ret = -1;
-      }else if (pO1.getInfos().get("TreeDepth") < pO2.getInfos().get("TreeDepth")){
+      }else if (spO1.getInfos().get("TreeDepth") < spO2.getInfos().get("TreeDepth")){
         ret = 1;
       }
     }
