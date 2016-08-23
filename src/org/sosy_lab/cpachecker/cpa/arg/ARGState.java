@@ -115,8 +115,13 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
         treeDepth = pOtherParent.treeDepth + 1;
       }
 
-      blkDepth = pOtherParent.blkDepth;
-      //GUBED
+      if (pOtherParent.blkDepth == blkDepth || parents.size() == 1){
+        blkDepth = pOtherParent.blkDepth;
+      }else{
+        assert false : "blkDepth must be same among parents or only one parent";
+      }
+
+    //GUBED
 
         pOtherParent.children.add(this);
     } else {
@@ -437,6 +442,16 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     assert !isCovered() : "Not implemented: Replacement of covered element " + this;
     assert !replacement.isCovered() : "Cannot replace with covered element " + replacement;
 
+    //Order is important... parents have informations for treedepth and blk depth
+    //so, parents must be updated earlier than children
+    //copy parents
+    for (ARGState parent : parents) {
+      assert (parent.children.contains(this)) : "Inconsistent ARG at " + this;
+      parent.children.remove(this);
+      replacement.addParent(parent);
+    }
+    parents.clear();
+
     // copy children
     for (ARGState child : children) {
       assert (child.parents.contains(this)) : "Inconsistent ARG at " + this;
@@ -444,13 +459,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       child.addParent(replacement);
     }
     children.clear();
-
-    for (ARGState parent : parents) {
-      assert (parent.children.contains(this)) : "Inconsistent ARG at " + this;
-      parent.children.remove(this);
-      replacement.addParent(parent);
-    }
-    parents.clear();
 
     if (mCoveredByThis != null) {
       if (replacement.mCoveredByThis == null) {

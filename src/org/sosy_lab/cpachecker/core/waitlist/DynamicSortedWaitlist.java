@@ -62,6 +62,9 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
     assert siRet instanceof SimpleSearchInfo : "poped state must have SimpleSearchInfo";
     SimpleSearchInfo ssiRet = (SimpleSearchInfo)siRet;
     System.out.println("sel! "+ssiRet.getInfos().get("BlkDepth"));
+    if (ssiRet.getInfos().get("BlkDepth")==0){
+      System.out.println("What!?");
+    }
     return ret;
   }
 
