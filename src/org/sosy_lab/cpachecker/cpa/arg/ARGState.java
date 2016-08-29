@@ -115,12 +115,9 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
         treeDepth = pOtherParent.treeDepth + 1;
       }
 
-      if (pOtherParent.blkDepth == blkDepth || parents.size() == 1){
+      if (pOtherParent.blkDepth > blkDepth){
         blkDepth = pOtherParent.blkDepth;
-      }else{
-        assert false : "blkDepth must be same among parents or only one parent";
       }
-
     //GUBED
 
         pOtherParent.children.add(this);

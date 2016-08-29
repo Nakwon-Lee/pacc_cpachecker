@@ -56,6 +56,7 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
   @Override
   public AbstractState pop(){
     AbstractState ret = super.pop();
+    /*
     assert ret instanceof SearchInfoable : "poped state must be a SearchIfoable";
     SearchInfoable siaRet = (SearchInfoable) ret;
     SearchInfo siRet = siaRet.getSearchInfo();
@@ -65,6 +66,15 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
     if (ssiRet.getInfos().get("BlkDepth")==0){
       System.out.println("What!?");
     }
+
+    PredicateAbstractState predicateState = AbstractStates.extractStateByType(ret, PredicateAbstractState.class);
+    assert predicateState != null : "extractStateByType is failed! (predicateState)";
+
+    if (predicateState.isAbstractionState()){
+      System.out.println("AbstractionState!!!");
+    }
+    */
+
     return ret;
   }
 

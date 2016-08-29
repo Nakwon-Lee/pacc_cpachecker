@@ -100,6 +100,8 @@ public final class CompositeTransferRelation implements TransferRelation {
     CompositePrecision compositePrecision = (CompositePrecision)precision;
     Collection<CompositeState> results;
 
+
+
     AbstractStateWithLocation locState = extractStateByType(compositeState, AbstractStateWithLocation.class);
     if (locState == null) {
       throw new CPATransferException("Analysis without any CPA tracking locations is not supported, please add one to the configuration (e.g., LocationCPA).");
@@ -110,7 +112,9 @@ public final class CompositeTransferRelation implements TransferRelation {
     for (CFAEdge edge : locState.getOutgoingEdges()) {
       getAbstractSuccessorForEdge(compositeState, compositePrecision, edge, results);
     }
-
+    //DEBUG
+    //System.out.println(" ");
+    //GUBED
     return results;
   }
 
@@ -224,6 +228,7 @@ public final class CompositeTransferRelation implements TransferRelation {
               for (AbstractState strengthenState : lResultsList) {
                 if (((Targetable) strengthenState).isTarget()) {
                   foundInStrengthen = strengthenState;
+
                   break;
                 }
               }

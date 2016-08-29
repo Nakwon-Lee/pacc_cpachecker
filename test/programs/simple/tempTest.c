@@ -21,6 +21,16 @@ int main(void){
   c = b;
   a = c - 1;
 
+  if(c == 89){
+    b = 90;
+  }
+  else{
+   b = 2000;
+  }
+
+  c = b;
+  a = c - 1;
+
   for (i=0;i<3;i++){
     a--;
  }

@@ -337,6 +337,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
       } finally {
         stats.transferTimer.stop();
       }
+
       // TODO When we have a nice way to mark the analysis result as incomplete,
       // we could continue analysis on a CPATransferException with the next state from waitlist.
 

@@ -239,9 +239,9 @@ public final class Solver implements AutoCloseable, StatisticsProvider {
     Boolean result = unsatCache.get(f);
     if (result != null) {
       cachedSatChecks++;
+      System.out.print("cached!");
       return result;
     }
-
     solverTime.start();
     try {
       result = isUnsatUncached(f);
