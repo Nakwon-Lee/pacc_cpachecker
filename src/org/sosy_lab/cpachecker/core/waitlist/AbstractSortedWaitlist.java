@@ -48,10 +48,13 @@ import com.google.errorprone.annotations.ForOverride;
  */
 public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements Waitlist {
 
+  //DEBUG
   private final WaitlistFactory wrappedWaitlist;
+  //protected final WaitlistFactory wrappedWaitlist;
+  //GUBED
 
   // invariant: all entries in this map are non-empty
-  private final NavigableMap<K, Waitlist> waitlist = new TreeMap<>();
+  private final NavigableMap<K, Waitlist> waitlist;
 
   private int size = 0;
 
@@ -59,8 +62,10 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
    * Constructor that needs a factory for the waitlist implementation that
    * should be used to store states with the same sorting key.
    */
+
   protected AbstractSortedWaitlist(WaitlistFactory pSecondaryStrategy) {
     wrappedWaitlist = Preconditions.checkNotNull(pSecondaryStrategy);
+    waitlist = new TreeMap<>();
   }
 
   /**
@@ -74,6 +79,16 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
 
   @Override
   public void add(AbstractState pState) {
+    /*
+    //DEBUG
+    ARGState tARGState = AbstractStates.extractStateByType(pState, ARGState.class);
+    assert tARGState != null : "extractStateByType is failed! (ARGState)";
+    if (tARGState.getBlkDepth()==0){
+      System.out.println("What?!");
+    }
+    //GUBED
+     *
+     */
     K key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
@@ -115,8 +130,38 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
   }
 
   @Override
-  public final AbstractState pop() {
+  //DEBUG
+  //originally final method but I modify it as non-final
+  //GUBED
+  public AbstractState pop() {
     Entry<K, Waitlist> highestEntry = null;
+    /*
+    //DEBUG
+
+    if (this instanceof CallstackSortedWaitlist){
+      if (waitlist.size() > 0){
+        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+          System.out.print(entry.getValue().getClass().getName());
+          System.out.println(" "+entry.getValue().size()+"  key: "+entry.getKey());
+          }
+        }
+    }
+
+    if (this instanceof DynamicSortedWaitlist){
+      if (waitlist.size() > 0){
+        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+          K key = entry.getKey();
+          if (key instanceof SimpleSearchInfo){
+            SimpleSearchInfo skey = (SimpleSearchInfo) key;
+            System.out.print(skey.getInfos().get("BlkDepth")+ " ");
+            }
+          }
+        }
+    }
+
+    //GUBED
+     * */
+
     highestEntry = waitlist.lastEntry();
     Waitlist localWaitlist = highestEntry.getValue();
     assert !localWaitlist.isEmpty();
@@ -144,6 +189,10 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
       size--;
     }
     return result;
+  }
+
+  public WaitlistFactory getWLF(){
+    return wrappedWaitlist;
   }
 
   @Override

@@ -27,6 +27,8 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.getPredicateState;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.toPercent;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,6 +83,9 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     private int successfulForcedCoverings = 0;
     private int wasAlreadyCovered = 0;
 
+    //DEBUG
+    //GUBED
+
     @Override
     public String getName() {
       return "Predicate Forced Covering";
@@ -107,6 +112,32 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   private final PredicateAbstractionManager predAbsMgr;
   private final ImpactUtility impact;
 
+  private static int numOfAffectedStates = 0;
+
+  //DEBUG
+  private final boolean randomizedFC = false;
+  //GUBED
+
+  public static int getNumOfAffectedStates(){
+    return numOfAffectedStates;
+  }
+
+  public int getAttemptedFC(){
+    return stats.attemptedForcedCoverings;
+  }
+
+  public void setAttemptedFC(int pInt){
+    stats.attemptedForcedCoverings = pInt;
+  }
+
+  public int getSuccesfullFC(){
+    return stats.successfulForcedCoverings;
+  }
+
+  public void setSuccesfullFC(int pInt){
+    stats.successfulForcedCoverings = pInt;
+  }
+
   public PredicateForcedCovering(Configuration config, LogManager pLogger,
       ConfigurableProgramAnalysis pCpa) throws InvalidConfigurationException {
     logger = pLogger;
@@ -129,7 +160,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
                                                    predicateCpa.getCfa().getVarClassification(),
                                                    config,
                                                    predicateCpa.getShutdownNotifier(),
-                                                   pLogger);
+                                                   pLogger,true);
     fmgr = predicateCpa.getSolver().getFormulaManager();
     predAbsMgr = predicateCpa.getPredicateManager();
     impact = new ImpactUtility(config, fmgr, predAbsMgr);
@@ -160,10 +191,55 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     ARGReachedSet arg = new ARGReachedSet(pReached, argCpa);
 
     List<ARGState> parentList = getAbstractionPathTo(argState);
-    for (final AbstractState coveringCandidate : pReached.getReached(pState)) {
+
+    //DEBUG
+    int attempts = 0;
+    int attemptslimit;
+    if(randomizedFC){
+      attemptslimit = (int)(Math.random() * 4.9) - 1; //random number of attempts
+      if(attemptslimit == 0){
+        System.out.println("attemptslimt can be zero");
+      }
+    }else{
+      attemptslimit = 100000;
+    }
+    //GUBED
+
+    //DEBUG
+    Collection<AbstractState> pReachedColl = pReached.getReached(pState);
+    List<AbstractState> pReachedList = new ArrayList<>(pReachedColl);
+    if(randomizedFC){
+      Collections.shuffle(pReachedList);
+    }
+    //GUBED
+
+    //DEBUG
+    try{
+      File file = new File("numofcoveringcandies.txt");
+
+      FileWriter fw = new FileWriter(file, true);
+
+      fw.write(Integer.toString(pReachedList.size()));
+      fw.write(", ");
+      fw.flush();
+
+      fw.close();
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    //GUBED
+
+    for (final AbstractState coveringCandidate : pReachedList) {
       if (pState == coveringCandidate) {
         continue;
       }
+
+      //DEBUG
+      if(attempts > attemptslimit){
+        break;
+      }
+      attempts++;
+      //GUBED
 
       if (stop.stop(argState, Collections.singleton(coveringCandidate), pPrecision)
           || argState.isCovered()) {
@@ -174,6 +250,9 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
       if (stop.isForcedCoveringPossible(pState, coveringCandidate, pPrecision)) {
         stats.attemptedForcedCoverings++;
+        //DEBUG
+        System.out.println("attempting forced covering: "+ stats.attemptedForcedCoverings);
+        //GUBED
         logger.log(Level.ALL, "Candidate for forced-covering is", coveringCandidate);
 
         // A) find common parent of argState and coveringCandidate
@@ -215,11 +294,15 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
         if (!interpolantInfo.isSpurious()) {
           logger.log(Level.FINER, "Forced covering unsuccessful.");
-          continue; // forced covering not possible
+
+          continue; // forced covering is not possible
         }
 
 
         stats.successfulForcedCoverings++;
+        //DEBUG
+        System.out.println("successed forced covering: "+ stats.successfulForcedCoverings);
+        //GUBED
         logger.log(Level.FINER, "Forced covering successful.");
 
         List<BooleanFormula> interpolants = interpolantInfo.getInterpolants();
@@ -241,11 +324,17 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
           boolean stateChanged = impact.strengthenStateWithInterpolant(
                                                 itp, element, lastAbstraction);
           if (stateChanged) {
+            numOfAffectedStates++;
             arg.removeCoverageOf(element);
           }
 
           lastAbstraction = getPredicateState(element).getAbstractionFormula();
         }
+
+        //DEBUG
+        System.out.println("removed coverage count: "+ARGReachedSet.getRemovedCoverageCount());
+        System.out.println("num of affected states: "+numOfAffectedStates);
+        //GUBED
 
         // For debugging, run stop operator on this element.
         // However, ARGStopSep may return false although it is covered,

@@ -227,7 +227,12 @@ public class RestartAlgorithm implements Algorithm, StatisticsProvider {
 
         // run algorithm
         try {
-          status = currentAlgorithm.run(currentReached);
+          try {
+            status = currentAlgorithm.run(currentReached);
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
 
           if (from(currentReached).anyMatch(IS_TARGET_STATE) && status.isPrecise()) {
 

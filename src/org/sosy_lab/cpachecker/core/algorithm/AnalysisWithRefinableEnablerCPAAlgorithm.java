@@ -27,6 +27,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -217,10 +218,15 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
 
     // run algorithm
     logger.log(Level.FINEST, "Start analysis.");
-    AlgorithmStatus status;
+    AlgorithmStatus status = null;
 
     try {
-      status = algorithm.run(pReachedSet);
+      try {
+        status = algorithm.run(pReachedSet);
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     } catch (CPAEnabledAnalysisPropertyViolationException e) {
       if(e.getFailureCause()==null){
         throw new CPAException("Error state not known to analysis with enabler CPA. Cannot continue analysis.");

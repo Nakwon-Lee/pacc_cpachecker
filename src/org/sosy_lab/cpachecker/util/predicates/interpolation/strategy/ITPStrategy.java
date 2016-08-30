@@ -84,7 +84,6 @@ public abstract class ITPStrategy<T> {
       final List<Triple<BooleanFormula, AbstractState, T>> formulasWithStateAndGroupId)
       throws InterruptedException, SolverException;
 
-
   /**
    * This method checks the validity of the interpolants according to
    * the current interpolation strategy.

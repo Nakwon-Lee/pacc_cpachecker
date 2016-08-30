@@ -27,6 +27,7 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.*;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.div;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -224,16 +225,50 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
   }
 
   @Override
-  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(ReachedSet reached) throws CPAException, InterruptedException, IOException {
     AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
 
     int initialReachedSetSize = reached.size();
     boolean refinedInPreviousIteration = false;
+
+    //DEBUG
+    System.out.println("CEGARAlgorithme run st");
+    //GUBED
+
     stats.totalTimer.start();
     try {
       boolean refinementSuccessful;
       do {
         refinementSuccessful = false;
+
+        /*
+        ReachedSet tRS = null;
+
+        ObjectOutputStream oos = null;
+        ObjectInputStream ois = null;
+        try
+        {
+           ByteArrayOutputStream bos =
+                 new ByteArrayOutputStream(); // A
+           oos = new ObjectOutputStream(bos); // B
+           // serialize and pass the object
+           oos.writeObject(reached);   // C
+           oos.flush();               // D
+           ByteArrayInputStream bin =
+                 new ByteArrayInputStream(bos.toByteArray()); // E
+           ois = new ObjectInputStream(bin);                  // F
+           // return the new object
+           tRS = (ReachedSet)ois.readObject(); // G
+
+           oos.close();
+           ois.close();
+        }
+        catch(Exception e)
+        {
+           System.out.println("Exception in ObjectCloner = " + e);
+           //throw(e);
+        }
+        */
 
         // run algorithm
         status = status.update(algorithm.run(reached));
@@ -265,6 +300,10 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
 
     } finally {
       stats.totalTimer.stop();
+
+      //DEBUG
+      System.out.println("CEGARAlgorithme run ed");
+      //GUBED
     }
     return status;
   }
@@ -288,6 +327,10 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
     stats.maxReachedSizeBeforeRefinement = Math.max(stats.maxReachedSizeBeforeRefinement, reached.size());
     sizeOfReachedSetBeforeRefinement = reached.size();
 
+    //DEBUG
+    System.out.println("refinement st ");
+    //GUBED
+
     stats.refinementTimer.start();
     boolean refinementResult;
     try {
@@ -298,6 +341,9 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
       throw e;
     } finally {
       stats.refinementTimer.stop();
+      //DEBUG
+      System.out.println("refinement ed ");
+      //GUBED
     }
 
     logger.log(Level.FINE, "Refinement successful:", refinementResult);

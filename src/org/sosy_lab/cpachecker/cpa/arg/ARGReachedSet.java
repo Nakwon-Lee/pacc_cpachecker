@@ -64,6 +64,12 @@ public class ARGReachedSet {
   private final ReachedSet mReached;
   private final UnmodifiableReachedSet mUnmodifiableReached;
 
+  private static int removedCoverageCount = 0;
+
+  public static int getRemovedCoverageCount(){
+    return removedCoverageCount;
+  }
+
   /**
    * Constructor for ARGReachedSet as a simple wrapper around ReachedSet.
    * If possible, do not use this constructor but the other one that takes
@@ -333,8 +339,12 @@ public class ARGReachedSet {
    * Call this method when you have changed (strengthened) an abstract state.
    */
   public void removeCoverageOf(ARGState v) {
+
     for (ARGState coveredByChildOfV : ImmutableList.copyOf(v.getCoveredByThis())) {
       uncover(coveredByChildOfV);
+      //DEBUG
+      removedCoverageCount++;
+      //GUBED
     }
     assert v.getCoveredByThis().isEmpty();
   }

@@ -44,12 +44,14 @@ import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.defaults.AbstractSingleWrapperState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
+import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
+import org.sosy_lab.cpachecker.core.interfaces.SearchInfoable;
 import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Sets;
 
-public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable {
+public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable, SearchInfoable {
 
   private static final long serialVersionUID = 2608287648397165040L;
 
@@ -72,6 +74,12 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   private ARGState mergedWith = null;
 
   private final int stateId;
+
+  //DEBUG
+  private SearchInfo searchinfo;
+  private int treeDepth = 0;
+  private int blkDepth = 0;
+  //GUBED
 
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
 
@@ -101,7 +109,18 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (!parents.contains(pOtherParent)) {
       assert !pOtherParent.children.contains(this);
       parents.add(pOtherParent);
-      pOtherParent.children.add(this);
+
+      //DEBUG
+      if (treeDepth <= pOtherParent.treeDepth) {
+        treeDepth = pOtherParent.treeDepth + 1;
+      }
+
+      if (pOtherParent.blkDepth > blkDepth){
+        blkDepth = pOtherParent.blkDepth;
+      }
+    //GUBED
+
+        pOtherParent.children.add(this);
     } else {
       assert pOtherParent.children.contains(this);
     }
@@ -250,6 +269,9 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     assert (children.contains(child));
     children.remove(child);
     child.parents.remove(this);
+    //DEBUG
+    child.updateTreeDepth();
+    //GUBED
   }
 
   // small and less important stuff
@@ -370,6 +392,9 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     for (ARGState child : children) {
       assert (child.parents.contains(this));
       child.parents.remove(this);
+      //DEBUG
+      child.updateTreeDepth();
+      //GUBED
     }
     children.clear();
 
@@ -414,6 +439,16 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     assert !isCovered() : "Not implemented: Replacement of covered element " + this;
     assert !replacement.isCovered() : "Cannot replace with covered element " + replacement;
 
+    //Order is important... parents have informations for treedepth and blk depth
+    //so, parents must be updated earlier than children
+    //copy parents
+    for (ARGState parent : parents) {
+      assert (parent.children.contains(this)) : "Inconsistent ARG at " + this;
+      parent.children.remove(this);
+      replacement.addParent(parent);
+    }
+    parents.clear();
+
     // copy children
     for (ARGState child : children) {
       assert (child.parents.contains(this)) : "Inconsistent ARG at " + this;
@@ -421,13 +456,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       child.addParent(replacement);
     }
     children.clear();
-
-    for (ARGState parent : parents) {
-      assert (parent.children.contains(this)) : "Inconsistent ARG at " + this;
-      parent.children.remove(this);
-      replacement.addParent(parent);
-    }
-    parents.clear();
 
     if (mCoveredByThis != null) {
       if (replacement.mCoveredByThis == null) {
@@ -447,4 +475,40 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
 
     destroyed = true;
   }
+
+  //DEBUG
+  public void updateTreeDepth(){
+
+    treeDepth = 0;
+
+    for (ARGState tPar : parents){
+      if (treeDepth <= tPar.treeDepth){
+        treeDepth = tPar.treeDepth + 1;
+      }
+    }
+  }
+
+  public int getTreeDepth(){
+    return treeDepth;
+  }
+
+  public int getBlkDepth(){
+    return blkDepth;
+  }
+
+  public void incBlkDepth(){
+    blkDepth++;
+  }
+
+  @Override
+  public SearchInfo getSearchInfo() {
+    return searchinfo;
+  }
+
+  @Override
+  public void setSearchInfo(SearchInfo pSInfo) {
+    // TODO Auto-generated method stub
+    searchinfo = pSInfo;
+  }
+  //GUBED
 }

@@ -26,6 +26,7 @@ package org.sosy_lab.cpachecker.core.algorithm;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -90,7 +91,12 @@ public class RestartWithConditionsAlgorithm implements Algorithm {
 
     do {
       // run the inner algorithm to fill the reached set
-      status = status.update(innerAlgorithm.run(pReached));
+      try {
+        status = status.update(innerAlgorithm.run(pReached));
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
 
       if (from(pReached).anyMatch(IS_TARGET_STATE) && status.isPrecise()) {
         return status;

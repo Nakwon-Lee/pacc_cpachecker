@@ -70,8 +70,8 @@ import org.sosy_lab.cpachecker.cpa.partitioning.PartitioningCPA;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateCPA;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicatePrecision;
-import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
+import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.SolverException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.CPAs;
@@ -302,7 +302,12 @@ public class PreconditionRefinerAlgorithm implements Algorithm, StatisticsProvid
 
     do {
       // Run the CPA algorithm
-      wrappedAlgorithm.run(pReachedSet);
+      try {
+        wrappedAlgorithm.run(pReachedSet);
+      } catch (IOException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
 
       // We use one set of reached states
       //    ... and separate the state space using an automaton!

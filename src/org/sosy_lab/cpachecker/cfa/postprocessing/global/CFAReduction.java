@@ -26,6 +26,7 @@ package org.sosy_lab.cpachecker.cfa.postprocessing.global;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.*;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Level;
@@ -144,7 +145,12 @@ public class CFAReduction {
           lCpas.getInitialState(cfa.getMainFunction(), StateSpacePartition.getDefaultPartition()),
           lCpas.getInitialPrecision(cfa.getMainFunction(), StateSpacePartition.getDefaultPartition()));
 
-      lAlgorithm.run(lReached);
+      try {
+        lAlgorithm.run(lReached);
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
 
       CPAs.closeCpaIfPossible(lCpas, lLogger);
       CPAs.closeIfPossible(lAlgorithm, lLogger);

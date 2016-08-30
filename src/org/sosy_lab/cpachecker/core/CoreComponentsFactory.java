@@ -39,8 +39,10 @@ import org.sosy_lab.cpachecker.core.algorithm.AnalysisWithRefinableEnablerCPAAlg
 import org.sosy_lab.cpachecker.core.algorithm.AssumptionCollectorAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.BDDCPARestrictionAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CEGARAlgorithm;
+import org.sosy_lab.cpachecker.core.algorithm.CEGARSnappableAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CPAAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CounterexampleCheckAlgorithm;
+import org.sosy_lab.cpachecker.core.algorithm.CounterexampleCheckSnappableAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CustomInstructionRequirementsExtractingAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.RestartAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.RestartWithConditionsAlgorithm;
@@ -141,6 +143,10 @@ public class CoreComponentsFactory {
       description = "Refine the preconditions until the set of unsafe and safe states are disjoint.")
   private boolean usePreconditionRefinementAlgorithm = false;
 
+  @Option(secure=true, name="algorithm.snappable",
+      description = "use snappable algorithms")
+  private boolean useSnappableAlgorithm = false;
+
   private final Configuration config;
   private final LogManager logger;
   private final ShutdownNotifier shutdownNotifier;
@@ -187,7 +193,11 @@ public class CoreComponentsFactory {
       }
 
       if (useCEGAR) {
-        algorithm = new CEGARAlgorithm(algorithm, cpa, config, logger);
+        if (useSnappableAlgorithm){
+          algorithm = new CEGARSnappableAlgorithm(algorithm, cpa, config, logger);
+        }else{
+          algorithm = new CEGARAlgorithm(algorithm, cpa, config, logger);
+        }
       }
 
       if (useBMC) {
@@ -195,7 +205,11 @@ public class CoreComponentsFactory {
       }
 
       if (checkCounterexamples) {
-        algorithm = new CounterexampleCheckAlgorithm(algorithm, cpa, config, logger, shutdownNotifier, cfa, programDenotation);
+        if (useSnappableAlgorithm){
+          algorithm = new CounterexampleCheckSnappableAlgorithm(algorithm, cpa, config, logger, shutdownNotifier, cfa, programDenotation);
+        }else{
+          algorithm = new CounterexampleCheckAlgorithm(algorithm, cpa, config, logger, shutdownNotifier, cfa, programDenotation);
+        }
       }
 
       if (useBDDCPARestriction) {

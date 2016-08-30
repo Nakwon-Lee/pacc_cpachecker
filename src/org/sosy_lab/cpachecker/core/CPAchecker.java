@@ -27,7 +27,9 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.common.ShutdownNotifier.interruptCurrentThreadOnShutdown;
 import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -59,6 +61,7 @@ import org.sosy_lab.cpachecker.core.CoreComponentsFactory.SpecAutomatonCompositi
 import org.sosy_lab.cpachecker.core.algorithm.Algorithm;
 import org.sosy_lab.cpachecker.core.algorithm.Algorithm.AlgorithmStatus;
 import org.sosy_lab.cpachecker.core.algorithm.ExternalCBMCAlgorithm;
+import org.sosy_lab.cpachecker.core.algorithm.SnappableAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.impact.ImpactAlgorithm;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
@@ -66,12 +69,16 @@ import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.Targetable;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.ReachedSetCloneable;
+import org.sosy_lab.cpachecker.core.reachedset.ReachedSetList;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.ParserException;
 import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.automaton.TargetLocationProvider;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
+import org.sosy_lab.cpachecker.util.snapshot.Fitness;
+import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -108,6 +115,30 @@ public class CPAchecker {
     @Override
     public int getReachedSetSize() {
       return reached.size();
+    }
+
+    @Override
+    public void stop() {
+      shutdownNotifier.requestShutdown("A stop request was received via the JMX interface.");
+    }
+
+  }
+
+  private static class CPAcheckerSnappableBean extends AbstractMBean implements CPAcheckerMXBean {
+
+    private final ReachedSetList reachedSetList;
+    private final ShutdownNotifier shutdownNotifier;
+
+    public CPAcheckerSnappableBean(ReachedSetList pReachedSetList, LogManager logger, ShutdownNotifier pShutdownNotifier) {
+      super("org.sosy_lab.cpachecker:type=CPAchecker", logger);
+      reachedSetList = pReachedSetList;
+      shutdownNotifier = pShutdownNotifier;
+      register();
+    }
+
+    @Override
+    public int getReachedSetSize() {
+      return reachedSetList.size();
     }
 
     @Override
@@ -216,12 +247,16 @@ public class CPAchecker {
     factory = new CoreComponentsFactory(pConfiguration, pLogManager, shutdownNotifier);
   }
 
+  @SuppressWarnings("null")
   public CPAcheckerResult run(String programDenotation) {
 
     logger.log(Level.INFO, "CPAchecker", getVersion(), "started");
 
     MainCPAStatistics stats = null;
     ReachedSet reached = null;
+    //DEBUG
+    ReachedSetList reachedSetList = null;
+    //GUBED
     Result result = Result.NOT_YET_STARTED;
     String violatedPropertyDescription = "";
 
@@ -278,24 +313,68 @@ public class CPAchecker {
             violatedPropertyDescription, null, stats);
       }
 
+      //DEBUG
+      if(algorithm instanceof SnappableAlgorithm){
+        if(reached instanceof ReachedSetCloneable){
+          reachedSetList = new ReachedSetList();
+          reachedSetList.add(new Pair<>((ReachedSetCloneable)reached,new Fitness(),0));
+        }
+      }
+      //GUBED
+
       // run analysis
       result = Result.UNKNOWN; // set to unknown so that the result is correct in case of exception
 
-      AlgorithmStatus status = runAlgorithm(algorithm, reached, stats);
+      //DEBUG
+      System.out.println("CPAchecker runAlgorithm st");
+      //GUBED
 
-      violatedPropertyDescription = findViolatedProperties(reached);
-      if (violatedPropertyDescription != null) {
-        if (!status.isPrecise()) {
-          result = Result.UNKNOWN;
+      AlgorithmStatus status;
+
+      if(reachedSetList == null){
+        status = runAlgorithm(algorithm, reached, stats);
+      }else{
+        //the algorithm must be a snappablealgorithm
+        status = runAlgorithm(algorithm, reachedSetList, stats);
+      }
+      //DEBUG
+      System.out.println("CPAchecker runAlgorithm ed");
+      //GUBED
+
+      if(reachedSetList == null){
+
+        violatedPropertyDescription = findViolatedProperties(reached);
+        if (violatedPropertyDescription != null) {
+          if (!status.isPrecise()) {
+            result = Result.UNKNOWN;
+          } else {
+            result = Result.FALSE;
+          }
         } else {
-          result = Result.FALSE;
+          violatedPropertyDescription = "";
+          result = analyzeResult(reached, status.isSound());
+          if (unknownAsTrue && result == Result.UNKNOWN) {
+            result = Result.TRUE;
+          }
         }
-      } else {
-        violatedPropertyDescription = "";
-        result = analyzeResult(reached, status.isSound());
-        if (unknownAsTrue && result == Result.UNKNOWN) {
-          result = Result.TRUE;
+
+      }else{
+        //DEBUG
+        violatedPropertyDescription = findViolatedProperties(reachedSetList.getLast().left);
+        if (violatedPropertyDescription != null) {
+          if (!status.isPrecise()) {
+            result = Result.UNKNOWN;
+          } else {
+            result = Result.FALSE;
+          }
+        } else {
+          violatedPropertyDescription = "";
+          result = analyzeResult(reachedSetList.getLast().left, status.isSound());
+          if (unknownAsTrue && result == Result.UNKNOWN) {
+            result = Result.TRUE;
+          }
         }
+        //GUBED
       }
 
     } catch (IOException e) {
@@ -328,8 +407,15 @@ public class CPAchecker {
     } finally {
       shutdownNotifier.unregister(interruptThreadOnShutdown);
     }
-    return new CPAcheckerResult(result,
-        violatedPropertyDescription, reached, stats);
+    if(reachedSetList == null){
+      return new CPAcheckerResult(result,
+          violatedPropertyDescription, reached, stats);
+    }else{
+      //DEBUG
+      return new CPAcheckerResult(result,
+          violatedPropertyDescription, reachedSetList.getLast().left, stats);
+      //GUBED
+    }
   }
 
   private void checkIfOneValidFile(String fileDenotation) throws InvalidConfigurationException {
@@ -378,7 +464,22 @@ public class CPAchecker {
 
   private AlgorithmStatus runAlgorithm(final Algorithm algorithm,
       final ReachedSet reached,
-      final MainCPAStatistics stats) throws CPAException, InterruptedException {
+      final MainCPAStatistics stats) throws CPAException, InterruptedException, IOException {
+
+  //DEBUG
+    try{
+      File file = new File("numofcoveringcandies.txt");
+
+      FileWriter fw = new FileWriter(file, true);
+
+      fw.write("Start\n");
+      fw.flush();
+
+      fw.close();
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    //GUBED
 
     logger.log(Level.INFO, "Starting analysis ...");
 
@@ -403,11 +504,60 @@ public class CPAchecker {
     } finally {
       stats.stopAnalysisTimer();
 
+      //DEBUG
+      try{
+        File file = new File("numofcoveringcandies.txt");
+
+        FileWriter fw = new FileWriter(file, true);
+
+        fw.write("End\n");
+        fw.flush();
+
+        fw.close();
+      }catch(Exception e){
+        e.printStackTrace();
+      }
+      //GUBED
+
       // unregister management interface for CPAchecker
       mxbean.unregister();
     }
   }
 
+  //DEBUG
+  private AlgorithmStatus runAlgorithm(final Algorithm algorithm,
+      final ReachedSetList reachedList,
+      final MainCPAStatistics stats) throws CPAException, InterruptedException {
+
+    logger.log(Level.INFO, "Starting analysis ...");
+
+    AlgorithmStatus status = AlgorithmStatus.SOUND_AND_PRECISE;
+
+    // register management interface for CPAchecker
+    CPAcheckerSnappableBean mxbean = new CPAcheckerSnappableBean(reachedList, logger, shutdownNotifier);
+
+    stats.startAnalysisTimer();
+    try {
+
+      do {
+        status = status.update(((SnappableAlgorithm)algorithm).run(reachedList));
+
+        // either run only once (if stopAfterError == true)
+        // or until the waitlist is empty
+      } while (!stopAfterError && reachedList.getLast().left.hasWaitingState());
+
+      logger.log(Level.INFO, "Stopping analysis ...");
+      return status;
+
+    } finally {
+      stats.stopAnalysisTimer();
+
+      // unregister management interface for CPAchecker
+      mxbean.unregister();
+    }
+  }
+//GUBED
+  
   private @Nullable String findViolatedProperties(final ReachedSet reached) {
     Set<String> descriptions = from(reached).filter(IS_TARGET_STATE)
                         .transform(new Function<AbstractState, String>() {

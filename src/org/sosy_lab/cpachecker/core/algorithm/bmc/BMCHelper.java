@@ -26,6 +26,7 @@ package org.sosy_lab.cpachecker.core.algorithm.bmc;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 import org.sosy_lab.common.log.LogManager;
@@ -126,7 +127,13 @@ final class BMCHelper {
 
   public static AlgorithmStatus unroll(LogManager pLogger, ReachedSet pReachedSet, ReachedSetInitializer pInitializer, Algorithm pAlgorithm, ConfigurableProgramAnalysis pCPA) throws CPAException, InterruptedException {
     adjustReachedSet(pLogger, pReachedSet, pInitializer, pCPA);
-    return pAlgorithm.run(pReachedSet);
+    try {
+      return pAlgorithm.run(pReachedSet);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
   }
 
   /**

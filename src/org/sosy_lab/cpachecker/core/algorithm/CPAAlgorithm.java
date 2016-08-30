@@ -59,8 +59,10 @@ import org.sosy_lab.cpachecker.core.interfaces.StopOperator;
 import org.sosy_lab.cpachecker.core.interfaces.TransferRelation;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGMergeJoinCPAEnabledAnalysis;
+import org.sosy_lab.cpachecker.cpa.predicate.PredicateForcedCovering;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.snapshot.Fitness;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -132,7 +134,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     @Option(secure=true, description="Which strategy to use for forced coverings (empty for none)",
             name="forcedCovering")
     @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
-    private Class<? extends ForcedCovering> forcedCoveringClass = null;
+    private Class<? extends ForcedCovering> forcedCoveringClass;
 
     @Option(secure=true, description="Do not report 'False' result, return UNKNOWN instead. "
         + " Useful for incomplete analysis with no counterexample checking.")
@@ -212,8 +214,34 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     status = AlgorithmStatus.SOUND_AND_PRECISE.withPrecise(!pIsImprecise);
   }
 
+//DEBUG
+  public boolean setStatsOfFC(Fitness pFitness) throws Exception{
+    if(forcedCovering != null){
+      if(forcedCovering instanceof PredicateForcedCovering){
+        PredicateForcedCovering pFC = (PredicateForcedCovering) forcedCovering;
+        pFC.setAttemptedFC(pFitness.nOfAttemptedFC);
+        pFC.setSuccesfullFC(pFitness.nOfSuccessfulFC);
+        return true;
+      }
+    }
+    throw new Exception();
+  }
+
+  public boolean setFitnessFC(Fitness pFitness){
+    if(forcedCovering != null){
+      if(forcedCovering instanceof PredicateForcedCovering){
+        PredicateForcedCovering pFC = (PredicateForcedCovering) forcedCovering;
+        pFitness.nOfAttemptedFC = pFC.getAttemptedFC();
+        pFitness.nOfSuccessfulFC = pFC.getSuccesfullFC();
+        return true;
+      }
+    }
+    return false;
+  }
+  //GUBED
+
   @Override
-  public AlgorithmStatus run(final ReachedSet reachedSet) throws CPAException, InterruptedException {
+  public AlgorithmStatus run(final ReachedSet reachedSet) throws InterruptedException, CPAException   {
     stats.totalTimer.start();
     try {
       return run0(reachedSet);
@@ -229,7 +257,9 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     }
   }
 
-  private AlgorithmStatus run0(final ReachedSet reachedSet) throws CPAException, InterruptedException {
+  int a = 0;
+
+  private AlgorithmStatus run0(final ReachedSet reachedSet) throws InterruptedException, CPAException   {
     final TransferRelation transferRelation = cpa.getTransferRelation();
     final MergeOperator mergeOperator = cpa.getMergeOperator();
     final StopOperator stopOperator = cpa.getStopOperator();
@@ -237,7 +267,15 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
         cpa.getPrecisionAdjustment();
 
     //DEBUG
+
     System.out.println("CPAAlgorithm.run0 cpa?   "+ cpa.getClass().getName());
+    /*
+    a++;
+    if(a == 16)
+    {
+      System.out.println("");
+    }
+    */
     //GUBED
 
     while (reachedSet.hasWaitingState()) {
@@ -268,13 +306,29 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
           boolean stop = forcedCovering.tryForcedCovering(state, precision, reachedSet);
 
           if (stop) {
+            //DEBUG
             // TODO: remove state from reached set?
+            //return status;
             continue;
+            //DEBUG
           }
         } finally {
           stats.forcedCoveringTimer.stop();
         }
       }
+
+      /*
+      //DEBUG
+      if (reachedSet instanceof SearchInfoReachedSet){
+        SearchInfoReachedSet tReached = (SearchInfoReachedSet)reachedSet;
+        SearchInfo<Integer> tInfo = tReached.getSearchInfo(state);
+        assert tInfo != null: "tInfo is null!";
+        System.out.println(tInfo.toString());
+
+      }
+    //GUBED
+     *
+     */
 
       stats.transferTimer.start();
       Collection<? extends AbstractState> successors;
@@ -283,6 +337,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
       } finally {
         stats.transferTimer.stop();
       }
+
       // TODO When we have a nice way to mark the analysis result as incomplete,
       // we could continue analysis on a CPATransferException with the next state from waitlist.
 
@@ -305,7 +360,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
                   Functions.<AbstractState>identity(),
                   successor);
           if (!precAdjustmentOptional.isPresent()) {
-            continue;
+            continue; //skip this successor
           }
           precAdjustmentResult = precAdjustmentOptional.get();
         } finally {

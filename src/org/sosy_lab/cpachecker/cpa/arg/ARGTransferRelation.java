@@ -55,6 +55,7 @@ public class ARGTransferRelation implements TransferRelation {
   public Collection<ARGState> getAbstractSuccessors(
       AbstractState pElement, Precision pPrecision)
       throws CPATransferException, InterruptedException {
+
     ARGState element = (ARGState)pElement;
 
     // covered elements may be in the reached set, but should always be ignored
@@ -66,6 +67,7 @@ public class ARGTransferRelation implements TransferRelation {
 
     AbstractState wrappedState = element.getWrappedState();
     Collection<? extends AbstractState> successors = transferRelation.getAbstractSuccessors(wrappedState, pPrecision);
+
     if (successors.isEmpty()) {
       return Collections.emptySet();
     }
