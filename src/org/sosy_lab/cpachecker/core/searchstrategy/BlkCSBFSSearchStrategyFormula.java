@@ -30,6 +30,10 @@ import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 public class BlkCSBFSSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
+  public BlkCSBFSSearchStrategyFormula(Integer nOfVars){
+    super();
+  }
+
   @Override
   public int compare(SearchInfo pO1, SearchInfo pO2) {
     Integer ret = 0;
