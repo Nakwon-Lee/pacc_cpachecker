@@ -27,8 +27,6 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.getPredicateState;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.toPercent;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -201,7 +199,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         System.out.println("attemptslimt can be zero");
       }
     }else{
-      attemptslimit = 100000;
+      attemptslimit = Integer.MAX_VALUE;
     }
     //GUBED
 
@@ -213,6 +211,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     }
     //GUBED
 
+    /*
     //DEBUG
     try{
       File file = new File("numofcoveringcandies.txt");
@@ -228,6 +227,8 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
       e.printStackTrace();
     }
     //GUBED
+     *
+     */
 
     for (final AbstractState coveringCandidate : pReachedList) {
       if (pState == coveringCandidate) {
