@@ -46,6 +46,8 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfoable;
+import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
 
 import com.google.common.base.Function;
@@ -79,6 +81,7 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   private SearchInfo searchinfo;
   private int treeDepth = 0;
   private int blkDepth = 0;
+  private int isAbsSt = 0;
   //GUBED
 
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
@@ -89,6 +92,15 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (pParentElement != null) {
       addParent(pParentElement);
     }
+
+    //DEBUG
+    PredicateAbstractState predicateState = AbstractStates.extractStateByType(pWrappedState, PredicateAbstractState.class);
+    // assert predicateState != null : "extractStateByType is failed! (predicateState)";
+
+    if (predicateState != null && predicateState.isAbstractionState()){
+      isAbsSt = 1;
+    }
+    //GUBED
   }
 
   // parent & child relations
@@ -509,6 +521,10 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   public void setSearchInfo(SearchInfo pSInfo) {
     // TODO Auto-generated method stub
     searchinfo = pSInfo;
+  }
+
+  public int isAbsState(){
+    return isAbsSt;
   }
   //GUBED
 }

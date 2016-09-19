@@ -147,20 +147,29 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
         }
     }
 
+    boolean check = true;
+
     if (this instanceof DynamicSortedWaitlist){
       if (waitlist.size() > 0){
         for (Entry<K, Waitlist> entry : waitlist.entrySet()){
           K key = entry.getKey();
           if (key instanceof SimpleSearchInfo){
             SimpleSearchInfo skey = (SimpleSearchInfo) key;
-            System.out.print(skey.getInfos().get("BlkDepth")+ " ");
+            if (skey.getInfos().get("isAbsSt")==0){
+              check = false;
             }
           }
         }
+      }
+    }
+
+    if (check){
+      System.out.println("good! only AbsSts");
     }
 
     //GUBED
-     * */
+     * * */
+
 
     highestEntry = waitlist.lastEntry();
     Waitlist localWaitlist = highestEntry.getValue();

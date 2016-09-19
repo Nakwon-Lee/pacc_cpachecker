@@ -101,6 +101,7 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
 
     int tDep = tARGState.getTreeDepth();
     int tRPOrder = AbstractStates.extractLocation(pState).getReversePostorderId();
+    int tAbsSt = tARGState.isAbsState();
 
     CallstackState callstackState =
         AbstractStates.extractStateByType(pState, CallstackState.class);
@@ -121,6 +122,7 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<SearchInfo> {
     newInfo.getInfos().put("RPOrder", tRPOrder);
     newInfo.getInfos().put("CallStack", tCStack);
     newInfo.getInfos().put("BlkDepth", tBlkDepth);
+    newInfo.getInfos().put("isAbsSt", tAbsSt);
 
     assert newInfo.getInfos().size() == nOfVars : "number of variables and size of info list should be same";
 
