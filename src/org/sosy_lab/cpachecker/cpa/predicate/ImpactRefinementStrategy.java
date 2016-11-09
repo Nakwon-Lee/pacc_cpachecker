@@ -124,6 +124,8 @@ class ImpactRefinementStrategy extends RefinementStrategy {
     boolean stateChanged = impact.strengthenStateWithInterpolant(
                                                        itp, s, lastAbstraction);
 
+
+
     // Get the abstraction formula of the current state
     // (whether changed or not) to have it ready for the next call to this method).
     lastAbstraction = getPredicateState(s).getAbstractionFormula();

@@ -42,6 +42,7 @@ import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.time.Timer;
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.defaults.MergeSepOperator;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -299,6 +300,17 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
       logger.log(Level.FINER, "Retrieved state from waitlist");
       logger.log(Level.ALL, "Current state is", state, "with precision",
           precision);
+
+      //DEBUG
+      CFANode loc = AbstractStates.extractLocation(state);
+
+      /*
+
+      if (loc.getNodeNumber() == 1127){
+        System.out.println("Node Num: " + loc.getNodeNumber());
+      }
+      */
+      //GUBED
 
       if (forcedCovering != null) {
         stats.forcedCoveringTimer.start();

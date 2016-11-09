@@ -54,9 +54,12 @@ abstract class Mathsat5Formula implements Formula {
     return (int) msatTerm;
   }
 
-  long getTerm() {
+  //DEBUG
+  //original: none, modi: public
+  public long getTerm() {
     return msatTerm;
   }
+  //GUBED
 }
 
 class Mathsat5BitvectorFormula extends Mathsat5Formula implements BitvectorFormula {

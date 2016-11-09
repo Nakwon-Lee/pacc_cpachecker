@@ -30,6 +30,10 @@ import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 public class ABlkRCSRPOSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
+  public ABlkRCSRPOSearchStrategyFormula(Integer nOfVars){
+    super();
+  }
+
   @Override
   public int compare(SearchInfo pO1, SearchInfo pO2) {
     Integer ret = 0;
@@ -45,12 +49,7 @@ public class ABlkRCSRPOSearchStrategyFormula extends AbstractSearchStrategyFormu
     }else if (spO1.getInfos().get("isAbsSt") < spO2.getInfos().get("isAbsSt")) {
       ret = 1;
     }else if (spO1.getInfos().get("isAbsSt") == 1 && spO2.getInfos().get("isAbsSt") == 1){
-      double key = Math.random();
-      if (key>=0.5){
-        ret = 1;
-      }else{
-        ret = -1;
-           }
+      ret = 0;
     }else{ //both are non-abstraction state
       if (spO1.getInfos().get("CallStack") > spO2.getInfos().get("CallStack")){
         ret = 1;

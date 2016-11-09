@@ -317,10 +317,29 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         // This is always the abstraction of the abstraction state before the "current" one.
         AbstractionFormula lastAbstraction = getPredicateState(commonParent).getAbstractionFormula();
 
+        //DEBUG
+        ARGState infeasiblePartOfART = null;
+        //GUBED
+
         // D) update ARG
         for (Pair<BooleanFormula, ARGState> interpolationPoint : Pair.zipList(interpolants, path)) {
           BooleanFormula itp = interpolationPoint.getFirst();
           ARGState element = interpolationPoint.getSecond();
+
+          //DEBUG
+
+          if (bfmgr.isTrue(itp)) {
+            // do nothing
+            continue;
+          }
+
+          if (bfmgr.isFalse(itp)) {
+            // we have reached the part of the path that is infeasible
+            infeasiblePartOfART = element;
+            break;
+          }
+
+          //GUBED
 
           boolean stateChanged = impact.strengthenStateWithInterpolant(
                                                 itp, element, lastAbstraction);
@@ -331,6 +350,15 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
           lastAbstraction = getPredicateState(element).getAbstractionFormula();
         }
+
+        //DEBUG
+        if (infeasiblePartOfART != null){
+          arg.removeInfeasiblePartofARG(infeasiblePartOfART);
+          System.out.println("Cut the infeasible part during FC");
+
+          return true;
+          }
+        //GUBED
 
         //DEBUG
         System.out.println("removed coverage count: "+ARGReachedSet.getRemovedCoverageCount());
@@ -349,7 +377,6 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         } else {
           assert argState.getCoveringState() == coveringCandidate;
         }
-
         return true;
       }
     }

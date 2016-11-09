@@ -51,7 +51,6 @@ import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.CounterexampleInfo;
 import org.sosy_lab.cpachecker.core.counterexample.CFAPathWithAssumptions;
 import org.sosy_lab.cpachecker.core.counterexample.RichModel;
-import org.sosy_lab.cpachecker.util.predicates.AssignableTerm;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
@@ -67,6 +66,7 @@ import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.exceptions.SolverException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.predicates.AssignableTerm;
 import org.sosy_lab.cpachecker.util.predicates.BlockOperator;
 import org.sosy_lab.cpachecker.util.predicates.PathChecker;
 import org.sosy_lab.cpachecker.util.predicates.Solver;
@@ -228,6 +228,7 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
     }
 
     Set<ARGState> elementsOnPath = ARGUtils.getAllStatesOnPathsTo(allStatesTrace.getLastState());
+
     assert elementsOnPath.containsAll(allStatesTrace.getStateSet());
     assert elementsOnPath.size() >= allStatesTrace.size();
 
@@ -259,6 +260,81 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
 
     logger.log(Level.ALL, "Error path formulas: ", formulas);
 
+  //DEBUG
+    int tic = 0;
+    for(ARGState s : abstractionStatesTrace){
+      CFANode node = AbstractStates.extractLocation(s);
+      if (node.getNodeNumber()==1127){
+          tic++;
+          }
+      }
+
+    if (tic == 2){
+/*
+      try{
+        File file = new File("analysis.txt");
+
+        FileWriter fw = new FileWriter(file, true);
+
+        fw.write("tic2  \n");
+        for (ARGState s : abstractionStatesTrace){
+          PredicateAbstractState predState = AbstractStates.extractStateByType(s, PredicateAbstractState.class);
+          assert predState.isAbstractionState();
+          fw.write(predState.getAbstractionFormula().getBlockFormula()+"\n");
+                }
+        fw.write("\n\n\n");
+        fw.flush();
+
+      }catch(Exception e){
+        e.printStackTrace();
+            }
+
+      try{
+        File file = new File("analysis.txt");
+
+        FileWriter fw = new FileWriter(file, true);
+
+        fw.write("tic2  \n");
+
+        for (BooleanFormula bf : formulas){
+          fw.write(bf.toString()+"  ");
+          }
+        fw.write("\n\n\n");
+        fw.flush();
+
+      }catch(Exception e){
+        e.printStackTrace();
+      }
+
+
+      try{
+        File file = new File("analysis.txt");
+
+        FileWriter fw = new FileWriter(file, true);
+
+        fw.write("tic2  \n");
+        fw.write(formulas.toString());
+        fw.write("\n\n\n");
+        fw.flush();
+
+        fw.close();
+      }catch(Exception e){
+        e.printStackTrace();
+      }
+
+      for (BooleanFormula bf : formulas){
+        System.out.println(bf+" ");
+        }
+
+      for (ARGState s : abstractionStatesTrace){
+        PredicateAbstractState predState = AbstractStates.extractStateByType(s, PredicateAbstractState.class);
+        assert predState.isAbstractionState();
+        System.out.println(predState.getAbstractionFormula().getBlockFormula()+" ");
+      }
+      */
+    }
+    //GUBED
+
     // build the counterexample
     buildCounterexampeTraceTime.start();
     final CounterexampleTraceInfo counterexample = formulaManager.buildCounterexampleTrace(
@@ -275,6 +351,7 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
       strategy.performRefinement(pReached, abstractionStatesTrace, counterexample.getInterpolants(), repeatedCounterexample);
 
       totalRefinement.stop();
+
       return CounterexampleInfo.spurious();
 
     } else {
@@ -431,6 +508,7 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
           }
 
         }
+
         return result;
 
       } else if (sliceBlockFormulas) {
