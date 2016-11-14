@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +40,8 @@ import java.util.logging.Level;
 import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
+import org.sosy_lab.common.configuration.Option;
+import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -73,6 +76,8 @@ import com.google.common.collect.ImmutableList;
  * {@link PredicateAbstractState}s and tries to strengthen them the
  * necessary amount by using interpolation.
  */
+
+@Options(prefix="fc")
 public class PredicateForcedCovering implements ForcedCovering, StatisticsProvider {
 
   private static final class FCStatistics implements Statistics {
@@ -113,7 +118,11 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   private static int numOfAffectedStates = 0;
 
   //DEBUG
-  private final boolean randomizedFC = false;
+  @Option(secure=true, name="modifc", description="FC is modified or not")
+  boolean modifiedFC = false;
+  @Option(secure=true, name="limit", description="how many attempts are conducted?")
+  int pAttemptslimit = 3;
+  Comparator<AbstractState> pComp = new FCComparator();
   //GUBED
 
   public static int getNumOfAffectedStates(){
@@ -162,6 +171,10 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     fmgr = predicateCpa.getSolver().getFormulaManager();
     predAbsMgr = predicateCpa.getPredicateManager();
     impact = new ImpactUtility(config, fmgr, predAbsMgr);
+
+    //DEBUG
+    config.inject(this);
+    //GUBED
   }
 
   @Override
@@ -193,21 +206,19 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     //DEBUG
     int attempts = 0;
     int attemptslimit;
-    if(randomizedFC){
-      attemptslimit = (int)(Math.random() * 4.9) - 1; //random number of attempts
-      if(attemptslimit == 0){
-        System.out.println("attemptslimt can be zero");
-      }
+    if(modifiedFC){
+      attemptslimit = pAttemptslimit;
     }else{
       attemptslimit = Integer.MAX_VALUE;
     }
     //GUBED
 
     //DEBUG
+    assert pState instanceof ARGState : "Forced covering: state is not an ARGState";
     Collection<AbstractState> pReachedColl = pReached.getReached(pState);
     List<AbstractState> pReachedList = new ArrayList<>(pReachedColl);
-    if(randomizedFC){
-      Collections.shuffle(pReachedList);
+    if(modifiedFC){
+      Collections.sort(pReachedList,pComp);
     }
     //GUBED
 
@@ -425,4 +436,19 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   public void collectStatistics(Collection<Statistics> pStatsCollection) {
     pStatsCollection.add(stats);
   }
+
+  //DEBUG
+  private class FCComparator implements Comparator<AbstractState> {
+
+    @Override
+    public int compare(AbstractState pO1, AbstractState pO2) {
+      assert pO1 instanceof ARGState : "FCComparator: AbstractState is not an ARGState";
+      assert pO2 instanceof ARGState : "FCComparator: AbstractState is not an ARGState";
+      ARGState pAO1 = (ARGState)pO1;
+      ARGState pAO2 = (ARGState)pO2;
+      return pAO1.compareTo(pAO2);
+    }
+
+  }
+  //GUBED
 }
