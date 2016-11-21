@@ -217,7 +217,7 @@ public abstract class RefinementStrategy {
 
     numberOfAffectedStates.setNextValue(changedElements.size());
     //DEBUG
-    System.out.println("number of affected states: " + numberOfAffectedStates);
+    //System.out.println("number of affected states: " + numberOfAffectedStates);
     //GUBED
     if (infeasiblePartOfART == lastElement) {
       pathLengthToInfeasibility++;
@@ -235,7 +235,7 @@ public abstract class RefinementStrategy {
     finishRefinementOfPath(infeasiblePartOfART, changedElements, pReached, pRepeatedCounterexample);
 
     //DEBUG
-    System.out.println("removed coverage count: "+ ARGReachedSet.getRemovedCoverageCount());
+    //System.out.println("removed coverage count: "+ ARGReachedSet.getRemovedCoverageCount());
     //GUBED
 
     // Update global statistics

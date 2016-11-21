@@ -42,7 +42,6 @@ import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.time.Timer;
-import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.defaults.MergeSepOperator;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -269,7 +268,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
 
     //DEBUG
 
-    System.out.println("CPAAlgorithm.run0 cpa?   "+ cpa.getClass().getName());
+    //System.out.println("CPAAlgorithm.run0 cpa?   "+ cpa.getClass().getName());
     /*
     a++;
     if(a == 16)
@@ -302,9 +301,8 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
           precision);
 
       //DEBUG
-      CFANode loc = AbstractStates.extractLocation(state);
-
       /*
+      CFANode loc = AbstractStates.extractLocation(state);
 
       if (loc.getNodeNumber() == 1127){
         System.out.println("Node Num: " + loc.getNodeNumber());
@@ -322,7 +320,7 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
             // TODO: remove state from reached set?
             //return status;
             continue;
-            //DEBUG
+            //GUBED
           }
         } finally {
           stats.forcedCoveringTimer.stop();

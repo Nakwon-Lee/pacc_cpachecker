@@ -328,7 +328,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
     sizeOfReachedSetBeforeRefinement = reached.size();
 
     //DEBUG
-    System.out.println("refinement st ");
+    //System.out.println("refinement st ");
     //GUBED
 
     stats.refinementTimer.start();
@@ -342,7 +342,7 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider {
     } finally {
       stats.refinementTimer.stop();
       //DEBUG
-      System.out.println("refinement ed ");
+      //System.out.println("refinement ed ");
       //GUBED
     }
 

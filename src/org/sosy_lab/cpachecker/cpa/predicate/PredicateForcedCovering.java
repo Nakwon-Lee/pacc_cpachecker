@@ -263,7 +263,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
       if (stop.isForcedCoveringPossible(pState, coveringCandidate, pPrecision)) {
         stats.attemptedForcedCoverings++;
         //DEBUG
-        System.out.println("attempting forced covering: "+ stats.attemptedForcedCoverings);
+        //System.out.println("attempting forced covering: "+ stats.attemptedForcedCoverings);
         //GUBED
         logger.log(Level.ALL, "Candidate for forced-covering is", coveringCandidate);
 
@@ -313,7 +313,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
         stats.successfulForcedCoverings++;
         //DEBUG
-        System.out.println("successed forced covering: "+ stats.successfulForcedCoverings);
+        //System.out.println("successed forced covering: "+ stats.successfulForcedCoverings);
         //GUBED
         logger.log(Level.FINER, "Forced covering successful.");
 
@@ -365,15 +365,16 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         //DEBUG
         if (infeasiblePartOfART != null){
           arg.removeInfeasiblePartofARG(infeasiblePartOfART);
+          /*
           System.out.println("Cut the infeasible part during FC");
-
+          */
           return true;
           }
         //GUBED
 
         //DEBUG
-        System.out.println("removed coverage count: "+ARGReachedSet.getRemovedCoverageCount());
-        System.out.println("num of affected states: "+numOfAffectedStates);
+        //System.out.println("removed coverage count: "+ARGReachedSet.getRemovedCoverageCount());
+        //System.out.println("num of affected states: "+numOfAffectedStates);
         //GUBED
 
         // For debugging, run stop operator on this element.
