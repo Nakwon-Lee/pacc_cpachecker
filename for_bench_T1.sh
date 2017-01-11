@@ -1,10 +1,6 @@
 #!/bin/bash
 
-python3 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkBFSCSRPO.xml
-
 python3 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkDFSCSRPO.xml
-
-python3 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkCSRPO.xml
 
 python3 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_CSRPO.xml
 
