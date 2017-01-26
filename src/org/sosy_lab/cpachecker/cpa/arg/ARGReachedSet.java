@@ -164,14 +164,22 @@ public class ARGReachedSet {
    * @param pReached The reached set.
    */
   public void removeInfeasiblePartofARG(ARGState rootOfInfeasiblePart) {
+    //DEBUG
     Set<ARGState> infeasibleSubtree = rootOfInfeasiblePart.getSubgraph();
+    //change to list for guaranteeing order of elements
+    //List<ARGState> infeasibleSubtree = rootOfInfeasiblePart.getSubgraph();
+    //GUBED
 
     for (ARGState removedNode : infeasibleSubtree) {
       removeCoverageOf(removedNode);
     }
 
     Set<ARGState> parentsOfRoot = ImmutableSet.copyOf(rootOfInfeasiblePart.getParents());
+    //DEBUG
     Set<ARGState> parentsOfRemovedStates = removeSet(infeasibleSubtree);
+    //Need List... so change it as set from list
+    //Set<ARGState> parentsOfRemovedStates = removeSet(new HashSet<>(infeasibleSubtree));
+    //GUBED
 
     assert parentsOfRoot.equals(parentsOfRemovedStates);
   }
@@ -244,7 +252,11 @@ public class ARGReachedSet {
 
     dumpSubgraph(e);
 
+    //DEBUG
     Set<ARGState> toUnreach = e.getSubgraph();
+    //Need fixed order of elements
+    //List<ARGState> toUnreach = e.getSubgraph();
+    //GUBED
 
     // collect all elements covered by the subtree
     List<ARGState> newToUnreach = new ArrayList<>();
@@ -254,7 +266,11 @@ public class ARGReachedSet {
     }
     toUnreach.addAll(newToUnreach);
 
+    //DEBUG
     Set<ARGState> toWaitlist = removeSet(toUnreach);
+    //Need fixed order!!
+    //Set<ARGState> toWaitlist = removeSet(new HashSet<>(toUnreach));
+    //GUBED
 
     return toWaitlist;
   }
@@ -359,7 +375,11 @@ public class ARGReachedSet {
     element.uncover();
 
     // this is the subtree of elements which now become uncovered
+    //DEBUG
     Set<ARGState> uncoveredSubTree = element.getSubgraph();
+    //Set cannot guarantee the order of elements so... change it to List
+    //List<ARGState> uncoveredSubTree = element.getSubgraph();
+    //GUBED
 
     for (ARGState e : uncoveredSubTree) {
       assert !e.isCovered();
@@ -388,7 +408,11 @@ public class ARGReachedSet {
     // ignore return value of stop, because it will always be false
 
     if (v.isCovered()) {
+      //DEBUG
+      //Set<ARGState> subtree = v.getSubgraph();
+      //Need fixed order of elements!
       Set<ARGState> subtree = v.getSubgraph();
+      //GUBED
       subtree.remove(v);
 
       removeCoverageOf(v);

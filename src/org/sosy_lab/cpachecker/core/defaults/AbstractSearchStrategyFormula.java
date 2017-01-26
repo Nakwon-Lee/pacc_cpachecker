@@ -23,19 +23,25 @@
  */
 package org.sosy_lab.cpachecker.core.defaults;
 
-import java.util.LinkedHashMap;
+import java.util.Set;
 
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 
+//SearchStrategyFormula must have variable lists that are used as search information
+// and that variables must be included in given lists of variables from DynamicSortedWaitlist.
 public abstract class AbstractSearchStrategyFormula implements SearchStrategyFormula {
-  protected final LinkedHashMap<String, Integer> correlations;
 
-  protected AbstractSearchStrategyFormula(){
-    correlations = new LinkedHashMap<>();
+  protected AbstractSearchStrategyFormula(Set<String> pVars, String[] varsUsed){
+
+    boolean varmatch = true;
+
+    for (String var : varsUsed){
+      if (!pVars.contains(var)){
+        varmatch = false;
+        break;
+      }
+    }
+
+    assert varmatch : "Used search variables are inconsistant.";
   }
-
-  public LinkedHashMap<String, Integer> getCorrelations(){
-    return correlations;
-  }
-
 }

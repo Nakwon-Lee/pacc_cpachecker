@@ -23,23 +23,19 @@
  */
 package org.sosy_lab.cpachecker.core.defaults;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
-
 public class SimpleSearchInfo implements SearchInfo {
 
-  private final LinkedHashMap<String, Integer> vars;
+  private final HashMap<String, Integer> vars;
 
-  private final Comparator<SearchInfo> searchForm;
-
-  public SimpleSearchInfo(Comparator<SearchInfo> pSForm) {
+  public SimpleSearchInfo() {
     // TODO Auto-generated constructor stub
-    vars = new LinkedHashMap<>();
-    searchForm = pSForm;
+    vars = new HashMap<>();
   }
 
    @Override
@@ -53,15 +49,8 @@ public class SimpleSearchInfo implements SearchInfo {
      return str;
    }
 
-  public LinkedHashMap<String, Integer> getInfos() {
+  public Map<String, Integer> getInfos() {
     // TODO Auto-generated method stub
     return vars;
   }
-
-  @Override
-  public int compareTo(SearchInfo pO) {
-    // TODO Auto-generated method stub
-    return searchForm.compare(this, pO);
-  }
-
 }

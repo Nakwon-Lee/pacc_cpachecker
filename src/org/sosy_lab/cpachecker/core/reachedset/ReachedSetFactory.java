@@ -98,9 +98,9 @@ public class ReachedSetFactory {
       description = "use dynamicsortedwaitlist")
   boolean dynamicWaitlist = false;
 
-  @Option(secure=true, name = "traversal.nOfVars",
-      description = "number of variables for search info")
-  int nOfVars = 0;
+  @Option(secure=true, name = "traversal.SearchVars",
+      description = "Name of variables for search info")
+  String searchVars = null;
 
   @Option(secure=true, name = "traversal.searchformula",
       description = "the name of using searchformula")
@@ -169,9 +169,9 @@ public class ReachedSetFactory {
     }else{*/
 
     if (dynamicWaitlist) {
-      assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
+      assert searchVars != null : "if Dynamic search, searchVars must not be empty string";
       assert searchFormClass != null : "searchFormClass must not be null";
-      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, nOfVars, searchFormClass);
+      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, searchVars, searchFormClass);
     }
     if (useAutomatonInformation) {
       waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);

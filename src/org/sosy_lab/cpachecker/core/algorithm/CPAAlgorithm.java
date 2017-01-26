@@ -300,7 +300,6 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
       logger.log(Level.ALL, "Current state is", state, "with precision",
           precision);
 
-      //DEBUG
       /*
       CFANode loc = AbstractStates.extractLocation(state);
 

@@ -23,6 +23,6 @@
  */
 package org.sosy_lab.cpachecker.core.interfaces;
 
-public interface SearchInfo extends Comparable<SearchInfo>{
+public interface SearchInfo {
 
 }

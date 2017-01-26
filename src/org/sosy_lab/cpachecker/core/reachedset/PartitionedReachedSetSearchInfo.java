@@ -95,7 +95,7 @@ public class PartitionedReachedSetSearchInfo extends PartitionedReachedSet imple
 
     int tBlkDepth = tARGState.getBlkDepth();
 
-    SimpleSearchInfo newInfo = new SimpleSearchInfo(searchForm);
+    SimpleSearchInfo newInfo = new SimpleSearchInfo();
     newInfo.getInfos().put("TreeDepth", tDep);
     newInfo.getInfos().put("RPOrder", tRPOrder);
     newInfo.getInfos().put("CallStack", tCStack);

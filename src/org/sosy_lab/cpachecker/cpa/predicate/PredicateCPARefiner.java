@@ -261,6 +261,7 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
     logger.log(Level.ALL, "Error path formulas: ", formulas);
 
   //DEBUG
+    /*
     int tic = 0;
     for(ARGState s : abstractionStatesTrace){
       CFANode node = AbstractStates.extractLocation(s);
@@ -270,7 +271,7 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
       }
 
     if (tic == 2){
-/*
+
       try{
         File file = new File("analysis.txt");
 
@@ -331,8 +332,9 @@ public class PredicateCPARefiner extends AbstractARGBasedRefiner implements Stat
         assert predState.isAbstractionState();
         System.out.println(predState.getAbstractionFormula().getBlockFormula()+" ");
       }
-      */
+
     }
+    */
     //GUBED
 
     // build the counterexample

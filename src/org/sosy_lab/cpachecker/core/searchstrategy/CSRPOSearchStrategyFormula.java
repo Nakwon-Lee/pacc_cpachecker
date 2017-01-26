@@ -23,6 +23,8 @@
  */
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
+import java.util.Set;
+
 import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
 import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
@@ -30,8 +32,10 @@ import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
 
 public class CSRPOSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
-  public CSRPOSearchStrategyFormula(Integer nOfVars){
-    super();
+  private static final String[] varsUsed = {"isAbsSt","BlkDepth","CallStack","RPOrder","TreeDepth"};
+
+  public CSRPOSearchStrategyFormula(Set<String> pVars){
+    super(pVars, varsUsed);
   }
 
   @Override

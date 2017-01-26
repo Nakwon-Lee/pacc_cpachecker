@@ -29,6 +29,8 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -79,16 +81,15 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
 
   @Override
   public void add(AbstractState pState) {
+
     /*
-    //DEBUG
-    ARGState tARGState = AbstractStates.extractStateByType(pState, ARGState.class);
-    assert tARGState != null : "extractStateByType is failed! (ARGState)";
-    if (tARGState.getBlkDepth()==0){
-      System.out.println("What?!");
+    ARGState ast = AbstractStates.extractStateByType(pState, ARGState.class);
+
+    if (ast.getStateId() == 0){
+      System.out.println("what?!");
     }
-    //GUBED
-     *
-     */
+    */
+    
     K key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
@@ -184,6 +185,7 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
 
   @Override
   public boolean remove(AbstractState pState) {
+
     K key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -181,9 +180,15 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     }
   }
 
+  //DEBUG
+  //originally return type is Set but I need the ordered return type! so... change as List
   public Set<ARGState> getSubgraph() {
     assert !destroyed : "Don't use destroyed ARGState " + this;
-    Set<ARGState> result = new HashSet<>();
+    //DEBUG
+    Set<ARGState> result = new LinkedHashSet<>();
+    //Need fixed order!!
+    //List<ARGState> result = new ArrayList<>();
+    //GUBED
     Deque<ARGState> workList = new ArrayDeque<>();
 
     workList.add(this);
@@ -197,6 +202,7 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     }
     return result;
   }
+  //GUBED
 
   // coverage
 

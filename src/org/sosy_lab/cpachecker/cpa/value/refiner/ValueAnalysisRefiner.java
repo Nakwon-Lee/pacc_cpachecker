@@ -471,7 +471,11 @@ public class ValueAnalysisRefiner implements Refiner, StatisticsProvider {
       return pRefinementRoot;
     }
 
+    //DEBUG
     Set<ARGState> descendants = pRefinementRoot.getSubgraph();
+    //Need fixed order!!
+    //List<ARGState> descendants = pRefinementRoot.getSubgraph();
+    //GUBED
     Set<ARGState> coveredStates = new HashSet<>();
     for (ARGState descendant : descendants) {
       coveredStates.addAll(descendant.getCoveredByThis());
