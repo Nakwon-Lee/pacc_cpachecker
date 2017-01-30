@@ -268,23 +268,23 @@ public class DynamicSortedWaitlist implements Waitlist {
 
       boolean key = false;
 
-      if (var == "TreeDepth"){
+      if (var.equals("TreeDepth")){
         newInfo.getInfos().put("TreeDepth", tDep);
         key = true;
       }
-      if (var == "CallStack"){
+      if (var.equals("CallStack")){
         newInfo.getInfos().put("CallStack", tCStack);
         key = true;
       }
-      if (var == "RPOrder"){
+      if (var.equals("RPOrder")){
         newInfo.getInfos().put("RPOrder", tRPOrder);
         key = true;
       }
-      if (var == "BlkDepth"){
+      if (var.equals("BlkDepth")){
         newInfo.getInfos().put("BlkDepth", tBlkDepth);
         key = true;
       }
-      if (var == "isAbsSt"){
+      if (var.equals("isAbsSt")){
         newInfo.getInfos().put("isAbsSt", tAbsSt);
         key = true;
       }
