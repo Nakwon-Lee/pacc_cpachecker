@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_test.xml
+sudo python3 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_test.xml
 
 #./scripts/benchmark.py ./doc/examples/benchmark_remo_CSBFS.xml
 
