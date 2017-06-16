@@ -25,6 +25,8 @@ package org.sosy_lab.cpachecker.core.interfaces;
 
 import java.util.Comparator;
 
-public interface SearchStrategyFormula extends Comparator<SearchInfo>{
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+
+public interface SearchStrategyFormula extends Comparator<ARGState>{
 
 }

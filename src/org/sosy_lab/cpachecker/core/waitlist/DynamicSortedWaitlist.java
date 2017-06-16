@@ -33,15 +33,9 @@ import java.util.TreeMap;
 import org.sosy_lab.common.Classes;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfoable;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
-import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
-import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
-import org.sosy_lab.cpachecker.util.AbstractStates;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -50,7 +44,7 @@ import com.google.common.collect.Iterables;
 public class DynamicSortedWaitlist implements Waitlist {
 
   //invariant: all entries in this map are non-empty
-  private NavigableMap<SearchInfo, Waitlist> waitlist;
+  private NavigableMap<ARGState, Waitlist> waitlist;
 
   //DEBUG
   private final WaitlistFactory wrappedWaitlist;
@@ -95,7 +89,7 @@ public class DynamicSortedWaitlist implements Waitlist {
     }
     */
 
-    SearchInfo key = getSortKey(pState);
+    ARGState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       localWaitlist = wrappedWaitlist.createWaitlistInstance();
@@ -109,7 +103,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
   @Override
   public boolean contains(AbstractState pState) {
-    SearchInfo key = getSortKey(pState);
+    ARGState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       return false;
@@ -140,7 +134,7 @@ public class DynamicSortedWaitlist implements Waitlist {
   //originally final method but I modify it as non-final
   //GUBED
   public AbstractState pop() {
-    Entry<SearchInfo, Waitlist> highestEntry = null;
+    Entry<ARGState, Waitlist> highestEntry = null;
     /*
     //DEBUG
 
@@ -191,7 +185,7 @@ public class DynamicSortedWaitlist implements Waitlist {
   @Override
   public boolean remove(AbstractState pState) {
 
-    SearchInfo key = getSortKey(pState);
+    ARGState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       return false;
@@ -221,17 +215,15 @@ public class DynamicSortedWaitlist implements Waitlist {
     return waitlist.toString();
   }
 
-  protected SearchInfo getSortKey(AbstractState pState) {
-    assert pState instanceof SearchInfoable : "given state must be a SearchInfoable";
-    SearchInfoable siPstate = (SearchInfoable)pState;
-    SearchInfo tSInfo = siPstate.getSearchInfo();
-    if (tSInfo == null) {
-      tSInfo = makeSearchInfo(pState);
-    }
-    return tSInfo;
+  protected ARGState getSortKey(AbstractState pState) {
+    assert pState instanceof ARGState : "given state must be a ARGState";
+    ARGState argstate = (ARGState)pState;
+
+    return argstate;
   }
 
   //temporal solution... SearchInfo should be ARG base! (SimpleSearchInfo)
+  /*
   public SearchInfo makeSearchInfo(AbstractState pState) {
     // TODO Auto-generated method stub
     assert pState instanceof SearchInfoable : "given state must be a SearchInfoable";
@@ -296,6 +288,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
     return newInfo;
   }
+*/
 
   public static WaitlistFactory factory(final WaitlistFactory pSecondaryStrategy, final String pSearchVars, final Class<? extends SearchStrategyFormula> pSSForm) {
     return new WaitlistFactory() {

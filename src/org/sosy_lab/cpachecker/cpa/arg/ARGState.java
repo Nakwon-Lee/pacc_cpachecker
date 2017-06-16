@@ -43,8 +43,7 @@ import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.defaults.AbstractSingleWrapperState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfoable;
+import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
@@ -52,7 +51,7 @@ import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
 import com.google.common.base.Function;
 import com.google.common.collect.Sets;
 
-public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable, SearchInfoable {
+public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable{
 
   private static final long serialVersionUID = 2608287648397165040L;
 
@@ -77,10 +76,11 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   private final int stateId;
 
   //DEBUG
-  private SearchInfo searchinfo;
   private int treeDepth = 0;
   private int blkDepth = 0;
   private int isAbsSt = 0;
+  private int callStack = 0;
+  private int revpostodr = 0;
   //GUBED
 
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
@@ -95,10 +95,18 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     //DEBUG
     PredicateAbstractState predicateState = AbstractStates.extractStateByType(pWrappedState, PredicateAbstractState.class);
     // assert predicateState != null : "extractStateByType is failed! (predicateState)";
-
     if (predicateState != null && predicateState.isAbstractionState()){
       isAbsSt = 1;
+      blkDepth = blkDepth + 1;
     }
+
+    CallstackState csState = AbstractStates.extractStateByType(pWrappedState, CallstackState.class);
+    // assert csState != null : "extractStateByType is failed! (csState)";
+    if (csState != null){
+      callStack = csState.getDepth();
+    }
+
+    revpostodr = AbstractStates.extractLocation(pWrappedState).getReversePostorderId();
     //GUBED
   }
 
@@ -287,9 +295,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     assert (children.contains(child));
     children.remove(child);
     child.parents.remove(this);
-    //DEBUG
-    child.updateTreeDepth();
-    //GUBED
   }
 
   // small and less important stuff
@@ -410,9 +415,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     for (ARGState child : children) {
       assert (child.parents.contains(this));
       child.parents.remove(this);
-      //DEBUG
-      child.updateTreeDepth();
-      //GUBED
     }
     children.clear();
 
@@ -495,42 +497,29 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   }
 
   //DEBUG
-  public void updateTreeDepth(){
 
-    treeDepth = 0;
-
-    for (ARGState tPar : parents){
-      if (treeDepth <= tPar.treeDepth){
-        treeDepth = tPar.treeDepth + 1;
-      }
-    }
-  }
-
-  public int getTreeDepth(){
+  public int tD(){
     return treeDepth;
   }
 
-  public int getBlkDepth(){
+  public int blkD(){
     return blkDepth;
   }
 
-  public void incBlkDepth(){
-    blkDepth++;
-  }
-
-  @Override
-  public SearchInfo getSearchInfo() {
-    return searchinfo;
-  }
-
-  @Override
-  public void setSearchInfo(SearchInfo pSInfo) {
-    // TODO Auto-generated method stub
-    searchinfo = pSInfo;
-  }
-
-  public int isAbsState(){
+  public int isAbs(){
     return isAbsSt;
+  }
+
+  public int CS(){
+    return callStack;
+  }
+
+  public int RPO(){
+    return revpostodr;
+  }
+
+  public int uID(){
+    return stateId;
   }
   //GUBED
 }
