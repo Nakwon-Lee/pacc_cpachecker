@@ -24,9 +24,8 @@
 package org.sosy_lab.cpachecker.cpa.bdd;
 
 import java.math.BigInteger;
-
 import javax.annotation.Nullable;
-
+import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression.BinaryOperator;
 import org.sosy_lab.cpachecker.cfa.ast.c.CCastExpression;
@@ -46,8 +45,9 @@ import org.sosy_lab.cpachecker.cfa.types.c.CBasicType;
 import org.sosy_lab.cpachecker.cfa.types.c.CEnumType.CEnumerator;
 import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
-import org.sosy_lab.cpachecker.core.defaults.VariableTrackingPrecision;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.Region;
+import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
+import org.sosy_lab.cpachecker.exceptions.UnsupportedCCodeException;
+import org.sosy_lab.cpachecker.util.predicates.regions.Region;
 
 /**
  * This Visitor implements evaluation of simply typed expressions.
@@ -61,7 +61,7 @@ import org.sosy_lab.cpachecker.util.predicates.interfaces.Region;
  * value without losing information.
  */
 public class BDDVectorCExpressionVisitor
-        extends DefaultCExpressionVisitor<Region[], RuntimeException> {
+    extends DefaultCExpressionVisitor<Region[], UnsupportedCCodeException> {
 
   private final MachineModel machineModel;
   private final PredicateManager predMgr;
@@ -88,7 +88,7 @@ public class BDDVectorCExpressionVisitor
   }
 
   @Override
-  public Region[] visit(final CBinaryExpression pE) {
+  public Region[] visit(final CBinaryExpression pE) throws UnsupportedCCodeException {
     final Region[] lVal = pE.getOperand1().accept(this);
     final Region[] rVal = pE.getOperand2().accept(this);
     if (lVal == null || rVal == null) { return null; }
@@ -137,7 +137,7 @@ public class BDDVectorCExpressionVisitor
       case BINARY_OR:
       case BINARY_XOR: {
 
-        result = arithmeticOperation(lVal, rVal, bvmgr, binaryOperator, calculationType, machineModel);
+        result = arithmeticOperation(lVal, rVal, bvmgr, binaryOperator);
         result = castCValue(result, binaryExpr.getExpressionType(), bvmgr, machineModel);
 
         break;
@@ -150,7 +150,7 @@ public class BDDVectorCExpressionVisitor
       case LESS_THAN:
       case LESS_EQUAL: {
 
-        final Region tmp = booleanOperation(lVal, rVal, bvmgr, binaryOperator, calculationType, machineModel);
+        final Region tmp = booleanOperation(lVal, rVal, bvmgr, binaryOperator, calculationType);
         // return 1 if expression holds, 0 otherwise
 
         int size = 32;
@@ -177,8 +177,7 @@ public class BDDVectorCExpressionVisitor
   }
 
   private static Region[] arithmeticOperation(final Region[] l, final Region[] r, final BitvectorManager bvmgr,
-                                              final BinaryOperator op, final CType calculationType,
-                                              final MachineModel machineModel) {
+                                              final BinaryOperator op) {
 
     switch (op) {
       case PLUS:
@@ -209,8 +208,7 @@ public class BDDVectorCExpressionVisitor
   }
 
   protected static Region booleanOperation(final Region[] l, final Region[] r, final BitvectorManager bvmgr,
-                                         final BinaryOperator op, final CType calculationType,
-                                         final MachineModel machineModel) {
+                                         final BinaryOperator op, final CType calculationType) {
 
     boolean signed = true;
     if (calculationType instanceof CSimpleType) {
@@ -237,7 +235,7 @@ public class BDDVectorCExpressionVisitor
   }
 
   @Override
-  public Region[] visit(CCastExpression pE) {
+  public Region[] visit(CCastExpression pE) throws UnsupportedCCodeException {
     return castCValue(pE.getOperand().accept(this), pE.getExpressionType(), bvmgr, machineModel);
   }
 
@@ -252,8 +250,15 @@ public class BDDVectorCExpressionVisitor
   }
 
   @Override
-  public Region[] visit(CImaginaryLiteralExpression pE) {
+  public Region[] visit(CImaginaryLiteralExpression pE) throws UnsupportedCCodeException {
     return pE.getValue().accept(this);
+  }
+
+  @Override
+  public Region[] visit(final CArraySubscriptExpression expression)
+      throws UnsupportedCCodeException {
+    throw new UnsupportedCCodeException(
+        "BDD-analysis does not support arrays: " + expression, null);
   }
 
   @Override
@@ -285,7 +290,7 @@ public class BDDVectorCExpressionVisitor
   }
 
   @Override
-  public Region[] visit(final CUnaryExpression unaryExpression) {
+  public Region[] visit(final CUnaryExpression unaryExpression) throws UnsupportedCCodeException {
     final UnaryOperator unaryOperator = unaryExpression.getOperator();
     final CExpression unaryOperand = unaryExpression.getOperand();
 
@@ -326,15 +331,15 @@ public class BDDVectorCExpressionVisitor
   }
 
   /**
-   * This method returns the value of an expression, reduced to match the type.
-   * This method handles overflows and casts.
-   * If necessary warnings for the user are printed.
+   * This method returns the value of an expression, reduced to match the type. This method handles
+   * overflows and casts. If necessary warnings for the user are printed.
    *
    * @param pExp expression to evaluate
    * @param pTargetType the type of the left side of an assignment
    * @return if evaluation successful, then value, else null
    */
-  public Region[] evaluate(final CExpression pExp, final CType pTargetType) {
+  public Region[] evaluate(final CExpression pExp, final CType pTargetType)
+      throws UnsupportedCCodeException {
     return castCValue(pExp.accept(this), pTargetType, bvmgr, machineModel);
   }
 

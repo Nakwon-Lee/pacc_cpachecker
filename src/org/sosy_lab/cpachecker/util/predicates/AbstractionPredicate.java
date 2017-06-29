@@ -23,8 +23,8 @@
  */
 package org.sosy_lab.cpachecker.util.predicates;
 
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.Region;
+import org.sosy_lab.cpachecker.util.predicates.regions.Region;
+import org.sosy_lab.java_smt.api.BooleanFormula;
 
 import com.google.common.base.Preconditions;
 

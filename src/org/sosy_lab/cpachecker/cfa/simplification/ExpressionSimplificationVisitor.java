@@ -26,8 +26,8 @@ package org.sosy_lab.cpachecker.cfa.simplification;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.logging.Level;
-
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
+import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression.BinaryOperator;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpressionBuilder;
@@ -190,6 +190,11 @@ public class ExpressionSimplificationVisitor extends DefaultCExpressionVisitor
       return new CIntegerLiteralExpression(expr.getFileLocation(),
               expr.getExpressionType(), BigInteger.valueOf(size));
 
+      case ALIGNOF:
+        int alignment = machineModel.getAlignof(innerType);
+        return new CIntegerLiteralExpression(
+            expr.getFileLocation(), expr.getExpressionType(), BigInteger.valueOf(alignment));
+
     default: // TODO support more operators
       return visitDefault(expr);
     }
@@ -198,46 +203,61 @@ public class ExpressionSimplificationVisitor extends DefaultCExpressionVisitor
   @Override
   public CExpression visit(final CUnaryExpression expr) {
     final UnaryOperator unaryOperator = expr.getOperator();
+    final FileLocation loc = expr.getFileLocation();
+    final CType exprType = expr.getExpressionType();
+    final CExpression operand = expr.getOperand();
+    final CType operandType = operand.getExpressionType();
+
     // in case of a SIZEOF we do not need to know the explicit value of the variable,
     // it is enough to know its type
     if (unaryOperator == UnaryOperator.SIZEOF) {
-      final int result = machineModel.getSizeof(expr.getOperand().getExpressionType());
-      return new CIntegerLiteralExpression(expr.getFileLocation(),
-              expr.getExpressionType(), BigInteger.valueOf(result));
+      return new CIntegerLiteralExpression(loc, exprType, BigInteger.valueOf(machineModel.getSizeof(operandType)));
     } else if (unaryOperator == UnaryOperator.ALIGNOF) {
-      final int result = machineModel.getAlignof(expr.getOperand().getExpressionType());
-      return new CIntegerLiteralExpression(expr.getFileLocation(),
-          expr.getExpressionType(), BigInteger.valueOf(result));
+      return new CIntegerLiteralExpression(loc, exprType, BigInteger.valueOf(machineModel.getAlignof(operandType)));
     }
 
-    final CExpression op = recursive(expr.getOperand());
+    final CExpression op = recursive(operand);
+    assert op.getExpressionType().equals(operandType) : "simplification should not change type";
     final NumericValue value = getValue(op);
 
-    if (unaryOperator == UnaryOperator.MINUS && value != null && op.getExpressionType() instanceof CSimpleType) {
-      // we have to cast the value, because it can overflow, for example for the unary-expression "-2147483648" (=MIN_INT),
-      // where the operand's value "2147483648" itself creates an overflow, and the negation reverses it.
-      final NumericValue negatedValue = (NumericValue) AbstractExpressionValueVisitor.castCValue(value.negate(), expr.getExpressionType(), machineModel, logger, expr.getFileLocation());
-      switch (((CSimpleType)op.getExpressionType()).getType()) {
+    if (value != null && operandType instanceof CSimpleType) {
+      if (unaryOperator == UnaryOperator.MINUS) {
+        // we have to cast the value, because it can overflow, for example for the unary-expression "-2147483648" (=MIN_INT),
+        // where the operand's value "2147483648" itself creates an overflow, and the negation reverses it.
+        final NumericValue negatedValue = (NumericValue) AbstractExpressionValueVisitor.castCValue(
+            value.negate(), exprType, machineModel, logger, loc);
+        switch (((CSimpleType)operandType).getType()) {
+        case BOOL: // negation of zero is zero, other values should be irrelevant
         case CHAR:
         case INT:
-          return new CIntegerLiteralExpression(expr.getFileLocation(),
-                expr.getExpressionType(), BigInteger.valueOf(negatedValue.longValue()));
+          return new CIntegerLiteralExpression(loc, exprType, BigInteger.valueOf(negatedValue.longValue()));
         case FLOAT:
         case DOUBLE:
-          return new CFloatLiteralExpression(expr.getFileLocation(),
-                expr.getExpressionType(), BigDecimal.valueOf(negatedValue.doubleValue()));
-      }
+          double v = negatedValue.doubleValue();
+          // Check if v is -0.0; if so, we cannot simplify it,
+          // because we cannot represent it with BigDecimal
+          if (v == 0 && 1 / v < 0) {
+            return new CUnaryExpression(loc, exprType, op, unaryOperator);
+          }
+          return new CFloatLiteralExpression(loc, exprType, BigDecimal.valueOf(v));
+        default:
+          // fall-through and return the original expression
+        }
 
+      } else if (unaryOperator == UnaryOperator.TILDE && ((CSimpleType)operandType).getType().isIntegerType()) {
+        // cast the value, because the evaluation of "~" is done for long and maybe the target-type is integer.
+        final NumericValue complementValue = (NumericValue) AbstractExpressionValueVisitor.castCValue(
+            new NumericValue(~value.longValue()), exprType, machineModel, logger, loc);
+        return new CIntegerLiteralExpression(loc, exprType, BigInteger.valueOf(complementValue.longValue()));
+      }
     }
 
     final CUnaryExpression newExpr;
-    if (op == expr.getOperand()) {
+    if (op == operand) {
       // shortcut: if nothing has changed, use the original expression
       newExpr = expr;
     } else {
-      newExpr = new CUnaryExpression(
-          expr.getFileLocation(), expr.getExpressionType(),
-          op, unaryOperator);
+      newExpr = new CUnaryExpression(loc, exprType, op, unaryOperator);
     }
     return newExpr;
   }
@@ -266,6 +286,7 @@ public class ExpressionSimplificationVisitor extends DefaultCExpressionVisitor
 
         if (v != null && decl.getType() instanceof CSimpleType) {
           switch (((CSimpleType) type).getType()) {
+            case BOOL:
             case CHAR:
             case INT:
               return new CIntegerLiteralExpression(expr.getFileLocation(),
@@ -274,6 +295,8 @@ public class ExpressionSimplificationVisitor extends DefaultCExpressionVisitor
             case DOUBLE:
               return new CFloatLiteralExpression(expr.getFileLocation(),
                       type, BigDecimal.valueOf(v.doubleValue()));
+            default:
+              // fall-through and return the original expression
           }
         }
       }

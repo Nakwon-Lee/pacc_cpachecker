@@ -24,13 +24,13 @@
 package org.sosy_lab.cpachecker.cfa.ast.c;
 
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.ABinaryExpression;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 
 public class CBinaryExpression extends ABinaryExpression implements CExpression {
 
+  private static final long serialVersionUID = 1902123965106390020L;
   private final CType calculationType;
 
   public CBinaryExpression(final FileLocation pFileLocation,
@@ -153,6 +153,26 @@ public class CBinaryExpression extends ABinaryExpression implements CExpression 
         return true;
       default:
         throw new AssertionError("Unhandled case statement");
+      }
+    }
+
+    public BinaryOperator getOppositLogicalOperator() {
+      assert isLogicalOperator();
+      switch (this) {
+        case LESS_EQUAL:
+          return GREATER_THAN;
+        case LESS_THAN:
+          return GREATER_EQUAL;
+        case GREATER_EQUAL:
+          return LESS_THAN;
+        case GREATER_THAN:
+          return LESS_EQUAL;
+        case EQUALS:
+          return NOT_EQUALS;
+        case NOT_EQUALS:
+          return EQUALS;
+        default:
+          return this;
       }
     }
   }

@@ -22,6 +22,7 @@
  *    http://cpachecker.sosy-lab.org
  */
 package org.sosy_lab.cpachecker.cfa.types.c;
+import javax.annotation.Nullable;
 import org.sosy_lab.cpachecker.cfa.types.Type;
 
 public interface CType extends Type {
@@ -34,8 +35,14 @@ public interface CType extends Type {
   public boolean isVolatile();
 
   /**
+   * Check whether the current type is *incomplete* as defined by the C standard in § 6.2.5 (1).
+   * Incomplete types miss some information (e.g., <code>struct s;</code>),
+   * and for example their size cannot be computed.
+   */
+  public boolean isIncomplete();
+
+  /**
    * Will throw a UnsupportedOperationException
-   * @return
    */
   @Override
   public int hashCode();
@@ -46,7 +53,7 @@ public interface CType extends Type {
    * typedefs in it use #getCanonicalType().equals()
    */
   @Override
-  public boolean equals(Object obj);
+  public boolean equals(@Nullable Object obj);
 
   public abstract <R, X extends Exception> R accept(CTypeVisitor<R, X> visitor) throws X;
 

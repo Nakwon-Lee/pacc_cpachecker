@@ -23,17 +23,21 @@
  */
 package org.sosy_lab.cpachecker.util;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.sosy_lab.common.io.Path;
 import org.sosy_lab.cpachecker.cfa.CFACreator;
-
-import com.google.common.collect.ImmutableMap;
+import org.sosy_lab.cpachecker.util.SpecificationProperty.PropertyType;
 
 /**
  * A simple class that reads a property, i.e. basically an entry function and a proposition, from a given property,
@@ -57,10 +61,14 @@ public class PropertyFileParser {
   private final Path propertyFile;
 
   private String entryFunction;
-  private final EnumSet<PropertyType> properties = EnumSet.noneOf(PropertyType.class);
+  private final Set<PropertyType> properties = Sets.newHashSetWithExpectedSize(1);
 
   private static final Pattern PROPERTY_PATTERN =
       Pattern.compile("CHECK\\( init\\((" + CFACreator.VALID_C_FUNCTION_NAME_PATTERN + ")\\(\\)\\), LTL\\((.+)\\) \\)");
+
+  private static Map<String, PropertyType> AVAILABLE_PROPERTIES =
+      Maps.<String, PropertyType>uniqueIndex(
+          EnumSet.allOf(PropertyType.class), PropertyType::toString);
 
   public PropertyFileParser(final Path pPropertyFile) {
     propertyFile = pPropertyFile;
@@ -68,7 +76,7 @@ public class PropertyFileParser {
 
   public void parse() throws InvalidPropertyFileException {
     String rawProperty = null;
-    try (BufferedReader br = propertyFile.asCharSource(Charset.defaultCharset()).openBufferedStream()) {
+    try (BufferedReader br = Files.newBufferedReader(propertyFile, Charset.defaultCharset())) {
       while ((rawProperty = br.readLine()) != null) {
         if (!rawProperty.isEmpty()) {
           properties.add(parsePropertyLine(rawProperty));
@@ -98,36 +106,19 @@ public class PropertyFileParser {
           "Specifying two different entry functions %s and %s is not supported.", entryFunction, matcher.group(1)));
     }
 
-    PropertyType property = PropertyType.AVAILABLE_PROPERTIES.get(matcher.group(2));
-    if (property == null) {
+    PropertyType propertyType = AVAILABLE_PROPERTIES.get(matcher.group(2));
+    if (propertyType == null) {
       throw new InvalidPropertyFileException(String.format(
           "The property '%s' is not supported.", matcher.group(2)));
     }
-    return property;
+    return propertyType;
   }
 
   public String getEntryFunction() {
     return entryFunction;
   }
 
-  public EnumSet<PropertyType> getProperties() {
-    return properties;
-  }
-
-  public enum PropertyType {
-    REACHABILITY_LABEL,
-    REACHABILITY,
-    VALID_FREE,
-    VALID_DEREF,
-    VALID_MEMTRACK,
-    ;
-
-    private static ImmutableMap<String, PropertyType> AVAILABLE_PROPERTIES = ImmutableMap.of(
-        "G ! label(ERROR)", PropertyType.REACHABILITY_LABEL,
-        "G ! call(__VERIFIER_error())", PropertyType.REACHABILITY,
-        "G valid-free",     PropertyType.VALID_FREE,
-        "G valid-deref",    PropertyType.VALID_DEREF,
-        "G valid-memtrack", PropertyType.VALID_MEMTRACK
-        );
+  public Set<PropertyType> getProperties() {
+    return Collections.unmodifiableSet(properties);
   }
 }

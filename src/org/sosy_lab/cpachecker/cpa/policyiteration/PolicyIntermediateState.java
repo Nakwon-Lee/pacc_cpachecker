@@ -1,11 +1,14 @@
 package org.sosy_lab.cpachecker.cpa.policyiteration;
 
-import java.util.Map;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
-
-import com.google.common.collect.ImmutableMap;
+import org.sosy_lab.java_smt.api.Model.ValueAssignment;
 
 public final class PolicyIntermediateState extends PolicyState {
 
@@ -15,32 +18,46 @@ public final class PolicyIntermediateState extends PolicyState {
   private final PathFormula pathFormula;
 
   /**
-   * Abstract states used for generating this state.
-   *
-   * locationID -> PolicyAbstractedState.
+   * Abstract state representing start of the trace.
    */
-  private final ImmutableMap<Integer, PolicyAbstractedState> generatingStates;
+  private final PolicyAbstractedState startingAbstraction;
 
-  private transient PolicyIntermediateState mergedInto;
+  private @Nullable transient ImmutableList<ValueAssignment> counterexample = null;
+  /**
+   * Meta-information for determining the coverage.
+   */
+  private @Nullable transient PolicyIntermediateState mergedInto = null;
+  private transient int hashCache = 0;
 
   private PolicyIntermediateState(
       CFANode node,
       PathFormula pPathFormula,
-      Map<Integer, PolicyAbstractedState> pGeneratingStates
-      ) {
+      PolicyAbstractedState pStartingAbstraction) {
     super(node);
 
     pathFormula = pPathFormula;
-    generatingStates = ImmutableMap.copyOf(pGeneratingStates);
+    startingAbstraction = pStartingAbstraction;
   }
 
   public static PolicyIntermediateState of(
       CFANode node,
       PathFormula pPathFormula,
-      Map<Integer, PolicyAbstractedState> generatingStates
+      PolicyAbstractedState generatingState
   ) {
     return new PolicyIntermediateState(
-        node, pPathFormula, generatingStates);
+        node, pPathFormula, generatingState);
+  }
+
+  public void setCounterexample(ImmutableList<ValueAssignment> pCounterexample) {
+    counterexample = pCounterexample;
+  }
+
+  public PolicyIntermediateState withPathFormula(
+      PathFormula pPathFormula
+  ) {
+    return new PolicyIntermediateState(
+        getNode(), pPathFormula, startingAbstraction
+    );
   }
 
   public void setMergedInto(PolicyIntermediateState other) {
@@ -52,10 +69,10 @@ public final class PolicyIntermediateState extends PolicyState {
   }
 
   /**
-   * @return Starting {@link PathFormula} for possible starting locations.
+   * @return Starting {@link PolicyAbstractedState} for the starting location.
    */
-  public ImmutableMap<Integer, PolicyAbstractedState> getGeneratingStates() {
-    return generatingStates;
+  public PolicyAbstractedState getBackpointerState() {
+    return startingAbstraction;
   }
 
   public PathFormula getPathFormula() {
@@ -67,13 +84,63 @@ public final class PolicyIntermediateState extends PolicyState {
     return false;
   }
 
+  /**
+   * Iterator for all states <em>including</em> this one,
+   * up to the analysis root.
+   */
+  Iterable<PolicyIntermediateState> allStatesToRoot() {
+    PolicyIntermediateState pThis = this;
+    Iterator<PolicyIntermediateState> it = new Iterator<PolicyIntermediateState>() {
+      private Optional<PolicyIntermediateState> cursor = Optional.of(pThis);
+
+      @Override
+      public boolean hasNext() {
+        return cursor.isPresent();
+      }
+
+      @Override
+      public PolicyIntermediateState next() {
+        PolicyIntermediateState toReturn = cursor.get();
+        cursor = cursor.get().getBackpointerState().getGeneratingState();
+        return toReturn;
+      }
+    };
+    return () -> it;
+  }
+
   @Override
   public String toDOTLabel() {
-    return "";
+    if (counterexample == null) {
+      return "";
+    }
+    return Joiner.on('\n').join(counterexample);
   }
 
   @Override
   public String toString() {
     return pathFormula.toString() + "\nLength: " + pathFormula.getLength();
+  }
+
+  @Override
+  public boolean equals(Object pO) {
+    if (this == pO) {
+      return true;
+    }
+    if (!(pO instanceof PolicyIntermediateState)) {
+      return false;
+    }
+    PolicyIntermediateState that = (PolicyIntermediateState) pO;
+    return Objects.equals(pathFormula, that.pathFormula) &&
+        Objects.equals(startingAbstraction, that.startingAbstraction) &&
+        Objects.equals(mergedInto, that.mergedInto) &&
+        Objects.equals(getNode(), that.getNode());
+  }
+
+  @Override
+  public int hashCode() {
+    if (hashCache == 0) {
+      hashCache = Objects.hash(pathFormula, startingAbstraction, mergedInto);
+    }
+    return hashCache;
   }
 }

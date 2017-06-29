@@ -22,11 +22,9 @@
  *    http://cpachecker.sosy-lab.org
  */
 package org.sosy_lab.cpachecker.cfa.ast;
-import java.util.Objects;
-
-import org.sosy_lab.cpachecker.cfa.types.Type;
-
 import com.google.common.base.Strings;
+import java.util.Objects;
+import org.sosy_lab.cpachecker.cfa.types.Type;
 
 
 /**
@@ -34,11 +32,12 @@ import com.google.common.base.Strings;
  * a type and an (optional) name.
  *
  * This class is only SuperClass of all abstract Classes and their Subclasses.
- * The Interface {@link IASimpleDeclarations} contains all language specific
+ * The Interface {@link ASimpleDeclaration} contains all language specific
  * AST Nodes as well.
  */
 public abstract class AbstractSimpleDeclaration extends AbstractAstNode implements ASimpleDeclaration {
 
+  private static final long serialVersionUID = 1078153969461542233L;
   private  Type type;
   private final String name;
   private final String origName;

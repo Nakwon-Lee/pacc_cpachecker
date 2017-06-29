@@ -23,8 +23,13 @@
  */
 package org.sosy_lab.cpachecker.core.defaults;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.MutableClassToInstanceMap;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,8 +38,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
-import org.sosy_lab.common.ChildFirstPatternClassLoader;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.Classes;
 import org.sosy_lab.common.Classes.UnexpectedCheckedException;
 import org.sosy_lab.common.ShutdownNotifier;
@@ -45,11 +49,6 @@ import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.interfaces.CPAFactory;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.MutableClassToInstanceMap;
 
 /**
  * CPAFactory implementation that can be used to automatically instantiate
@@ -81,7 +80,8 @@ public class AutomaticCPAFactory implements CPAFactory {
   /**
    * Construct a CPAFactory for the given type.
    * The CPA will be loaded using the given class loader.
-   * It is advisable to use something like {@link ChildFirstPatternClassLoader}
+   * It is advisable to use something like
+   * {@link org.sosy_lab.common.Classes.ClassLoaderBuilder#setDirectLoadClasses(java.util.function.Predicate)}
    * to ensure that the other classes of the CPA will be loaded with the same
    * class loader, even if they are on the class path of the parent class loader.
    *
@@ -106,7 +106,7 @@ public class AutomaticCPAFactory implements CPAFactory {
     return new AutomaticCPAFactory(cls.asSubclass(ConfigurableProgramAnalysis.class));
   }
 
-  public AutomaticCPAFactory(Class<? extends ConfigurableProgramAnalysis> type) {
+  private AutomaticCPAFactory(Class<? extends ConfigurableProgramAnalysis> type) {
     this.type = type;
   }
 
@@ -124,8 +124,10 @@ public class AutomaticCPAFactory implements CPAFactory {
     if (allConstructors.length != 1) {
       // TODO if necessary, provide method which constructor should be chosen
       // or choose automatically
-      throw new UnsupportedOperationException("Cannot automatically create CPAs " +
-          "with more than one constructor!");
+      throw new UnsupportedOperationException(
+          String.format(
+              "Cannot automatically create %s because it has %d constructors!",
+              type.getSimpleName(), allConstructors.length));
     }
     Constructor<?> cons = allConstructors[0];
     cons.setAccessible(true);
@@ -150,9 +152,14 @@ public class AutomaticCPAFactory implements CPAFactory {
         }
       }
 
-      if (!optional) {
-        Preconditions.checkNotNull(actualParam,
-            "%s instance needed to create %s-CPA!", formalParam.getSimpleName(), type.getSimpleName());
+      if (!optional && actualParam == null) {
+        if (formalParam == ConfigurableProgramAnalysis.class) {
+          throw new InvalidConfigurationException(
+              "Child CPA necessary for " + type.getSimpleName() + " but was not specified.");
+        } else {
+          throw new IllegalStateException(
+              formalParam.getSimpleName() + " instance needed to create " + type.getSimpleName());
+        }
       }
       actualParameters[i] = actualParam;
     }
@@ -218,7 +225,7 @@ public class AutomaticCPAFactory implements CPAFactory {
     return this;
   }
 
-  public <T> T get(Class<T> cls) {
+  public @Nullable <T> T get(Class<T> cls) {
     return injects.getInstance(cls);
   }
 

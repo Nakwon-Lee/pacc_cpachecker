@@ -37,15 +37,12 @@ import org.sosy_lab.cpachecker.cfa.types.java.JType;
  * The expression type also denotes the type the expression is casted to.
  *
  */
-public class JCastExpression extends ACastExpression implements JExpression {
+public final class JCastExpression extends ACastExpression implements JExpression {
+
+  private static final long serialVersionUID = 5936546055892473701L;
 
   public JCastExpression(FileLocation pFileLocation, JType pCastType, JExpression pOperand) {
     super(pFileLocation, pCastType, pOperand);
-  }
-
-  @Override
-  public <R, X extends Exception> R accept(JRightHandSideVisitor<R, X> v) throws X {
-    return v.visit(this);
   }
 
   @Override

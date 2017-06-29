@@ -27,7 +27,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
-import java.io.IOException;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -40,17 +44,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
-
 import javax.annotation.Nullable;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
 import org.sosy_lab.common.time.Timer;
-import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
@@ -64,6 +64,7 @@ import org.sosy_lab.cpachecker.core.reachedset.ForwardingReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.HistoryForwardingReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetFactory;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.assumptions.storage.AssumptionStorageState;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonState;
@@ -74,12 +75,7 @@ import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationExc
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.CFAUtils;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import org.sosy_lab.cpachecker.util.Pair;
 
 
 public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
@@ -94,7 +90,7 @@ public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
 
 
   public PartialARGsCombiner(Algorithm pAlgorithm, Configuration pConfig, LogManager pLogger,
-      ShutdownNotifier pShutdownNotifier, CFA pCfa) {
+      ShutdownNotifier pShutdownNotifier) {
     restartAlgorithm = pAlgorithm;
     logger = new LogManagerWithoutDuplicates(pLogger);
     shutdown = pShutdownNotifier;
@@ -201,7 +197,7 @@ public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
     List<AbstractState> initialStates = initStates.getSecond();
 
     try {
-      pReceivedReachedSet.setDelegate(new ReachedSetFactory(config, logger).create());
+      pReceivedReachedSet.setDelegate(new ReachedSetFactory(config).create());
     } catch (InvalidConfigurationException e) {
       logger.log(Level.SEVERE, "Creating reached set which should contain combined ARG fails.");
       return false;
@@ -278,10 +274,17 @@ public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
   private boolean noConcreteSuccessorExist(final ARGState pPredecessor, final CFAEdge pSuccEdge,
       HistoryForwardingReachedSet pForwaredReachedSet) {
     // check if analysis stopped exploration due e.g. time limit
+    boolean inReached = false;
     for(ReachedSet reached :pForwaredReachedSet.getAllReachedSetsUsedAsDelegates()) {
       if(reached.getWaitlist().contains(pPredecessor)) {
         return false;
       }
+      if (reached.contains(pPredecessor)) {
+        inReached = true;
+      }
+    }
+    if (!inReached) {
+      return false;
     }
   // check if analysis stopped exploration due to true state in automaton --> concrete successors may exist
     for (AbstractState state : AbstractStates.asIterable(pPredecessor)) {
@@ -513,8 +516,8 @@ public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
 
   private static class EdgeSuccessor implements Predicate<ARGState> {
 
-    private CFAEdge edge;
-    private ARGState predecessor;
+    private @Nullable CFAEdge edge;
+    private @Nullable ARGState predecessor;
 
 
     @Override
@@ -538,7 +541,7 @@ public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
 
 
     @Override
-    public void printStatistics(PrintStream out, Result pResult, ReachedSet pReached) {
+    public void printStatistics(PrintStream out, Result pResult, UnmodifiableReachedSet pReached) {
       out.println("Time for program analyis: " + analysisTime);
       out.println("Time to combine ARGs:     " + argCombineTime);
 

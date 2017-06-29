@@ -23,36 +23,37 @@
  */
 package org.sosy_lab.cpachecker.cpa.value;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.io.Path;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
-import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.counterexample.ConcreteStatePath;
 import org.sosy_lab.cpachecker.core.defaults.AutomaticCPAFactory;
 import org.sosy_lab.cpachecker.core.defaults.DelegateAbstractDomain;
 import org.sosy_lab.cpachecker.core.defaults.MergeJoinOperator;
 import org.sosy_lab.cpachecker.core.defaults.MergeSepOperator;
-import org.sosy_lab.cpachecker.core.defaults.SingletonPrecision;
 import org.sosy_lab.cpachecker.core.defaults.StopJoinOperator;
 import org.sosy_lab.cpachecker.core.defaults.StopNeverOperator;
 import org.sosy_lab.cpachecker.core.defaults.StopSepOperator;
-import org.sosy_lab.cpachecker.core.defaults.VariableTrackingPrecision;
+import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractDomain;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.CPAFactory;
@@ -66,21 +67,20 @@ import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.interfaces.StopOperator;
-import org.sosy_lab.cpachecker.core.interfaces.TransferRelation;
-import org.sosy_lab.cpachecker.core.interfaces.pcc.ProofChecker;
+import org.sosy_lab.cpachecker.core.interfaces.pcc.ProofChecker.ProofCheckerCPA;
 import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
-import org.sosy_lab.cpachecker.util.states.MemoryLocation;
+import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisTransferRelation.ValueTransferOptions;
 import org.sosy_lab.cpachecker.cpa.value.refiner.ValueAnalysisConcreteErrorPathAllocator;
-import org.sosy_lab.cpachecker.exceptions.CPAException;
-import org.sosy_lab.cpachecker.exceptions.CPATransferException;
+import org.sosy_lab.cpachecker.cpa.value.symbolic.ConstraintsStrengthenOperator;
+import org.sosy_lab.cpachecker.cpa.value.symbolic.SymbolicValueAssigner;
 import org.sosy_lab.cpachecker.util.StateToFormulaWriter;
+import org.sosy_lab.cpachecker.util.states.MemoryLocation;
+import org.sosy_lab.cpachecker.util.states.MemoryLocationValueHandler;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-
-@Options(prefix="cpa.value")
-public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, StatisticsProvider, ProofChecker, ConfigurableProgramAnalysisWithConcreteCex {
+@Options(prefix = "cpa.value")
+public class ValueAnalysisCPA
+    implements ConfigurableProgramAnalysisWithBAM, StatisticsProvider, ProofCheckerCPA,
+        ConfigurableProgramAnalysisWithConcreteCex {
 
   @Option(secure=true, name="merge", toUppercase=true, values={"SEP", "JOIN"},
       description="which merge operator to use for ValueAnalysisCPA")
@@ -98,13 +98,10 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
     return AutomaticCPAFactory.forType(ValueAnalysisCPA.class);
   }
 
-  private AbstractDomain abstractDomain;
-  private MergeOperator mergeOperator;
-  private StopOperator stopOperator;
-  private ValueAnalysisTransferRelation transferRelation;
+  private final AbstractDomain abstractDomain =
+      DelegateAbstractDomain.<ValueAnalysisState>getInstance();
   private VariableTrackingPrecision precision;
   private ValueAnalysisPrecisionAdjustment precisionAdjustment;
-  private final ValueAnalysisReducer reducer;
   private final ValueAnalysisCPAStatistics statistics;
   private final StateToFormulaWriter writer;
 
@@ -112,6 +109,13 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
   private final LogManager logger;
   private final ShutdownNotifier shutdownNotifier;
   private final CFA cfa;
+
+  private boolean refineablePrecisionSet = false;
+  private ValueAnalysisConcreteErrorPathAllocator errorPathAllocator;
+
+  private MemoryLocationValueHandler unknownValueHandler;
+  private final ConstraintsStrengthenOperator constraintsStrengthenOperator;
+  private final ValueTransferOptions transferOptions;
 
   private ValueAnalysisCPA(Configuration config, LogManager logger,
       ShutdownNotifier pShutdownNotifier, CFA cfa) throws InvalidConfigurationException {
@@ -122,42 +126,14 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
 
     config.inject(this);
 
-    abstractDomain      = DelegateAbstractDomain.<ValueAnalysisState>getInstance();
-    transferRelation    = new ValueAnalysisTransferRelation(config, logger, cfa);
     precision           = initializePrecision(config, cfa);
-    mergeOperator       = initializeMergeOperator();
-    stopOperator        = initializeStopOperator();
-
-    precisionAdjustment = new ValueAnalysisPrecisionAdjustment(config, cfa);
-
-    reducer             = new ValueAnalysisReducer();
     statistics          = new ValueAnalysisCPAStatistics(this, config);
+    precisionAdjustment = new ValueAnalysisPrecisionAdjustment(config, statistics, cfa);
     writer = new StateToFormulaWriter(config, logger, shutdownNotifier, cfa);
-  }
-
-  private MergeOperator initializeMergeOperator() {
-    if (mergeType.equals("SEP")) {
-      return MergeSepOperator.getInstance();
-
-    } else if (mergeType.equals("JOIN")) {
-      return new MergeJoinOperator(abstractDomain);
-    }
-
-    return null;
-  }
-
-  private StopOperator initializeStopOperator() {
-    if (stopType.equals("SEP")) {
-      return new StopSepOperator(abstractDomain);
-
-    } else if (stopType.equals("JOIN")) {
-      return new StopJoinOperator(abstractDomain);
-
-    } else if (stopType.equals("NEVER")) {
-      return new StopNeverOperator();
-    }
-
-    return null;
+    errorPathAllocator = new ValueAnalysisConcreteErrorPathAllocator(config, logger, cfa.getMachineModel());
+    unknownValueHandler = new SymbolicValueAssigner(config);
+    constraintsStrengthenOperator = new ConstraintsStrengthenOperator(config);
+    transferOptions = new ValueTransferOptions(config);
   }
 
   private VariableTrackingPrecision initializePrecision(Configuration config, CFA cfa) throws InvalidConfigurationException {
@@ -179,7 +155,7 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
 
     List<String> contents = null;
     try {
-      contents = initialPrecisionFile.asCharSource(Charset.defaultCharset()).readLines();
+      contents = Files.readAllLines(initialPrecisionFile, Charset.defaultCharset());
     } catch (IOException e) {
       logger.logUserException(Level.WARNING, e, "Could not read precision from file named " + initialPrecisionFile);
       return mapping;
@@ -223,8 +199,9 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
   public void injectRefinablePrecision() throws InvalidConfigurationException {
 
     // replace the full precision with an empty, refinable precision
-    if (initialPrecisionFile == null) {
+    if (initialPrecisionFile == null && !refineablePrecisionSet) {
       precision = VariableTrackingPrecision.createRefineablePrecision(config, precision);
+      refineablePrecisionSet = true;
     }
   }
 
@@ -235,22 +212,49 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
 
   @Override
   public MergeOperator getMergeOperator() {
-    return mergeOperator;
+    switch (mergeType) {
+      case "SEP":
+        return MergeSepOperator.getInstance();
+
+      case "JOIN":
+        return new MergeJoinOperator(getAbstractDomain());
+
+      default:
+        throw new AssertionError("unknown merge operator");
+    }
   }
 
   @Override
   public StopOperator getStopOperator() {
-    return stopOperator;
+    switch (stopType) {
+      case "SEP":
+        return new StopSepOperator(getAbstractDomain());
+
+      case "JOIN":
+        return new StopJoinOperator(getAbstractDomain());
+
+      case "NEVER":
+        return new StopNeverOperator();
+
+      default:
+        throw new AssertionError("unknown stop operator");
+    }
   }
 
   @Override
-  public TransferRelation getTransferRelation() {
-    return transferRelation;
+  public ValueAnalysisTransferRelation getTransferRelation() {
+    return new ValueAnalysisTransferRelation(
+        logger,
+        cfa,
+        transferOptions,
+        unknownValueHandler,
+        constraintsStrengthenOperator,
+        statistics);
   }
 
   @Override
   public AbstractState getInitialState(CFANode pNode, StateSpacePartition pPartition) {
-    return new ValueAnalysisState();
+    return new ValueAnalysisState(cfa.getMachineModel());
   }
 
   @Override
@@ -285,7 +289,7 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
 
   @Override
   public Reducer getReducer() {
-    return reducer;
+    return new ValueAnalysisReducer();
   }
 
   @Override
@@ -295,46 +299,8 @@ public class ValueAnalysisCPA implements ConfigurableProgramAnalysisWithBAM, Sta
     precisionAdjustment.collectStatistics(pStatsCollection);
   }
 
-  public ValueAnalysisCPAStatistics getStats() {
-    return statistics;
-  }
-
-  @Override
-  public boolean areAbstractSuccessors(AbstractState pState, CFAEdge pCfaEdge,
-      Collection<? extends AbstractState> pSuccessors) throws CPATransferException, InterruptedException {
-    try {
-      Collection<? extends AbstractState> computedSuccessors =
-          transferRelation.getAbstractSuccessorsForEdge(
-              pState, SingletonPrecision.getInstance(), pCfaEdge);
-      boolean found;
-      for (AbstractState comp:computedSuccessors) {
-        found = false;
-        for (AbstractState e:pSuccessors) {
-          if (isCoveredBy(comp, e)) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          return false;
-        }
-      }
-    } catch (CPAException e) {
-      throw new CPATransferException("Cannot compare abstract successors", e);
-    }
-    return true;
-  }
-
-  @Override
-  public boolean isCoveredBy(AbstractState pState, AbstractState pOtherState) throws CPAException, InterruptedException {
-     return abstractDomain.isLessOrEqual(pState, pOtherState);
-  }
-
   @Override
   public ConcreteStatePath createConcreteStatePath(ARGPath pPath) {
-
-    ValueAnalysisConcreteErrorPathAllocator alloc =
-        new ValueAnalysisConcreteErrorPathAllocator(logger, shutdownNotifier, cfa.getMachineModel());
-    return alloc.allocateAssignmentsToPath(pPath);
+    return errorPathAllocator.allocateAssignmentsToPath(pPath);
   }
 }

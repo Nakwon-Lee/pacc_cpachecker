@@ -26,9 +26,8 @@ package org.sosy_lab.cpachecker.core;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.PrintStream;
-
 import javax.annotation.Nullable;
-
+import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
@@ -52,16 +51,22 @@ public class CPAcheckerResult {
 
   private final @Nullable ReachedSet reached;
 
+  private final @Nullable CFA cfa;
+
   private final @Nullable Statistics stats;
 
   private @Nullable Statistics proofGeneratorStats = null;
 
-  CPAcheckerResult(Result result,
-        String violatedPropertyDescription,
-        @Nullable ReachedSet reached, @Nullable Statistics stats) {
+  CPAcheckerResult(
+      Result result,
+      String violatedPropertyDescription,
+      @Nullable ReachedSet reached,
+      @Nullable CFA cfa,
+      @Nullable Statistics stats) {
     this.violatedPropertyDescription = checkNotNull(violatedPropertyDescription);
     this.result = checkNotNull(result);
     this.reached = reached;
+    this.cfa = cfa;
     this.stats = stats;
   }
 
@@ -75,8 +80,15 @@ public class CPAcheckerResult {
   /**
    * Return the final reached set.
    */
-  public UnmodifiableReachedSet getReached() {
+  public @Nullable UnmodifiableReachedSet getReached() {
     return reached;
+  }
+
+  /**
+   * Return the CFA.
+   */
+  public @Nullable CFA getCfa() {
+    return cfa;
   }
 
   public void addProofGeneratorStatistics(Statistics pProofGeneratorStatistics) {
@@ -101,8 +113,7 @@ public class CPAcheckerResult {
       return;
     }
 
-    out.print("Verification result: ");
-    out.println(getResultString());
+    out.println("Verification result: " + getResultString());
   }
 
   public String getResultString() {

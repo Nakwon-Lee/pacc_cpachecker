@@ -38,10 +38,10 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
 import org.sosy_lab.cpachecker.util.globalinfo.CFAInfo;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
-import org.sosy_lab.cpachecker.util.reachingdef.ReachingDefinitionStorage;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class ReachingDefState implements AbstractState, Serializable,
@@ -292,12 +292,8 @@ public class ReachingDefState implements AbstractState, Serializable,
 
   private Set<DefinitionPoint> unionSets(Set<DefinitionPoint> set1, Set<DefinitionPoint> set2) {
     HashSet<DefinitionPoint> result = new HashSet<>();
-    for (DefinitionPoint p : set1) {
-      result.add(p);
-    }
-    for (DefinitionPoint p : set2) {
-      result.add(p);
-    }
+    result.addAll(set1);
+    result.addAll(set2);
     return result;
   }
 
@@ -313,20 +309,37 @@ public class ReachingDefState implements AbstractState, Serializable,
   private void writeObject(java.io.ObjectOutputStream out) throws IOException {
     out.defaultWriteObject();
 
-    out.writeInt(ReachingDefinitionStorage.getInstance().saveMap(localReachDefs));
-    out.writeInt(ReachingDefinitionStorage.getInstance().saveMap(globalReachDefs));
+    out.writeInt(localReachDefs.size());
+    for(Entry<String, Set<DefinitionPoint>> localReach : localReachDefs.entrySet()){
+      out.writeObject(localReach.getKey());
+      out.writeObject(localReach.getValue());
+    }
+
+    out.writeInt(globalReachDefs.size());
+    for(Entry<String, Set<DefinitionPoint>> globalReach : globalReachDefs.entrySet()){
+      out.writeObject(globalReach.getKey());
+      out.writeObject(globalReach.getValue());
+    }
   }
 
+  @SuppressWarnings("unchecked")
   private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
 
-    int id;
+    int size;
+    size = in.readInt();
+    localReachDefs = Maps.newHashMapWithExpectedSize(size);
 
-    id = in.readInt();
-    localReachDefs = ReachingDefinitionStorage.getInstance().getMap(id);
+    for(int i=0;i<size;i++){
+      localReachDefs.put((String) in.readObject(), (Set<DefinitionPoint>)in.readObject());
+    }
 
-    id = in.readInt();
-    globalReachDefs = ReachingDefinitionStorage.getInstance().getMap(id);
+    size = in.readInt();
+    globalReachDefs = Maps.newHashMapWithExpectedSize(size);
+
+    for(int i=0;i<size;i++){
+      globalReachDefs.put((String) in.readObject(), (Set<DefinitionPoint>)in.readObject());
+    }
   }
 
 

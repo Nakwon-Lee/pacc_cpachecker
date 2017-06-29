@@ -23,9 +23,22 @@
  */
 package org.sosy_lab.cpachecker.cfa.postprocessing.global.singleloop;
 
-import static com.google.common.base.Predicates.*;
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.instanceOf;
+import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.FluentIterable.from;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -33,7 +46,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,10 +60,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
-
 import javax.annotation.Nullable;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.collect.CopyOnWriteSortedMap;
 import org.sosy_lab.common.collect.PathCopyingPersistentTreeMap;
@@ -60,8 +69,8 @@ import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.CFAReversePostorder;
-import org.sosy_lab.cpachecker.cfa.Language;
 import org.sosy_lab.cpachecker.cfa.MutableCFA;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpressionBuilder;
@@ -84,7 +93,6 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionReturnEdge;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CAssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CDeclarationEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionCallEdge;
@@ -96,26 +104,13 @@ import org.sosy_lab.cpachecker.cfa.model.c.CLabelNode;
 import org.sosy_lab.cpachecker.cfa.model.c.CReturnStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.java.JMethodEntryNode;
-import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.cfa.types.c.CFunctionType;
 import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.cfa.types.c.CStorageClass;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
-
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SortedSetMultimap;
-import com.google.common.collect.TreeMultimap;
+import org.sosy_lab.cpachecker.util.Pair;
 
 /**
  * Instances of this class are used to apply single loop transformation to
@@ -135,13 +130,6 @@ public class CFASingleLoopTransformation {
    * The description of the dummy edges used.
    */
   private static final String DUMMY_EDGE = "DummyEdge";
-
-  private static final Predicate<CFAEdge> DUMMY_EDGE_PREDICATE = new Predicate<CFAEdge>() {
-
-      @Override
-      public boolean apply(@Nullable CFAEdge pArg0) {
-        return isDummyEdge(pArg0);
-      }};
 
   /**
    * The log manager.
@@ -205,8 +193,6 @@ public class CFASingleLoopTransformation {
    * Applies the single loop transformation to the given CFA.
    *
    * @param pInputCFA the control flow automaton to be transformed.
-   * @param pVarClassification the variable classification.
-   * @param pLoopStructure the current loop structure.
    *
    * @return a new CFA with at most one loop.
    * @throws InvalidConfigurationException if the configuration this transformer was created with is invalid.
@@ -287,8 +273,7 @@ public class CFASingleLoopTransformation {
     fixSummaryEdges(start, newSuccessorsToPCImmutable,  globalNewToOld);
 
     // Build the CFA from the syntactically reachable nodes
-    return buildCFA(start, loopHead, pInputCFA.getMachineModel(),
-        pInputCFA.getLanguage());
+    return buildCFA(start, loopHead, pInputCFA);
   }
 
   /**
@@ -297,7 +282,7 @@ public class CFASingleLoopTransformation {
    * @param pStartNode the start node of the new control flow automaton.
    * @param pNewPredecessorsToPC the mapping of program counter value assignment predecessors to program counter values. Must be mutable.
    * @param pNewSuccessorsToPC the mapping of program counter value assumption successors to program counter values. Must be mutable.
-   * @param pGlobalNewToOld
+   * @param pGlobalNewToOld a mapping from TODO
    * @throws InterruptedException if a shutdown has been requested by the registered shutdown notifier.
    */
   private void simplify(CFANode pStartNode,
@@ -331,7 +316,7 @@ public class CFASingleLoopTransformation {
         }
       }
     }
-    for (CFAEdge oldDummyEdge : findEdges(DUMMY_EDGE_PREDICATE, pStartNode)) {
+    for (CFAEdge oldDummyEdge : findEdges(CFASingleLoopTransformation::isDummyEdge, pStartNode)) {
       this.shutdownNotifier.shutdownIfNecessary();
       CFANode successor = pGlobalNewToOld.get(oldDummyEdge.getSuccessor());
       for (CFAEdge edge : CFAUtils.enteringEdges(successor).toList()) {
@@ -378,8 +363,6 @@ public class CFASingleLoopTransformation {
    * assume edges mapped to their respective program counter value.
    * @param pGlobalNewToOld the mapping of new control flow nodes to old control
    * flow nodes.
-   *
-   * @throws InterruptedException if a shutdown has been requested by the registered shutdown notifier.
    */
   private void fixSummaryEdges(FunctionEntryNode pStartNode,
       ImmutableBiMap<Integer, CFANode> pNewSuccessorsToPC,
@@ -719,7 +702,9 @@ public class CFASingleLoopTransformation {
               removeFromNodes(toRemove);
             }
             CFANode terminationNode = new CFATerminationNode(assumePredecessor.getFunctionName());
-            CFAEdge newEdge = copyCFAEdgeWithNewNodes(edge, assumePredecessor, terminationNode, new LinkedHashMap<CFANode, CFANode>());
+            CFAEdge newEdge =
+                copyCFAEdgeWithNewNodes(
+                    edge, assumePredecessor, terminationNode, new LinkedHashMap<>());
             addToNodes(newEdge);
             toAdd.add(terminationNode);
           }
@@ -730,22 +715,18 @@ public class CFASingleLoopTransformation {
   }
 
   /**
-   * Builds a CFA by collecting the nodes syntactically reachable from the
-   * start node. Any nodes belonging to functions with unreachable entry nodes
-   * are also omitted.
+   * Builds a CFA by collecting the nodes syntactically reachable from the start node. Any nodes
+   * belonging to functions with unreachable entry nodes are also omitted.
    *
    * @param pStartNode the start node.
    * @param pLoopHead the single loop head.
-   * @param pMachineModel the machine model.
-   * @param pLanguage the programming language.
-   *
+   * @param pOriginalCfa the original CFA before the transformation.
    * @return the CFA represented by the nodes reachable from the start node.
-   *
-   * @throws InvalidConfigurationException if the configuration is invalid.
-   * @throws InterruptedException if a shutdown has been requested by the registered shutdown notifier.
+   * @throws InterruptedException if a shutdown has been requested by the registered shutdown
+   *     notifier.
    */
-  private MutableCFA buildCFA(FunctionEntryNode pStartNode, CFANode pLoopHead,
-      MachineModel pMachineModel, Language pLanguage) throws InterruptedException {
+  private MutableCFA buildCFA(FunctionEntryNode pStartNode, CFANode pLoopHead, CFA pOriginalCfa)
+      throws InterruptedException {
 
     SortedMap<String, FunctionEntryNode> functions = new TreeMap<>();
 
@@ -756,11 +737,17 @@ public class CFASingleLoopTransformation {
     pLoopHead.setReversePostorderId(-1);
 
     // Instantiate the transformed graph in a preliminary form
-    MutableCFA cfa = new MutableCFA(pMachineModel, functions, allNodes, pStartNode, pLanguage);
+    MutableCFA cfa =
+        new MutableCFA(
+            pOriginalCfa.getMachineModel(),
+            functions,
+            allNodes,
+            pStartNode,
+            pOriginalCfa.getFileNames(),
+            pOriginalCfa.getLanguage());
 
     // Get information about the loop structure
-    LoopStructure loopStructure = LoopStructure.getLoopStructureForSingleLoop(pLoopHead);
-    cfa.setLoopStructure(Optional.of(loopStructure));
+    cfa.setLoopStructure(LoopStructure.getLoopStructureForSingleLoop(pLoopHead));
 
     // Finalize the transformed CFA
     return cfa;
@@ -786,9 +773,11 @@ public class CFASingleLoopTransformation {
         FileLocation.DUMMY, CFunctionType.NO_ARGS_VOID_FUNCTION,
         ARTIFICIAL_PROGRAM_COUNTER_FUNCTION_NAME, ImmutableList.<CParameterDeclaration>of());
     FunctionEntryNode artificialFunctionEntryNode =
-        new CFunctionEntryNode(FileLocation.DUMMY, artificialFunctionDeclaration,
-            artificialFunctionExitNode, Collections.<String>emptyList(),
-            Optional.<CVariableDeclaration>absent());
+        new CFunctionEntryNode(
+            FileLocation.DUMMY,
+            artificialFunctionDeclaration,
+            artificialFunctionExitNode,
+            Optional.absent());
     Set<CFANode> nodes = getAllNodes(pStartNode);
     for (CFANode node : nodes) {
       for (CFAEdge leavingEdge : CFAUtils.allLeavingEdges(node).toList()) {
@@ -813,17 +802,7 @@ public class CFASingleLoopTransformation {
       this.shutdownNotifier.shutdownIfNecessary();
       CFAReversePostorder sorter = new CFAReversePostorder();
       sorter.assignSorting(nodesWithNoIdAssigned.iterator().next());
-      nodesWithNoIdAssigned = from(nodesWithNoIdAssigned).filter(new Predicate<CFANode>() {
-
-        @Override
-        public boolean apply(@Nullable CFANode pArg0) {
-          if (pArg0 == null) {
-            return false;
-          }
-          return pArg0.getReversePostorderId() < 0;
-        }
-
-      }).toList();
+      nodesWithNoIdAssigned = from(nodesWithNoIdAssigned).filter(pArg0 -> pArg0 == null ? false : pArg0.getReversePostorderId() < 0).toList();
     }
     return allNodes;
   }
@@ -910,10 +889,14 @@ public class CFASingleLoopTransformation {
       pEdge.getSuccessor().addEnteringSummaryEdge(summaryEdge);
     } else {
       assert predecessor.getNumLeavingEdges() == 0
-          || predecessor.getNumLeavingEdges() <= 1 && pEdge.getEdgeType() == CFAEdgeType.AssumeEdge
-          || predecessor instanceof FunctionExitNode && pEdge.getEdgeType() == CFAEdgeType.FunctionReturnEdge
-          || predecessor.getLeavingEdge(0).getEdgeType() == CFAEdgeType.FunctionCallEdge && pEdge.getEdgeType() == CFAEdgeType.StatementEdge
-          || predecessor.getLeavingEdge(0).getEdgeType() == CFAEdgeType.StatementEdge && pEdge.getEdgeType() == CFAEdgeType.FunctionCallEdge;
+          || (predecessor.getNumLeavingEdges() <= 1
+              && pEdge.getEdgeType() == CFAEdgeType.AssumeEdge)
+          || (predecessor instanceof FunctionExitNode
+              && pEdge.getEdgeType() == CFAEdgeType.FunctionReturnEdge)
+          || (predecessor.getLeavingEdge(0).getEdgeType() == CFAEdgeType.FunctionCallEdge
+              && pEdge.getEdgeType() == CFAEdgeType.StatementEdge)
+          || (predecessor.getLeavingEdge(0).getEdgeType() == CFAEdgeType.StatementEdge
+              && pEdge.getEdgeType() == CFAEdgeType.FunctionCallEdge);
       predecessor.addLeavingEdge(pEdge);
       pEdge.getSuccessor().addEnteringEdge(pEdge);
     }
@@ -1066,7 +1049,7 @@ public class CFASingleLoopTransformation {
     Queue<CFANode> waitlist = new ArrayDeque<>();
     Queue<Deque<FunctionSummaryEdge>> callstacks = new ArrayDeque<>();
     waitlist.add(pStartNode);
-    callstacks.offer(new ArrayDeque<FunctionSummaryEdge>());
+    callstacks.offer(new ArrayDeque<>());
     Set<CFANode> ignoredNodes = new HashSet<>();
     while (!waitlist.isEmpty()) {
       CFANode current = waitlist.poll();
@@ -1132,8 +1115,10 @@ public class CFASingleLoopTransformation {
     Map<CFANode, CFANode> newToOld = new LinkedHashMap<>();
     newToOld.put(pOldNode, pNewNode);
     CFAEdge oldEdge;
-    while ((oldEdge = removeNextEnteringEdge(pOldNode)) != null && constantTrue(newToOld.put(oldEdge.getPredecessor(), oldEdge.getPredecessor()))
-        || (oldEdge = removeNextLeavingEdge(pOldNode)) != null && constantTrue(newToOld.put(oldEdge.getSuccessor(), oldEdge.getSuccessor()))) {
+    while (((oldEdge = removeNextEnteringEdge(pOldNode)) != null
+            && constantTrue(newToOld.put(oldEdge.getPredecessor(), oldEdge.getPredecessor())))
+        || ((oldEdge = removeNextLeavingEdge(pOldNode)) != null
+            && constantTrue(newToOld.put(oldEdge.getSuccessor(), oldEdge.getSuccessor())))) {
       CFAEdge newEdge = copyCFAEdgeWithNewNodes(oldEdge, newToOld);
       addToNodes(newEdge);
     }
@@ -1263,14 +1248,12 @@ public class CFASingleLoopTransformation {
             entryFileLocation,
             ((CFunctionEntryNode) oldEntryNode).getFunctionDefinition(),
             functionExitNode,
-            oldEntryNode.getFunctionParameterNames(),
             ((CFunctionEntryNode)oldEntryNode).getReturnVariable());
       } else if (oldEntryNode instanceof JMethodEntryNode) {
         functionEntryNode = new JMethodEntryNode(
             entryFileLocation,
             ((JMethodEntryNode) oldEntryNode).getFunctionDefinition(),
             functionExitNode,
-            oldEntryNode.getFunctionParameterNames(),
             ((JMethodEntryNode) oldEntryNode).getReturnVariable());
       } else {
         throw new AssertionError();
@@ -1375,21 +1358,7 @@ public class CFASingleLoopTransformation {
       CFunctionSummaryEdge functionSummaryEdge = (CFunctionSummaryEdge) copyCFAEdgeWithNewNodes(oldSummaryEdge, pNewToOldMapping);
       addToNodes(functionSummaryEdge);
       return new CFunctionReturnEdge(fileLocation, (FunctionExitNode) pNewPredecessor, pNewSuccessor, functionSummaryEdge);
-    case MultiEdge:
-      MultiEdge multiEdge = (MultiEdge) pEdge;
-      return new MultiEdge(pNewPredecessor, pNewSuccessor, from(multiEdge.getEdges()).transform(new Function<CFAEdge, CFAEdge>() {
 
-        @Override
-        @Nullable
-        public CFAEdge apply(@Nullable CFAEdge pOldEdge) {
-          if (pOldEdge == null) {
-            return null;
-          }
-          return copyCFAEdgeWithNewNodes(pOldEdge, pNewToOldMapping);
-        }
-
-
-      }).toList());
     case ReturnStatementEdge:
       if (!(pNewSuccessor instanceof FunctionExitNode)) {
         throw new IllegalArgumentException("The successor of a return statement edge must be a function exit node.");

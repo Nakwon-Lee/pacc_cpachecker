@@ -25,20 +25,25 @@ package org.sosy_lab.cpachecker.cpa.value;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.PrintStream;
 import java.util.Collection;
-
+import java.util.Optional;
+import java.util.Set;
 import org.sosy_lab.common.configuration.Configuration;
+import org.sosy_lab.common.configuration.IntegerOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.BlankEdge;
-import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
-import org.sosy_lab.cpachecker.core.defaults.VariableTrackingPrecision;
+import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustment;
@@ -46,7 +51,6 @@ import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustmentResult;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustmentResult.Action;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
-import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.conditions.path.AssignmentsInPathCondition.UniqueAssignmentsInPathConditionState;
 import org.sosy_lab.cpachecker.cpa.location.LocationState;
@@ -55,27 +59,24 @@ import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.LiveVariables;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 import org.sosy_lab.cpachecker.util.statistics.StatCounter;
-import org.sosy_lab.cpachecker.util.statistics.StatTimer;
 import org.sosy_lab.cpachecker.util.statistics.StatisticsWriter;
+import org.sosy_lab.cpachecker.util.statistics.ThreadSafeTimerContainer;
+import org.sosy_lab.cpachecker.util.statistics.ThreadSafeTimerContainer.TimerWrapper;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
-
-@Options(prefix="cpa.value.blk")
+@Options(prefix="cpa.value.abstraction")
 public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, StatisticsProvider {
 
-  @Option(secure=true, description="restrict abstractions to loop heads")
-  private boolean alwaysAtLoops = false;
+  @Option(secure=true, description="restrict abstraction computations to branching points")
+  private boolean alwaysAtBranch = false;
 
-  @Option(secure=true, description="restrict abstractions to function calls/returns")
-  private boolean alwaysAtFunctions = false;
+  @Option(secure=true, description="restrict abstraction computations to join points")
+  private boolean alwaysAtJoin = false;
 
-  @Option(secure=true, description="restrict abstractions to assume edges")
-  private boolean alwaysAtAssumes = false;
+  @Option(secure=true, description="restrict abstraction computations to function calls/returns")
+  private boolean alwaysAtFunction = false;
 
-  @Option(secure=true, description="restrict abstractions to join points")
-  private boolean alwaysAtJoins = false;
+  @Option(secure=true, description="restrict abstraction computations to loop heads")
+  private boolean alwaysAtLoop = false;
 
   @Option(secure=true, description="toggle liveness abstraction")
   private boolean doLivenessAbstraction = false;
@@ -83,29 +84,49 @@ public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, St
   @Option(secure=true, description="restrict liveness abstractions to nodes with more than one entering and/or leaving edge")
   private boolean onlyAtNonLinearCFA = false;
 
+  @Option(secure=true, description="skip abstraction computations until the given number of iterations are reached,"
+      + " after that decision is based on then current level of determinism,"
+      + " setting the option to -1 always performs abstraction computations")
+  @IntegerOption(min=-1)
+  private int iterationThreshold = -1;
+
+  @Option(secure=true, description="threshold for level of determinism, in percent,"
+      + " up-to which abstraction computations are performed (and iteration threshold was reached)")
+  @IntegerOption(min=0, max=100)
+  @SuppressFBWarnings(value = "URF_UNREAD_FIELD", justification = "false alarm")
+  private int determinismThreshold = 85;
+
+  private final ValueAnalysisCPAStatistics stats;
+
   private final ImmutableSet<CFANode> loopHeads;
 
-  // statistics
-  final StatCounter abstractions    = new StatCounter("Number of abstraction computations");
-  final StatTimer totalLiveness     = new StatTimer("Total time for liveness abstraction");
-  final StatTimer totalAbstraction  = new StatTimer("Total time for abstraction computation");
-  final StatTimer totalEnforcePath  = new StatTimer("Total time for path thresholds");
+  private final Optional<LiveVariables> liveVariables;
+
+  @SuppressFBWarnings(value = "URF_UNREAD_FIELD", justification = "false alarm")
+  private boolean performPrecisionBasedAbstraction = false;
 
   private final Statistics statistics;
+
+  final StatCounter abstractions    = new StatCounter("Number of abstraction computations");
+  private final ThreadSafeTimerContainer totalLivenessTimer    = new ThreadSafeTimerContainer("Total time for liveness abstraction");
+  private final ThreadSafeTimerContainer totalAbstractionTimer = new ThreadSafeTimerContainer("Total time for abstraction computation");
+  private final ThreadSafeTimerContainer totalEnforcePathTimer = new ThreadSafeTimerContainer("Total time for path thresholds");
+  private final Set<MemoryLocation> trackedMemoryLocation = Sets.newConcurrentHashSet();
 
   @Override
   public void collectStatistics(Collection<Statistics> pStatsCollection) {
     pStatsCollection.add(statistics);
   }
 
-  private final Optional<LiveVariables> liveVariables;
-
-  public ValueAnalysisPrecisionAdjustment(Configuration pConfig, CFA pCfa)
+  public ValueAnalysisPrecisionAdjustment(
+      Configuration pConfig, final ValueAnalysisCPAStatistics pStats, final CFA pCfa)
       throws InvalidConfigurationException {
 
     pConfig.inject(this);
 
-    if (alwaysAtLoops && pCfa.getAllLoopHeads().isPresent()) {
+    stats = pStats;
+
+    if (alwaysAtLoop && pCfa.getAllLoopHeads().isPresent()) {
       loopHeads = pCfa.getAllLoopHeads().get();
     } else {
       loopHeads = null;
@@ -113,13 +134,14 @@ public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, St
 
     statistics = new Statistics() {
       @Override
-      public void printStatistics(PrintStream pOut, Result pResult, ReachedSet pReached) {
+      public void printStatistics(PrintStream pOut, Result pResult, UnmodifiableReachedSet pReached) {
 
         StatisticsWriter writer = StatisticsWriter.writingStatisticsTo(pOut);
         writer.put(abstractions);
-        writer.put(totalLiveness);
-        writer.put(totalAbstraction);
-        writer.put(totalEnforcePath);
+        writer.put(totalLivenessTimer);
+        writer.put(totalAbstractionTimer);
+        writer.put(totalEnforcePathTimer);
+        writer.put("Number of tracked memory locations", trackedMemoryLocation.size());
       }
 
       @Override
@@ -150,27 +172,64 @@ public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, St
     ValueAnalysisState resultState = ValueAnalysisState.copyOf(pState);
 
     if(doLivenessAbstraction && liveVariables.isPresent()) {
+      TimerWrapper totalLiveness = totalLivenessTimer.getNewTimer();
       totalLiveness.start();
       enforceLiveness(pState, location, resultState);
       totalLiveness.stop();
     }
 
-    // compute the abstraction based on the value-analysis precision, unless assignment information is available
-    // then, this is dealt with during enforcement of the path thresholds, see below
-    if (assignments == null) {
-      totalAbstraction.start();
+    // compute the abstraction based on the value-analysis precision
+    TimerWrapper totalAbstraction = totalAbstractionTimer.getNewTimer();
+    totalAbstraction.start();
+    if (performPrecisionBasedAbstraction()) {
       enforcePrecision(resultState, location, pPrecision);
-      totalAbstraction.stop();
     }
+    totalAbstraction.stop();
 
     // compute the abstraction for assignment thresholds
-    else {
+    if (assignments != null) {
+      TimerWrapper totalEnforcePath = totalEnforcePathTimer.getNewTimer();
       totalEnforcePath.start();
-      enforcePathThreshold(resultState, pPrecision, assignments, location.getLocationNode());
+      enforcePathThreshold(resultState, pPrecision, assignments);
       totalEnforcePath.stop();
     }
 
+    // all memory locations contained in the state here are both tracked and have a known valuation
+    trackedMemoryLocation.addAll(resultState.getTrackedMemoryLocations());
+
+    resultState = resultState.equals(pState) ? pState : resultState;
+
     return Optional.of(PrecisionAdjustmentResult.create(resultState, pPrecision, Action.CONTINUE));
+  }
+
+  /**
+   * This method decides whether or not to perform abstraction computations. These are computed
+   * if the iteration threshold is deactivated, or if the level of determinism ever gets below
+   * the threshold for the level of determinism.
+   *
+   * @return true, if abstractions should be computed, else false
+   */
+  private boolean performPrecisionBasedAbstraction() {
+    // always compute abstraction if option is disabled
+    if (iterationThreshold == -1) {
+      return true;
+    }
+
+    // else, delay abstraction computation as long as iteration threshold is not reached
+    if (stats.getCurrentNumberOfIterations() < iterationThreshold) {
+      return false;
+    }
+
+    // else, always compute abstraction if computed abstraction before
+    if (performPrecisionBasedAbstraction) {
+      return true;
+    }
+
+    // else, determine current setting and return that
+    performPrecisionBasedAbstraction =
+        (stats.getCurrentLevelOfDeterminism() < determinismThreshold) ? true : false;
+
+    return performPrecisionBasedAbstraction;
   }
 
   private void enforceLiveness(ValueAnalysisState pState, LocationState location, ValueAnalysisState resultState) {
@@ -206,13 +265,13 @@ public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, St
    */
   private void enforcePrecision(ValueAnalysisState state, LocationState location, VariableTrackingPrecision precision) {
     if (abstractAtEachLocation()
-        || abstractAtAssumes(location)
-        || abstractAtJoins(location)
+        || abstractAtBranch(location)
+        || abstractAtJoin(location)
         || abstractAtFunction(location)
-        || abstractAtLoopHead(location)) {
+        || abstractAtLoop(location)) {
 
       for (MemoryLocation memoryLocation : state.getTrackedMemoryLocations()) {
-        if (!precision.isTracking(memoryLocation, state.getTypeForMemoryLocation(memoryLocation), location.getLocationNode())) {
+        if (location!=null && !precision.isTracking(memoryLocation, state.getTypeForMemoryLocation(memoryLocation), location.getLocationNode())) {
           state.forget(memoryLocation);
         }
       }
@@ -227,52 +286,25 @@ public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, St
    * @return true, if an abstraction should be computed at each location, else false
    */
   private boolean abstractAtEachLocation() {
-    return !alwaysAtAssumes && !alwaysAtJoins && !alwaysAtFunctions && !alwaysAtLoops;
+    return !alwaysAtBranch && !alwaysAtJoin && !alwaysAtFunction && !alwaysAtLoop;
   }
 
-  /**
-   * This method determines whether or not the given location is a branching,
-   * and whether or not an abstraction shall be computed or not.
-   *
-   * @param location the current location
-   * @return true, if at the current location an abstraction shall be computed, else false
-   */
-  private boolean abstractAtAssumes(LocationState location) {
-    return alwaysAtAssumes && location.getLocationNode().getEnteringEdge(0).getEdgeType() == CFAEdgeType.AssumeEdge;
+  private boolean abstractAtBranch(LocationState location) {
+    return alwaysAtBranch && location.getLocationNode().getNumLeavingEdges() > 1;
   }
 
-  /**
-   * This method determines whether or not to abstract before a join point.
-   *
-   * @param location the current location
-   * @return true, if at the current location an abstraction shall be computed, else false
-   */
-  private boolean abstractAtJoins(LocationState location) {
-    return alwaysAtJoins && location.getLocationNode().getNumEnteringEdges() > 1;
+  private boolean abstractAtJoin(LocationState location) {
+    return alwaysAtJoin && location.getLocationNode().getNumEnteringEdges() > 1;
   }
 
-  /**
-   * This method determines whether or not the given location is a function entry or exit,
-   * and whether or not an abstraction shall be computed or not.
-   *
-   * @param location the current location
-   * @return true, if at the current location an abstraction shall be computed, else false
-   */
   private boolean abstractAtFunction(LocationState location) {
-    return alwaysAtFunctions && (location.getLocationNode() instanceof FunctionEntryNode
+    return alwaysAtFunction && (location.getLocationNode() instanceof FunctionEntryNode
         || location.getLocationNode().getEnteringSummaryEdge() != null);
   }
 
-  /**
-   * This method determines whether or not the given location is a loop head,
-   * and whether or not an abstraction shall be computed or not.
-   *
-   * @param location the current location
-   * @return true, if at the current location an abstraction shall be computed, else false
-   */
-  private boolean abstractAtLoopHead(LocationState location) {
-    checkState(!alwaysAtLoops || loopHeads != null);
-    return alwaysAtLoops && loopHeads.contains(location.getLocationNode());
+  private boolean abstractAtLoop(LocationState location) {
+    checkState(!alwaysAtLoop || loopHeads != null);
+    return alwaysAtLoop && loopHeads.contains(location.getLocationNode());
   }
 
   /**
@@ -284,26 +316,14 @@ public class ValueAnalysisPrecisionAdjustment implements PrecisionAdjustment, St
    */
   private void enforcePathThreshold(ValueAnalysisState state,
       VariableTrackingPrecision precision,
-      UniqueAssignmentsInPathConditionState assignments, CFANode location) {
+      UniqueAssignmentsInPathConditionState assignments) {
 
     // forget the value for all variables that exceed their threshold
     for (MemoryLocation memoryLocation: state.getTrackedMemoryLocations()) {
+      assignments.updateAssignmentInformation(memoryLocation, state.getValueFor(memoryLocation));
 
-      // if memory location is being tracked, check against hard threshold
-      if (precision.isTracking(memoryLocation, state.getTypeForMemoryLocation(memoryLocation), location)) {
-        assignments.updateAssignmentInformation(memoryLocation, state.getValueFor(memoryLocation));
-
-        if (assignments.exceedsHardThreshold(memoryLocation)) {
-          state.forget(memoryLocation);
-        }
-
-      } else {
-        // otherwise, check against soft threshold, including the pending assignment
-        if (assignments.wouldExceedSoftThreshold(state, memoryLocation)) {
-          state.forget(memoryLocation);
-        } else {
-          assignments.updateAssignmentInformation(memoryLocation, state.getValueFor(memoryLocation));
-        }
+      if (assignments.exceedsThreshold(memoryLocation)) {
+        state.forget(memoryLocation);
       }
     }
   }

@@ -1,27 +1,5 @@
 package org.sosy_lab.cpachecker.cpa.policyiteration.polyhedra;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.logging.Level;
-
-import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.common.rationals.LinearExpression;
-import org.sosy_lab.common.rationals.Rational;
-import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
-import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
-import org.sosy_lab.cpachecker.cpa.policyiteration.PolicyAbstractedState;
-import org.sosy_lab.cpachecker.cpa.policyiteration.PolicyBound;
-import org.sosy_lab.cpachecker.cpa.policyiteration.PolicyIterationStatistics;
-import org.sosy_lab.cpachecker.cpa.policyiteration.Template;
-
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
 import apron.Abstract1;
 import apron.Coeff;
 import apron.Environment;
@@ -30,13 +8,29 @@ import apron.Linexpr1;
 import apron.Linterm1;
 import apron.Manager;
 import apron.MpqScalar;
-import apron.Polka;
-import apron.SetUp;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
+import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.common.rationals.LinearExpression;
+import org.sosy_lab.common.rationals.Rational;
+import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
+import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
+import org.sosy_lab.cpachecker.cpa.policyiteration.PolicyAbstractedState;
+import org.sosy_lab.cpachecker.cpa.policyiteration.PolicyBound;
+import org.sosy_lab.cpachecker.cpa.policyiteration.PolicyIterationStatistics;
+import org.sosy_lab.cpachecker.util.ApronManager;
+import org.sosy_lab.cpachecker.util.ApronManager.AbstractDomain;
+import org.sosy_lab.cpachecker.util.templates.Template;
 
 public class PolyhedraWideningManager {
-  static {
-    SetUp.init("lib/native/x86_64-linux/apron/");
-  }
 
   private final Manager manager;
   private final Map<String, CIdExpression> types;
@@ -47,7 +41,9 @@ public class PolyhedraWideningManager {
       LogManager pLogger) {
     statistics = pStatistics;
     logger = pLogger;
-    manager = new Polka(false);
+    ApronManager apronManager = new ApronManager(AbstractDomain.POLKA);
+
+    manager = apronManager.getManager();
     types = new HashMap<>();
   }
 
@@ -55,38 +51,45 @@ public class PolyhedraWideningManager {
     return manager;
   }
 
-  private static final Function<PolicyBound, Rational> DATA_GETTER = new Function<PolicyBound, Rational>() {
-    @Override
-    public Rational apply(PolicyBound input) {
-      return input.getBound();
-    }
-  };
-
+  /**
+   * Generate new directions which result from the widening operation applied on two polyhedra
+   * described by {@code oldState} and {@code newState}.
+   */
   public Set<Template> generateWideningTemplates(
-      PolicyAbstractedState old, PolicyAbstractedState merged) {
-    Set<Template> allTemplates = Sets.union(old.getAbstraction().keySet(),
-        merged.getAbstraction().keySet());
-    Map<Template, Rational> oldData = Maps.transformValues(old.getAbstraction(),
-        DATA_GETTER);
-    Map<Template, Rational> mergedData = Maps.transformValues(merged.getAbstraction(),
-        DATA_GETTER);
+      PolicyAbstractedState oldState,
+      PolicyAbstractedState newState) {
+
+    Set<Template> allTemplates = Sets.union(oldState.getAbstraction().keySet(),
+        newState.getAbstraction().keySet());
+    Map<Template, Rational> oldData = Maps.transformValues(oldState.getAbstraction(),
+        PolicyBound::getBound);
+    Map<Template, Rational> newData = Maps.transformValues(
+        newState.getAbstraction(),
+        PolicyBound::getBound);
 
     Abstract1 widened;
     try {
-      statistics.startPolyhedraWideningTimer();
-      Environment env = generateEnvironment(ImmutableList.of(oldData, mergedData));
+      statistics.polyhedraWideningTimer.start();
       Abstract1 abs1, abs2;
+      Environment env = generateEnvironment(ImmutableList.of(oldData, newData));
       abs1 = fromTemplates(env, oldData);
-      abs2 = fromTemplates(env, mergedData);
+      abs2 = fromTemplates(env, newData);
       abs2.join(manager, abs1);
       widened = abs1.widening(manager, abs2);
     } finally {
-      statistics.stopPolyhedraWideningTimer();
+      statistics.polyhedraWideningTimer.stop();
     }
 
     Map<Template, Rational> generated = toTemplates(widened);
     logger.log(Level.FINE, "Generated templates", generated);
-    return Sets.difference(generated.keySet(), allTemplates);
+    Set<Template> diff = Sets.difference(generated.keySet(), allTemplates);
+    Set<Template> out = new HashSet<>();
+
+    for (Template t : diff) {
+      out.add(t);
+      out.add(Template.of(t.getLinearExpression().negate()));
+    }
+    return out;
   }
 
   Environment generateEnvironment(List<Map<Template, Rational>> t) {
@@ -143,7 +146,7 @@ public class PolyhedraWideningManager {
       String varName = term.getVariable();
       Rational coeff = ofCoeff(term.getCoefficient());
 
-      out = out.add(LinearExpression.pair(types.get(varName),  coeff));
+      out = out.add(LinearExpression.monomial(types.get(varName),  coeff));
     }
 
     return Template.of(out);

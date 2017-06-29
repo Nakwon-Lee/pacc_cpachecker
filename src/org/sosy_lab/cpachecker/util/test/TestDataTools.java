@@ -25,20 +25,17 @@ package org.sosy_lab.cpachecker.util.test;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.IOException;
-import java.util.List;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.Triple;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.ConfigurationBuilder;
 import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.converters.FileTypeConverter;
-import org.sosy_lab.common.log.TestLogManager;
+import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.CFACreator;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
@@ -63,8 +60,23 @@ import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
 import org.sosy_lab.cpachecker.cfa.types.c.CStorageClass;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.exceptions.ParserException;
+import org.sosy_lab.cpachecker.util.CFAUtils;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.Triple;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormulaManager;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.PointerTargetSet;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 
-import com.google.common.collect.ImmutableList;
+import java.io.IOException;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 public class TestDataTools {
 
@@ -84,8 +96,6 @@ public class TestDataTools {
     return Configuration.builder()
         .addConverter(FileOption.class, fileTypeConverter);
   }
-
-  public static final CFANode DUMMY_CFA_NODE = new CFANode("DUMMY");
 
   private static int dummyNodeCounter = 0;
 
@@ -187,20 +197,108 @@ public class TestDataTools {
     return makeAssume(pAssumeExr, newDummyNode(), newDummyNode());
   }
 
-  public static CFA makeCFA(String cProgram) throws IOException, ParserException, InterruptedException {
+  public static CFA makeCFA(String... lines)
+      throws IOException, ParserException, InterruptedException {
     try {
-      return makeCFA(cProgram, configurationForTest().build());
+      return makeCFA(configurationForTest().build(), lines);
     } catch (InvalidConfigurationException e) {
       throw new AssertionError("Default configuration is invalid?");
     }
   }
 
-  public static CFA makeCFA(String cProgram, Configuration config) throws InvalidConfigurationException, IOException,
-      ParserException, InterruptedException {
+  public static CFA makeCFA(Configuration config, String... lines)
+      throws InvalidConfigurationException, IOException, ParserException, InterruptedException {
 
-    CFACreator creator = new CFACreator(config, TestLogManager.getInstance(), ShutdownNotifier
-        .create());
+    CFACreator creator =
+        new CFACreator(config, LogManager.createTestLogManager(), ShutdownNotifier.createDummy());
 
-    return creator.parseFileAndCreateCFA(cProgram);
+    return creator.parseSourceAndCreateCFA(Joiner.on('\n').join(lines));
+  }
+
+  /**
+   * Convert a given loop-free {@code cfa} to a single {@link PathFormula}.
+   *
+   * @param ignoreDeclarations Do not include the formula for declarations
+   * in the resulting formula.
+   * This can be very convenient if the {@link PathFormula}s from different
+   * calls to this method should be conjoined together.
+   *
+   * @param initialSSA Starting {@link SSAMap} for the resultant formula.
+   *
+   * @throws Exception if the given {@code cfa} contains loop.
+   */
+  public static PathFormula toPathFormula(
+      CFA cfa,
+      SSAMap initialSSA,
+      FormulaManagerView fmgr,
+      PathFormulaManager pfmgr,
+      boolean ignoreDeclarations
+      ) throws Exception {
+    Map<CFANode, PathFormula> mapping = new HashMap<>(cfa.getAllNodes().size());
+    CFANode start = cfa.getMainFunction();
+
+    PathFormula initial = new PathFormula(
+        fmgr.getBooleanFormulaManager().makeTrue(), initialSSA,
+        PointerTargetSet.emptyPointerTargetSet(),
+        0
+    );
+
+    mapping.put(start, initial);
+    Deque<CFANode> queue = new LinkedList<>();
+    queue.add(start);
+
+    while (!queue.isEmpty()) {
+      CFANode node = queue.removeLast();
+      Preconditions.checkState(!node.isLoopStart(),
+          "Can only work on loop-free fragments");
+      PathFormula path = mapping.get(node);
+
+      for (CFAEdge e : CFAUtils.leavingEdges(node)) {
+        CFANode toNode = e.getSuccessor();
+        PathFormula old = mapping.get(toNode);
+
+        PathFormula n;
+        if (ignoreDeclarations &&
+            e instanceof CDeclarationEdge &&
+            ((CDeclarationEdge) e).getDeclaration() instanceof CVariableDeclaration) {
+
+          // Skip variable declaration edges.
+          n = path;
+        } else {
+          n = pfmgr.makeAnd(path, e);
+        }
+        PathFormula out;
+        if (old == null) {
+          out = n;
+        } else {
+          out = pfmgr.makeOr(old, n);
+          out = out.updateFormula(fmgr.simplify(out.getFormula()));
+        }
+        mapping.put(toNode, out);
+        queue.add(toNode);
+      }
+    }
+
+    PathFormula out = mapping.get(cfa.getMainFunction().getExitNode());
+    out = out.updateFormula(fmgr.simplify(out.getFormula()));
+    return out;
+  }
+
+  /**
+   * Convert a given string to a {@link CFA},
+   * assuming it is a body of a single function.
+   */
+  public static CFA toSingleFunctionCFA(CFACreator creator, String... parts)
+      throws InvalidConfigurationException, IOException, ParserException, InterruptedException {
+    return creator.parseSourceAndCreateCFA(getProgram(parts));
+  }
+
+  public static CFA toMultiFunctionCFA(CFACreator creator, String... parts)
+      throws InvalidConfigurationException, IOException, ParserException, InterruptedException {
+    return creator.parseSourceAndCreateCFA(Joiner.on('\n').join(parts));
+  }
+
+  private static String getProgram(String... parts) {
+    return "int main() {" +  Joiner.on('\n').join(parts) + "}";
   }
 }

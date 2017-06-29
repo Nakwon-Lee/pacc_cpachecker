@@ -26,13 +26,11 @@ package org.sosy_lab.cpachecker.cpa.chc;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.logging.Level;
-
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.defaults.AutomaticCPAFactory;
@@ -50,7 +48,7 @@ import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.interfaces.StopOperator;
 import org.sosy_lab.cpachecker.core.interfaces.TransferRelation;
-import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 
 @Options(prefix="cpa.chc")
 public class CHCCPA implements ConfigurableProgramAnalysis, StatisticsProvider {
@@ -97,7 +95,7 @@ public class CHCCPA implements ConfigurableProgramAnalysis, StatisticsProvider {
   private final StopOperator stopOperator;
   private final TransferRelation transferRelation;
 
-  private CHCCPA(CFA cfa, Configuration config, LogManager logger)
+  private CHCCPA(Configuration config, LogManager logger)
     throws InvalidConfigurationException {
 
     config.inject(this);
@@ -160,7 +158,7 @@ public class CHCCPA implements ConfigurableProgramAnalysis, StatisticsProvider {
     statsCollection.add(new Statistics() {
 
       @Override
-      public void printStatistics(PrintStream out, Result result, ReachedSet reached) {
+      public void printStatistics(PrintStream out, Result result, UnmodifiableReachedSet reached) {
         //TODO
         //transferRelation.printStatistics(out);
       }

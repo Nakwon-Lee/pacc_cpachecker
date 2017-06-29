@@ -23,12 +23,6 @@
  */
 package org.sosy_lab.cpachecker.cfa.postprocessing.function;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.MutableCFA;
 import org.sosy_lab.cpachecker.cfa.ast.AVariableDeclaration;
@@ -52,6 +46,11 @@ import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.util.CFATraversal;
 import org.sosy_lab.cpachecker.util.CFATraversal.DefaultCFAVisitor;
 import org.sosy_lab.cpachecker.util.CFATraversal.TraversalProcess;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
 
 
 /**
@@ -118,14 +117,11 @@ public class CFADeclarationMover {
       secondRealFunctionEdge.add(declEndEdge);
     }
 
-    Iterator<CFAEdge> it = declarations.iterator();
-
     // insert declarations into the desired destination
-    while (it.hasNext()) {
-      CFAEdge decl = it.next();
+    for (CFAEdge decl : declarations) {
       CFANode middleNode = new CFANode(functionName);
       cfa.addNode(middleNode);
-      moveDeclEdgeToNewLocation((CDeclarationEdge)decl, actNode, middleNode, cfa);
+      moveDeclEdgeToNewLocation((CDeclarationEdge) decl, actNode, middleNode);
       actNode = middleNode;
     }
 
@@ -190,13 +186,12 @@ public class CFADeclarationMover {
       return edge;
     case CallToReturnEdge:
     case FunctionReturnEdge:
-    case MultiEdge:
     default:
       throw new AssertionError("should never happen");
     }
   }
 
-  private void moveDeclEdgeToNewLocation(CDeclarationEdge edge, CFANode pred, CFANode succ, MutableCFA cfa) {
+  private void moveDeclEdgeToNewLocation(CDeclarationEdge edge, CFANode pred, CFANode succ) {
     CDeclaration decl = edge.getDeclaration();
     if (!(decl instanceof CVariableDeclaration)) {
       throw new AssertionError("Only variable declaration edges should be moved!");
@@ -263,7 +258,7 @@ public class CFADeclarationMover {
    * Using it with ignoreSummaryEdges and ignoreFunctionCalls, collects all
    * Declarations in a Function.
    */
-  class DeclarationCollector extends DefaultCFAVisitor {
+  private static class DeclarationCollector extends DefaultCFAVisitor {
 
     private final List<CFAEdge> edges;
 

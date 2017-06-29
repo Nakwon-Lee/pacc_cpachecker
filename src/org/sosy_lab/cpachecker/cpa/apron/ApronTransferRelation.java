@@ -23,17 +23,28 @@
  */
 package org.sosy_lab.cpachecker.cpa.apron;
 
+import apron.DoubleScalar;
+import apron.Interval;
+import apron.Linexpr0;
+import apron.Linterm0;
+import apron.Scalar;
+import apron.Tcons0;
+import apron.Texpr0BinNode;
+import apron.Texpr0CstNode;
+import apron.Texpr0DimNode;
+import apron.Texpr0Intern;
+import apron.Texpr0Node;
+import apron.Texpr0UnNode;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-
-import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAssignment;
@@ -71,7 +82,6 @@ import org.sosy_lab.cpachecker.cfa.ast.c.DefaultCExpressionVisitor;
 import org.sosy_lab.cpachecker.cfa.model.BlankEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CAssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CDeclarationEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionCallEdge;
@@ -88,9 +98,7 @@ import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CTypedefType;
 import org.sosy_lab.cpachecker.core.defaults.ForwardingTransferRelation;
-import org.sosy_lab.cpachecker.core.defaults.VariableTrackingPrecision;
-import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
 import org.sosy_lab.cpachecker.cpa.apron.ApronState.Type;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
@@ -98,23 +106,6 @@ import org.sosy_lab.cpachecker.exceptions.UnsupportedCCodeException;
 import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
-
-import apron.DoubleScalar;
-import apron.Interval;
-import apron.Linexpr0;
-import apron.Linterm0;
-import apron.Scalar;
-import apron.Tcons0;
-import apron.Texpr0BinNode;
-import apron.Texpr0CstNode;
-import apron.Texpr0DimNode;
-import apron.Texpr0Intern;
-import apron.Texpr0Node;
-import apron.Texpr0UnNode;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
 
 public class ApronTransferRelation extends ForwardingTransferRelation<Collection<ApronState>, ApronState, VariableTrackingPrecision> {
 
@@ -127,8 +118,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
    * set of functions that may not appear in the source code
    * the value of the map entry is the explanation for the user
    */
-  private static final Map<String, String> UNSUPPORTED_FUNCTIONS
-      = ImmutableMap.of();
+  private static final ImmutableMap<String, String> UNSUPPORTED_FUNCTIONS = ImmutableMap.of();
 
   private final LogManager logger;
   private final boolean splitDisequalities;
@@ -145,19 +135,10 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
           builder.addAll(l.getLoopHeads());
     }
     loopHeads = builder.build();
-
-    // TODO the creation of the additional ApronManager which then is never used
-    // should not be necessary, however, without this constructor call the library
-    // does not work properly
-    try {
-      new ApronManager(Configuration.defaultConfiguration());
-    } catch (InvalidConfigurationException e) {
-      throw new AssertionError(e);
-    }
   }
 
   @Override
-  protected Collection<ApronState> postProcessing(Collection<ApronState> successors) {
+  protected Collection<ApronState> postProcessing(Collection<ApronState> successors, CFAEdge edge) {
 
     successors.removeAll(Collections.singleton(null));
 
@@ -181,12 +162,6 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     } else {
       return new HashSet<>(successors);
     }
-  }
-
-  @Override
-  protected Collection<ApronState> handleMultiEdge(MultiEdge cfaEdge)
-      throws CPATransferException {
-    return super.handleMultiEdgeReturningCollection(cfaEdge);
   }
 
   @Override
@@ -215,7 +190,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
       }
 
     } else if (expression instanceof CBinaryExpression) {
-      return handleBinaryAssumption(expression, truthAssumption);
+      return handleBinaryAssumption(expression, truthAssumption, cfaEdge);
 
     } else {
       Set<Texpr0Node> coeffs = expression.accept(new CApronExpressionVisitor());
@@ -235,7 +210,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     }
   }
 
-  private Set<ApronState> handleBinaryAssumption(CExpression expression, boolean truthAssumption)
+  private Set<ApronState> handleBinaryAssumption(CExpression expression, boolean truthAssumption, CFAEdge edge)
       throws CPATransferException {
     CBinaryExpression binExp = (CBinaryExpression) expression;
 
@@ -269,8 +244,8 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
                                                                                                  left,
                                                                                                  right)))));
           } else {
-            if (left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim)
-                || right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim)) {
+            if ((left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim))
+                || (right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim))) {
               Texpr0BinNode increasedRight = new Texpr0BinNode(Texpr0BinNode.OP_ADD, right, constantMin);
               Texpr0BinNode increasedLeft = new Texpr0BinNode(Texpr0BinNode.OP_ADD, left, constantMin);
 
@@ -323,8 +298,8 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
         case GREATER_THAN: {
           if (truthAssumption) {
             Tcons0 act;
-            if (left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim)
-                || right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim)) {
+            if ((left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim))
+                || (right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim))) {
               Texpr0BinNode increasedRight = new Texpr0BinNode(Texpr0BinNode.OP_ADD, right, constantMin);
               act = new Tcons0(Tcons0.SUP,
                                new Texpr0Intern(new Texpr0BinNode(Texpr0BinNode.OP_SUB,
@@ -366,8 +341,8 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
         case LESS_THAN: {
           if (truthAssumption) {
             Tcons0 act;
-            if (left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim)
-                || right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim)) {
+            if ((left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim))
+                || (right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim))) {
               Texpr0BinNode increasedLeft = new Texpr0BinNode(Texpr0BinNode.OP_ADD, left, constantMin);
               act = new Tcons0(Tcons0.SUP,
                                new Texpr0Intern(new Texpr0BinNode(Texpr0BinNode.OP_SUB,
@@ -393,8 +368,8 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
 
         case NOT_EQUALS:  {
           if (truthAssumption) {
-            if (left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim)
-                || right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim)) {
+            if ((left instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)left).dim))
+                || (right instanceof Texpr0DimNode && !state.isInt(((Texpr0DimNode)right).dim))) {
               Texpr0BinNode increasedRight = new Texpr0BinNode(Texpr0BinNode.OP_ADD, right, constantMin);
               Texpr0BinNode increasedLeft = new Texpr0BinNode(Texpr0BinNode.OP_ADD, left, constantMin);
 
@@ -544,7 +519,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
    * either return the unchanged state or null if the following branch is not reachable.
    *
    * @param value The long value of the CLiteralExpression
-   * @param truthAssumption
+   * @param truthAssumption indicates if we are in the then or the else branch of an assumption
    * @return an OctState or null
    */
   private Set<ApronState> handleLiteralBooleanExpression(long value, boolean truthAssumption, ApronState state) {
@@ -607,8 +582,12 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
 
     Set<ApronState> possibleStates = new HashSet<>();
     if (functionEntryNode.getReturnVariable().isPresent()) {
-      possibleStates.add(state.declareVariable(MemoryLocation.valueOf(calledFunctionName, functionEntryNode.getReturnVariable().get().getName(), 0),
-          getCorrespondingOctStateType(cfaEdge.getSuccessor().getFunctionDefinition().getType().getReturnType())));
+      possibleStates.add(
+          state.declareVariable(
+              MemoryLocation.valueOf(
+                  calledFunctionName, functionEntryNode.getReturnVariable().get().getName()),
+              getCorrespondingOctStateType(
+                  cfaEdge.getSuccessor().getFunctionDefinition().getType().getReturnType())));
     } else {
       possibleStates.add(state);
     }
@@ -620,7 +599,8 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
         continue;
       }
 
-      MemoryLocation formalParamName = MemoryLocation.valueOf(calledFunctionName, paramNames.get(i), 0);
+      MemoryLocation formalParamName =
+          MemoryLocation.valueOf(calledFunctionName, paramNames.get(i));
 
       if (!precision.isTracking(formalParamName, parameters.get(i).getType(), functionEntryNode)) {
         continue;
@@ -671,7 +651,9 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
         return Collections.singleton(state.removeLocalVars(calledFunctionName));
       }
 
-      MemoryLocation returnVarName = MemoryLocation.valueOf(calledFunctionName, fnkCall.getFunctionEntry().getReturnVariable().get().getName(), 0);
+      MemoryLocation returnVarName =
+          MemoryLocation.valueOf(
+              calledFunctionName, fnkCall.getFunctionEntry().getReturnVariable().get().getName());
 
       Texpr0Node right = new Texpr0DimNode(state.getVariableIndexFor(returnVarName));
 
@@ -706,7 +688,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
       if (decl.isGlobal()) {
         variableName = MemoryLocation.valueOf(decl.getName());
       } else {
-        variableName = MemoryLocation.valueOf(functionName, decl.getName(), 0);
+        variableName = MemoryLocation.valueOf(functionName, decl.getName());
       }
 
       if (!precision.isTracking(variableName, declaration.getType(), cfaEdge.getSuccessor())) {
@@ -836,7 +818,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     }
 
     if (!isGlobal(left)) {
-      return MemoryLocation.valueOf(functionName, variableName, 0);
+      return MemoryLocation.valueOf(functionName, variableName);
     } else {
       return MemoryLocation.valueOf(variableName);
     }
@@ -855,7 +837,10 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
       return Collections.singleton(state);
     }
 
-    MemoryLocation tempVarName = MemoryLocation.valueOf(cfaEdge.getPredecessor().getFunctionName(), ((CIdExpression)cfaEdge.asAssignment().get().getLeftHandSide()).getName(), 0);
+    MemoryLocation tempVarName =
+        MemoryLocation.valueOf(
+            cfaEdge.getPredecessor().getFunctionName(),
+            ((CIdExpression) cfaEdge.asAssignment().get().getLeftHandSide()).getName());
 
     // main function has no __cpa_temp_result_var as the result of the main function
     // is not important for us, we skip here
@@ -884,24 +869,11 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     return Collections.emptySet();
   }
 
-  @Override
-  public Collection<? extends AbstractState> strengthen(AbstractState pState, List<AbstractState> pOtherStates,
-      CFAEdge pCfaEdge, Precision pPrecision) throws CPATransferException, InterruptedException {
-    return null;
-  }
-
+  /**
+   * This Visitor, evaluates all coefficients for a given Expression.
+   */
   class CApronExpressionVisitor extends DefaultCExpressionVisitor<Set<Texpr0Node>, CPATransferException>
       implements CRightHandSideVisitor<Set<Texpr0Node>, CPATransferException> {
-
-    /**
-     * This method creates the Visitor, which evaluates all coefficients for a given
-     * Expression.
-     *
-     * @param state
-     */
-    public CApronExpressionVisitor() {
-    }
-
 
     @Override
     protected Set<Texpr0Node> visitDefault(CExpression pExp) throws CPATransferException {

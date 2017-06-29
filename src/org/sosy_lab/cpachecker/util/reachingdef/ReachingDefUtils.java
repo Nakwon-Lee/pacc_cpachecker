@@ -23,15 +23,9 @@
  */
 package org.sosy_lab.cpachecker.util.reachingdef;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.Vector;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CCastExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CComplexCastExpression;
@@ -49,9 +43,16 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionReturnEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CDeclarationEdge;
 import org.sosy_lab.cpachecker.exceptions.UnsupportedCCodeException;
+import org.sosy_lab.cpachecker.util.CFAUtils;
+import org.sosy_lab.cpachecker.util.Pair;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 
 
 public class ReachingDefUtils {
@@ -63,9 +64,8 @@ public class ReachingDefUtils {
   }
 
   public static Pair<Set<String>, Map<FunctionEntryNode, Set<String>>> getAllVariables(CFANode pMainNode) {
-    CFAEdge out;
-    Vector<String> globalVariables = new Vector<>();
-    Vector<CFANode> nodes = new Vector<>();
+    List<String> globalVariables = new ArrayList<>();
+    List<CFANode> nodes = new ArrayList<>();
 
     assert(pMainNode instanceof FunctionEntryNode);
     /*while (!(pMainNode instanceof FunctionEntryNode)) {
@@ -85,7 +85,7 @@ TODO delete */
 
     Stack<CFANode> currentWaitlist = new Stack<>();
     HashSet<CFANode> seen = new HashSet<>();
-    Vector<String> localVariables = new Vector<>();
+    List<String> localVariables = new ArrayList<>();
     CFANode currentElement;
     FunctionEntryNode currentFunction;
 
@@ -104,9 +104,7 @@ TODO delete */
         currentElement = currentWaitlist.pop();
         nodes.add(currentElement);
 
-        for (int i = 0; i < currentElement.getNumLeavingEdges(); i++) {
-          out = currentElement.getLeavingEdge(i);
-
+        for (CFAEdge out : CFAUtils.leavingEdges(currentElement)) {
           if (out instanceof FunctionReturnEdge) {
             continue;
           }
@@ -119,14 +117,8 @@ TODO delete */
             out = currentElement.getLeavingSummaryEdge();
           }
 
-          if (out instanceof CDeclarationEdge
-              && ((CDeclarationEdge) out).getDeclaration() instanceof CVariableDeclaration) {
-            if (((CDeclarationEdge) out).getDeclaration().isGlobal()) {
-              globalVariables.add(((CVariableDeclaration) ((CDeclarationEdge) out).getDeclaration()).getName());
-            } else {
-              // do not use qualified names because local and global parameters considered separately
-              localVariables.add(((CVariableDeclaration) ((CDeclarationEdge) out).getDeclaration()).getName());
-            }
+          if(out instanceof CDeclarationEdge) {
+            handleDeclaration((CDeclarationEdge) out, globalVariables, localVariables);
           }
 
           if (!seen.contains(out.getSuccessor())) {
@@ -140,6 +132,18 @@ TODO delete */
     }
     cfaNodes = ImmutableList.copyOf(nodes);
     return Pair.of((Set<String>) ImmutableSet.copyOf(globalVariables), result);
+  }
+
+  private static void handleDeclaration(final CDeclarationEdge out, final List<String> globalVariables,
+      final List<String> localVariables) {
+    if (out.getDeclaration() instanceof CVariableDeclaration) {
+      if (out.getDeclaration().isGlobal()) {
+        globalVariables.add(((CVariableDeclaration) out.getDeclaration()).getName());
+      } else {
+        // do not use qualified names because local and global parameters considered separately
+        localVariables.add(((CVariableDeclaration) out.getDeclaration()).getName());
+      }
+    }
   }
 
   public static class VariableExtractor extends DefaultCExpressionVisitor<String, UnsupportedCCodeException> {

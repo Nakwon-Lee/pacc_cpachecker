@@ -28,8 +28,13 @@ import org.sosy_lab.cpachecker.cfa.ast.ALeftHandSide;
 /**
  * Interface for all possible right-hand sides of an assignment.
  */
+@SuppressWarnings("serial") // we cannot set a UID for an interface
 public interface JLeftHandSide extends JExpression, ALeftHandSide {
 
   public <R, X extends Exception> R accept(JLeftHandSideVisitor<R, X> pV) throws X;
 
+  @Override
+  default <R, X extends Exception> R accept(JExpressionVisitor<R, X> pV) throws X {
+    return accept((JLeftHandSideVisitor<R, X>) pV);
+  }
 }

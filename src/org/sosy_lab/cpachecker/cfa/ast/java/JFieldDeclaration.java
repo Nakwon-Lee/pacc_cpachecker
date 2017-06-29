@@ -24,7 +24,6 @@
 package org.sosy_lab.cpachecker.cfa.ast.java;
 
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.AbstractInitializer;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.java.JSimpleType;
@@ -43,10 +42,11 @@ import org.sosy_lab.cpachecker.cfa.types.java.JType;
  *
  *  {@link JInitializerExpression} contains the initializer expression.
  */
-public class JFieldDeclaration extends JVariableDeclaration {
+public final class JFieldDeclaration extends JVariableDeclaration {
 
   //TODO Annotation,
 
+  private static final long serialVersionUID = -4482849212846810730L;
   private static final boolean IS_FIELD = true;
   private static final JDeclaration UNRESOLVED_DECLARATION = new JFieldDeclaration(
       FileLocation.DUMMY,
@@ -120,8 +120,6 @@ public class JFieldDeclaration extends JVariableDeclaration {
   /**
    * Method for setting a initializer.
    * DO ONLY CALL IT WHILE CREATING THE CFA.
-   *
-   * @param initializer
    */
   public void updateInitializer(AbstractInitializer initializer) {
     addInitializer(initializer);

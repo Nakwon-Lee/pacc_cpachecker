@@ -33,7 +33,7 @@ import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 /**
  * Implementation of prec operator which does not change the precision or
@@ -68,17 +68,7 @@ public class BreakOnTargetsPrecisionAdjustment implements PrecisionAdjustment {
    */
   private final int extraIterationsLimit;
 
-  private static PrecisionAdjustment instance;
-
-  public static PrecisionAdjustment getInstance(final int pFoundTargetLimit, final int pExtraIterationsLimit) {
-    if (instance == null) {
-      instance = new BreakOnTargetsPrecisionAdjustment(pFoundTargetLimit, pExtraIterationsLimit);
-    }
-
-    return instance;
-  }
-
-  private BreakOnTargetsPrecisionAdjustment(final int pFoundTargetLimit, final int pExtraIterationsLimit) {
+  public BreakOnTargetsPrecisionAdjustment(final int pFoundTargetLimit, final int pExtraIterationsLimit) {
     foundTargetLimit      = pFoundTargetLimit;
     extraIterationsLimit  = pExtraIterationsLimit;
   }

@@ -23,44 +23,60 @@
  */
 package org.sosy_lab.cpachecker.util.refinement;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+
+import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
+import org.sosy_lab.cpachecker.cpa.value.refiner.ValueAnalysisInterpolant;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.states.MemoryLocation;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
-import org.sosy_lab.cpachecker.cpa.arg.ARGState;
-import org.sosy_lab.cpachecker.cpa.value.refiner.ValueAnalysisInterpolant;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
-import org.sosy_lab.cpachecker.util.states.MemoryLocation;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
 
 public class InfeasiblePrefix {
 
   private final ARGPath prefix;
 
-  private final List<Pair<ARGState, Set<String>>> interpolantSequence;
+  private final List<Set<String>> interpolantSequence;
 
-  public InfeasiblePrefix(final ARGPath pInfeasiblePrefix,
-      final List<Pair<ARGState, Set<String>>> pInterpolantSequence) {
+  private final List<BooleanFormula> pathFormulas;
+
+  private InfeasiblePrefix(final ARGPath pInfeasiblePrefix,
+      final List<Set<String>> pSimpleInterpolantSequence) {
+
     prefix = pInfeasiblePrefix;
-    interpolantSequence = pInterpolantSequence;
+    interpolantSequence = pSimpleInterpolantSequence;
+
+    pathFormulas = null;
   }
 
-  public static InfeasiblePrefix buildForPredicateDomain(final ARGPath pInfeasiblePrefix,
-      final List<BooleanFormula> pInterpolantSequence, final FormulaManagerView pFmgr) {
+  private InfeasiblePrefix(final ARGPath pInfeasiblePrefix,
+      final List<Set<String>> pSimpleInterpolantSequence,
+      final List<BooleanFormula> pPathFormulas) {
+
+    prefix = pInfeasiblePrefix;
+    interpolantSequence = pSimpleInterpolantSequence;
+
+    pathFormulas = pPathFormulas;
+  }
+
+  public static InfeasiblePrefix buildForPredicateDomain(final RawInfeasiblePrefix pRawInfeasiblePrefix,
+      final FormulaManagerView pFmgr) {
 
     List<Set<String>> simpleInterpolantSequence = new ArrayList<>();
-    for (BooleanFormula itp : pInterpolantSequence) {
+    for (BooleanFormula itp : pRawInfeasiblePrefix.interpolantSequence) {
       simpleInterpolantSequence.add(pFmgr.extractVariableNames(pFmgr.uninstantiate(itp)));
     }
 
-    return new InfeasiblePrefix(pInfeasiblePrefix, Pair.zipList(pInfeasiblePrefix.asStatesList().subList(1, pInfeasiblePrefix.asStatesList().size() - 1), simpleInterpolantSequence));
+    return new InfeasiblePrefix(pRawInfeasiblePrefix.prefix,
+        simpleInterpolantSequence,
+        pRawInfeasiblePrefix.pathFormulas);
   }
 
   public static InfeasiblePrefix buildForValueDomain(final ARGPath pInfeasiblePrefix,
@@ -68,48 +84,68 @@ public class InfeasiblePrefix {
 
     List<Set<String>> simpleInterpolantSequence = new ArrayList<>();
     for (ValueAnalysisInterpolant itp : pInterpolantSequence) {
-      simpleInterpolantSequence.add(FluentIterable.from(itp.getMemoryLocations()).transform(MemoryLocation.FROM_MEMORYLOCATION_TO_STRING).toSet());
+      simpleInterpolantSequence.add(
+          FluentIterable.from(itp.getMemoryLocations())
+              .transform(MemoryLocation::getAsSimpleString)
+              .toSet());
     }
 
-    return new InfeasiblePrefix(pInfeasiblePrefix, Pair.zipList(pInfeasiblePrefix.asStatesList().subList(1, pInfeasiblePrefix.asStatesList().size()), simpleInterpolantSequence));
+    return new InfeasiblePrefix(pInfeasiblePrefix, simpleInterpolantSequence);
   }
 
-  public Set<String> extractSetOfVariables() {
-    return FluentIterable.from(interpolantSequence).transformAndConcat(new Function<Pair<ARGState, Set<String>>, Iterable<String>>() {
-      @Override
-      public Iterable<String> apply(Pair<ARGState, Set<String>> itp) {
-        return itp.getSecond();
-      }}).toSet();
-  }
-
-  public List<Set<String>> extractListOfVariables() {
-    return FluentIterable.from(interpolantSequence).transform(Pair.<Set<String>>getProjectionToSecond()).toList();
+  public Set<String> extractSetOfIdentifiers() {
+    return ImmutableSet.copyOf(Iterables.concat(interpolantSequence));
   }
 
   public int getNonTrivialLength() {
-    return FluentIterable.from(interpolantSequence).filter(new Predicate<Pair<ARGState, Set<String>>>() {
-      @Override
-      public boolean apply(Pair<ARGState, Set<String>> pInput) {
-        return !pInput.getSecond().isEmpty();
-      }}).size();
+    return FluentIterable.from(interpolantSequence).filter(Predicates.not(Set::isEmpty)).size();
   }
 
   public int getDepthOfPivotState() {
     int depth = 0;
 
-    for (Pair<ARGState, Set<String>> itp : interpolantSequence) {
-      if(!itp.getSecond().isEmpty()) {
+    for (Set<String> itp : interpolantSequence) {
+      if(!itp.isEmpty()) {
         return depth;
       }
 
       depth++;
     }
-    assert false : "There must be at least one trivial interpolant along the prefix";
 
-    return -1;
+    // For the predicate analysis (with block size > 1), it can happen
+    // that there are only trivial interpolants available, i.e., an
+    // immediate change from [true] to [false] in the interpolant sequence.
+    // So, only for the predicate analysis (<=> pathFormulas != null),
+    // return the current depth in such a scenario
+    if (pathFormulas != null) {
+      return depth;
+    }
+
+    // for the value analysis, this must never be reached
+    throw new AssertionError("There must be at least one non-trivial interpolant along the prefix.");
   }
 
   public ARGPath getPath() {
     return prefix;
+  }
+
+  public List<BooleanFormula> getPathFormulae() {
+    return pathFormulas;
+  }
+
+  public static class RawInfeasiblePrefix {
+
+    private final ARGPath prefix;
+    private final List<BooleanFormula> interpolantSequence;
+    private final List<BooleanFormula> pathFormulas;
+
+    public RawInfeasiblePrefix(final ARGPath pInfeasiblePrefix,
+        final List<BooleanFormula> pInterpolantSequence,
+        final List<BooleanFormula> pPathFormulas) {
+
+      this.prefix = pInfeasiblePrefix;
+      this.interpolantSequence = pInterpolantSequence;
+      this.pathFormulas = pPathFormulas;
+    }
   }
 }

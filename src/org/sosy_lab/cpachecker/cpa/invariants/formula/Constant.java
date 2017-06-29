@@ -25,12 +25,17 @@ package org.sosy_lab.cpachecker.cpa.invariants.formula;
 
 import com.google.common.base.Preconditions;
 
+import org.sosy_lab.cpachecker.cpa.invariants.TypeInfo;
+import org.sosy_lab.cpachecker.cpa.invariants.Typed;
+
+import java.util.Objects;
+
 /**
  * Instances of this class represent constants within invariants formulae.
  *
  * @param <T> the type of the constant value.
  */
-public class Constant<T> extends AbstractFormula<T> implements InvariantsFormula<T> {
+public class Constant<T> extends AbstractFormula<T> implements NumeralFormula<T> {
 
   /**
    * The value of the constant.
@@ -40,10 +45,15 @@ public class Constant<T> extends AbstractFormula<T> implements InvariantsFormula
   /**
    * Creates a new constant with the given value.
    *
+   * @param pInfo the type information for the constant.
    * @param pValue the value of the constant.
    */
-  private Constant(T pValue) {
+  private Constant(TypeInfo pInfo, T pValue) {
+    super(pInfo);
     Preconditions.checkNotNull(pValue);
+    if (pValue instanceof Typed) {
+      Preconditions.checkArgument(pInfo.equals(((Typed) pValue).getTypeInfo()));
+    }
     this.value = pValue;
   }
 
@@ -62,30 +72,43 @@ public class Constant<T> extends AbstractFormula<T> implements InvariantsFormula
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object pOther) {
+    if (this == pOther) {
       return true;
     }
-    if (o instanceof Constant) {
-      return getValue().equals(((Constant<?>) o).getValue());
+    if (pOther instanceof Constant) {
+      Constant<?> other = (Constant<?>) pOther;
+      return getTypeInfo().equals(other.getTypeInfo()) && getValue().equals(other.getValue());
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return getValue().hashCode();
+    return Objects.hash(getTypeInfo(), getValue());
   }
 
   @Override
-  public <ReturnType> ReturnType accept(InvariantsFormulaVisitor<T, ReturnType> pVisitor) {
+  public <ReturnType> ReturnType accept(NumeralFormulaVisitor<T, ReturnType> pVisitor) {
     return pVisitor.visit(this);
   }
 
   @Override
   public <ReturnType, ParamType> ReturnType accept(
-      ParameterizedInvariantsFormulaVisitor<T, ParamType, ReturnType> pVisitor, ParamType pParameter) {
+      ParameterizedNumeralFormulaVisitor<T, ParamType, ReturnType> pVisitor, ParamType pParameter) {
     return pVisitor.visit(this, pParameter);
+  }
+
+  /**
+   * Gets a invariants formula representing a constant with the given value.
+   *
+   * @param pInfo the type information for the constant.
+   * @param pValue the value of the constant.
+   *
+   * @return a invariants formula representing a constant with the given value.
+   */
+  static <T> Constant<T> of(TypeInfo pInfo, T pValue) {
+    return new Constant<>(pInfo, pValue);
   }
 
   /**
@@ -95,8 +118,8 @@ public class Constant<T> extends AbstractFormula<T> implements InvariantsFormula
    *
    * @return a invariants formula representing a constant with the given value.
    */
-  static <T> Constant<T> of(T pValue) {
-    return new Constant<>(pValue);
+  static <T extends Typed> Constant<T> of(T pValue) {
+    return new Constant<>(pValue.getTypeInfo(), pValue);
   }
 
 }

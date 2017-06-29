@@ -26,27 +26,6 @@ package org.sosy_lab.cpachecker.util.predicates.interpolation;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.FluentIterable.from;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.common.Triple;
-import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.cpa.arg.ARGState;
-import org.sosy_lab.cpachecker.util.AbstractStates;
-import org.sosy_lab.cpachecker.util.LoopStructure;
-import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
-import org.sosy_lab.cpachecker.util.VariableClassification;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
-
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -55,6 +34,28 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.LoopStructure;
+import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.Triple;
+import org.sosy_lab.cpachecker.util.VariableClassification;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+import java.util.OptionalInt;
+import java.util.Set;
 
 enum CexTraceAnalysisDirection {
   /**
@@ -291,7 +292,6 @@ enum CexTraceAnalysisDirection {
   /**
    * This method computes a score for a set of variables regarding the domain
    * types of these variables.
-   * @param variableNames the variables that should be scored
    * @return the average score over all given variables
    */
   private static double getAVGScoreForVariables(BooleanFormula formula,
@@ -303,10 +303,10 @@ enum CexTraceAnalysisDirection {
         .transform(new Function<String, String>() {
            @Override
            public String apply(String pInput) {
-             Pair<String, Integer> name = FormulaManagerView.parseName(pInput);
+             Pair<String, OptionalInt> name = FormulaManagerView.parseName(pInput);
 
             // we want only variables to be in our set, and ignore everything without SSA index
-             if (name.getSecond() != null) {
+             if (name.getSecond().isPresent()) {
                return name.getFirst();
              } else {
                return null;
@@ -372,7 +372,7 @@ enum CexTraceAnalysisDirection {
            && actARGState < pAbstractionStates.size()) {
 
       actState = pAbstractionStates.get(actARGState);
-      actCFANode = AbstractStates.EXTRACT_LOCATION.apply(actState);
+      actCFANode = AbstractStates.extractLocation(actState);
 
       loopLevelsToStatesMap.put(0, actState);
 
@@ -400,7 +400,7 @@ enum CexTraceAnalysisDirection {
 
     AbstractState lastState = pAbstractionStates.get(loopLevelsToStatesMap.size()-1);
     AbstractState actState = pAbstractionStates.get(loopLevelsToStatesMap.size());
-    CFANode actCFANode = AbstractStates.EXTRACT_LOCATION.apply(actState);
+    CFANode actCFANode = AbstractStates.extractLocation(actState);
 
     Iterator<CFANode> it = actLevelStack.descendingIterator();
     while (it.hasNext()) {
@@ -451,7 +451,7 @@ enum CexTraceAnalysisDirection {
   }
 
   private static CFANode getPrevFunctionNode(ARGState argState, ARGState lastState, String wantedFunction) {
-    CFANode returnNode = AbstractStates.EXTRACT_LOCATION.apply(argState);
+    CFANode returnNode = AbstractStates.extractLocation(argState);
     while (!returnNode.getFunctionName().equals(wantedFunction)) {
       argState = argState.getParents().iterator().next();
 
@@ -461,7 +461,7 @@ enum CexTraceAnalysisDirection {
         return null;
       }
 
-      returnNode = AbstractStates.EXTRACT_LOCATION.apply(argState);
+      returnNode = AbstractStates.extractLocation(argState);
     }
 
     return returnNode;

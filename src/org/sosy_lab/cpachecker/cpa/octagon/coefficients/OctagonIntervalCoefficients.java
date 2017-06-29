@@ -23,9 +23,9 @@
  */
 package org.sosy_lab.cpachecker.cpa.octagon.coefficients;
 
+import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cpa.octagon.OctagonState;
 import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonDoubleValue;
 import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonIntValue;
@@ -33,8 +33,6 @@ import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonInterval;
 import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonNumericValue;
 import org.sosy_lab.cpachecker.util.octagon.NumArray;
 import org.sosy_lab.cpachecker.util.octagon.OctagonManager;
-
-import com.google.common.base.Preconditions;
 
 @SuppressWarnings("rawtypes")
 public class OctagonIntervalCoefficients extends AOctagonCoefficients {
@@ -57,7 +55,6 @@ public class OctagonIntervalCoefficients extends AOctagonCoefficients {
    *
    * @param size The amount of variables for which coefficients should be stored
    * @param index The index of the variable which should be set by default to a given value
-   * @param value The value to which the variable should be set
    */
   public OctagonIntervalCoefficients(int size, int index, OctagonInterval bounds, OctagonState oct) {
     super(size, oct);
@@ -72,8 +69,6 @@ public class OctagonIntervalCoefficients extends AOctagonCoefficients {
    * Create new Coefficients for #size variables. With a constant value.
    *
    * @param size The amount of variables for which coefficients should be stored
-   * @param index The index of the variable which should be set by default to a given value
-   * @param value The value to which the variable should be set
    */
   public OctagonIntervalCoefficients(int size, OctagonInterval bounds, OctagonState oct) {
     super(size, oct);
@@ -353,8 +348,8 @@ public class OctagonIntervalCoefficients extends AOctagonCoefficients {
   @Override
   public boolean hasOnlyOneValue() {
     boolean foundValue = false;
-    for (int i = 0; i < coefficients.length; i++) {
-      if (!coefficients[i].equals(OctagonInterval.FALSE)) {
+    for (OctagonInterval coefficient : coefficients) {
+      if (!coefficient.equals(OctagonInterval.FALSE)) {
         if (foundValue) {
           return false;
         }

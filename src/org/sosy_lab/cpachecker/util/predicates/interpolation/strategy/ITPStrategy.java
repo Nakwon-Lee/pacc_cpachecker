@@ -29,19 +29,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.Triple;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
-import org.sosy_lab.cpachecker.util.predicates.Solver;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.InterpolatingProverEnvironment;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.Triple;
 import org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
+import org.sosy_lab.java_smt.api.SolverException;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.BooleanFormulaManager;
+import org.sosy_lab.java_smt.api.InterpolatingProverEnvironment;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -70,9 +70,7 @@ public abstract class ITPStrategy<T> {
    *
    * @param interpolator is the interface towards the SMT-solver and
    *          contains an ITP-solver with all formulas asserted on its solver-stack.
-   * @param itpGroupsIds are the identifiers for the asserted formulae
-   *          and can be used to access them for interpolation.
-   * @param formulasWithStatesAndGroupdIds is a list of (F,E,T) where
+   * @param formulasWithStateAndGroupId is a list of (F,E,T) where
    *          the path formula F starting at an abstract state E (abstraction state?)
    *          corresponds with the ITP-group T.
    *          We assume the sorting of the list matches the order
@@ -97,15 +95,15 @@ public abstract class ITPStrategy<T> {
    *          the path formula F starting at an abstract state E corresponds
    *          with the ITP-group T. We assume the sorting of the list matches
    *          the order of abstract states along the counterexample.
-   * @param interpolants computed with {@link getInterpolants} and will be checked.
+   * @param interpolants computed with {@link #getInterpolants} and will be checked.
    */
   public void checkInterpolants(final Solver solver,
       final List<Triple<BooleanFormula, AbstractState, T>> formulasWithStatesAndGroupdIds,
       final List<BooleanFormula> interpolants)
       throws InterruptedException, SolverException {
 
-    final List<BooleanFormula> formulas = Lists.transform(formulasWithStatesAndGroupdIds,
-        Triple.<BooleanFormula> getProjectionToFirst());
+    final List<BooleanFormula> formulas =
+        Lists.transform(formulasWithStatesAndGroupdIds, Triple::getFirst);
 
     final int n = interpolants.size();
     assert n == (formulas.size() - 1);
@@ -131,7 +129,7 @@ public abstract class ITPStrategy<T> {
 
     // Check (C).
     BooleanFormula conjunct = bfmgr.and(interpolants.get(n - 1), formulas.get(n));
-    if (!solver.implies(conjunct, bfmgr.makeBoolean(false))) {
+    if (!solver.implies(conjunct, bfmgr.makeFalse())) {
       throw new SolverException("Last interpolant fails to prove infeasibility of the path");
     }
 
@@ -178,15 +176,15 @@ public abstract class ITPStrategy<T> {
   }
 
   protected static <T1, T2> List<T1> projectToFirst(final List<Pair<T1, T2>> l) {
-    return Lists.transform(l, Pair.<T1> getProjectionToFirst());
+    return Lists.transform(l, Pair::getFirst);
   }
 
   protected static <T1, T2, T3> List<T3> projectToThird(final List<Triple<T1, T2, T3>> l) {
-    return Lists.transform(l, Triple.<T3> getProjectionToThird());
+    return Lists.transform(l, Triple::getThird);
   }
 
   protected static <T, S> List<S> projectToSecond(final List<Pair<T, S>> l) {
-    return Lists.transform(l, Pair.<S> getProjectionToSecond());
+    return Lists.transform(l, Pair::getSecond);
   }
 
   /**

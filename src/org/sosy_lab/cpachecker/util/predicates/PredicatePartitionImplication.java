@@ -23,12 +23,13 @@
  */
 package org.sosy_lab.cpachecker.util.predicates;
 
+import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
+import org.sosy_lab.java_smt.api.SolverException;
+
 import java.util.Collections;
 import java.util.LinkedList;
-
-import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
 
 /**
  * The class <code>PredicatePartitionImplication</code> represents a concrete partition of predicates and hence it

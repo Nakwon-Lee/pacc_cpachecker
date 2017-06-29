@@ -28,8 +28,13 @@ import org.sosy_lab.cpachecker.cfa.ast.ARightHandSide;
 /**
  * Interface for all possible right-hand sides of an assignment.
  */
+@SuppressWarnings("serial") // we cannot set a UID for an interface
 public interface JRightHandSide extends ARightHandSide, JAstNode {
 
   public <R, X extends Exception> R accept(JRightHandSideVisitor<R, X> pV) throws X;
 
+  @Override
+  default <R, X extends Exception> R accept(JAstNodeVisitor<R, X> pV) throws X {
+    return accept((JRightHandSideVisitor<R, X>) pV);
+  }
 }

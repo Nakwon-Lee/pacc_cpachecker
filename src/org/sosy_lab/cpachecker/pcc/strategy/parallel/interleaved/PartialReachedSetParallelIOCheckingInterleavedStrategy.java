@@ -23,9 +23,13 @@
  */
 package org.sosy_lab.cpachecker.pcc.strategy.parallel.interleaved;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
-
+import javax.annotation.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -46,6 +50,7 @@ import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.PropertyChecker.PropertyCheckerCPA;
@@ -53,12 +58,8 @@ import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.pcc.strategy.AbstractStrategy;
 import org.sosy_lab.cpachecker.pcc.strategy.parallel.ParallelPartitionChecker;
 import org.sosy_lab.cpachecker.pcc.strategy.parallel.io.ParallelPartitionReader;
-import org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitionChecker;
 import org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitioningIOHelper;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitioningUtils;
 
 @Options(prefix = "pcc.interleaved")
 public class PartialReachedSetParallelIOCheckingInterleavedStrategy extends AbstractStrategy {
@@ -73,16 +74,20 @@ public class PartialReachedSetParallelIOCheckingInterleavedStrategy extends Abst
   private final ShutdownNotifier shutdown;
   private final PropertyCheckerCPA cpa;
 
-  public PartialReachedSetParallelIOCheckingInterleavedStrategy(final Configuration pConfig, final LogManager pLogger,
-      final ShutdownNotifier pShutdownNotifier, final PropertyCheckerCPA pCpa)
+  public PartialReachedSetParallelIOCheckingInterleavedStrategy(
+      final Configuration pConfig,
+      final LogManager pLogger,
+      final ShutdownNotifier pShutdownNotifier,
+      final Path pProofFile,
+      final @Nullable PropertyCheckerCPA pCpa)
       throws InvalidConfigurationException {
-    super(pConfig, pLogger);
+    super(pConfig, pLogger, pProofFile);
     pConfig.inject(this);
 
     shutdown = pShutdownNotifier;
     cpa = pCpa;
 
-    ioHelper = new PartitioningIOHelper(pConfig, pLogger, pShutdownNotifier, pCpa);
+    ioHelper = new PartitioningIOHelper(pConfig, pLogger, pShutdownNotifier);
     numReadThreads = Math.min(numReadThreads, numThreads - 1);
     numReadThreads = Math.max(0, numReadThreads);
     addPCCStatistic(ioHelper.getPartitioningStatistc());
@@ -112,13 +117,13 @@ public class PartialReachedSetParallelIOCheckingInterleavedStrategy extends Abst
     try {
       if (numReadThreads == 0) {
         executor = Executors.newFixedThreadPool(numThreads);
-        startReadingThreads(numThreads, executor, checkResult, partitionsRead, partitionChecked);
+        startReadingThreads(numThreads, executor, checkResult, partitionsRead);
         startCheckingThreads(numThreads, executor, checkResult, partitionsRead, partitionChecked, certificate,
             partitionNodes, inOtherPartition,
             initPrec, lock);
       } else {
         readExecutor = Executors.newFixedThreadPool(numReadThreads);
-        startReadingThreads(numReadThreads, readExecutor, checkResult, partitionsRead, partitionChecked);
+        startReadingThreads(numReadThreads, readExecutor, checkResult, partitionsRead);
         checkExecutor = Executors.newFixedThreadPool(numThreads - numReadThreads);
         startCheckingThreads(numThreads - numReadThreads, checkExecutor, checkResult, partitionsRead, partitionChecked,
             certificate, partitionNodes, inOtherPartition,
@@ -134,7 +139,7 @@ public class PartialReachedSetParallelIOCheckingInterleavedStrategy extends Abst
 
       logger.log(Level.INFO,
               "Check if initial state and all nodes which should be contained in different partition are covered by certificate (partition node).");
-      if (!PartitionChecker.areElementsCoveredByPartitionElement(inOtherPartition, partitionNodes, cpa.getStopOperator(),
+      if (!PartitioningUtils.areElementsCoveredByPartitionElement(inOtherPartition, partitionNodes, cpa.getStopOperator(),
           initPrec)) {
         logger.log(Level.SEVERE,
             "Initial state or a state which should be in other partition is not covered by certificate.");
@@ -167,7 +172,7 @@ public class PartialReachedSetParallelIOCheckingInterleavedStrategy extends Abst
   }
 
   private void startReadingThreads(final int threads, final ExecutorService pReadingExecutor, final AtomicBoolean pCheckResult,
-      final Semaphore partitionsRead, final Semaphore pPartitionChecked) {
+      final Semaphore partitionsRead) {
     AtomicInteger nextPartitionId = new AtomicInteger(0);
     for (int i = 0; i < threads; i++) {
       pReadingExecutor.execute(new ParallelPartitionReader(pCheckResult, partitionsRead, nextPartitionId, this,
@@ -211,6 +216,13 @@ public class PartialReachedSetParallelIOCheckingInterleavedStrategy extends Abst
       InvalidConfigurationException, IOException {
     // read metadata
     ioHelper.readMetadata(pIn, true);
+  }
+
+  @Override
+  public Collection<Statistics> getAdditionalProofGenerationStatistics() {
+    Collection<Statistics> result = new ArrayList<>(super.getAdditionalProofGenerationStatistics());
+    result.add(ioHelper.getGraphStatistic());
+    return result;
   }
 
 }

@@ -23,9 +23,15 @@
  */
 package org.sosy_lab.cpachecker.cpa.conditions.path;
 
+import org.sosy_lab.common.configuration.Configuration;
+import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
+import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.interfaces.Reducer;
+import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.conditions.AvoidanceReportingState;
 
 /**
@@ -43,18 +49,22 @@ import org.sosy_lab.cpachecker.core.interfaces.conditions.AvoidanceReportingStat
  * Note that this will have an effect only if the
  * {@link org.sosy_lab.cpachecker.cpa.assumptions.storage.AssumptionStorageCPA}
  * is present.
+ *
+ * Implementations need to have exactly one public constructor or a static method named "create"
+ * which may take a {@link Configuration}, and throw at most a
+ * {@link InvalidConfigurationException}.
  */
 public interface PathCondition {
 
   /**
    * Get the initial element.
-   * @see org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis#getInitialState(CFANode)
+   * @see ConfigurableProgramAnalysis#getInitialState(CFANode, StateSpacePartition)
    */
   AvoidanceReportingState getInitialState(CFANode pNode);
 
   /**
    * Get the successor state for an edge.
-   * @see org.sosy_lab.cpachecker.core.interfaces.TransferRelation#getAbstractSuccessors(AbstractState, org.sosy_lab.cpachecker.core.interfaces.Precision, CFAEdge)
+   * @see org.sosy_lab.cpachecker.core.interfaces.TransferRelation#getAbstractSuccessorsForEdge(AbstractState, Precision, CFAEdge)
    */
   AvoidanceReportingState getAbstractSuccessor(AbstractState pState, CFAEdge pEdge);
 
@@ -63,4 +73,10 @@ public interface PathCondition {
    * @see org.sosy_lab.cpachecker.core.interfaces.conditions.AdjustableConditionCPA#adjustPrecision()
    */
   boolean adjustPrecision();
+
+  Reducer getReducer();
+
+  interface Factory {
+    PathCondition create(Configuration config) throws InvalidConfigurationException;
+  }
 }

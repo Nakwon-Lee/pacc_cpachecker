@@ -23,11 +23,10 @@
  */
 package org.sosy_lab.cpachecker.util.assumptions;
 
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.NumeralFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.NumeralFormula.RationalFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.NumeralFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.IntegerFormulaManager;
+import org.sosy_lab.java_smt.api.NumeralFormula.IntegerFormula;
 
 /**
  * Enum listing several possible reasons for giving up analysis at a certain point.
@@ -43,8 +42,8 @@ public enum PreventingHeuristic {
   MEMORYOUT("MO"),
   TIMEOUT("TO"),
   LOOPITERATIONS("LI"),
-  RECURSIONDEPTH("RD"),
-  EDGECOUNT("EC");
+  EDGECOUNT("EC"),
+  BLOCKCOUNT("BC");
 
   private final String predicateString;
 
@@ -57,9 +56,9 @@ public enum PreventingHeuristic {
    * threshold value which was exceeded.
    */
   public BooleanFormula getFormula(FormulaManagerView fmgr, long thresholdValue) {
-    NumeralFormulaManager<NumeralFormula, RationalFormula> nfmgr = fmgr.getRationalFormulaManager();
-    final RationalFormula number = nfmgr.makeNumber(thresholdValue);
-    final RationalFormula var = nfmgr.makeVariable(predicateString);
+    IntegerFormulaManager nfmgr = fmgr.getIntegerFormulaManager();
+    final IntegerFormula number = nfmgr.makeNumber(thresholdValue);
+    final IntegerFormula var = nfmgr.makeVariable(predicateString);
     // TODO better idea?
     return nfmgr.equal(var, number);
   }

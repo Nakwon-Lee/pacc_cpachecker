@@ -23,14 +23,18 @@
  */
 package org.sosy_lab.cpachecker.cfa.parser.eclipse.c;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Optional;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.sosy_lab.cpachecker.cfa.CProgramScope;
 import org.sosy_lab.cpachecker.cfa.ast.c.CComplexTypeDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CParameterDeclaration;
@@ -38,6 +42,7 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CSimpleDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CTypeDefDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CVariableDeclaration;
 import org.sosy_lab.cpachecker.cfa.model.c.CLabelNode;
+import org.sosy_lab.cpachecker.cfa.parser.Scope;
 import org.sosy_lab.cpachecker.cfa.types.c.CComplexType;
 import org.sosy_lab.cpachecker.cfa.types.c.CEnumType.CEnumerator;
 import org.sosy_lab.cpachecker.cfa.types.c.CFunctionTypeWithNames;
@@ -47,7 +52,6 @@ import org.sosy_lab.cpachecker.cfa.types.c.CVoidType;
 import org.sosy_lab.cpachecker.util.VariableClassificationBuilder;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 
@@ -58,6 +62,7 @@ import com.google.common.collect.ImmutableMap;
  */
 class FunctionScope extends AbstractScope {
 
+  private final Scope artificialScope;
   private final Map<String, CFunctionDeclaration> localFunctions = new HashMap<>();
   private final Map<String, CFunctionDeclaration> globalFunctions;
   private final Deque<Map<String, CComplexTypeDeclaration>> typesStack = new ArrayDeque<>();
@@ -73,11 +78,13 @@ class FunctionScope extends AbstractScope {
   private CFunctionDeclaration currentFunction = null;
   private Optional<CVariableDeclaration> returnVariable = null;
 
-  public FunctionScope(ImmutableMap<String, CFunctionDeclaration> pFunctions,
+  public FunctionScope(
+      ImmutableMap<String, CFunctionDeclaration> pFunctions,
       ImmutableMap<String, CComplexTypeDeclaration> pTypes,
       ImmutableMap<String, CTypeDefDeclaration> pTypedefs,
       ImmutableMap<String, CSimpleDeclaration> pGlobalVars,
-      String currentFile) {
+      String currentFile,
+      Scope pArtificialScope) {
     super(currentFile);
 
     globalFunctions = pFunctions;
@@ -89,15 +96,19 @@ class FunctionScope extends AbstractScope {
     varsList.push(pGlobalVars);
     varsListWithNewNames.push(pGlobalVars);
 
+    this.artificialScope = pArtificialScope;
+
     enterBlock();
   }
 
   public FunctionScope() {
-    this(ImmutableMap.<String, CFunctionDeclaration>of(),
-         ImmutableMap.<String, CComplexTypeDeclaration>of(),
-         ImmutableMap.<String, CTypeDefDeclaration>of(),
-         ImmutableMap.<String, CSimpleDeclaration>of(),
-         "");
+    this(
+        ImmutableMap.<String, CFunctionDeclaration>of(),
+        ImmutableMap.<String, CComplexTypeDeclaration>of(),
+        ImmutableMap.<String, CTypeDefDeclaration>of(),
+        ImmutableMap.<String, CSimpleDeclaration>of(),
+        "",
+        CProgramScope.empty());
   }
 
   @Override
@@ -123,11 +134,11 @@ class FunctionScope extends AbstractScope {
   }
 
   public void enterBlock() {
-    typesStack.addLast(new HashMap<String, CComplexTypeDeclaration>());
-    labelsStack.addLast(new HashMap<String, CVariableDeclaration>());
-    labelsNodeStack.addLast(new HashMap<String, CLabelNode>());
-    varsStack.addLast(new HashMap<String, CSimpleDeclaration>());
-    varsStackWitNewNames.addLast(new HashMap<String, CSimpleDeclaration>());
+    typesStack.addLast(new HashMap<>());
+    labelsStack.addLast(new HashMap<>());
+    labelsNodeStack.addLast(new HashMap<>());
+    varsStack.addLast(new HashMap<>());
+    varsStackWitNewNames.addLast(new HashMap<>());
     varsList.addLast(varsStack.getLast());
     varsListWithNewNames.addLast(varsStackWitNewNames.getLast());
   }
@@ -143,18 +154,18 @@ class FunctionScope extends AbstractScope {
 
   @Override
   public boolean variableNameInUse(String name) {
-      checkNotNull(name);
+    checkNotNull(name);
 
-      Iterator<Map<String, CSimpleDeclaration>> it = varsListWithNewNames.descendingIterator();
-      while (it.hasNext()) {
-        Map<String, CSimpleDeclaration> vars = it.next();
+    Iterator<Map<String, CSimpleDeclaration>> it = varsListWithNewNames.descendingIterator();
+    while (it.hasNext()) {
+      Map<String, CSimpleDeclaration> vars = it.next();
 
-        if (vars.get(name) != null) {
-          return true;
-        }
+      if (vars.get(name) != null) {
+        return true;
       }
-      return false;
     }
+    return artificialScope.variableNameInUse(name);
+  }
 
   @Override
   public CSimpleDeclaration lookupVariable(String name) {
@@ -169,7 +180,8 @@ class FunctionScope extends AbstractScope {
         return binding;
       }
     }
-    return null;
+
+    return artificialScope.lookupVariable(name);
   }
 
   @Override
@@ -181,7 +193,13 @@ class FunctionScope extends AbstractScope {
     if (returnDecl != null) {
       return returnDecl;
     }
-    return globalFunctions.get(name);
+
+    returnDecl = globalFunctions.get(name);
+    if (returnDecl != null) {
+      return returnDecl;
+    }
+
+    return artificialScope.lookupFunction(name);
   }
 
   @Override
@@ -202,7 +220,8 @@ class FunctionScope extends AbstractScope {
         }
       }
     }
-    return null;
+
+    return artificialScope.lookupType(name);
   }
 
   @Override
@@ -214,11 +233,14 @@ class FunctionScope extends AbstractScope {
       return declaration.getType();
     }
 
-    return null;
+    return artificialScope.lookupTypedef(name);
   }
 
   @Override
   public String createScopedNameOf(String pName) {
+    if (!artificialScope.isGlobalScope()) {
+      return artificialScope.createScopedNameOf(pName);
+    }
     return createQualifiedName(getCurrentFunctionName(), pName);
   }
 

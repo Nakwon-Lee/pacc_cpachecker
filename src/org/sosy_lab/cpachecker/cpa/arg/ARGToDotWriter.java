@@ -23,24 +23,25 @@
  */
 package org.sosy_lab.cpachecker.cpa.arg;
 
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Multimap;
 
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.cpachecker.cfa.export.DOTBuilder;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.Pair;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Multimap;
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ARGToDotWriter {
 
@@ -61,7 +62,6 @@ public class ARGToDotWriter {
    * @param successorFunction A function giving all successors of an ARGState. Only states reachable from root by iteratively applying this function will be dumped.
    * @param displayedElements A predicate for selecting states that should be displayed. States which are only reachable via non-displayed states are ignored, too.
    * @param highlightEdge Which edges to highlight in the graph?
-   * @throws IOException
    */
   public static void write(Appendable sb,
       final ARGState rootState,
@@ -86,7 +86,6 @@ public class ARGToDotWriter {
    * @param successorFunction A function giving all successors of an ARGState. Only states reachable from root by iteratively applying this function will be dumped.
    * @param displayedElements A predicate for selecting states that should be displayed. States which are only reachable via non-displayed states are ignored, too.
    * @param highlightEdge Which edges to highlight in the graph?
-   * @throws IOException
    */
   public static void write(final Appendable sb,
       final Set<ARGState> rootStates,
@@ -117,12 +116,10 @@ public class ARGToDotWriter {
   /**
    * Create String with ARG in the DOT format of Graphviz.
    * Only the states and edges are written, no surrounding graph definition.
-   * @param sb Where to write the ARG into.
    * @param rootState the root element of the ARG
    * @param successorFunction A function giving all successors of an ARGState. Only states reachable from root by iteratively applying this function will be dumped.
    * @param displayedElements A predicate for selecting states that should be displayed. States which are only reachable via non-displayed states are ignored, too.
    * @param highlightEdge Which edges to highlight in the graph?
-   * @throws IOException
    */
   void writeSubgraph(final ARGState rootState,
       final Function<? super ARGState, ? extends Iterable<ARGState>> successorFunction,
@@ -163,34 +160,50 @@ public class ARGToDotWriter {
   }
 
   private static String determineEdge(final Predicate<? super Pair<ARGState, ARGState>> highlightEdge,
-                                      final ARGState state, final ARGState succesorState) {
+                                      final ARGState state, final ARGState successorState) {
     final StringBuilder builder = new StringBuilder();
-    builder.append(state.getStateId()).append(" -> ").append(succesorState.getStateId());
+    builder.append(state.getStateId()).append(" -> ").append(successorState.getStateId());
     builder.append(" [");
 
-    if (state.getChildren().contains(succesorState)) {
-      final CFAEdge edge = state.getEdgeToChild(succesorState);
+    if (state.getChildren().contains(successorState)) {
+      List<CFAEdge> edges = state.getEdgesToChild(successorState);
 
-      if (edge == null) {
-        // there is no direct edge between the nodes, use a dummy-edge
+      // there is no direct edge between the nodes, use a dummy-edge
+      if (edges.isEmpty()) {
         builder.append("style=\"bold\" color=\"blue\" label=\"dummy edge\"");
-      } else {
+
         // edge exists, use info from edge
-        boolean colored = highlightEdge.apply(Pair.of(state, succesorState));
+      } else {
+        boolean colored = highlightEdge.apply(Pair.of(state, successorState));
         if (colored) {
           builder.append("color=\"red\" ");
         }
+
         builder.append("label=\"");
-        builder.append("Line ");
-        builder.append(edge.getLineNumber());
-        builder.append(": ");
-        builder.append(edge.getDescription().replaceAll("\n", " ").replace('"', '\''));
+        if (edges.size() > 1) {
+
+          builder
+              .append("Lines ")
+              .append(edges.get(0).getLineNumber())
+              .append(" - ")
+              .append(edges.get(edges.size() - 1).getLineNumber());
+        } else {
+          builder.append("Line ").append(edges.get(0).getLineNumber());
+        }
+        builder.append(": \\l");
+
+        for (CFAEdge edge : edges) {
+          builder.append(edge.getDescription().replaceAll("\n", " ").replace('"', '\''));
+          builder.append("\\l");
+        }
+
         builder.append("\"");
       }
+
       builder.append(" id=\"");
       builder.append(state.getStateId());
       builder.append(" -> ");
-      builder.append(succesorState.getStateId());
+      builder.append(successorState.getStateId());
       builder.append("\"");
     }
 
@@ -289,8 +302,7 @@ public class ARGToDotWriter {
 
     builder.append(currentElement.getStateId());
 
-    CFANode loc = AbstractStates.extractLocation(currentElement);
-    if (loc != null) {
+    for (CFANode loc : AbstractStates.extractLocations(currentElement)) {
       builder.append(" @ ");
       builder.append(loc.toString());
       builder.append("\\n");
@@ -300,9 +312,9 @@ public class ARGToDotWriter {
       } else if (loc instanceof FunctionExitNode) {
         builder.append(" exit");
       }
+      builder.append("\\n");
     }
 
-    builder.append("\\n");
     builder.append(
         DOTBuilder.escapeGraphvizLabel(currentElement.toDOTLabel(), "\\\\n"));
 

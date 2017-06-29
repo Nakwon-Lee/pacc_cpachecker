@@ -26,6 +26,18 @@ package org.sosy_lab.cpachecker.util.predicates.precisionConverter;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.cpachecker.cfa.CFA;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.predicates.precisionConverter.SymbolEncoding.Type;
+import org.sosy_lab.cpachecker.util.predicates.precisionConverter.SymbolEncoding.UnknownFormulaSymbolException;
+import org.sosy_lab.java_smt.api.FormulaType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,34 +47,16 @@ import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.FormulaType;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.SymbolEncoding;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.SymbolEncoding.Type;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.SymbolEncoding.UnknownFormulaSymbolException;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 
 public class IntConverter extends Converter {
-
-  private final SymbolEncoding symbolEncoding;
-  private final LogManager logger;
 
   private final Map<String,String> unaryOps; // input-type == output-type
   private final Map<String,String> binOps; // type is Bool
   private final Map<String,String> arithmeticOps; // type is Int
   private final Set<String> ignorableFunctions = Sets.newHashSet();
 
-  public IntConverter(SymbolEncoding pSymbolEncoding, LogManager pLogger) {
-    super();
-
-    symbolEncoding = pSymbolEncoding;
-    logger = pLogger;
+  public IntConverter(CFA pCfa, LogManager pLogger) {
+    super(pLogger, pCfa);
 
     unaryOps = new HashMap<>();
     unaryOps.put("bvneg", "-");
@@ -210,8 +204,11 @@ public class IntConverter extends Converter {
       return Pair.of(terms.get(0).getFirst().substring(2), new Type<FormulaType<?>>(FormulaType.IntegerType));
 
     } else if (terms.size() == 1 && unaryOps.containsKey(op.getFirst())) {
-      return Pair.of(format("(%s %s)",unaryOps.get(op.getFirst()),
-          Joiner.on(' ').join(Lists.transform(terms, Pair.getProjectionToFirst()))),
+      return Pair.of(
+          format(
+              "(%s %s)",
+              unaryOps.get(op.getFirst()),
+              Joiner.on(' ').join(Lists.transform(terms, Pair::getFirst))),
           Iterables.getOnlyElement(terms).getSecond());
 
     } else if (terms.size() == 1 && ignorableFunctions.contains(op.getFirst())) {
@@ -226,10 +223,10 @@ public class IntConverter extends Converter {
       String operator;
       if (binOps.containsKey(op.getFirst())) {
         operator = binOps.get(op.getFirst());
-        type = new Type<FormulaType<?>>(FormulaType.BooleanType);
+        type = new Type<>(FormulaType.BooleanType);
       } else {
         operator = arithmeticOps.get(op.getFirst());
-        type = new Type<FormulaType<?>>(FormulaType.IntegerType);
+        type = new Type<>(FormulaType.IntegerType);
       }
       return Pair.of(format("(%s %s %s)",
           operator,
@@ -255,8 +252,10 @@ public class IntConverter extends Converter {
 
     } else if (binBooleanOps.contains(op.getFirst())) {
       return Pair.of(
-          format("(%s %s)",
-              op.getFirst(), Joiner.on(' ').join(Lists.transform(terms, Pair.getProjectionToFirst()))),
+          format(
+              "(%s %s)",
+              op.getFirst(),
+              Joiner.on(' ').join(Lists.transform(terms, Pair::getFirst))),
           new Type<FormulaType<?>>(FormulaType.BooleanType));
 
     } else if (symbolEncoding.containsSymbol(op.getFirst())) {
@@ -276,8 +275,10 @@ public class IntConverter extends Converter {
         logger.log(Level.SEVERE, "unhandled term:", op, terms);
       }
       return Pair.of(
-          format("(%s %s)",
-              op.getFirst(), Joiner.on(' ').join(Lists.transform(terms, Pair.getProjectionToFirst()))),
+          format(
+              "(%s %s)",
+              op.getFirst(),
+              Joiner.on(' ').join(Lists.transform(terms, Pair::getFirst))),
           op.getSecond());
     }
   }

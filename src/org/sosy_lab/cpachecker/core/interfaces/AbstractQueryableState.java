@@ -31,25 +31,43 @@ import org.sosy_lab.cpachecker.exceptions.InvalidQueryException;
  */
 public interface AbstractQueryableState extends AbstractState {
 
-  public String getCPAName();
+  String getCPAName();
 
   /**
    * Checks whether this AbstractState satisfies the property.
    * Each CPA defines which properties can be evaluated.
-   * @param property
+   *
+   * This method is never called from outside, but it can be used as a convenience method
+   * for boolean queries, if {@link #evaluateProperty(String)} delegates to this method
+   * (which it does by default).
+   *
+   * @param property the property to be checked
    * @return if the property is satisfied
    * @throws InvalidQueryException if the property is not given in the (CPA-specific) syntax
    */
-  public boolean checkProperty(String property) throws InvalidQueryException;
+  default boolean checkProperty(String property) throws InvalidQueryException {
+    throw new InvalidQueryException(getCPAName() + " does not support querying states.");
+  }
 
-  public Object evaluateProperty(String property) throws InvalidQueryException;
+  /**
+   * Evaluates some property with regard to this AbstractState and returns a value.
+   * Each CPA defines which properties can be evaluated.
+   *
+   * @param property the property to be checked
+   * @return if the property is satisfied
+   * @throws InvalidQueryException if the property is not given in the (CPA-specific) syntax
+   */
+  default Object evaluateProperty(String property) throws InvalidQueryException {
+    return checkProperty(property);
+  }
 
   /**
    * Modifies the internal state of this AbstractState.
    * Each CPA defines a separate language for definition of modifications.
-   * @param modification
-   * @throws InvalidQueryException
+   * @param modification how the state should be modified
+   * @throws InvalidQueryException if the modification is not given in the (CPA-specific) syntax
    */
-  public void modifyProperty(String modification) throws InvalidQueryException;
-
+  default void modifyProperty(String modification) throws InvalidQueryException {
+    throw new InvalidQueryException(getCPAName() + " does not support modifying states.");
+  }
 }

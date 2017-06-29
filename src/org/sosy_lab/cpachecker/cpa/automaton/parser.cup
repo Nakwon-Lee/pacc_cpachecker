@@ -24,13 +24,18 @@
 package org.sosy_lab.cpachecker.cpa.automaton;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import java_cup.runtime.ComplexSymbolFactory;
@@ -40,44 +45,47 @@ import java_cup.runtime.SymbolFactory;
 
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.io.Path;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CParser;
 import org.sosy_lab.cpachecker.cfa.DummyParser;
 import org.sosy_lab.cpachecker.cfa.DummyScope;
 import org.sosy_lab.cpachecker.cfa.parser.Scope;
+import org.sosy_lab.cpachecker.cfa.ast.AExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CStatement;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.cfa.Language;
-import org.sosy_lab.cpachecker.exceptions.CParserException;
-
 
 import com.google.common.base.Throwables;
 
 parser code {:
   private LogManager logger;
   private CParser cparser;
+  private MachineModel machineModel;
   private Scope scope;
 
   // this int is used to determine unique names for anonymous automata
   private static int anonymousCounter;
 
-  public AutomatonParser(Scanner scanner, SymbolFactory sf, LogManager pLogger, CParser pCparser, Scope scope) {
-      super(scanner, sf);
-      this.logger = pLogger;
-      this.cparser = pCparser;
-      this.scope = scope;
+  AutomatonParser(
+      Scanner scanner,
+      SymbolFactory sf,
+      LogManager pLogger,
+      CParser pCparser,
+      MachineModel pMachineModel,
+      Scope pScope) {
+    super(scanner, sf);
+    logger = pLogger;
+    cparser = pCparser;
+    machineModel = pMachineModel;
+    scope = pScope;
   }
   
-  public AutomatonParser(Scanner scanner, SymbolFactory sf, LogManager pLogger) {
-      super(scanner, sf);
-      this.logger = pLogger;
-      this.cparser = DummyParser.getInstance();
-      this.scope = DummyScope.getInstance();
-  }
-  
-  public List<CStatement> generateSourceASTOfBlock(String code) throws InvalidAutomatonException, InvalidConfigurationException, CParserException {
-    return AutomatonASTComparator.generateSourceASTOfBlock(code, cparser, scope);
+  AutomatonParser(Scanner scanner, SymbolFactory sf, LogManager pLogger) {
+    super(scanner, sf);
+    logger = pLogger;
+    cparser = DummyParser.getInstance();
+    machineModel = MachineModel.LINUX32; // won't be used anyway
+    scope = DummyScope.getInstance();
   }
 
   @Override
@@ -93,7 +101,7 @@ parser code {:
     AutomatonTransition trans = new AutomatonTransition(
         AutomatonBoolExpr.TRUE, 
         Collections.singletonList(pA),
-        new ArrayList<CStatement>(),
+        Collections.emptyList(),
         Collections.<AutomatonAction>emptyList(),
         "OK");
     AutomatonInternalState okState = new AutomatonInternalState("OK", 
@@ -109,44 +117,53 @@ parser code {:
   */
   public static List<Automaton> parseAutomatonFile(Path pInputFile, Configuration config, LogManager pLogger, MachineModel pMachine, Scope scope, Language pLanguage) throws InvalidConfigurationException {
 
-    ComplexSymbolFactory sf = new ComplexSymbolFactory();
-    try (InputStream input = pInputFile.asByteSource().openStream()) {
-      Scanner scanner = new AutomatonScanner(input, pInputFile, config, pLogger, sf);
+    try (Reader input = Files.newBufferedReader(pInputFile, StandardCharsets.UTF_8)) {
+      return parseAutomaton(input, Optional.of(pInputFile), config, pLogger, pMachine, scope, pLanguage);
 
-      AutomatonParser automatonParser;
-
-      switch (pLanguage) {
-      case C:
-        CParser cparser = CParser.Factory.getParser(config, pLogger, CParser.Factory.getOptions(config), pMachine);
-        automatonParser = new AutomatonParser(scanner, sf, pLogger, cparser, scope);
-        break;
-      default:
-        automatonParser = new AutomatonParser(scanner, sf, pLogger);
-      }
-
-      Symbol symbol = automatonParser.parse();
-
-      return ((List<Automaton>) symbol.value);
-
-    } catch (Exception e) {
-      Throwables.propagateIfPossible(e, InvalidConfigurationException.class);
-      if (e instanceof IOException && e.getMessage() != null) {
-        throw new InvalidConfigurationException("Could not load automaton from file " + e.getMessage(), e);
-      } else {      
-        throw new InvalidConfigurationException("Could not load automaton from file " + pInputFile.getAbsolutePath()
-            + " (" + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()) + ")", e);
-      }
+    } catch (IOException e) {
+      throw new InvalidConfigurationException("Could not load automaton from file " + e.getMessage(), e);
     }
   }
 
-  AutomatonASTComparator.ASTMatcher generateASTPattern(String pattern) throws InvalidAutomatonException, InvalidConfigurationException {
-    return AutomatonASTComparator.generatePatternAST(pattern, cparser, scope);
+  /**
+  * Parses a Specification File and returns the Automata found in the file.
+  */
+  public static List<Automaton> parseAutomaton(Reader reader, Optional<Path> pInputFile, Configuration config, LogManager pLogger, MachineModel pMachine, Scope scope, Language pLanguage) throws InvalidConfigurationException {
+    ComplexSymbolFactory sf = new ComplexSymbolFactory();
+    Scanner scanner = new AutomatonScanner(reader, pInputFile.orElse(Paths.get("")), pLogger, sf);
+
+    AutomatonParser automatonParser;
+
+    switch (pLanguage) {
+    case C:
+      CParser cparser = CParser.Factory.getParser(pLogger, CParser.Factory.getOptions(config), pMachine);
+      automatonParser = new AutomatonParser(scanner, sf, pLogger, cparser, pMachine, scope);
+      break;
+    default:
+      automatonParser = new AutomatonParser(scanner, sf, pLogger);
+    }
+
+    Symbol symbol;
+    try {
+      symbol = automatonParser.parse();
+    } catch (Exception e) {
+      Throwables.propagateIfPossible(e, InvalidConfigurationException.class);
+      throw new InvalidConfigurationException("Could not load automaton from file "
+            + " (" + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()) + ")", e);
+    }
+
+    return ((List<Automaton>) symbol.value);
   }
 :};
 
 
 
-terminal EXCLAMATION, AND, OR, ARROW, SEMICOLON, COMMA, COLON, OPEN_BRACKETS, CLOSE_BRACKETS, AUTOMATON,OBSERVER, CONTROL, END, LOCAL, INITIAL, STATE, ERROR, STOP, EXIT, BREAK, ASSERT, ASSUME, MATCH, LABEL, CHECK, EVAL, MODIFY, DO, PRINT, GOTO, IDENTIFIER, INTEGER_LITERAL, NEQ, EQ, EQEQ, PLUS, MINUS, TRUE, FALSE, STRING_LITERAL, CURLYEXPR, SQUAREEXPR, USEALL, USEFIRST, TARGET, IS_TARGET_STATE ;
+terminal EXCLAMATION, AND, OR, ARROW, SEMICOLON, COMMA, COLON, OPEN_BRACKETS,
+    CLOSE_BRACKETS, AUTOMATON,OBSERVER, CONTROL, END, LOCAL, INITIAL, STATE,
+    ERROR, STOP, EXIT, ENTRY, BREAK, ASSERT, ASSUME, MATCH, LABEL, CHECK, EVAL,
+    MODIFY, DO, PRINT, GOTO, IDENTIFIER, INTEGER_LITERAL, NEQ, EQ, EQEQ, PLUS,
+    MINUS, TRUE, FALSE, STRING_LITERAL, CURLYEXPR, SQUAREEXPR, USEALL, USEFIRST,
+    TARGET, IS_TARGET_STATE ;
 non terminal List<Automaton> initial ;  
 non terminal Automaton Specification ;
 non terminal Automaton Automaton ;
@@ -156,7 +173,7 @@ non terminal Map<String, AutomatonVariable> LocalDefs ;
 non terminal List<AutomatonInternalState> StateDefs ;
 non terminal List<AutomatonTransition> Transitions ;
 non terminal List<AutomatonBoolExpr> Assertions ;
-non terminal List<CStatement> Assume ;
+non terminal List<AExpression> Assume ;
 non terminal List<AutomatonAction> Actions ;
 
 non terminal AutomatonVariable LocalDef ;
@@ -252,8 +269,8 @@ Assertions ::= Assertion:a Assertions:lst {: lst.add(0,a); RESULT = lst; :}
              ;
 Assertion  ::= ASSERT  Bool:b   {: RESULT = b; :};
 
-Assume    ::= ASSUME CURLYEXPR:a {: RESULT = parser.generateSourceASTOfBlock(a.toString()); :}
-             | /* empty */ {: RESULT = new ArrayList<CStatement>(); :};
+Assume    ::= ASSUME CURLYEXPR:a {: RESULT = CParserUtils.convertStatementsToAssumptions(CParserUtils.parseListOfStatements(a.toString(), cparser, scope), machineModel, logger); :}
+             | /* empty */ {: RESULT = new ArrayList<AExpression>(); :};
 
 Actions   ::= Action:a Actions:lst {: lst.add(0,a); RESULT = lst; :} // insert at the beginning of the list to preserve the order.
             | /* empty */ {: RESULT = new LinkedList<AutomatonAction>(); :}
@@ -305,7 +322,7 @@ Bool      ::= TRUE  {: RESULT = AutomatonBoolExpr.TRUE; :}
             | MATCH STRING_LITERAL:lit
               {: RESULT = new AutomatonBoolExpr.MatchCFAEdgeExact(lit.toString()); :}
             | MATCH CURLYEXPR:expr
-              {: RESULT = new AutomatonBoolExpr.MatchCFAEdgeASTComparison(parser.generateASTPattern(expr.toString())); :}
+              {: RESULT = new AutomatonBoolExpr.MatchCFAEdgeASTComparison(AutomatonASTComparator.generatePatternAST(expr.toString(), cparser, scope)); :}
             | MATCH SQUAREEXPR:expr
               {: RESULT = new AutomatonBoolExpr.MatchCFAEdgeRegEx(expr.toString()); :}
             | MATCH LABEL STRING_LITERAL:lit
@@ -315,7 +332,9 @@ Bool      ::= TRUE  {: RESULT = AutomatonBoolExpr.TRUE; :}
             | MATCH ASSERT
               {: RESULT = new AutomatonBoolExpr.MatchJavaAssert(); :}
             | MATCH EXIT
-              {: RESULT = new AutomatonBoolExpr.MatchProgramExit(); :}
+              {: RESULT = AutomatonBoolExpr.MatchProgramExit.INSTANCE; :}
+            | MATCH ENTRY
+              {: RESULT = AutomatonBoolExpr.MatchProgramEntry.INSTANCE; :}
 /*next statement is deprecated*/ 
             | CHECK OPEN_BRACKETS IDENTIFIER:cpa OPEN_BRACKETS STRING_LITERAL:query CLOSE_BRACKETS CLOSE_BRACKETS
               {: RESULT = new AutomatonBoolExpr.CPAQuery(cpa.toString(), query.toString()); :}

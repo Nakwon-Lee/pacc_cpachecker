@@ -23,17 +23,14 @@
  */
 package org.sosy_lab.cpachecker.cpa.assumptions.storage;
 
+import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.Serializable;
-
 import org.sosy_lab.common.Appender;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.util.CPAs;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
-
-import com.google.common.base.Preconditions;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.BooleanFormula;
 
 /**
  * Abstract state for the Collector CPA. Encapsulate a
@@ -61,6 +58,10 @@ public class AssumptionStorageState implements AbstractState, Serializable {
     fmgr = pFmgr;
 
     assert !fmgr.getBooleanFormulaManager().isFalse(assumption); // FALSE would mean "stop the analysis", but this should be signaled by stopFormula
+  }
+
+  public FormulaManagerView getFormulaManager() {
+    return fmgr;
   }
 
   public BooleanFormula getAssumption() {
@@ -116,6 +117,14 @@ public class AssumptionStorageState implements AbstractState, Serializable {
     return assumption.hashCode() + 17 * stopFormula.hashCode();
   }
 
+  public AssumptionStorageState reset() {
+    if (isAssumptionTrue() && isStopFormulaTrue()) {
+      return this;
+    }
+    BooleanFormula trueFormula = fmgr.getBooleanFormulaManager().makeTrue();
+    return new AssumptionStorageState(fmgr, trueFormula, trueFormula);
+  }
+
   private void writeObject(java.io.ObjectOutputStream out) throws IOException {
     Preconditions.checkState(isAssumptionTrue() && isStopFormulaTrue(),
         "Assumption and stop formula must be true for serialization to be correctly restored");
@@ -123,12 +132,7 @@ public class AssumptionStorageState implements AbstractState, Serializable {
   }
 
   private Object readResolve() {
-    assert(GlobalInfo.getInstance().getCPA().isPresent());
-    assert(CPAs.retrieveCPA(GlobalInfo.getInstance().getCPA().get(),
-        AssumptionStorageCPA.class)!=null);
-    FormulaManagerView fmgr = CPAs.retrieveCPA(GlobalInfo.getInstance().getCPA().get(),
-          AssumptionStorageCPA.class).getFormulaManager();
-      GlobalInfo.getInstance().storeFormulaManagerView(fmgr);
-    return new AssumptionStorageState(fmgr, fmgr.getBooleanFormulaManager().makeBoolean(true), fmgr.getBooleanFormulaManager().makeBoolean(true));
+    FormulaManagerView fmgr = GlobalInfo.getInstance().getAssumptionStorageFormulaManager();
+    return new AssumptionStorageState(fmgr, fmgr.getBooleanFormulaManager().makeTrue(), fmgr.getBooleanFormulaManager().makeTrue());
   }
 }

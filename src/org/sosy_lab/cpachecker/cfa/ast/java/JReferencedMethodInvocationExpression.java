@@ -25,7 +25,6 @@ package org.sosy_lab.cpachecker.cfa.ast.java;
 
 import java.util.List;
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.java.JType;
 
@@ -44,8 +43,9 @@ import org.sosy_lab.cpachecker.cfa.types.java.JType;
  *
  *
  */
-public class JReferencedMethodInvocationExpression extends JMethodInvocationExpression {
+public final class JReferencedMethodInvocationExpression extends JMethodInvocationExpression {
 
+  private static final long serialVersionUID = -3779312927011479073L;
   private final JIdExpression qualifier;
 
   public JReferencedMethodInvocationExpression(FileLocation pFileLocation, JType pType, JExpression pFunctionName,

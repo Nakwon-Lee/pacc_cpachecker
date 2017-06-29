@@ -23,36 +23,35 @@
  */
 package org.sosy_lab.cpachecker.util.ci.translators;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-
-import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.configuration.Configuration;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cpa.interval.Interval;
 import org.sosy_lab.cpachecker.cpa.interval.IntervalAnalysisState;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
 
-import com.google.common.base.Preconditions;
-
 public class IntervalRequirementsTranslator extends CartesianRequirementsTranslator<IntervalAnalysisState> {
 
-  public IntervalRequirementsTranslator(final Configuration pConfig, final ShutdownNotifier pShutdownNotifier,
-      final LogManager pLog) {
-    super(IntervalAnalysisState.class, pConfig, pShutdownNotifier, pLog);
+  public IntervalRequirementsTranslator(final LogManager pLog) {
+    super(IntervalAnalysisState.class, pLog);
   }
 
   @Override
   protected List<String> getVarsInRequirements(final IntervalAnalysisState pRequirement) {
-    return new ArrayList<>(pRequirement.getIntervalMapView().keySet());
+    return new ArrayList<>(pRequirement.getIntervalMap().keySet());
   }
 
   @Override
   protected List<String> getListOfIndependentRequirements(final IntervalAnalysisState pRequirement,
-      final SSAMap pIndices) {
+      final SSAMap pIndices, final @Nullable Collection<String> pRequiredVars) {
     List<String> list = new ArrayList<>();
-    for (String var : pRequirement.getIntervalMapView().keySet()) {
-      list.add(getRequirement(getVarWithIndex(var, pIndices), pRequirement.getIntervalMapView().get(var)));
+    for (String var : pRequirement.getIntervalMap().keySet()) {
+      if (pRequiredVars == null || pRequiredVars.contains(var)) {
+        list.add(getRequirement(getVarWithIndex(var, pIndices), pRequirement.getInterval(var)));
+      }
     }
     return list;
   }
@@ -60,34 +59,18 @@ public class IntervalRequirementsTranslator extends CartesianRequirementsTransla
   private String getRequirement(final String var, final Interval interval) {
     StringBuilder sb = new StringBuilder();
     boolean isMin = (interval.getLow() == Long.MIN_VALUE);
-    boolean isMax = (interval.getLow() == Long.MAX_VALUE);
+    boolean isMax = (interval.getHigh() == Long.MAX_VALUE);
     Preconditions.checkArgument(!isMin || !isMax);
     Preconditions.checkArgument(!interval.isEmpty());
 
     if (!isMin && !isMax) {
-      sb.append("(and (>= ");
-      sb.append(var);
-      sb.append(" ");
-      sb.append(interval.getLow());
-      sb.append(") (<= ");
-      sb.append(var);
-      sb.append(" ");
-      sb.append(interval.getHigh());
-      sb.append("))");
+      sb.append(TranslatorsUtils.getVarInBoundsRequirement(var, interval.getLow(), interval.getHigh()));
 
     } else if (!isMin) {
-      sb.append("(>= ");
-      sb.append(var);
-      sb.append(" ");
-      sb.append(interval.getLow());
-      sb.append(")");
+      sb.append(TranslatorsUtils.getVarGreaterOrEqualValRequirement(var, interval.getLow()));
 
     } else if (!isMax) {
-      sb.append("(<= ");
-      sb.append(var);
-      sb.append(" ");
-      sb.append(interval.getHigh());
-      sb.append(")");
+      sb.append(TranslatorsUtils.getVarLessOrEqualValRequirement(var, interval.getHigh()));
     }
 
     return sb.toString();

@@ -32,7 +32,7 @@ import java.util.Deque;
 import java.util.List;
 
 import org.eclipse.cdt.core.dom.ast.IASTExpression;
-import org.sosy_lab.common.Pair;
+import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAstNode;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
 
@@ -58,9 +58,9 @@ class Sideassignments {
   }
 
   public void enterBlock() {
-    preSideAssignments.push(new ArrayList<CAstNode>());
-    postSideAssignments.push(new ArrayList<CAstNode>());
-    conditionalExpressions.push(new ArrayList<Pair<IASTExpression, CIdExpression>>());
+    preSideAssignments.push(new ArrayList<>());
+    postSideAssignments.push(new ArrayList<>());
+    conditionalExpressions.push(new ArrayList<>());
   }
 
   public void leaveBlock() {

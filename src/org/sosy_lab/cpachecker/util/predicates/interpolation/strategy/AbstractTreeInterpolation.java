@@ -25,6 +25,26 @@ package org.sosy_lab.cpachecker.util.predicates.interpolation.strategy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import org.sosy_lab.common.ShutdownNotifier;
+import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
+import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
+import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.Triple;
+import org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.BooleanFormulaManager;
+import org.sosy_lab.java_smt.api.SolverException;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -33,25 +53,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.Triple;
-import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
-import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
-import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
-import org.sosy_lab.cpachecker.util.AbstractStates;
-import org.sosy_lab.cpachecker.util.predicates.Solver;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
 
@@ -76,7 +77,7 @@ public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
    *          the path formula F starting at an abstract state E corresponds
    *          with the ITP-group T. We assume the sorting of the list matches
    *          the order of abstract states along the counterexample.
-   * @param interpolants computed with {@link getInterpolants} and will be checked.
+   * @param interpolants computed with {@link InterpolationManager#getInterpolants} and will be checked.
    */
   @Override
   public void checkInterpolants(final Solver solver,
@@ -84,8 +85,8 @@ public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
       final List<BooleanFormula> interpolants)
       throws SolverException, InterruptedException {
 
-    final List<BooleanFormula> formulas = Lists.transform(formulasWithStatesAndGroupdIds,
-        Triple.<BooleanFormula> getProjectionToFirst());
+    final List<BooleanFormula> formulas =
+        Lists.transform(formulasWithStatesAndGroupdIds, Triple::getFirst);
     final List<Integer> subtrees = buildTreeStructure(formulasWithStatesAndGroupdIds).getSecond();
 
     // The following four properties need to be checked for tree interpolants:
@@ -156,7 +157,7 @@ public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
     // add the node itself (it is not an interpolant)
     previousInterpolants.add(formulas.get(subtrees.size() - 1));
 
-    if (!solver.implies(bfmgr.and(previousInterpolants), bfmgr.makeBoolean(false))) {
+    if (!solver.implies(bfmgr.and(previousInterpolants), bfmgr.makeFalse())) {
       throw new SolverException(
               "Interpolant " + interpolants.get(subtrees.size() - 1) + " is not implied by previous part of the path");
     }
@@ -274,8 +275,7 @@ public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
    * A subtree is connected with the whole tree with the calling statement
    * (i.e. the function call edge with arg-to-param-assignment).
    *
-   * @param itpGroupsIds formulas from the solver-stack, sorted according control flow
-   * @param orderedFormulas formulas and abstract states, sorted according to position on the solver-stack.
+   * @param formulasWithStatesAndGroupdIds formulas and abstract states, sorted according to position on the solver-stack.
    *                        we assume DIRECTION.FORWARDS as order, such that itpGroups and orderedFormulas are sorted equal.
    *
    * @return Pair (formulas := tree-elements, startOfSubTree := tree-structure),
@@ -351,7 +351,7 @@ public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
    * For function-entries (START-point) we use TRUE,
    * for function-returns (END-point) both function-summary and function-execution (merged into one formula).
    *
-   * @param orderedFormulas contains the input formulas and abstract states
+   * @param formulasWithStatesAndGroupdIds contains the input formulas and abstract states
    * @param itps tree-interpolants
    * @return interpolants linear chain of interpolants, created from the tree-interpolants
    */
@@ -366,7 +366,7 @@ public abstract class AbstractTreeInterpolation<T> extends ITPStrategy<T> {
       final BooleanFormula itp;
       switch (getTreePosition(formulasWithStatesAndGroupdIds, positionOfA)) {
         case START: {
-          itp = bfmgr.makeBoolean(true);
+          itp = bfmgr.makeTrue();
           break;
         }
         case END: {

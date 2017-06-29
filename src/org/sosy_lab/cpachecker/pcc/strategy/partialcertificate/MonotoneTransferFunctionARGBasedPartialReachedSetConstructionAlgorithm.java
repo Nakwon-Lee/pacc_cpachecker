@@ -23,9 +23,6 @@
  */
 package org.sosy_lab.cpachecker.pcc.strategy.partialcertificate;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
@@ -33,12 +30,18 @@ import org.sosy_lab.cpachecker.core.interfaces.pcc.PartialReachedConstructionAlg
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MonotoneTransferFunctionARGBasedPartialReachedSetConstructionAlgorithm implements PartialReachedConstructionAlgorithm {
 
   private final boolean returnARGStates;
+  private final boolean withCMC;
 
-  public MonotoneTransferFunctionARGBasedPartialReachedSetConstructionAlgorithm(final boolean pReturnARGStatesInsteadOfWrappedStates) {
+  public MonotoneTransferFunctionARGBasedPartialReachedSetConstructionAlgorithm(
+      final boolean pReturnARGStatesInsteadOfWrappedStates, final boolean pWithCMC) {
     returnARGStates = pReturnARGStatesInsteadOfWrappedStates;
+    withCMC = pWithCMC;
   }
 
   @Override
@@ -55,6 +58,11 @@ public class MonotoneTransferFunctionARGBasedPartialReachedSetConstructionAlgori
     return reachedSetSubset.toArray(new AbstractState[reachedSetSubset.size()]);
   }
 
+  /**
+   * @param pRootPrecision the root precision
+   * @param pRoot the root state
+   * @throws InvalidConfigurationException may be thrown in subclasses
+   */
   protected NodeSelectionARGPass getARGPass(final Precision pRootPrecision, final ARGState pRoot)
       throws InvalidConfigurationException {
     return new NodeSelectionARGPass(pRoot);
@@ -85,8 +93,14 @@ public class MonotoneTransferFunctionARGBasedPartialReachedSetConstructionAlgori
     }
 
     protected boolean isToAdd(final ARGState pNode) {
-      return pNode == root || pNode.getParents().size() > 1 || pNode.getCoveredByThis().size() > 0
-          && !pNode.isCovered();
+      return pNode == root
+          || pNode.getParents().size() > 1
+          || (pNode.getCoveredByThis().size() > 0 && !pNode.isCovered())
+          || (withCMC
+              && (pNode.getChildren().size() > 1
+                  || (!pNode.isCovered()
+                      && (pNode.getChildren().size() == 0
+                          || pNode.getParents().iterator().next().getChildren().size() > 1))));
     }
 
     @Override

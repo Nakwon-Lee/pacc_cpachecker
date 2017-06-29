@@ -25,14 +25,23 @@ package org.sosy_lab.cpachecker.cfa.parser.eclipse.c;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.cdt.core.dom.ast.IASTCompoundStatement;
 import org.eclipse.cdt.core.dom.ast.IASTDeclaration;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
@@ -54,26 +63,19 @@ import org.eclipse.cdt.internal.core.parser.InternalParserUtil;
 import org.eclipse.cdt.internal.core.parser.scanner.InternalFileContent;
 import org.eclipse.cdt.internal.core.parser.scanner.InternalFileContentProvider;
 import org.eclipse.core.runtime.CoreException;
-import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.io.Path;
-import org.sosy_lab.common.io.Paths;
+import org.sosy_lab.common.io.MoreFiles;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
 import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.CParser;
+import org.sosy_lab.cpachecker.cfa.CProgramScope;
 import org.sosy_lab.cpachecker.cfa.CSourceOriginMapping;
 import org.sosy_lab.cpachecker.cfa.ParseResult;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAstNode;
 import org.sosy_lab.cpachecker.cfa.parser.Scope;
+import org.sosy_lab.cpachecker.cfa.parser.Parsers.EclipseCParserOptions;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.exceptions.CParserException;
-
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 /**
  * Wrapper for Eclipse CDT 7.0 and 8.* (internal version number since 5.2.*)
@@ -87,19 +89,18 @@ class EclipseCParser implements CParser {
   private final MachineModel machine;
 
   private final LogManager logger;
-  private final Configuration config;
+  private final EclipseCParserOptions options;
 
   private final Timer parseTimer = new Timer();
   private final Timer cfaTimer = new Timer();
 
-  public EclipseCParser(Configuration pConfig, LogManager pLogger,
-      Dialect dialect, MachineModel pMachine) {
+  public EclipseCParser(LogManager pLogger, EclipseCParserOptions pOptions, MachineModel pMachine) {
 
     this.logger = pLogger;
     this.machine = pMachine;
-    this.config = pConfig;
+    this.options = pOptions;
 
-    switch (dialect) {
+    switch (pOptions.getDialect()) {
     case C99:
       language = new CLanguage(new ANSICParserExtensionConfiguration());
       break;
@@ -118,73 +119,112 @@ class EclipseCParser implements CParser {
    */
   private static String fixPath(String pPath) {
     Path path = Paths.get(pPath);
-    if (!path.isEmpty() && !path.isAbsolute() && path.getParent().isEmpty()) {
+    if (!path.toString().isEmpty() && !path.isAbsolute() && path.getParent() == null) {
       return Paths.get(".").resolve(path).toString();
     }
     return pPath;
   }
 
-  private FileContent wrapCode(FileContentToParse pContent) {
-    return FileContent.create(fixPath(pContent.getFileName()), pContent.getFileContent().toCharArray());
-  }
-
   private FileContent wrapCode(String pFileName, String pCode) {
-    return FileContent.create(fixPath(pFileName), pCode.toCharArray());
+    return FileContent.create(pFileName, pCode.toCharArray());
   }
 
   private FileContent wrapFile(String pFileName) throws IOException {
-    String code = Paths.get(pFileName).asCharSource(Charset.defaultCharset()).read();
-    return wrapCode(fixPath(pFileName), code);
+    String code = MoreFiles.toString(Paths.get(pFileName), Charset.defaultCharset());
+    return wrapCode(pFileName, code);
   }
 
-  @Override
-  public ParseResult parseFile(List<FileToParse> pFilenames, CSourceOriginMapping sourceOriginMapping) throws CParserException, IOException, InvalidConfigurationException {
+  private static interface FileParseWrapper {
+    public FileContent wrap(String pFileName, FileToParse pContent) throws IOException;
+  }
 
-    List<IASTTranslationUnit> astUnits = new ArrayList<>();
-    for (FileToParse f: pFilenames) {
-      astUnits.add(parse(wrapFile(f.getFileName())));
+  private ParseResult parseSomething(
+      List<? extends FileToParse> pInput,
+      CSourceOriginMapping pSourceOriginMapping,
+      CProgramScope scope,
+      FileParseWrapper pWrapperFunction)
+      throws CParserException {
+
+    Preconditions.checkNotNull(pInput);
+    Preconditions.checkNotNull(pSourceOriginMapping);
+    Preconditions.checkNotNull(pWrapperFunction);
+
+    Map<String, String> fileNameMapping = new HashMap<>();
+    for (FileToParse f : pInput) {
+      fileNameMapping.put(fixPath(f.getFileName()), f.getFileName());
     }
-    return buildCFA(astUnits, sourceOriginMapping);
-  }
+    FixedPathSourceOriginMapping sourceOriginMapping =
+        new FixedPathSourceOriginMapping(pSourceOriginMapping, fileNameMapping);
+    ParseContext parseContext =
+        new ParseContext(createNiceFileNameFunction(fileNameMapping.keySet()), sourceOriginMapping);
 
-  @Override
-  public ParseResult parseString(List<FileContentToParse> codeFragments, CSourceOriginMapping sourceOriginMapping) throws CParserException, InvalidConfigurationException {
+    List<IASTTranslationUnit> astUnits = new ArrayList<>(pInput.size());
 
-    List<IASTTranslationUnit> astUnits = new ArrayList<>();
-    for (FileContentToParse f : codeFragments) {
-      astUnits.add(parse(wrapCode(f)));
+    for (FileToParse f : pInput) {
+      final String fileName = fixPath(f.getFileName());
+
+      try {
+        astUnits.add(parse(pWrapperFunction.wrap(fileName, f), parseContext));
+      } catch (IOException e) {
+        throw new CParserException("IO failed!", e);
+      }
     }
-    return buildCFA(astUnits, sourceOriginMapping);
-  }
 
-  /**
-   * This method parses a single file where no prefix for static variables is needed.
-   */
-  @Override
-  public ParseResult parseFile(String pFilename, CSourceOriginMapping sourceOriginMapping) throws CParserException, IOException, InvalidConfigurationException {
-
-    IASTTranslationUnit unit = parse(wrapFile(pFilename));
-    List<IASTTranslationUnit> returnParam = new ArrayList<>();
-    returnParam.add(unit);
-    return buildCFA(returnParam, sourceOriginMapping);
-  }
-
-  /**
-   * This method parses a single string, where no prefix for static variables is needed.
-   */
-  @Override
-  public ParseResult parseString(String pFilename, String pCode, CSourceOriginMapping sourceOriginMapping) throws CParserException, InvalidConfigurationException {
-
-    IASTTranslationUnit unit = parse(wrapCode(pFilename, pCode));
-    List<IASTTranslationUnit> returnParam = new ArrayList<>();
-    returnParam.add(unit);
-    return buildCFA(returnParam, sourceOriginMapping);
+    return buildCFA(astUnits, parseContext, scope);
   }
 
   @Override
-  public CAstNode parseSingleStatement(String pCode, Scope scope) throws CParserException, InvalidConfigurationException {
+  public ParseResult parseFile(List<String> pFilenames) throws CParserException, IOException {
+
+    return parseSomething(
+        Lists.transform(pFilenames, FileToParse::new),
+        new CSourceOriginMapping(),
+        CProgramScope.empty(),
+        (pFileName, pContent) -> wrapFile(pFileName));
+  }
+
+  @Override
+  public ParseResult parseString(
+      List<FileContentToParse> pCodeFragments, CSourceOriginMapping sourceOriginMapping)
+      throws CParserException {
+
+    return parseSomething(
+        pCodeFragments,
+        sourceOriginMapping,
+        CProgramScope.empty(),
+        (pFileName, pContent) -> {
+          Preconditions.checkArgument(pContent instanceof FileContentToParse);
+          return wrapCode(pFileName, ((FileContentToParse) pContent).getFileContent());
+        });
+
+  }
+
+  /** This method parses a single file where no prefix for static variables is needed. */
+  @Override
+  public ParseResult parseFile(String pFileName) throws CParserException, IOException {
+
+    return parseFile(ImmutableList.of(pFileName));
+  }
+
+  /** This method parses a single string, where no prefix for static variables is needed. */
+  @Override
+  public ParseResult parseString(
+      String pFileName, String pCode, CSourceOriginMapping sourceOriginMapping, Scope pScope)
+      throws CParserException {
+
+    return parseSomething(
+        ImmutableList.of(new FileContentToParse(pFileName, pCode)),
+        sourceOriginMapping,
+        pScope instanceof CProgramScope ? ((CProgramScope) pScope) : CProgramScope.empty(),
+        (fileName, content) -> {
+          Preconditions.checkArgument(content instanceof FileContentToParse);
+          return wrapCode(fileName, ((FileContentToParse) content).getFileContent());
+        });
+  }
+
+  private IASTStatement[] parseCodeFragmentReturnBody(String pCode) throws CParserException {
     // parse
-    IASTTranslationUnit ast = parse(wrapCode("", pCode));
+    IASTTranslationUnit ast = parse(wrapCode("", pCode), ParseContext.dummy());
 
     // strip wrapping function header
     IASTDeclaration[] declarations = ast.getDeclarations();
@@ -201,45 +241,42 @@ class EclipseCParser implements CParser {
     }
 
     IASTStatement[] statements = ((IASTCompoundStatement)body).getStatements();
-    if (!(statements.length == 2 && statements[1] == null || statements.length == 1)) {
-      throw new CParserException("Not exactly one statement in function body: " + body);
-    }
 
+    return statements;
+  }
+
+  private ASTConverter prepareTemporaryConverter(Scope scope) {
     Sideassignments sa = new Sideassignments();
     sa.enterBlock();
-    return new ASTConverter(config, scope, new LogManagerWithoutDuplicates(logger), Functions.<String>identity(), new CSourceOriginMapping(), machine, "", sa)
-        .convert(statements[0]);
+
+    return new ASTConverter(
+        options,
+        scope,
+        new LogManagerWithoutDuplicates(logger),
+        ParseContext.dummy(),
+        machine,
+        "",
+        sa);
   }
 
   @Override
-  public List<CAstNode> parseStatements(String pCode, Scope scope) throws CParserException, InvalidConfigurationException {
-    // parse
-    IASTTranslationUnit ast = parse(wrapCode("", pCode));
+  public CAstNode parseSingleStatement(String pCode, Scope scope) throws CParserException {
 
-    // strip wrapping function header
-    IASTDeclaration[] declarations = ast.getDeclarations();
-    if (   declarations == null
-        || declarations.length != 1
-        || !(declarations[0] instanceof IASTFunctionDefinition)) {
-      throw new CParserException("Not a single function: " + ast.getRawSignature());
+    IASTStatement[] statements = parseCodeFragmentReturnBody(pCode);
+    ASTConverter converter = prepareTemporaryConverter(scope);
+
+    if (!((statements.length == 2 && statements[1] == null) || statements.length == 1)) {
+      throw new CParserException("Not exactly one statement in function body: " + pCode);
     }
 
-    IASTFunctionDefinition func = (IASTFunctionDefinition)declarations[0];
-    IASTStatement body = func.getBody();
-    if (!(body instanceof IASTCompoundStatement)) {
-      throw new CParserException("Function has an unexpected " + body.getClass().getSimpleName() + " as body: " + func.getRawSignature());
-    }
+    return converter.convert(statements[0]);
+  }
 
-    IASTStatement[] statements = ((IASTCompoundStatement)body).getStatements();
-    if (statements.length == 1 && statements[0] == null || statements.length == 0) {
-      throw new CParserException("No statement found in function body: " + body);
-    }
+  @Override
+  public List<CAstNode> parseStatements(String pCode, Scope scope) throws CParserException {
 
-    Sideassignments sa = new Sideassignments();
-    sa.enterBlock();
-
-    ASTConverter converter = new ASTConverter(config, scope, new LogManagerWithoutDuplicates(logger),
-        Functions.<String>identity(), new CSourceOriginMapping(), machine, "", sa);
+    IASTStatement[] statements = parseCodeFragmentReturnBody(pCode);
+    ASTConverter converter = prepareTemporaryConverter(scope);
 
     List<CAstNode> nodeList = new ArrayList<>(statements.length);
 
@@ -250,7 +287,7 @@ class EclipseCParser implements CParser {
     }
 
     if (nodeList.size() < 1) {
-      throw new CParserException("No statement found in function body: " + body);
+      throw new CParserException("No statement found in function body: " + pCode);
     }
 
     return nodeList;
@@ -261,7 +298,8 @@ class EclipseCParser implements CParser {
           | ILanguage.OPTION_NO_IMAGE_LOCATIONS // we don't use IASTName#getImageLocation(), so the parse doesn't need to create them
           ;
 
-  private IASTTranslationUnit parse(FileContent codeReader) throws CParserException {
+  private IASTTranslationUnit parse(FileContent codeReader, ParseContext parseContext)
+      throws CParserException {
     parseTimer.start();
     try {
       IASTTranslationUnit result = getASTTranslationUnit(codeReader);
@@ -273,7 +311,8 @@ class EclipseCParser implements CParser {
           if (include.isSystemInclude()) {
             throw new CFAGenerationRuntimeException("File includes system headers, either preprocess it manually or specify -preprocess.");
           } else {
-            throw new CFAGenerationRuntimeException("Included file " + include.getName() + " is missing", include, Functions.<String>identity());
+            throw parseContext.parseError(
+                "Included file " + include.getName() + " is missing", include);
           }
         }
       }
@@ -281,22 +320,21 @@ class EclipseCParser implements CParser {
       // Report the preprocessor problems.
       // TODO this shows only the first problem
       for (IASTProblem problem : result.getPreprocessorProblems()) {
-        throw new CFAGenerationRuntimeException(problem, Functions.<String>identity());
+        throw parseContext.parseError(problem);
       }
 
       return result;
 
-    } catch (CFAGenerationRuntimeException e) {
-      // thrown by StubCodeReaderFactory
-      throw new CParserException(e);
-    } catch (CoreException e) {
+    } catch (CFAGenerationRuntimeException | CoreException e) {
       throw new CParserException(e);
     } finally {
       parseTimer.stop();
     }
   }
 
-  private IASTTranslationUnit getASTTranslationUnit(FileContent pCode) throws CFAGenerationRuntimeException, CoreException {
+  private IASTTranslationUnit getASTTranslationUnit(FileContent pCode)
+      throws CFAGenerationRuntimeException, CoreException {
+
     return language.getASTTranslationUnit(pCode,
                                           StubScannerInfo.instance,
                                           FileContentProvider.instance,
@@ -306,25 +344,25 @@ class EclipseCParser implements CParser {
   }
 
   /**
-   * Builds the cfa out of a list of pairs of translation units and their appropriate prefixes for static variables
+   * Builds the cfa out of a list of pairs of translation units and their appropriate prefixes for
+   * static variables
    *
-   * @param asts a List of Pairs of translation units and the appropriate prefix for static variables
-   * @return
-   * @throws CParserException
-   * @throws InvalidConfigurationException
+   * @param asts a List of Pairs of translation units and the appropriate prefix for static
+   *     variables
    */
-  private ParseResult buildCFA(List<IASTTranslationUnit> asts,
-      CSourceOriginMapping sourceOriginMapping) throws CParserException, InvalidConfigurationException {
+  private ParseResult buildCFA(
+      List<IASTTranslationUnit> asts, ParseContext parseContext, Scope pScope)
+      throws CParserException {
+
     checkArgument(!asts.isEmpty());
     cfaTimer.start();
 
-    Function<String, String> niceFileNameFunction = createNiceFileNameFunction(asts);
     try {
-      CFABuilder builder = new CFABuilder(config, logger, niceFileNameFunction, sourceOriginMapping, machine);
+      CFABuilder builder = new CFABuilder(options, logger, parseContext, machine);
 
       // we don't need any file prefix if we only have one file
       if (asts.size() == 1) {
-        builder.analyzeTranslationUnit(asts.get(0), "");
+        builder.analyzeTranslationUnit(asts.get(0), "", pScope);
 
         // in case of several files we need to add a file prefix to global variables
         // as there could be several equally named files in different directories
@@ -332,7 +370,12 @@ class EclipseCParser implements CParser {
         // the prefix
       } else {
         for (IASTTranslationUnit ast : asts) {
-          builder.analyzeTranslationUnit(ast, niceFileNameFunction.apply(ast.getFilePath()).replace("/", "_").replaceAll("\\W", "_"));
+          String staticVariablePrefix =
+              parseContext
+                  .mapFileNameToNameForHumans(ast.getFilePath())
+                  .replace("/", "_")
+                  .replaceAll("\\W", "_");
+          builder.analyzeTranslationUnit(ast, staticVariablePrefix, pScope);
         }
       }
 
@@ -346,29 +389,20 @@ class EclipseCParser implements CParser {
   }
 
   /**
-   * Given a file name, this function returns a "nice" representation of it.
-   * This should be used for situations where the name is going
-   * to be presented to the user.
-   * The result may be the empty string, if for example CPAchecker only uses
-   * one file (we expect the user to know its name in this case).
+   * Given a file name, this function returns a "nice" representation of it. This should be used for
+   * situations where the name is going to be presented to the user. The result may be the empty
+   * string, if for example CPAchecker only uses one file (we expect the user to know its name in
+   * this case).
    */
-  private Function<String, String> createNiceFileNameFunction(List<IASTTranslationUnit> asts) {
-    Iterator<String> fileNames = Lists.transform(asts, new Function<IASTTranslationUnit, String>() {
-      @Override
-      public String apply(IASTTranslationUnit pInput) {
-        return pInput.getFilePath();
-      }}).iterator();
+  private Function<String, String> createNiceFileNameFunction(Collection<String> pFileNames) {
+    Iterator<String> fileNames = pFileNames.iterator();
 
-    if (asts.size() == 1) {
+    if (pFileNames.size() == 1) {
       final String mainFileName = fileNames.next();
-      return new Function<String, String>() {
-        @Override
-        public String apply(String pInput) {
-          return mainFileName.equals(pInput)
+      return pInput ->
+          (mainFileName.equals(pInput)
               ? "" // no file name necessary for main file if there is only one
-              : pInput;
-          }
-        };
+              : pInput);
 
     } else {
       String commonStringPrefix = fileNames.next();
@@ -384,22 +418,19 @@ class EclipseCParser implements CParser {
         commonPathPrefix = commonStringPrefix.substring(0, pos+1);
       }
 
-      return new Function<String, String>() {
-          @Override
-          public String apply(String pInput) {
-            if (pInput.isEmpty()) {
-              return pInput;
-            }
-            if (pInput.charAt(0) == '"' && pInput.charAt(pInput.length()-1) == '"') {
-              pInput = pInput.substring(1, pInput.length()-1);
-            }
-            if (pInput.startsWith(commonPathPrefix)) {
-              return pInput.substring(commonPathPrefix.length()).intern();
-            } else {
-              return pInput.intern();
-            }
-          }
-        };
+      return pInput -> {
+        if (pInput.isEmpty()) {
+          return pInput;
+        }
+        if (pInput.charAt(0) == '"' && pInput.charAt(pInput.length() - 1) == '"') {
+          pInput = pInput.substring(1, pInput.length() - 1);
+        }
+        if (pInput.startsWith(commonPathPrefix)) {
+          return pInput.substring(commonPathPrefix.length()).intern();
+        } else {
+          return pInput.intern();
+        }
+      };
     }
   }
 
@@ -420,6 +451,7 @@ class EclipseCParser implements CParser {
    * for using the parser.
    * Supports choise of parser dialect.
    */
+  @SuppressWarnings("unchecked")
   private static class CLanguage extends GCCLanguage {
 
     private final ICParserExtensionConfiguration parserConfig;
@@ -447,6 +479,8 @@ class EclipseCParser implements CParser {
 
       // _Static_assert(cond, msg) feature of C11
       macrosBuilder.put("_Static_assert(c, m)", "");
+      // _Noreturn feature of C11
+      macrosBuilder.put("_Noreturn", "");
 
       // These built-ins are defined as macros
       // in org.eclipse.cdt.core.dom.parser.GNUScannerExtensionConfiguration.
@@ -454,7 +488,6 @@ class EclipseCParser implements CParser {
       // some non-trivial usage in the code, we get parsing errors.
       // So we redefine these macros to themselves in order to
       // parse them as functions.
-      macrosBuilder.put("__builtin_va_arg", "__builtin_va_arg");
       macrosBuilder.put("__builtin_constant_p", "__builtin_constant_p");
       macrosBuilder.put("__builtin_types_compatible_p(t1,t2)", "__builtin_types_compatible_p(({t1 arg1; arg1;}), ({t2 arg2; arg2;}))");
       macrosBuilder.put("__offsetof__", "__offsetof__");
@@ -465,6 +498,13 @@ class EclipseCParser implements CParser {
 
       // Eclipse CDT 8.1.1 has problems with more complex attributes
       macrosBuilder.put("__attribute__(a)", "");
+
+      // There are some interesting macros available at
+      // http://research.microsoft.com/en-us/um/redmond/projects/invisible/include/stdarg.h.htm
+      macrosBuilder.put("_INTSIZEOF(n)", "((sizeof(n) + sizeof(int) - 1) & ~(sizeof(int) - 1))"); // at least size of smallest addressable unit
+      //macrosBuilder.put("__builtin_va_start(ap,v)", "(ap = (va_list)&v + _INTSIZEOF(v))");
+      macrosBuilder.put("__builtin_va_arg(ap,t)", "*(t *)((ap += _INTSIZEOF(t)) - _INTSIZEOF(t))");
+      // macrosBuilder.put("__builtin_va_end(ap)", "(ap = (va_list)0)");
 
       MACROS = macrosBuilder.build();
     }
@@ -498,6 +538,39 @@ class EclipseCParser implements CParser {
     public InternalFileContent getContentForInclusion(IIndexFileLocation pIfl,
         String pAstPath) {
       return InternalParserUtil.createFileContent(pIfl);
+    }
+  }
+
+  /**
+   * Wrapper for {@link CSourceOriginMapping} that does the reverse file-name mapping
+   * of {@link EclipseCParser#fixPath(String)}, otherwise file-name lookup fails
+   * and origin-source mapping does not work for files in the current directory
+   * that are not specified as "./foo.c" but only as "foo.c".
+   */
+  private static class FixedPathSourceOriginMapping extends CSourceOriginMapping {
+
+    private final CSourceOriginMapping delegate;
+    private final ImmutableMap<String, String> fileNameMapping;
+
+    FixedPathSourceOriginMapping(
+        CSourceOriginMapping pDelegate, Map<String, String> pFileNameMapping) {
+      delegate = pDelegate;
+      fileNameMapping = ImmutableMap.copyOf(pFileNameMapping);
+    }
+
+    @Override
+    public CodePosition getOriginLineFromAnalysisCodeLine(
+        final String pAnalysisFile, final int pAnalysisCodeLine) {
+      final String analysisFile = fileNameMapping.getOrDefault(pAnalysisFile, pAnalysisFile);
+
+      CodePosition result =
+          delegate.getOriginLineFromAnalysisCodeLine(analysisFile, pAnalysisCodeLine);
+
+      if (result.getFileName().equals(analysisFile)) {
+        // reverse mapping
+        result = result.withFileName(pAnalysisFile);
+      }
+      return result;
     }
   }
 }

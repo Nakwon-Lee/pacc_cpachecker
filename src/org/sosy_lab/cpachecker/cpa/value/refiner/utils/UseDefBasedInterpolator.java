@@ -31,9 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.ASimpleDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIntegerLiteralExpression;
@@ -41,6 +38,7 @@ import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel.BaseSizeofVisitor;
 import org.sosy_lab.cpachecker.cfa.types.Type;
 import org.sosy_lab.cpachecker.cfa.types.c.CArrayType;
+import org.sosy_lab.cpachecker.cfa.types.c.CBitFieldType;
 import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType;
 import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType.CCompositeTypeMemberDeclaration;
 import org.sosy_lab.cpachecker.cfa.types.c.CElaboratedType;
@@ -59,7 +57,9 @@ import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.value.refiner.ValueAnalysisInterpolant;
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
 import org.sosy_lab.cpachecker.cpa.value.type.Value.UnknownValue;
+import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.refinement.PrefixSelector;
+import org.sosy_lab.cpachecker.util.refinement.UseDefRelation;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
 /**
@@ -85,13 +85,13 @@ public class UseDefBasedInterpolator {
   /**
    * This class allows the creation of (fake) interpolants by using the use-def-relation.
    * This interpolation approach only works if the given path is a sliced prefix,
-   * obtained via {@link PrefixSelector#obtainSlicedPrefix}.
-   *
-   * @param pSlicedPrefix
-   * @param pUseDefRelation
-   * @param pMachineModel
+   * obtained via {@link PrefixSelector#selectSlicedPrefix(List, List)}.
    */
-  public UseDefBasedInterpolator(LogManager pLogger, ARGPath pSlicedPrefix, UseDefRelation pUseDefRelation, MachineModel pMachineModel) {
+  public UseDefBasedInterpolator(
+      final ARGPath pSlicedPrefix,
+      final UseDefRelation pUseDefRelation,
+      final MachineModel pMachineModel
+  ) {
     slicedPrefix   = pSlicedPrefix;
     useDefRelation = pUseDefRelation;
     machineModel   = pMachineModel;
@@ -110,6 +110,7 @@ public class UseDefBasedInterpolator {
     LinkedList<Pair<ARGState, ValueAnalysisInterpolant>> interpolants = new LinkedList<>();
     PathIterator iterator = slicedPrefix.reversePathIterator();
     while (iterator.hasNext()) {
+      iterator.advance();
       ARGState state = iterator.getAbstractState();
 
       Collection<ASimpleDeclaration> uses = useDefSequence.get(state);
@@ -125,8 +126,6 @@ public class UseDefBasedInterpolator {
       if (interpolant != trivialItp) {
         trivialItp = ValueAnalysisInterpolant.TRUE;
       }
-
-      iterator.advance();
     }
 
     return interpolants;
@@ -163,6 +162,7 @@ public class UseDefBasedInterpolator {
     HashMap<MemoryLocation, Value> useDefInterpolant = new HashMap<>();
 
     for (ASimpleDeclaration use : uses) {
+
       for (MemoryLocation memoryLocation : obtainMemoryLocationsForType(use)) {
         useDefInterpolant.put(memoryLocation, UnknownValue.getInstance());
       }
@@ -176,6 +176,7 @@ public class UseDefBasedInterpolator {
    * of the given variable declaration.
    */
   private List<MemoryLocation> obtainMemoryLocationsForType(ASimpleDeclaration use) {
+
     return ((CType) use.getType()).accept(
         new MemoryLocationCreator(use.getQualifiedName(), machineModel));
   }
@@ -202,6 +203,11 @@ public class UseDefBasedInterpolator {
      */
     private int currentOffset = 0;
 
+    /**
+     * marker to know if traversal went through a complex type
+     */
+    private boolean withinComplexType = false;
+
     private MemoryLocationCreator(final String pQualifiedName, final MachineModel pModel) {
       model = pModel;
       qualifiedName = pQualifiedName;
@@ -209,6 +215,8 @@ public class UseDefBasedInterpolator {
 
     @Override
     public List<MemoryLocation> visit(final CArrayType pArrayType) throws IllegalArgumentException {
+      withinComplexType = true;
+
       CExpression arrayLength = pArrayType.getLength();
 
       if (arrayLength instanceof CIntegerLiteralExpression) {
@@ -223,6 +231,8 @@ public class UseDefBasedInterpolator {
 
     @Override
     public List<MemoryLocation> visit(final CCompositeType pCompositeType) throws IllegalArgumentException {
+      withinComplexType = true;
+
       switch (pCompositeType.getKind()) {
         case STRUCT: return createMemoryLocationsForStructure(pCompositeType);
         case UNION:  return createMemoryLocationsForUnion(pCompositeType);
@@ -233,6 +243,8 @@ public class UseDefBasedInterpolator {
 
     @Override
     public List<MemoryLocation> visit(final CElaboratedType pElaboratedType) throws IllegalArgumentException {
+      withinComplexType = true;
+
       CType definition = pElaboratedType.getRealType();
       if (definition != null) {
         return definition.accept(this);
@@ -284,10 +296,15 @@ public class UseDefBasedInterpolator {
     }
 
     private List<MemoryLocation> createSingleMemoryLocation(final int pSize) {
-      List<MemoryLocation> memory = Collections.singletonList(MemoryLocation.valueOf(qualifiedName, currentOffset));
-      currentOffset = currentOffset + pSize;
+      if (withinComplexType) {
+        List<MemoryLocation> memory = Collections.singletonList(MemoryLocation.valueOf(qualifiedName, currentOffset));
 
-      return memory;
+        currentOffset = currentOffset + pSize;
+
+        return memory;
+      }
+
+      return Collections.singletonList(MemoryLocation.valueOf(qualifiedName));
     }
 
     private List<MemoryLocation> createMemoryLocationsForArray(final int pLength, final CType pType) {
@@ -312,6 +329,12 @@ public class UseDefBasedInterpolator {
 
     private List<MemoryLocation> createMemoryLocationsForUnion(final CCompositeType pCompositeType) {
       return createSingleMemoryLocation(new BaseSizeofVisitor(model).visit(pCompositeType));
+    }
+
+    @Override
+    public List<MemoryLocation> visit(CBitFieldType pCBitFieldType)
+        throws IllegalArgumentException {
+      return createSingleMemoryLocation(model.getSizeof(pCBitFieldType));
     }
   }
 }

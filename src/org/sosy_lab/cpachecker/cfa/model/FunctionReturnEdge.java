@@ -28,6 +28,7 @@ import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 
 public class FunctionReturnEdge extends AbstractCFAEdge {
 
+  private static final long serialVersionUID = 7267973320703716417L;
   private final FunctionSummaryEdge summaryEdge;
 
   protected FunctionReturnEdge(FileLocation pFileLocation,
@@ -49,7 +50,8 @@ public class FunctionReturnEdge extends AbstractCFAEdge {
 
   @Override
   public String getDescription() {
-    return "Return edge from " + getPredecessor().getFunctionName() + " to " + getSuccessor().getFunctionName();
+    return "Return edge from " + getPredecessor().getFunctionName() + " to "
+        + getSuccessor().getFunctionName() + ": " + summaryEdge.getExpression();
   }
 
   @Override

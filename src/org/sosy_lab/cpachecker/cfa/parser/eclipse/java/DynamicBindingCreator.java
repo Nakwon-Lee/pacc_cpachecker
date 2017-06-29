@@ -25,6 +25,7 @@ package org.sosy_lab.cpachecker.cfa.parser.eclipse.java;
 
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
+import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -34,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.cpachecker.cfa.CFACreationUtils;
 import org.sosy_lab.cpachecker.cfa.ast.AExpression;
 import org.sosy_lab.cpachecker.cfa.ast.AFunctionCall;
@@ -64,9 +63,7 @@ import org.sosy_lab.cpachecker.cfa.types.java.JClassType;
 import org.sosy_lab.cpachecker.cfa.types.java.JInterfaceType;
 import org.sosy_lab.cpachecker.cfa.types.java.JMethodType;
 import org.sosy_lab.cpachecker.cfa.types.java.JType;
-import org.sosy_lab.cpachecker.exceptions.JParserException;
-
-import com.google.common.collect.SortedSetMultimap;
+import org.sosy_lab.cpachecker.util.Pair;
 
 /**
  * This class models the dynamic bindings of Java in a CFA.
@@ -101,7 +98,7 @@ class DynamicBindingCreator {
 
 
 
-  public void trackAndCreateDynamicBindings() throws JParserException {
+  public void trackAndCreateDynamicBindings() {
 
     /*
      *  It starts with a map of all parsed methods while parsing the Java source Code,
@@ -144,16 +141,16 @@ class DynamicBindingCreator {
 
   private void completeMethodBindings() {
 
-    for (String key :  subMethodsOfMethod.keySet()) {
-      methodTypeBindingsOfMethod.put(key,
-                                     new LinkedList<>(subMethodsOfMethod.get(key)));
+    for (Map.Entry<String, List<MethodDefinition>> entry :  subMethodsOfMethod.entrySet()) {
+      methodTypeBindingsOfMethod.put(entry.getKey(),
+                                     new LinkedList<>(entry.getValue()));
     }
 
     Map<String, List<MethodDefinition>> workMap = new HashMap<>();
 
-    for (String key : subMethodsOfMethod.keySet()) {
-      workMap.put(key,
-                  new LinkedList<>(subMethodsOfMethod.get(key)));
+    for (Map.Entry<String, List<MethodDefinition>> entry : subMethodsOfMethod.entrySet()) {
+      workMap.put(entry.getKey(),
+                  new LinkedList<>(entry.getValue()));
     }
 
 
@@ -597,7 +594,7 @@ class DynamicBindingCreator {
     // That way, even if the method is not overridden, it is tracked
     // with an empty list
     if (!subMethodsOfMethod.containsKey(functionName)) {
-      subMethodsOfMethod.put(functionName, new LinkedList<MethodDefinition>());
+      subMethodsOfMethod.put(functionName, new LinkedList<>());
     }
 
     final MethodDefinition toBeRegistered = getMethodDefinition(declaration, entryNode);
@@ -648,8 +645,8 @@ class DynamicBindingCreator {
       return false;
     }
 
-    final JType firstReturnType = (JType) firstType.getReturnType();
-    final JType sndReturnType = (JType) sndType.getReturnType();
+    final JType firstReturnType = firstType.getReturnType();
+    final JType sndReturnType = sndType.getReturnType();
 
     if (!firstReturnType.equals(sndReturnType)) {
 
@@ -685,7 +682,7 @@ class DynamicBindingCreator {
 
    // If Method not yet parsed, it needs to be added
    if (!subMethodsOfMethod.containsKey(overridenMethodName)) {
-     subMethodsOfMethod.put(overridenMethodName, new LinkedList<MethodDefinition>());
+      subMethodsOfMethod.put(overridenMethodName, new LinkedList<>());
    }
      subMethodsOfMethod.get(overridenMethodName).add(pToBeRegistered);
   }

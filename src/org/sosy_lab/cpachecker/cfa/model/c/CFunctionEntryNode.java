@@ -23,8 +23,7 @@
  */
 package org.sosy_lab.cpachecker.cfa.model.c;
 
-import java.util.List;
-
+import com.google.common.base.Optional;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CParameterDeclaration;
@@ -32,18 +31,23 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CVariableDeclaration;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 
-import com.google.common.base.Optional;
+import java.util.List;
 
 public class CFunctionEntryNode extends FunctionEntryNode {
+
+  private static final long serialVersionUID = -730687961628864953L;
 
   public CFunctionEntryNode(final FileLocation pFileLocation,
       final CFunctionDeclaration pFunctionDefinition,
       final FunctionExitNode pExitNode,
-      final List<String> pParameterNames,
       final Optional<CVariableDeclaration> pReturnVariable) {
 
-    super(pFileLocation, pFunctionDefinition.getName(), pExitNode,
-        pFunctionDefinition, pParameterNames, pReturnVariable);
+    super(
+        pFileLocation,
+        pFunctionDefinition.getName(),
+        pExitNode,
+        pFunctionDefinition,
+        pReturnVariable);
   }
 
   @Override

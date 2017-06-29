@@ -23,35 +23,29 @@
  */
 package org.sosy_lab.cpachecker.cpa.value;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.OptionalInt;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
 import org.sosy_lab.cpachecker.cfa.ast.AIdExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CCastExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFieldReference;
-import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CLeftHandSide;
 import org.sosy_lab.cpachecker.cfa.ast.c.CPointerExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.DefaultCExpressionVisitor;
 import org.sosy_lab.cpachecker.cfa.ast.java.JIdExpression;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
-import org.sosy_lab.cpachecker.cfa.types.c.CBasicType;
-import org.sosy_lab.cpachecker.cfa.types.c.CComplexType.ComplexTypeKind;
+import org.sosy_lab.cpachecker.cfa.types.Type;
+import org.sosy_lab.cpachecker.cfa.types.c.CArrayType;
 import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType;
-import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType.CCompositeTypeMemberDeclaration;
 import org.sosy_lab.cpachecker.cfa.types.c.CElaboratedType;
 import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
-import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
+import org.sosy_lab.cpachecker.cfa.types.c.CProblemType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.core.defaults.ForwardingTransferRelation;
-import org.sosy_lab.cpachecker.cpa.value.type.NumericValue;
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
-import org.sosy_lab.cpachecker.util.BuiltinFunctions;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
 
@@ -92,95 +86,6 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
   }
 
   @Override
-  public Value visit(CFunctionCallExpression pIastFunctionCallExpression) throws UnrecognizedCCodeException {
-    CExpression functionNameExp = pIastFunctionCallExpression.getFunctionNameExpression();
-
-    // We only handle builtin functions
-    if (functionNameExp instanceof CIdExpression) {
-      String functionName = ((CIdExpression) functionNameExp).getName();
-
-      if (BuiltinFunctions.isBuiltinFunction(functionName)) {
-        CType functionReturnType = BuiltinFunctions.getFunctionType(functionName);
-
-        if (isUnspecifiedType(functionReturnType)) {
-          // unsupported formula
-          return Value.UnknownValue.getInstance();
-        }
-
-        assert functionReturnType.equals(pIastFunctionCallExpression.getExpressionType())
-            : "Builtin function's return type is false. " + functionName
-            + " has return type " + pIastFunctionCallExpression.getExpressionType();
-        List<CExpression> parameterExpressions = pIastFunctionCallExpression.getParameterExpressions();
-        List<Value> parameterValues = new ArrayList<>(parameterExpressions.size());
-
-        for (CExpression currParamExp : parameterExpressions) {
-          Value newValue = currParamExp.accept(this);
-
-          parameterValues.add(newValue);
-        }
-
-        if (BuiltinFunctions.isAbsolute(functionName)) {
-          assert parameterValues.size() == 1;
-
-          final CType parameterType = parameterExpressions.get(0).getExpressionType();
-          final Value parameter = parameterValues.get(0);
-
-          if (parameterType instanceof CSimpleType && !((CSimpleType) parameterType).isSigned()) {
-            return parameter;
-
-          } else if (parameter.isExplicitlyKnown()) {
-            assert parameter.isNumericValue();
-            final double absoluteValue = Math.abs(((NumericValue) parameter).doubleValue());
-
-            // absolute value for INT_MIN is undefined behaviour, so we do not bother handling it
-            // in any specific way
-            return new NumericValue(absoluteValue);
-          }
-
-        } else if (BuiltinFunctions.isHugeVal(functionName)
-            || BuiltinFunctions.isInfinity(functionName)) {
-
-          assert parameterValues.isEmpty();
-          if (BuiltinFunctions.isHugeValFloat(functionName)
-              || BuiltinFunctions.isInfinityFloat(functionName)) {
-
-            return new NumericValue(Float.POSITIVE_INFINITY);
-
-          } else {
-            assert BuiltinFunctions.isInfinityDouble(functionName)
-                || BuiltinFunctions.isInfinityLongDouble(functionName)
-                || BuiltinFunctions.isHugeValDouble(functionName)
-                || BuiltinFunctions.isHugeValLongDouble(functionName)
-                : " Unhandled builtin function for infinity: " + functionName;
-
-            return new NumericValue(Double.POSITIVE_INFINITY);
-          }
-
-        } else if (BuiltinFunctions.isNaN(functionName)) {
-          assert parameterValues.isEmpty() || parameterValues.size() == 1;
-
-          if (BuiltinFunctions.isNaNFloat(functionName)) {
-            return new NumericValue(Float.NaN);
-          } else {
-            assert BuiltinFunctions.isNaNDouble(functionName)
-                || BuiltinFunctions.isNaNLongDouble(functionName)
-                : "Unhandled builtin function for NaN: " + functionName;
-
-            return new NumericValue(Double.NaN);
-          }
-        }
-      }
-    }
-
-    return Value.UnknownValue.getInstance();
-  }
-
-  private boolean isUnspecifiedType(CType pType) {
-    return pType instanceof CSimpleType
-        && ((CSimpleType) pType).getType() == CBasicType.UNSPECIFIED;
-  }
-
-  @Override
   protected Value evaluateCIdExpression(CIdExpression varName) {
     return evaluateAIdExpression(varName);
   }
@@ -196,11 +101,11 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     final MemoryLocation memLoc;
 
     if (varName.getDeclaration() != null) {
-      memLoc = MemoryLocation.valueOf(varName.getDeclaration().getQualifiedName(), 0);
+      memLoc = MemoryLocation.valueOf(varName.getDeclaration().getQualifiedName());
     } else if (!ForwardingTransferRelation.isGlobal(varName)) {
-      memLoc = MemoryLocation.valueOf(getFunctionName(), varName.getName(), 0);
+      memLoc = MemoryLocation.valueOf(getFunctionName(), varName.getName());
     } else {
-      memLoc = MemoryLocation.valueOf(varName.getName(), 0);
+      memLoc = MemoryLocation.valueOf(varName.getName());
     }
 
     if (readableState.contains(memLoc)) {
@@ -219,10 +124,16 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     }
 
     if (getState().contains(varLoc)) {
-      return readableState.getValueFor(varLoc);
-    } else {
-      return Value.UnknownValue.getInstance();
+
+      Type actualType = readableState.getTypeForMemoryLocation(varLoc);
+      CType readType = pLValue.getExpressionType();
+      MachineModel machineModel = getMachineModel();
+      if (!(actualType instanceof CType)
+          || machineModel.getSizeof(readType) == machineModel.getSizeof((CType) actualType)) {
+        return readableState.getValueFor(varLoc);
+      }
     }
+    return Value.UnknownValue.getInstance();
   }
 
   @Override
@@ -257,7 +168,6 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
    * @param pMemberName the name of the member to return the memory location for
    * @param pStructType the type of the struct
    * @return the memory location of the struct member
-   * @throws UnrecognizedCCodeException
    */
   public MemoryLocation evaluateRelativeMemLocForStructMember(MemoryLocation pStartLocation,
       String pMemberName, CCompositeType pStructType) throws UnrecognizedCCodeException {
@@ -266,6 +176,15 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
 
     return locationEvaluator.getStructureFieldLocationFromRelativePoint(
         pStartLocation, pMemberName, pStructType);
+  }
+
+  public MemoryLocation evaluateMemLocForArraySlot(
+      final MemoryLocation pArrayStartLocation,
+      final int pSlotNumber,
+      final CArrayType pArrayType) {
+    MemoryLocationEvaluator locationEvaluator = new MemoryLocationEvaluator(this);
+
+    return locationEvaluator.getArraySlotLocationFromArrayStart(pArrayStartLocation, pSlotNumber, pArrayType);
   }
 
   private static class MemoryLocationEvaluator extends DefaultCExpressionVisitor<MemoryLocation, UnrecognizedCCodeException> {
@@ -312,7 +231,7 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
         return null;
       }
 
-      long typeSize = evv.getSizeof(elementType);
+      long typeSize = evv.getBitSizeof(elementType);
 
       long subscriptOffset = subscriptValue.asNumericValue().longValue() * typeSize;
 
@@ -353,75 +272,83 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
 
       CType canonicalOwnerType = pOwnerType.getCanonicalType();
 
-      Integer offset = getFieldOffset(canonicalOwnerType, pFieldName);
+      OptionalInt offset = getFieldOffsetInBits(canonicalOwnerType, pFieldName);
 
-      if (offset == null) {
+      if (!offset.isPresent()) {
         return null;
       }
+
+      long baseOffset = pStartLocation.isReference() ? pStartLocation.getOffset() : 0;
 
       if (pStartLocation.isOnFunctionStack()) {
 
-        return MemoryLocation.valueOf(pStartLocation.getFunctionName(),
-            pStartLocation.getIdentifier(),
-            pStartLocation.getOffset() + offset);
+        return MemoryLocation.valueOf(
+            pStartLocation.getFunctionName(), pStartLocation.getIdentifier(), baseOffset + offset.getAsInt());
       } else {
 
-        return MemoryLocation.valueOf(pStartLocation.getIdentifier(),
-            offset + pStartLocation.getOffset());
+        return MemoryLocation.valueOf(pStartLocation.getIdentifier(), baseOffset + offset.getAsInt());
       }
     }
 
-    private Integer getFieldOffset(CType ownerType, String fieldName) throws UnrecognizedCCodeException {
+    private OptionalInt getFieldOffsetInBits(CType ownerType, String fieldName)
+        throws UnrecognizedCCodeException {
 
       if (ownerType instanceof CElaboratedType) {
-        return getFieldOffset(((CElaboratedType) ownerType).getRealType(), fieldName);
+        return getFieldOffsetInBits(((CElaboratedType) ownerType).getRealType(), fieldName);
       } else if (ownerType instanceof CCompositeType) {
-        return getFieldOffset((CCompositeType) ownerType, fieldName);
+        return evv.getMachineModel().getFieldOffsetInBits((CCompositeType) ownerType, fieldName);
       } else if (ownerType instanceof CPointerType) {
         evv.missingPointer = true;
-        return null;
+        return OptionalInt.empty();
+      } else if (ownerType instanceof CProblemType) {
+         /*
+          * At this point CProblemType should not occur
+          * unless the parsing of the automaton for
+          * Counterexample-check failed to determine
+          * the type of an assumptions operand.
+          *
+          * This is unfortunate but not as critical as
+          * letting CPAchecker crash here.
+          */
+         return OptionalInt.empty();
       }
 
       throw new AssertionError();
     }
 
-    private Integer getFieldOffset(CCompositeType ownerType, String fieldName) {
+    protected MemoryLocation getArraySlotLocationFromArrayStart(
+        final MemoryLocation pArrayStartLocation,
+        final int pSlotNumber,
+        final CArrayType pArrayType) {
 
-      List<CCompositeTypeMemberDeclaration> membersOfType = ownerType.getMembers();
+      long typeSize = evv.getBitSizeof(pArrayType.getType());
+      long offset = typeSize * pSlotNumber;
+      long baseOffset = pArrayStartLocation.isReference() ? pArrayStartLocation.getOffset() : 0;
 
-      int offset = 0;
+      if (pArrayStartLocation.isOnFunctionStack()) {
 
-      for (CCompositeTypeMemberDeclaration typeMember : membersOfType) {
-        String memberName = typeMember.getName();
-
-        if (memberName.equals(fieldName)) {
-          return offset;
-        }
-
-        if (!(ownerType.getKind() == ComplexTypeKind.UNION)) {
-
-          CType fieldType = typeMember.getType().getCanonicalType();
-
-          offset = (int) (offset + evv.getSizeof(fieldType));
-        }
+        return MemoryLocation.valueOf(
+            pArrayStartLocation.getFunctionName(),
+            pArrayStartLocation.getIdentifier(),
+            baseOffset + offset);
+      } else {
+        return MemoryLocation.valueOf(pArrayStartLocation.getIdentifier(), baseOffset + offset);
       }
-
-      return null;
     }
 
     @Override
     public MemoryLocation visit(CIdExpression idExp) throws UnrecognizedCCodeException {
 
       if (idExp.getDeclaration() != null) {
-        return MemoryLocation.valueOf(idExp.getDeclaration().getQualifiedName(), 0);
+        return MemoryLocation.valueOf(idExp.getDeclaration().getQualifiedName());
       }
 
       boolean isGlobal = ForwardingTransferRelation.isGlobal(idExp);
 
       if (isGlobal) {
-        return MemoryLocation.valueOf(idExp.getName(), 0);
+        return MemoryLocation.valueOf(idExp.getName());
       } else {
-        return MemoryLocation.valueOf(evv.getFunctionName(), idExp.getName(), 0);
+        return MemoryLocation.valueOf(evv.getFunctionName(), idExp.getName());
       }
     }
 

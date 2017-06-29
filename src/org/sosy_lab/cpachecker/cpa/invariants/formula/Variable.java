@@ -23,59 +23,81 @@
  */
 package org.sosy_lab.cpachecker.cpa.invariants.formula;
 
+import com.google.common.base.Predicate;
 
-public class Variable<ConstantType> extends AbstractFormula<ConstantType> implements InvariantsFormula<ConstantType> {
+import org.sosy_lab.cpachecker.cpa.invariants.TypeInfo;
+import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
-  private final String name;
+import java.util.Objects;
 
-  private Variable(String name) {
-    this.name = name;
+
+public class Variable<ConstantType> extends AbstractFormula<ConstantType> implements NumeralFormula<ConstantType> {
+
+  private final MemoryLocation memoryLocation;
+
+  private Variable(TypeInfo pInfo, MemoryLocation pMemoryLocation) {
+    super(pInfo);
+    this.memoryLocation = pMemoryLocation;
   }
 
-  public String getName() {
-    return this.name;
+  public MemoryLocation getMemoryLocation() {
+    return this.memoryLocation;
   }
 
   @Override
   public String toString() {
-    return getName();
+    return getMemoryLocation().getAsSimpleString();
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object pOther) {
+    if (this == pOther) {
       return true;
     }
-    if (o instanceof Variable) {
-      return getName().equals(((Variable<?>) o).getName());
+    if (pOther instanceof Variable) {
+      Variable<?> other = (Variable<?>) pOther;
+      return getTypeInfo().equals(other.getTypeInfo())
+          && getMemoryLocation().equals(other.getMemoryLocation());
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return getName().hashCode();
+    return Objects.hash(getTypeInfo(), getMemoryLocation());
   }
 
   @Override
-  public <ReturnType> ReturnType accept(InvariantsFormulaVisitor<ConstantType, ReturnType> pVisitor) {
+  public <ReturnType> ReturnType accept(NumeralFormulaVisitor<ConstantType, ReturnType> pVisitor) {
     return pVisitor.visit(this);
   }
 
   @Override
   public <ReturnType, ParamType> ReturnType accept(
-      ParameterizedInvariantsFormulaVisitor<ConstantType, ParamType, ReturnType> pVisitor, ParamType pParameter) {
+      ParameterizedNumeralFormulaVisitor<ConstantType, ParamType, ReturnType> pVisitor, ParamType pParameter) {
     return pVisitor.visit(this, pParameter);
   }
 
   /**
-   * Gets an invariants formula representing the variable with the given name.
+   * Gets an invariants formula representing the variable with the given memory location.
    *
-   * @param pName the name of the variable.
+   * @param pInfo the type information.
+   * @param pMemoryLocation the memory location of the variable.
    *
-   * @return an invariants formula representing the variable with the given name.
+   * @return an invariants formula representing the variable with the given memory location.
    */
-  static <ConstantType> Variable<ConstantType> of(String pName) {
-    return new Variable<>(pName);
+  static <ConstantType> Variable<ConstantType> of(TypeInfo pInfo, MemoryLocation pMemoryLocation) {
+    return new Variable<>(pInfo, pMemoryLocation);
+  }
+
+  public static <ConstantType> Predicate<NumeralFormula<ConstantType>> convert(Predicate<? super MemoryLocation> pPredicate) {
+    return new Predicate<NumeralFormula<ConstantType>>() {
+
+      @Override
+      public boolean apply(NumeralFormula<ConstantType> pFormula) {
+        return pFormula instanceof Variable && pPredicate.apply(((Variable<?>) pFormula).getMemoryLocation());
+      }
+
+    };
   }
 }

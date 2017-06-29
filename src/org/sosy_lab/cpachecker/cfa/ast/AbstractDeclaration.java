@@ -32,11 +32,12 @@ import org.sosy_lab.cpachecker.cfa.types.Type;
  * This excludes for examples function parameter declarations and struct members.
  * It includes local and global variables and types, as well as functions.
  * This class is only SuperClass of all abstract Classes and their Subclasses.
- * The Interface {@link IADeclarations} contains all language specific
+ * The Interface {@link ADeclaration} contains all language specific
  * AST Nodes as well.
  */
 public abstract class AbstractDeclaration extends AbstractSimpleDeclaration implements ADeclaration {
 
+  private static final long serialVersionUID = 3218969369130423033L;
   private final boolean isGlobal;
 
   public AbstractDeclaration(FileLocation pFileLocation,  boolean pIsGlobal, Type pType, String pName) {

@@ -27,12 +27,16 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.EXTRACT_LOCATION;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -46,14 +50,11 @@ import org.sosy_lab.cpachecker.cfa.model.AssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
-import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
+import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.reachedset.ForwardingReachedSet;
-import org.sosy_lab.cpachecker.core.reachedset.LocationMappedReachedSet;
-import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
-import org.sosy_lab.cpachecker.util.CFAUtils;
-
-import com.google.common.collect.Lists;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 
 /**
  * Class responsible for extracting coverage information from ReachedSet and CFA
@@ -76,42 +77,24 @@ public class CoverageReport {
 
     this.reportWriters = Lists.newArrayList();
     this.reportWriters.add(new CoverageReportGcov(pConfig, pLogger));
-    this.reportWriters.add(new CoverageReportStdoutSummary(pConfig, pLogger));
+    this.reportWriters.add(new CoverageReportStdoutSummary(pConfig));
 
   }
 
   public void writeCoverageReport(
       final PrintStream pStatisticsOutput,
-      final Result pResult,
-      final ReachedSet pReached,
+      final UnmodifiableReachedSet pReached,
       final CFA pCfa) {
 
     if (!enabled) {
       return;
     }
 
-    Set<CFANode> reachedLocations = getAllLocationsFromReached(pReached);
+    Multiset<FunctionEntryNode> reachedLocations = getFunctionEntriesFromReached(pReached);
 
     Map<String, FileCoverageInformation> infosPerFile = new HashMap<>();
 
-    //Add information about visited locations
-    for (CFANode node : pCfa.getAllNodes()) {
-       //This part adds lines, which are only on edges, such as "return" or "goto"
-      for (CFAEdge edge : CFAUtils.leavingEdges(node)) {
-        boolean visited = reachedLocations.contains(edge.getPredecessor())
-            && reachedLocations.contains(edge.getSuccessor());
-
-        if (edge instanceof MultiEdge) {
-          for (CFAEdge innerEdge : ((MultiEdge)edge).getEdges()) {
-            handleEdgeCoverage(innerEdge, visited, infosPerFile);
-          }
-        } else {
-          handleEdgeCoverage(edge, visited, infosPerFile);
-        }
-      }
-    }
-
-    // Add information about visited functions
+    // Add information about existing functions
     for (FunctionEntryNode entryNode : pCfa.getAllFunctionHeads()) {
       final FileLocation loc = entryNode.getFileLocation();
       if (loc.getStartingLineNumber() == 0) {
@@ -122,12 +105,54 @@ public class CoverageReport {
       final FileCoverageInformation infos = getFileInfoTarget(loc, infosPerFile);
 
       final int startingLine = loc.getStartingLineInOrigin();
-      final int endingLine = loc.getEndingLineNumber() - loc.getStartingLineNumber() + loc.getStartingLineInOrigin();
+      final int endingLine = loc.getEndingLineInOrigin();
 
       infos.addExistingFunction(functionName, startingLine, endingLine);
 
       if (reachedLocations.contains(entryNode)) {
-        infos.addVisitedFunction(functionName);
+        infos.addVisitedFunction(entryNode.getFunctionName(), reachedLocations.count(entryNode));
+      }
+    }
+
+    //Add information about existing locations
+    for (CFANode node : pCfa.getAllNodes()) {
+      for (int i = 0; i < node.getNumLeavingEdges(); i++) {
+        handleExistedEdge(node.getLeavingEdge(i), infosPerFile);
+      }
+    }
+
+    Set<CFANode> reachedNodes = from(pReached)
+                                .transform(EXTRACT_LOCATION)
+                                .filter(notNull())
+                                .toSet();
+    //Add information about visited locations
+    for (AbstractState state : pReached) {
+      ARGState argState = AbstractStates.extractStateByType(state, ARGState.class);
+      if (argState != null ) {
+        for (ARGState child : argState.getChildren()) {
+          // Do not specially check child.isCovered, as the edge to covered state also should be marked as covered edge
+          List<CFAEdge> edges = argState.getEdgesToChild(child);
+          if (edges.size() > 1) {
+            for (CFAEdge innerEdge : edges) {
+              handleCoveredEdge(innerEdge, infosPerFile);
+            }
+
+            //BAM produces paths with no edge connection thus the list will be empty
+          } else if (!edges.isEmpty()) {
+            handleCoveredEdge(Iterables.getOnlyElement(edges), infosPerFile);
+          }
+        }
+      } else {
+        //Simple kind of analysis
+        //Cover all edges from reached nodes
+        //It is less precise, but without ARG it is impossible to know what path we chose
+        CFANode node = AbstractStates.extractLocation(state);
+        for (int i = 0; i < node.getNumLeavingEdges(); i++) {
+          CFAEdge edge = node.getLeavingEdge(i);
+          if (reachedNodes.contains(edge.getSuccessor())) {
+            handleCoveredEdge(edge, infosPerFile);
+          }
+        }
       }
     }
 
@@ -137,9 +162,8 @@ public class CoverageReport {
 
   }
 
-  private void handleEdgeCoverage(
+  private void handleExistedEdge(
       final CFAEdge pEdge,
-      final boolean pVisited,
       final Map<String, FileCoverageInformation> pCollectors) {
 
     final FileLocation loc = pEdge.getFileLocation();
@@ -155,27 +179,36 @@ public class CoverageReport {
 
     final FileCoverageInformation collector = getFileInfoTarget(loc, pCollectors);
 
-    final int startingLine = loc.getStartingLineInOrigin();
-    final int endingLine = loc.getEndingLineNumber() - loc.getStartingLineNumber() + loc.getStartingLineInOrigin();
-
-    for (int line = startingLine; line <= endingLine; line++) {
-      collector.addExistingLine(line);
+    if (pEdge instanceof AssumeEdge) {
+      collector.addExistingAssume((AssumeEdge) pEdge);
     }
+
+    //Do not extract lines from edge - there are not origin lines
+    collector.addExistingLine(loc.getStartingLineInOrigin());
+  }
+
+
+  private void handleCoveredEdge(
+      final CFAEdge pEdge,
+      final Map<String, FileCoverageInformation> pCollectors) {
+
+    FileLocation loc = pEdge.getFileLocation();
+    if (loc.getStartingLineNumber() == 0) {
+      return;
+    }
+    if (pEdge instanceof ADeclarationEdge
+        && (((ADeclarationEdge)pEdge).getDeclaration() instanceof AFunctionDeclaration)) {
+      return;
+    }
+
+    final FileCoverageInformation collector = getFileInfoTarget(loc, pCollectors);
 
     if (pEdge instanceof AssumeEdge) {
-      if (pVisited) {
-        collector.addExistingAssume((AssumeEdge) pEdge);
-        collector.addVisitedAssume((AssumeEdge) pEdge);
-      } else {
-        collector.addExistingAssume((AssumeEdge) pEdge);
-      }
+      collector.addVisitedAssume((AssumeEdge) pEdge);
     }
 
-    if (pVisited) {
-      for (int line = startingLine; line <= endingLine; line++) {
-        collector.addVisitedLine(line);
-      }
-    }
+    //Do not extract lines from edge - there are not origin lines
+    collector.addVisitedLine(loc.getStartingLineInOrigin());
   }
 
   private FileCoverageInformation getFileInfoTarget(
@@ -195,20 +228,15 @@ public class CoverageReport {
     return fileInfos;
   }
 
-  private Set<CFANode> getAllLocationsFromReached(ReachedSet pReached) {
+  private Multiset<FunctionEntryNode> getFunctionEntriesFromReached(UnmodifiableReachedSet pReached) {
     if (pReached instanceof ForwardingReachedSet) {
-      pReached = ((ForwardingReachedSet)pReached).getDelegate();
+      pReached = ((ForwardingReachedSet) pReached).getDelegate();
     }
-
-    if (pReached instanceof LocationMappedReachedSet) {
-      return ((LocationMappedReachedSet)pReached).getLocations();
-
-    } else {
-      return from(pReached)
-                  .transform(EXTRACT_LOCATION)
-                  .filter(notNull())
-                  .toSet();
-    }
+    return HashMultiset.create(from(pReached)
+                .transform(EXTRACT_LOCATION)
+                .filter(notNull())
+                .filter(FunctionEntryNode.class)
+                .toList());
   }
 
 }

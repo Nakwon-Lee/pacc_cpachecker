@@ -23,14 +23,15 @@
  */
 package org.sosy_lab.cpachecker.cpa.predicate.relevantpredicates;
 
-import java.util.Set;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSetMultimap.Builder;
+import com.google.common.collect.Sets;
 
 import org.sosy_lab.cpachecker.cfa.blocks.Block;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionPredicate;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import java.util.Set;
 
 
 /**
@@ -39,10 +40,17 @@ import com.google.common.collect.SetMultimap;
 
 public class RefineableOccurrenceComputer extends OccurrenceComputer implements RefineableRelevantPredicatesComputer {
 
-  private final SetMultimap<Block, AbstractionPredicate> definitelyRelevantPredicates = HashMultimap.create();
+  private final ImmutableSetMultimap<Block, AbstractionPredicate> definitelyRelevantPredicates;
 
   public RefineableOccurrenceComputer(FormulaManagerView pFmgr) {
     super(pFmgr);
+    definitelyRelevantPredicates = ImmutableSetMultimap.of();
+  }
+
+  private RefineableOccurrenceComputer(FormulaManagerView pFmgr,
+      ImmutableSetMultimap<Block, AbstractionPredicate> pDefinitelyRelevantPredicates) {
+    super(pFmgr);
+    definitelyRelevantPredicates = pDefinitelyRelevantPredicates;
   }
 
   @Override
@@ -56,9 +64,41 @@ public class RefineableOccurrenceComputer extends OccurrenceComputer implements 
   }
 
   @Override
-  public void considerPredicateAsRelevant(Block pBlock,
-      AbstractionPredicate pPredicate) {
-    definitelyRelevantPredicates.put(pBlock, pPredicate);
-    CachingRelevantPredicatesComputer.removeCacheEntriesForBlock(pBlock, relevantPredicates);
+  public RefineableOccurrenceComputer considerPredicatesAsRelevant(
+      Block block, Set<AbstractionPredicate> predicates) {
+
+    Set<AbstractionPredicate> newPreds = Sets.difference(predicates, definitelyRelevantPredicates.get(block));
+
+    if (newPreds.isEmpty()) {
+      return this;
+    }
+
+    Builder<Block, AbstractionPredicate> builder = ImmutableSetMultimap.builder();
+    builder.putAll(definitelyRelevantPredicates);
+    builder.putAll(block, newPreds);
+    return new RefineableOccurrenceComputer(fmgr, builder.build());
+  }
+
+  @Override
+  public String toString() {
+    return "RefineableOccurrenceComputer (" + definitelyRelevantPredicates + ")";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == this) {
+      return true;
+    }
+    if (o instanceof RefineableOccurrenceComputer) {
+      RefineableOccurrenceComputer other = (RefineableOccurrenceComputer) o;
+      return definitelyRelevantPredicates.equals(other.definitelyRelevantPredicates)
+          && super.equals(o);
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() * 17 + definitelyRelevantPredicates.hashCode();
   }
 }

@@ -23,12 +23,11 @@
  */
 package org.sosy_lab.cpachecker.cpa.value.symbolic.type;
 
-import java.io.Serializable;
-
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
-import com.google.common.base.Optional;
+import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Marker interface for symbolic values.
@@ -46,4 +45,10 @@ public interface SymbolicValue extends Value, Serializable {
   Optional<MemoryLocation> getRepresentedLocation();
 
   SymbolicValue copyForLocation(MemoryLocation pLocation);
+
+  /**
+   * Returns a string representation of this symbolic value with symbolic expressions representing
+   * a certain memory locations replaced with these locations.
+   */
+  String getRepresentation();
 }

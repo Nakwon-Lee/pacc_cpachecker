@@ -25,11 +25,13 @@ package org.sosy_lab.cpachecker.pcc.strategy.arg;
 
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
 
+import com.google.common.base.Preconditions;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
-
+import javax.annotation.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -50,10 +52,15 @@ public abstract class AbstractARGStrategy extends SequentialReadStrategy {
   private final ShutdownNotifier shutdownNotifier;
 
   public AbstractARGStrategy(Configuration pConfig, LogManager pLogger, PropertyChecker pPropertyChecker,
-      ShutdownNotifier pShutdownNotifier) throws InvalidConfigurationException {
-    super(pConfig, pLogger);
+      ShutdownNotifier pShutdownNotifier, Path pProofFile) throws InvalidConfigurationException {
+    super(pConfig, pLogger, pProofFile);
     propChecker = pPropertyChecker;
     shutdownNotifier = pShutdownNotifier;
+  }
+
+  public ARGState getARG() {
+    Preconditions.checkNotNull(root);
+    return root;
   }
 
   @Override
@@ -80,7 +87,7 @@ public abstract class AbstractARGStrategy extends SequentialReadStrategy {
   }
 
 
-  protected boolean checkCertificate(ReachedSet pReachedSet, ARGState pRoot, List<ARGState> incompleteStates)
+  protected boolean checkCertificate(ReachedSet pReachedSet, ARGState pRoot, @Nullable List<ARGState> incompleteStates)
       throws CPAException, InterruptedException {
   //TODO does not account for strengthen yet (proof check will fail if strengthen is needed to explain successor states)
     initChecking(pRoot);
@@ -111,6 +118,10 @@ public abstract class AbstractARGStrategy extends SequentialReadStrategy {
         logger.log(Level.FINE, "Looking at state", state);
 
         if (!checkForStatePropertyAndOtherStateActions(state)) {
+          if(incompleteStates != null) {
+            incompleteStates.add(state);
+            continue;
+          }
           logger.log(Level.INFO, "Property violation at state", state);
           return false;
         }
@@ -123,6 +134,7 @@ public abstract class AbstractARGStrategy extends SequentialReadStrategy {
       }
     }while (!isCheckComplete());
 
+    stats.increaseProofSize(pReachedSet.size()-1);
     return isCheckSuccessful();
   }
 
@@ -152,7 +164,7 @@ public abstract class AbstractARGStrategy extends SequentialReadStrategy {
   }
 
   private boolean checkAndAddSuccessors(final ARGState pPredecessor, final ReachedSet pReachedSet,
-      final Precision pPrecision, List<ARGState> pIncompleteStates)
+      final Precision pPrecision, @Nullable List<ARGState> pIncompleteStates)
       throws InterruptedException, CPAException {
    stats.getTransferTimer().start();
     Collection<ARGState> successors = pPredecessor.getChildren();

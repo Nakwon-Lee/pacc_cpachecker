@@ -25,6 +25,16 @@ package org.sosy_lab.cpachecker.util.predicates;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableSet;
+
+import org.sosy_lab.common.UniqueIdGenerator;
+import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
+import org.sosy_lab.cpachecker.util.predicates.regions.Region;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.BooleanFormulaManager;
+
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -32,16 +42,6 @@ import java.io.Serializable;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-
-import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
-import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.Region;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
-import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Instances of this class should hold a state formula (the result of an
@@ -73,6 +73,7 @@ public class AbstractionFormula implements Serializable {
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
   private final transient int id = idGenerator.getFreshId();
   private final transient BooleanFormulaManager mgr;
+  private final transient FormulaManagerView fMgr;
   private final transient ImmutableSet<Integer> idsOfStoredAbstractionReused;
 
   public AbstractionFormula(
@@ -80,6 +81,7 @@ public class AbstractionFormula implements Serializable {
       Region pRegion, BooleanFormula pFormula,
       BooleanFormula pInstantiatedFormula, PathFormula pBlockFormula,
       Set<Integer> pIdOfStoredAbstractionReused) {
+    this.fMgr = checkNotNull(mgr);
     this.mgr = checkNotNull(mgr.getBooleanFormulaManager());
     this.region = checkNotNull(pRegion);
     this.formula = checkNotNull(pFormula);
@@ -109,6 +111,10 @@ public class AbstractionFormula implements Serializable {
    */
   public BooleanFormula asFormula() {
     return formula;
+  }
+
+  public BooleanFormula asFormulaFromOtherSolver(FormulaManagerView pMgr) {
+    return pMgr.translateFrom(formula, fMgr);
   }
 
   /**
@@ -146,8 +152,11 @@ public class AbstractionFormula implements Serializable {
     return new SerializationProxy(this);
   }
 
-  private void readObject(ObjectInputStream in)
-      throws IOException, ClassNotFoundException {
+  /**
+   * javadoc to remove unused parameter warning
+   * @param in an input stream
+   */
+  private void readObject(ObjectInputStream in) throws IOException {
     throw new InvalidObjectException("Proxy required");
   }
 
@@ -157,20 +166,20 @@ public class AbstractionFormula implements Serializable {
     private final PathFormula blockFormula;
 
     public SerializationProxy(AbstractionFormula pAbstractionFormula) {
-      FormulaManagerView mgr = GlobalInfo.getInstance().getFormulaManagerView();
+      FormulaManagerView mgr = GlobalInfo.getInstance().getPredicateFormulaManagerView();
       instantiatedFormulaDump = mgr.dumpFormula(
           pAbstractionFormula.asInstantiatedFormula()).toString();
       blockFormula = pAbstractionFormula.getBlockFormula();
     }
 
     private Object readResolve() {
-      FormulaManagerView mgr = GlobalInfo.getInstance().getFormulaManagerView();
+      FormulaManagerView mgr = GlobalInfo.getInstance().getPredicateFormulaManagerView();
       BooleanFormula instantiatedFormula = mgr.parse(instantiatedFormulaDump);
       BooleanFormula notInstantiated = mgr.uninstantiate(instantiatedFormula);
       return new AbstractionFormula(
           mgr,
           GlobalInfo.getInstance().getAbstractionManager()
-          .buildRegionFromFormulaWithUnknownAtoms(notInstantiated), notInstantiated,
+          .convertFormulaToRegion(notInstantiated), notInstantiated,
           instantiatedFormula, blockFormula, ImmutableSet.<Integer> of());
     }
   }

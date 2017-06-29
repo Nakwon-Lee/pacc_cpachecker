@@ -23,12 +23,6 @@
  */
 package org.sosy_lab.cpachecker.cpa.chc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.AExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAssignment;
@@ -42,7 +36,6 @@ import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.FunctionCallEdge;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionReturnEdge;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CDeclarationEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.core.defaults.SingleEdgeTransferRelation;
@@ -51,6 +44,12 @@ import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCFAEdgeException;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
 
 
 public class CHCTransferRelation extends SingleEdgeTransferRelation {
@@ -73,32 +72,24 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
       "to " +   cfaEdge.getSuccessor().getNodeNumber() + ".");
 
     CHCState currentState = (CHCState)state;
-    CHCPrecision crPrecision = (CHCPrecision)precision;
 
     CHCState newState = null;
 
     switch (cfaEdge.getEdgeType()) {
 
     case AssumeEdge:
-      return handleAssumeEdge(currentState, crPrecision, (AssumeEdge)cfaEdge);
+      return handleAssumeEdge(currentState, (AssumeEdge)cfaEdge);
 
     case FunctionCallEdge:
-      newState = handleFunctionCallEdge(currentState, crPrecision, (FunctionCallEdge)cfaEdge);
+      newState = handleFunctionCallEdge(currentState, (FunctionCallEdge)cfaEdge);
       break;
 
     case FunctionReturnEdge:
-      newState = handleFunctionReturnEdge(currentState, crPrecision, (FunctionReturnEdge)cfaEdge);
-      break;
-
-    case MultiEdge:
-      MultiEdge me = (MultiEdge) cfaEdge;
-      for (CFAEdge innerEdge : me) {
-        newState = handleSimpleEdge(currentState, crPrecision, innerEdge);
-      }
+      newState = handleFunctionReturnEdge(currentState, (FunctionReturnEdge)cfaEdge);
       break;
 
     default:
-      newState = handleSimpleEdge(currentState, crPrecision, cfaEdge);
+      newState = handleSimpleEdge(currentState, cfaEdge);
     }
 
     if (newState == null) {
@@ -109,8 +100,7 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
   }
 
 
-  private Collection<CHCState> handleAssumeEdge(CHCState currentState,
-      CHCPrecision crPrecision, AssumeEdge cfaEdge) {
+  private Collection<CHCState> handleAssumeEdge(CHCState currentState, AssumeEdge cfaEdge) {
     ArrayList<Constraint> cns = ConstraintManager.getConstraint(cfaEdge);
     return createStatesFromConstraints(
         currentState,
@@ -151,7 +141,7 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
 
 
   /** handler for simple edges */
-  private CHCState handleSimpleEdge(CHCState state, CHCPrecision prec, CFAEdge cfaEdge)
+  private CHCState handleSimpleEdge(CHCState state, CFAEdge cfaEdge)
     throws CPATransferException {
 
     CHCState newState = new CHCState(state);
@@ -163,7 +153,7 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
       return newState;
 
     case StatementEdge:
-      return handleStatementEdge(state, prec, (CStatementEdge) cfaEdge);
+      return handleStatementEdge(state, (CStatementEdge) cfaEdge);
 
     case ReturnStatementEdge:
       newState.setNodeNumber(cfaEdge.getSuccessor().getNodeNumber());
@@ -182,7 +172,7 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
 
   /** This function handles statements like "a = 0;" and "b = !a;" and
    * calls of external functions. */
-  private CHCState handleStatementEdge(CHCState state, CHCPrecision prec, CStatementEdge cfaEdge) {
+  private CHCState handleStatementEdge(CHCState state, CStatementEdge cfaEdge) {
 
     CHCState newState = new CHCState(state);
     newState.setNodeNumber(cfaEdge.getSuccessor().getNodeNumber());
@@ -212,7 +202,7 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
   }
 
 
-  private CHCState handleFunctionCallEdge(CHCState state, CHCPrecision prec, FunctionCallEdge fcallEdge) {
+  private CHCState handleFunctionCallEdge(CHCState state, FunctionCallEdge fcallEdge) {
 
     FunctionEntryNode functionEntryNode = fcallEdge.getSuccessor();
     List<String> paramNames = functionEntryNode.getFunctionParameterNames();
@@ -234,7 +224,7 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
   }
 
 
-  private CHCState handleFunctionReturnEdge(CHCState state, CHCPrecision prec, FunctionReturnEdge fRetEdge)
+  private CHCState handleFunctionReturnEdge(CHCState state, FunctionReturnEdge fRetEdge)
     throws UnrecognizedCCodeException {
 
     CHCState newState = new CHCState(state.getCaller());
@@ -248,11 +238,4 @@ public class CHCTransferRelation extends SingleEdgeTransferRelation {
 
     return newState;
   }
-
-  @Override
-  public Collection<? extends AbstractState> strengthen(AbstractState pState, List<AbstractState> pOtherStates,
-      CFAEdge pCfaEdge, Precision pPrecision) throws CPATransferException, InterruptedException {
-    return Collections.singleton(pState);
-  }
-
 }

@@ -23,17 +23,18 @@
  */
 package org.sosy_lab.cpachecker.cpa.smg.join;
 
+import com.google.common.collect.Iterators;
+
+import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValue;
+import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValueFilter;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.SMG;
+import org.sosy_lab.cpachecker.cpa.smg.objects.SMGAbstractObject;
+import org.sosy_lab.cpachecker.cpa.smg.objects.SMGObject;
+import org.sosy_lab.cpachecker.cpa.smg.objects.SMGObjectKind;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import org.sosy_lab.cpachecker.cpa.smg.SMG;
-import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValue;
-import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValueFilter;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGAbstractObject;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGObject;
-
-import com.google.common.collect.Iterators;
 
 final class SMGJoinMatchObjects {
   private boolean defined = false;
@@ -48,8 +49,7 @@ final class SMGJoinMatchObjects {
   }
 
   private static boolean checkMatchingMapping(SMGObject pObj1, SMGObject pObj2,
-                                                    SMGNodeMapping pMapping1, SMGNodeMapping pMapping2,
-                                                    SMG pSMG1, SMG pSMG2) {
+                                                    SMGNodeMapping pMapping1, SMGNodeMapping pMapping2) {
     if (pMapping1.containsKey(pObj1) && pMapping2.containsKey(pObj2) &&
         pMapping1.get(pObj1) != pMapping2.get(pObj2)) {
       return true;
@@ -59,8 +59,7 @@ final class SMGJoinMatchObjects {
   }
 
   private static boolean checkConsistentMapping(SMGObject pObj1, SMGObject pObj2,
-                                                      SMGNodeMapping pMapping1, SMGNodeMapping pMapping2,
-                                                      SMG pSMG1, SMG pSMG2) {
+                                                      SMGNodeMapping pMapping1, SMGNodeMapping pMapping2) {
     if ((pMapping1.containsKey(pObj1) && pMapping2.containsValue(pMapping1.get(pObj1))) ||
         (pMapping2.containsKey(pObj2) && pMapping1.containsValue(pMapping2.get(pObj2)))) {
       return true;
@@ -112,7 +111,28 @@ final class SMGJoinMatchObjects {
       //TODO: It should be possible to join some of the different generic shapes, i.e. a SLL
       //      might be a more general segment than a DLL
       if (! (pAbstract1.matchGenericShape(pAbstract2) && pAbstract1.matchSpecificShape(pAbstract2))) {
+
+        /*An optional object can be matched with dll or sll of the same size.*/
+        if(pObj1.getSize() != pObj2.getSize()) {
           return true;
+        }
+
+        switch (pObj1.getKind()) {
+          case OPTIONAL:
+            switch (pObj2.getKind()) {
+              case SLL:
+              case DLL:
+              case OPTIONAL:
+                return false;
+              default:
+                return true;
+            }
+          case SLL:
+          case DLL:
+            return pObj2.getKind() != SMGObjectKind.OPTIONAL;
+          default:
+            return true;
+        }
       }
     }
 
@@ -130,16 +150,26 @@ final class SMGJoinMatchObjects {
       return;
     }
 
-    if (SMGJoinMatchObjects.checkMatchingMapping(pObj1, pObj2, pMapping1, pMapping2, pSMG1, pSMG2)) {
+    if (SMGJoinMatchObjects.checkMatchingMapping(pObj1, pObj2, pMapping1, pMapping2)) {
       return;
     }
 
-    if (SMGJoinMatchObjects.checkConsistentMapping(pObj1, pObj2, pMapping1, pMapping2, pSMG1, pSMG2)) {
+    if (SMGJoinMatchObjects.checkConsistentMapping(pObj1, pObj2, pMapping1, pMapping2)) {
       return;
     }
 
     if (SMGJoinMatchObjects.checkConsistentObjects(pObj1, pObj2, pSMG1, pSMG2)) {
       return;
+    }
+
+    if (pObj1.getKind() == pObj2.getKind() && pObj1.isAbstract() && pObj2.isAbstract()) {
+
+      SMGAbstractObject l1 = (SMGAbstractObject) pObj1;
+      SMGAbstractObject l2 = (SMGAbstractObject) pObj2;
+
+      if (!l1.matchSpecificShape(l2)) {
+        return;
+      }
     }
 
     if (SMGJoinMatchObjects.checkMatchingAbstractions(pObj1, pObj2)) {
@@ -155,12 +185,17 @@ final class SMGJoinMatchObjects {
   }
 
   private static SMGJoinStatus updateStatusForAbstractions(SMGObject pObj1, SMGObject pObj2, SMGJoinStatus pStatus) {
-    if (pObj1.isMoreGeneral(pObj2)) {
-      return SMGJoinStatus.updateStatus(pStatus, SMGJoinStatus.LEFT_ENTAIL);
-    } else if (pObj2.isMoreGeneral(pObj1)) {
-      return SMGJoinStatus.updateStatus(pStatus, SMGJoinStatus.RIGHT_ENTAIL);
+    SMGJoinStatus result = pStatus;
+
+    if (pObj1.join(pObj2, pObj1.getLevel()).isMoreGeneral(pObj2)) {
+      result = SMGJoinStatus.updateStatus(result, SMGJoinStatus.LEFT_ENTAIL);
     }
-    return pStatus;
+
+    if (pObj2.join(pObj1, pObj2.getLevel()).isMoreGeneral(pObj1)) {
+      result = SMGJoinStatus.updateStatus(result, SMGJoinStatus.RIGHT_ENTAIL);
+    }
+
+    return result;
   }
 
   public SMGJoinStatus getStatus() {

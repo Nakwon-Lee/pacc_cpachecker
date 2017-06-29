@@ -23,28 +23,25 @@
  */
 package org.sosy_lab.cpachecker.cfa.types.c;
 
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
+import java.util.OptionalInt;
+import javax.annotation.Nullable;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIntegerLiteralExpression;
 import org.sosy_lab.cpachecker.cfa.types.AArrayType;
 
-
-public class CArrayType extends AArrayType implements CType, Serializable {
-
+public final class CArrayType extends AArrayType implements CType {
 
   private static final long serialVersionUID = -6314468260643330323L;
 
-  private final CExpression    length;
-  private boolean   isConst;
-  private boolean   isVolatile;
+  private final CExpression length;
+  private final boolean isConst;
+  private final boolean isVolatile;
 
   public CArrayType(boolean pConst, boolean pVolatile,
-      CType pType, CExpression pLength) {
+      CType pType, @Nullable CExpression pLength) {
     super(pType);
     isConst = pConst;
     isVolatile = pVolatile;
@@ -56,12 +53,20 @@ public class CArrayType extends AArrayType implements CType, Serializable {
     return (CType) super.getType();
   }
 
-  public CExpression getLength() {
+  public @Nullable CExpression getLength() {
     return length;
+  }
+
+  /** Return the length of this array if statically known and small enough for an int. */
+  public OptionalInt getLengthAsInt() {
+    return length instanceof CIntegerLiteralExpression
+        ? OptionalInt.of(((CIntegerLiteralExpression) length).getValue().intValueExact())
+        : OptionalInt.empty();
   }
 
   @Override
   public String toASTString(String pDeclarator) {
+    checkNotNull(pDeclarator);
     return (isConst() ? "const " : "")
         + (isVolatile() ? "volatile " : "")
         +  getType().toASTString(pDeclarator+ ("[" + (length != null ? length.toASTString() : "") + "]"))
@@ -76,6 +81,11 @@ public class CArrayType extends AArrayType implements CType, Serializable {
   @Override
   public boolean isVolatile() {
     return isVolatile;
+  }
+
+  @Override
+  public boolean isIncomplete() {
+    return length == null; // C standard § 6.2.5 (22)
   }
 
   @Override
@@ -108,7 +118,7 @@ public class CArrayType extends AArrayType implements CType, Serializable {
    * typedefs in it use #getCanonicalType().equals()
    */
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) {
       return true;
     }
@@ -139,38 +149,12 @@ public class CArrayType extends AArrayType implements CType, Serializable {
 
   @Override
   public CArrayType getCanonicalType(boolean pForceConst, boolean pForceVolatile) {
-    // C11 standard 6.7.2.4 (9) specifies that qualifiers like const and volatile
+    // C11 standard 6.7.3 (9) specifies that qualifiers like const and volatile
     // on an array type always refer to the element type, not the array type.
     // So we push these modifiers down to the element type here.
     return new CArrayType(false, false,
         getType().getCanonicalType(isConst || pForceConst,
                                    isVolatile || pForceVolatile),
         length);
-  }
-
-  private Object writeReplace() {
-    return new SerializationProxy(this);
-  }
-
-  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    throw new InvalidObjectException("Proxy required");
-  }
-
-  private static class SerializationProxy implements Serializable {
-
-    private static final long serialVersionUID = -2013901217157144921L;
-    private final boolean isConst;
-    private final boolean isVolatile;
-    private final CType type;
-
-    public SerializationProxy(CArrayType arrayType) {
-      isConst = arrayType.isConst;
-      isVolatile = arrayType.isVolatile;
-      type = arrayType.getType();
-    }
-
-    private Object readResolve() {
-      return new CArrayType(isConst, isVolatile, type, null);
-    }
   }
 }

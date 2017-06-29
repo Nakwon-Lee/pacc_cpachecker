@@ -23,13 +23,15 @@
  */
 package org.sosy_lab.cpachecker.cfa.types.c;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
-import java.io.Serializable;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 
-public final class CElaboratedType implements CComplexType, Serializable {
+public final class CElaboratedType implements CComplexType {
 
   private static final long serialVersionUID = -3566628634889842927L;
   private final ComplexTypeKind kind;
@@ -38,14 +40,16 @@ public final class CElaboratedType implements CComplexType, Serializable {
   private final boolean isConst;
   private final boolean isVolatile;
 
+  private int hashCache = 0;
+
   private CComplexType realType = null;
 
   public CElaboratedType(boolean pConst, final boolean pVolatile,
       final ComplexTypeKind pKind, final String pName, final String pOrigName,
-      final CComplexType pRealType) {
+      final @Nullable CComplexType pRealType) {
     isConst = pConst;
     isVolatile = pVolatile;
-    kind = pKind;
+    kind = checkNotNull(pKind);
     name = pName.intern();
     origName = pOrigName.intern();
     realType = pRealType;
@@ -81,7 +85,7 @@ public final class CElaboratedType implements CComplexType, Serializable {
    * Get the real type which this type references
    * (either a CCompositeType or a CEnumType, or null if unknown).
    */
-  public CComplexType getRealType() {
+  public @Nullable CComplexType getRealType() {
     if (realType instanceof CElaboratedType) {
       // resolve chains of elaborated types
       return ((CElaboratedType)realType).getRealType();
@@ -108,6 +112,7 @@ public final class CElaboratedType implements CComplexType, Serializable {
 
   @Override
   public String toASTString(String pDeclarator) {
+    checkNotNull(pDeclarator);
     StringBuilder lASTString = new StringBuilder();
 
     if (isConst()) {
@@ -141,12 +146,22 @@ public final class CElaboratedType implements CComplexType, Serializable {
   }
 
   @Override
+  public boolean isIncomplete() {
+    if (realType == null) {
+      return kind != ComplexTypeKind.ENUM; // enums are always complete
+    } else {
+      return realType.isIncomplete();
+    }
+  }
+
+  @Override
   public <R, X extends Exception> R accept(CTypeVisitor<R, X> pVisitor) throws X {
     return pVisitor.visit(this);
   }
 
   @Override
   public int hashCode() {
+    if (hashCache == 0) {
       final int prime = 31;
       int result = 7;
       result = prime * result + Objects.hashCode(isConst);
@@ -154,7 +169,9 @@ public final class CElaboratedType implements CComplexType, Serializable {
       result = prime * result + Objects.hashCode(kind);
       result = prime * result + Objects.hashCode(name);
       result = prime * result + Objects.hashCode(realType);
-      return result;
+      hashCache = result;
+    }
+    return hashCache;
   }
 
   /**
@@ -163,7 +180,7 @@ public final class CElaboratedType implements CComplexType, Serializable {
    * typedefs in it use #getCanonicalType().equals()
    */
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) {
       return true;
     }
@@ -180,7 +197,7 @@ public final class CElaboratedType implements CComplexType, Serializable {
   }
 
   @Override
-  public boolean equalsWithOrigName(Object obj) {
+  public boolean equalsWithOrigName(@Nullable Object obj) {
     if (this == obj) {
       return true;
     }
@@ -206,6 +223,9 @@ public final class CElaboratedType implements CComplexType, Serializable {
   @Override
   public CType getCanonicalType(boolean pForceConst, boolean pForceVolatile) {
     if (realType == null) {
+      if ((isConst == pForceConst) && (isVolatile == pForceVolatile)) {
+        return this;
+      }
       return new CElaboratedType(isConst || pForceConst, isVolatile || pForceVolatile, kind, name, origName, null);
     } else {
       return realType.getCanonicalType(isConst || pForceConst, isVolatile || pForceVolatile);

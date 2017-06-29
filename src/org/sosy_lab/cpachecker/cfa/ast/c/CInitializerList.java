@@ -25,18 +25,17 @@ package org.sosy_lab.cpachecker.cfa.ast.c;
 
 import static com.google.common.collect.Iterables.transform;
 
-import java.util.List;
-import java.util.Objects;
-
-import org.sosy_lab.cpachecker.cfa.ast.AbstractInitializer;
-import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Objects;
+import org.sosy_lab.cpachecker.cfa.ast.AbstractInitializer;
+import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 
 
 public class CInitializerList extends AbstractInitializer implements CInitializer, CAstNode {
 
+  private static final long serialVersionUID = 6601820489208683306L;
   private final List<CInitializer> initializerList;
 
   public CInitializerList(final FileLocation pFileLocation,
@@ -54,7 +53,7 @@ public class CInitializerList extends AbstractInitializer implements CInitialize
     StringBuilder lASTString = new StringBuilder();
 
     lASTString.append("{ ");
-    Joiner.on(", ").appendTo(lASTString, transform(initializerList, CInitializer.TO_AST_STRING));
+    Joiner.on(", ").appendTo(lASTString, transform(initializerList, CInitializer::toASTString));
     lASTString.append(" }");
 
     return lASTString.toString();

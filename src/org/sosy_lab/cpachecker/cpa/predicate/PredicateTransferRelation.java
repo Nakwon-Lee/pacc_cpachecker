@@ -24,15 +24,8 @@
  */
 package org.sosy_lab.cpachecker.cpa.predicate;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.mkNonAbstractionStateWithNewPathFormula;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
 
 import org.sosy_lab.common.collect.PersistentMap;
 import org.sosy_lab.common.configuration.Configuration;
@@ -42,9 +35,6 @@ import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
-import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
-import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpressionCollectorVisitor;
-import org.sosy_lab.cpachecker.cfa.model.AssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.types.c.CProblemType;
@@ -52,21 +42,27 @@ import org.sosy_lab.cpachecker.core.AnalysisDirection;
 import org.sosy_lab.cpachecker.core.defaults.SingleEdgeTransferRelation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithAssumptions;
+import org.sosy_lab.cpachecker.core.interfaces.FormulaReportingState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.cpa.assumptions.storage.AssumptionStorageState;
-import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.ComputeAbstractionState;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionFormula;
 import org.sosy_lab.cpachecker.util.predicates.BlockOperator;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.PathFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.BooleanFormulaManagerView;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormulaManager;
+import org.sosy_lab.cpachecker.util.predicates.smt.BooleanFormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.SolverException;
+import org.sosy_lab.java_smt.api.BooleanFormula;
 
-import com.google.common.base.Optional;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Transfer relation for symbolic predicate abstraction. First it computes
@@ -86,11 +82,14 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
           + "Infeasible paths are already excluded by transfer relation and not later by precision adjustment. This property is required in proof checking.")
   private boolean satCheckAtAbstraction = false;
 
-  @Option(secure=true, description = "check satisfiability when a target state has been found (should be true)")
-  private boolean targetStateSatCheck = true;
+  @Option(secure=true, description = "check satisfiability when a target state has been found")
+  private boolean targetStateSatCheck = false;
 
   @Option(secure=true, description = "do not include assumptions of states into path formula during strengthening")
   private boolean ignoreStateAssumptions = false;
+
+  @Option(secure = true, description = "Use formula reporting states for strengthening.")
+  private boolean strengthenWithFormulaReportingStates = false;
 
   // statistics
   final Timer postTimer = new Timer();
@@ -109,25 +108,29 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
 
   private final BlockOperator blk;
 
-  private final PredicateAssumeStore assumeStore;
-
   private final Map<PredicateAbstractState, PathFormula> computedPathFormulae = new HashMap<>();
 
-  private final FormulaManagerView fmgr;
+  protected final FormulaManagerView fmgr;
   private final BooleanFormulaManagerView bfmgr;
 
   private final AnalysisDirection direction;
 
-  public PredicateTransferRelation(PredicateCPA pCpa, BlockOperator pBlk,
-      Configuration config, AnalysisDirection pDirection) throws InvalidConfigurationException {
+  public PredicateTransferRelation(
+      Configuration config,
+      LogManager pLogger,
+      AnalysisDirection pDirection,
+      FormulaManagerView pFmgr,
+      PathFormulaManager pPfmgr,
+      BlockOperator pBlk,
+      PredicateAbstractionManager pPredAbsManager)
+      throws InvalidConfigurationException {
     config.inject(this, PredicateTransferRelation.class);
 
-    logger = pCpa.getLogger();
-    formulaManager = pCpa.getPredicateManager();
-    pathFormulaManager = pCpa.getPathFormulaManager();
-    fmgr = pCpa.getSolver().getFormulaManager();
+    logger = pLogger;
+    formulaManager = pPredAbsManager;
+    pathFormulaManager = pPfmgr;
+    fmgr = pFmgr;
     bfmgr = fmgr.getBooleanFormulaManager();
-    assumeStore = pCpa.getAssumesStore();
     blk = pBlk;
     direction = pDirection;
   }
@@ -139,10 +142,7 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
 
     postTimer.start();
     try {
-
       PredicateAbstractState element = (PredicateAbstractState) pElement;
-      CFANode loc = getAnalysisSuccesor(edge);
-      CFANode predloc = getAnalysisPredecessor(edge);
 
       // Check whether abstraction is false.
       // Such elements might get created when precision adjustment computes an abstraction.
@@ -152,86 +152,46 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
       PathFormula pathFormula = convertEdgeToPathFormula(element.getPathFormula(), edge);
       logger.log(Level.ALL, "New path formula is", pathFormula);
 
-      // there might be runtime-assumes that we should add to the path formula
-      //  (used to make the program safe in case of missing preconditions in order to get valid loop invariants)
-      // TODO: Move this to a "better" place
-      Optional<BooleanFormula> optLocAssume = assumeStore.getAssumeOnLocation(loc);
-      if (optLocAssume.isPresent()) {
-        BooleanFormula locAssume = optLocAssume.get();
-        if (!bfmgr.isTrue(locAssume)) {
-          pathFormula = pathFormulaManager.makeAnd(pathFormula, locAssume);
+      // Check whether we should do a SAT check.s
+      boolean satCheck = shouldDoSatCheck(edge, pathFormula);
+      logger.log(Level.FINEST, "Handling non-abstraction location",
+          (satCheck ? "with satisfiability check" : ""));
+
+      try {
+        if (satCheck && unsatCheck(element.getAbstractionFormula(), pathFormula)) {
+          return Collections.emptySet();
         }
+      } catch (SolverException e) {
+        throw new CPATransferException("Solver failed during successor generation", e);
       }
 
-      // check whether to do abstraction
-      boolean doAbstraction = blk.isBlockEnd(loc, predloc, edge, pathFormula);
-
-      return createState(element, pathFormula, loc, doAbstraction);
-
-    } catch (SolverException e) {
-      throw new CPATransferException("Solver failed during successor generation", e);
+      return Collections.singleton(
+          mkNonAbstractionStateWithNewPathFormula(pathFormula, element));
 
     } finally {
       postTimer.stop();
     }
   }
 
-  private CFANode getAnalysisSuccesor(CFAEdge pEdge) {
+  private boolean shouldDoSatCheck(CFAEdge edge, PathFormula pathFormula) {
+    if ((satCheckBlockSize > 0) && (pathFormula.getLength() >= satCheckBlockSize)) {
+      return true;
+    }
+    if (satCheckAtAbstraction) {
+      CFANode loc = getAnalysisSuccessor(edge);
+      if (blk.isBlockEnd(loc, pathFormula.getLength())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private CFANode getAnalysisSuccessor(CFAEdge pEdge) {
     if (direction == AnalysisDirection.BACKWARD) {
       return pEdge.getPredecessor();
     } else {
       return pEdge.getSuccessor();
     }
-  }
-
-  private CFANode getAnalysisPredecessor(CFAEdge pEdge) {
-    if (direction == AnalysisDirection.BACKWARD) {
-      return pEdge.getSuccessor();
-    } else {
-      return pEdge.getPredecessor();
-    }
-  }
-
-  private Collection<? extends PredicateAbstractState> createState(PredicateAbstractState oldState, PathFormula pathFormula,
-      CFANode loc, boolean doAbstraction)
-          throws SolverException, InterruptedException {
-    if (doAbstraction) {
-      if (satCheckAtAbstraction) {
-        if (unsatCheck(oldState.getAbstractionFormula(), pathFormula)) {
-          return Collections.emptySet();
-        }
-      }
-      return Collections.singleton(
-          new PredicateAbstractState.ComputeAbstractionState(
-              pathFormula, oldState.getAbstractionFormula(), loc,
-              oldState.getAbstractionLocationsOnPath()));
-    } else {
-      return handleNonAbstractionFormulaLocation(pathFormula, oldState);
-    }
-  }
-
-
-  /**
-   * Does special things when we do not compute an abstraction for the
-   * successor. This currently only envolves an optional sat check.
-   */
-  private Collection<PredicateAbstractState> handleNonAbstractionFormulaLocation(
-      PathFormula pathFormula, PredicateAbstractState oldState)
-          throws SolverException, InterruptedException {
-    boolean satCheck = (satCheckBlockSize > 0) && (pathFormula.getLength() >= satCheckBlockSize);
-
-    logger.log(Level.FINEST, "Handling non-abstraction location",
-        (satCheck ? "with satisfiability check" : ""));
-
-    if (satCheck) {
-      if (unsatCheck(oldState.getAbstractionFormula(), pathFormula)) {
-        return Collections.emptySet();
-      }
-    }
-
-    // create the new abstract state for non-abstraction location
-    return Collections.singleton(
-        mkNonAbstractionStateWithNewPathFormula(pathFormula, oldState));
   }
 
   /**
@@ -350,6 +310,16 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
         return Collections.singleton(element);
       }
 
+      // TODO: replace with Iterables.getOnlyElement(AbstractStates.extractLocations(otherElements));
+      // when the special case for PredicateCPA in CompositeTransferRelation#callStrengthen
+      // is removed.
+      final CFANode currentLocation;
+      if (edge == null) {
+        currentLocation = null;
+      } else {
+        currentLocation = getAnalysisSuccessor(edge);
+      }
+
       boolean errorFound = false;
       for (AbstractState lElement : otherElements) {
         if (lElement instanceof AssumptionStorageState) {
@@ -360,9 +330,12 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
          * Add additional assumptions from an automaton state.
          */
         if (!ignoreStateAssumptions && lElement instanceof AbstractStateWithAssumptions) {
-          element = strengthen(edge.getSuccessor(), element, (AbstractStateWithAssumptions) lElement);
+          element = strengthen(element, (AbstractStateWithAssumptions) lElement);
         }
 
+        if (strengthenWithFormulaReportingStates && lElement instanceof FormulaReportingState) {
+          element = strengthen(element, (FormulaReportingState) lElement);
+        }
 
         if (AbstractStates.isTargetState(lElement)) {
           errorFound = true;
@@ -372,7 +345,7 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
       // check satisfiability in case of error
       // (not necessary for abstraction elements)
       if (errorFound && targetStateSatCheck) {
-        element = strengthenSatCheck(element, getAnalysisSuccesor(edge));
+        element = strengthenSatCheck(element, currentLocation);
         if (element == null) {
           // successor not reachable
           return Collections.emptySet();
@@ -388,19 +361,27 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
     }
   }
 
-  private PredicateAbstractState strengthen(CFANode pNode, PredicateAbstractState pElement,
-      AbstractStateWithAssumptions pAssumeElement) throws CPATransferException, InterruptedException {
+  private PredicateAbstractState strengthen(
+      PredicateAbstractState pElement, AbstractStateWithAssumptions pAssumeElement)
+      throws CPATransferException, InterruptedException {
 
     PathFormula pf = pElement.getPathFormula();
 
-    for (AssumeEdge assumption : pAssumeElement.getAsAssumeEdges(pNode.getFunctionName())) {
+    for (CExpression assumption : from(pAssumeElement.getAssumptions()).filter(CExpression.class)) {
       // assumptions do not contain compete type nor scope information
       // hence, not all types can be resolved, so ignore these
       // TODO: the witness automaton is complete in that regard, so use that in future
-      if(assumptionContainsProblemType(assumption)) {
+      if (CFAUtils.getIdExpressionsOfExpression(assumption)
+          .anyMatch(var -> var.getExpressionType() instanceof CProblemType)) {
         continue;
       }
-      pf = convertEdgeToPathFormula(pf, assumption);
+      pathFormulaTimer.start();
+      try {
+        // compute new pathFormula with the operation on the edge
+        pf = pathFormulaManager.makeAnd(pf, assumption);
+      } finally {
+        pathFormulaTimer.stop();
+      }
     }
 
     if (pf != pElement.getPathFormula()) {
@@ -426,19 +407,28 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
     return replacePathFormula(pElement, pf);
   }
 
+  private PredicateAbstractState strengthen(
+      PredicateAbstractState pElement, FormulaReportingState pFormulaReportingState) {
+
+    BooleanFormula formula =
+        pFormulaReportingState.getFormulaApproximation(fmgr);
+
+    if (bfmgr.isTrue(formula) || bfmgr.isFalse(formula)) {
+      return pElement;
+    }
+
+    PathFormula previousPathFormula = pElement.getPathFormula();
+    PathFormula newPathFormula = pathFormulaManager.makeAnd(previousPathFormula, formula);
+
+    return replacePathFormula(pElement, newPathFormula);
+  }
+
   /**
    * Returns a new state with a given pathFormula. All other fields stay equal.
    */
   private PredicateAbstractState replacePathFormula(PredicateAbstractState oldElement, PathFormula newPathFormula) {
-    if (oldElement instanceof ComputeAbstractionState) {
-      CFANode loc = ((ComputeAbstractionState) oldElement).getLocation();
-      return new ComputeAbstractionState(newPathFormula,
-          oldElement.getAbstractionFormula(), loc,
-          oldElement.getAbstractionLocationsOnPath());
-    } else {
-      assert !oldElement.isAbstractionState();
-      return mkNonAbstractionStateWithNewPathFormula(newPathFormula, oldElement);
-    }
+    assert !oldElement.isAbstractionState();
+    return mkNonAbstractionStateWithNewPathFormula(newPathFormula, oldElement);
   }
 
   private PredicateAbstractState strengthenSatCheck(
@@ -467,7 +457,7 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
 
       // update abstraction locations map
       PersistentMap<CFANode, Integer> abstractionLocations = pElement.getAbstractionLocationsOnPath();
-      Integer newLocInstance = firstNonNull(abstractionLocations.get(loc), 0) + 1;
+      Integer newLocInstance = abstractionLocations.getOrDefault(loc, 0) + 1;
       abstractionLocations = abstractionLocations.putAndCopy(loc, newLocInstance);
 
       return PredicateAbstractState.mkAbstractionState(newPathFormula,
@@ -486,18 +476,11 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
     boolean result = true;
 
     if (pSuccessors.isEmpty()) {
-      satCheckTimer.start();
+      // if pSuccessors is empty than successor formula needs to be unsat
       PathFormula pFormula = convertEdgeToPathFormula(pathFormula, pCfaEdge);
-      Collection<? extends AbstractState> foundSuccessors =
-          handleNonAbstractionFormulaLocation(pFormula, predicateElement);
-      //if we found successors, they all have to be unsat
-      for (AbstractState e : foundSuccessors) {
-        PredicateAbstractState successor = (PredicateAbstractState) e;
-        if (!formulaManager.unsat(successor.getAbstractionFormula(), successor.getPathFormula())) {
-          result = false;
-        }
+      if (!unsatCheck(predicateElement.getAbstractionFormula(), pFormula)) {
+        result = false;
       }
-      satCheckTimer.stop();
       return result;
     }
 
@@ -533,17 +516,5 @@ public class PredicateTransferRelation extends SingleEdgeTransferRelation {
     }
 
     return result;
-  }
-
-  private boolean assumptionContainsProblemType(AssumeEdge assumption) {
-    CExpression expression = (CExpression) assumption.getExpression();
-    CIdExpressionCollectorVisitor collector = new CIdExpressionCollectorVisitor();
-    expression.accept(collector);
-    for (CIdExpression var : collector.getReferencedIdExpressions()) {
-      if (var.getExpressionType() instanceof CProblemType) {
-        return true;
-      }
-    }
-    return false;
   }
 }

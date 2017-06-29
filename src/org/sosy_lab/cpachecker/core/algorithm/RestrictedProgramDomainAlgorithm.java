@@ -22,14 +22,7 @@
  *    http://cpachecker.sosy-lab.org
  */
 package org.sosy_lab.cpachecker.core.algorithm;
-
-import java.io.IOException;
-
-import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
-import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
@@ -40,8 +33,7 @@ public class RestrictedProgramDomainAlgorithm implements Algorithm {
   private final Algorithm innerAlgorithm;
   private final CFA cfa;
 
-  public RestrictedProgramDomainAlgorithm(Algorithm pAlgorithm, ConfigurableProgramAnalysis pCpa, CFA pCfa,
-      LogManager pLogger, Configuration pConfig, ShutdownNotifier pShutdownNotifier) {
+  public RestrictedProgramDomainAlgorithm(Algorithm pAlgorithm, CFA pCfa) {
     this.innerAlgorithm = pAlgorithm;
     this.cfa = pCfa;
   }

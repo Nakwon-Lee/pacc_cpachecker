@@ -23,8 +23,15 @@
  */
 package org.sosy_lab.cpachecker.cfa.parser.eclipse.java;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -33,9 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-
 import javax.annotation.Nullable;
-
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;
@@ -142,11 +147,6 @@ import org.sosy_lab.cpachecker.cfa.types.java.JInterfaceType;
 import org.sosy_lab.cpachecker.cfa.types.java.JMethodType;
 import org.sosy_lab.cpachecker.cfa.types.java.JSimpleType;
 import org.sosy_lab.cpachecker.cfa.types.java.JType;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 
 class ASTConverter {
@@ -281,7 +281,7 @@ class ASTConverter {
 
   private static void check(boolean assertion, String msg, ASTNode astNode) throws CFAGenerationRuntimeException {
     if (!assertion) {
-      throw new CFAGenerationRuntimeException(msg);
+      throw new CFAGenerationRuntimeException(msg, astNode);
     }
   }
 
@@ -390,9 +390,12 @@ class ASTConverter {
 
     CompilationUnit co = (CompilationUnit) l.getRoot();
 
-    return new FileLocation(co.getLineNumber(l.getLength() + l.getStartPosition()),
-        scope.getFileOfCurrentType(), l.getLength(), l.getStartPosition(),
-        co.getLineNumber(l.getStartPosition()));
+    return new FileLocation(
+        scope.getFileOfCurrentType(),
+        l.getStartPosition(),
+        l.getLength(),
+        co.getLineNumber(l.getStartPosition()),
+        co.getLineNumber(l.getLength() + l.getStartPosition()));
   }
 
   /**
@@ -403,23 +406,15 @@ class ASTConverter {
    */
   public List<JDeclaration> convert(FieldDeclaration fd) {
 
-    List<JDeclaration> result = new ArrayList<>();
-
     @SuppressWarnings("unchecked")
     List<VariableDeclarationFragment> vdfs =
         fd.fragments();
 
-    for (VariableDeclarationFragment vdf : vdfs) {
-
-      result.add(handleFieldDeclarationFragment(vdf, fd));
-    }
-
-    return result;
+    return transformedImmutableListCopy(vdfs, this::handleFieldDeclarationFragment);
   }
 
 
-  private JDeclaration handleFieldDeclarationFragment(VariableDeclarationFragment pVdf,
-      FieldDeclaration pFd) {
+  private JDeclaration handleFieldDeclarationFragment(VariableDeclarationFragment pVdf) {
     // TODO initializer with side assignment
 
     NameAndInitializer nameAndInitializer = getNamesAndInitializer(pVdf);
@@ -468,7 +463,6 @@ class ASTConverter {
 
     private final JInitializerExpression initializer;
 
-    @Nullable
     public NameAndInitializer(String pName, JInitializerExpression pInitializer) {
 
       checkNotNull(pName);
@@ -978,10 +972,10 @@ class ASTConverter {
       return miv;
   }
 
-
-
+  /**
+   * @param pE the node to convert
+   */
   private JAstNode convert(TypeLiteral pE) {
-
     throw new CFAGenerationRuntimeException("Standard Library support not yet implemented.\n"
       +  "Cannot use Type Literals which would return a class Object.");
   }
@@ -1561,7 +1555,7 @@ class ASTConverter {
               NameConverter.convertName((IVariableBinding) e.resolveBinding()));
         }
 
-        return convertQualifiedVariableIdentificationExpression(e, vb);
+        return convertQualifiedVariableIdentificationExpression(e);
       } else {
 
         String name = e.getFullyQualifiedName();
@@ -1612,7 +1606,7 @@ class ASTConverter {
   }
 
   private JAstNode convertQualifiedVariableIdentificationExpression(
-      QualifiedName e, IVariableBinding vb) {
+      QualifiedName e) {
 
     JAstNode identifier = convertExpressionWithoutSideEffects(e.getName());
 
@@ -2121,6 +2115,9 @@ class ASTConverter {
         return BinaryOperator.EQUALS;
       } else if (op.equals(InfixExpression.Operator.NOT_EQUALS)) {
         return BinaryOperator.NOT_EQUALS;
+      } else if (op.equals(InfixExpression.Operator.PLUS)
+          && (isStringType(pOp1Type) || isStringType(pOp2Type))) {
+        return BinaryOperator.STRING_CONCATENATION;
       } else {
         throw new CFAGenerationRuntimeException(invalidTypeMsg);
       }
@@ -2141,6 +2138,11 @@ class ASTConverter {
   private boolean isBooleanCompatible(JBasicType pType) {
     return pType == JBasicType.BOOLEAN || pType == JBasicType.UNSPECIFIED;
 
+  }
+
+  private boolean isStringType(JType t) {
+    return t instanceof JClassOrInterfaceType
+        && ((JClassOrInterfaceType)t).getName().equals("java.lang.String");
   }
 
   private BinaryOperator convertNumericOperator(InfixExpression.Operator op) {
@@ -2217,20 +2219,17 @@ class ASTConverter {
     case INT:
       return new JIntegerLiteralExpression(fileLoc, parseIntegerLiteral(valueStr, e));
     case FLOAT:
-      return new JFloatLiteralExpression(fileLoc, parseFloatLiteral(valueStr, e));
+      return new JFloatLiteralExpression(fileLoc, parseFloatLiteral(valueStr));
 
     case DOUBLE:
-      return new JFloatLiteralExpression(fileLoc, parseFloatLiteral(valueStr, e));
+      return new JFloatLiteralExpression(fileLoc, parseFloatLiteral(valueStr));
 
     default:
       return new JIntegerLiteralExpression(getFileLocation(e), BigInteger.valueOf(Long.parseLong(e.getToken())));
     }
   }
 
-
-
-
-  private BigDecimal parseFloatLiteral(String valueStr, NumberLiteral e) {
+  private BigDecimal parseFloatLiteral(String valueStr) {
 
     BigDecimal value;
     try {
@@ -2435,17 +2434,18 @@ class ASTConverter {
     return exp;
   }
 
-  private static final Set<BinaryOperator> BOOLEAN_BINARY_OPERATORS = ImmutableSet.of(
-      BinaryOperator.EQUALS,
-      BinaryOperator.NOT_EQUALS,
-      BinaryOperator.GREATER_EQUAL,
-      BinaryOperator.GREATER_THAN,
-      BinaryOperator.LESS_EQUAL,
-      BinaryOperator.LESS_THAN,
-      BinaryOperator.LOGICAL_AND,
-      BinaryOperator.LOGICAL_OR,
-      BinaryOperator.CONDITIONAL_AND,
-      BinaryOperator.CONDITIONAL_OR);
+  private static final ImmutableSet<BinaryOperator> BOOLEAN_BINARY_OPERATORS =
+      Sets.immutableEnumSet(
+          BinaryOperator.EQUALS,
+          BinaryOperator.NOT_EQUALS,
+          BinaryOperator.GREATER_EQUAL,
+          BinaryOperator.GREATER_THAN,
+          BinaryOperator.LESS_EQUAL,
+          BinaryOperator.LESS_THAN,
+          BinaryOperator.LOGICAL_AND,
+          BinaryOperator.LOGICAL_OR,
+          BinaryOperator.CONDITIONAL_AND,
+          BinaryOperator.CONDITIONAL_OR);
 
   /**
    * Checks if the given Expression returns a Value of
@@ -2674,9 +2674,9 @@ class ASTConverter {
           case Modifier.SYNCHRONIZED:
             isSynchronized = true;
             break;
-          default:
-            assert false : " Unkown  Modifier";
 
+          default:
+            throw new AssertionError("Unkown  Modifier");
           }
         }
       }

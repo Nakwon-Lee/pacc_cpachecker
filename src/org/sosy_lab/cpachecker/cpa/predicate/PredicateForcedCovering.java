@@ -27,6 +27,7 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.getPredicateState;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.toPercent;
 
+import com.google.common.collect.ImmutableList;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,8 +37,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -53,23 +52,22 @@ import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.interfaces.WrapperCPA;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGCPA;
 import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
 import org.sosy_lab.cpachecker.cpa.arg.ARGReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.arg.ARGUtils;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
-import org.sosy_lab.cpachecker.util.AbstractStates;
+import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.interpolation.CounterexampleTraceInfo;
 import org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
-
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.BooleanFormulaManager;
+import org.sosy_lab.java_smt.api.SolverException;
 
 /**
  * An implementation of {@link ForcedCovering} which works with
@@ -95,7 +93,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     }
 
     @Override
-    public void printStatistics(PrintStream out, Result pResult, ReachedSet pReached) {
+    public void printStatistics(PrintStream out, Result pResult, UnmodifiableReachedSet pReached) {
       out.println("Attempted forced coverings:             " + attemptedForcedCoverings);
       if (attemptedForcedCoverings > 0) {
         out.println("Successful forced coverings:            " + successfulForcedCoverings + " (" + toPercent(successfulForcedCoverings, attemptedForcedCoverings) + ")");
@@ -352,8 +350,14 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
           //GUBED
 
-          boolean stateChanged = impact.strengthenStateWithInterpolant(
-                                                itp, element, lastAbstraction);
+          boolean stateChanged;
+          try {
+            stateChanged = impact.strengthenStateWithInterpolant(
+                                                  itp, element, lastAbstraction);
+          } catch (SolverException e) {
+            throw new CPAException("Solver failure", e);
+          }
+
           if (stateChanged) {
             numOfAffectedStates++;
             arg.removeCoverageOf(element);
@@ -404,9 +408,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     ARGPath pathFromRoot = ARGUtils.getOnePathTo(argState);
 
     return from(pathFromRoot.asStatesList())
-        .filter(Predicates.compose(
-                PredicateAbstractState.FILTER_ABSTRACTION_STATES,
-                AbstractStates.toState(PredicateAbstractState.class)))
+        .filter(PredicateAbstractState.CONTAINS_ABSTRACTION_STATE)
         .toList();
   }
 

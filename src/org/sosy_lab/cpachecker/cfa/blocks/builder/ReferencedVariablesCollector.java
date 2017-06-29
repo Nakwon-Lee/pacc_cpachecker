@@ -23,12 +23,15 @@
  */
 package org.sosy_lab.cpachecker.cfa.blocks.builder;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAssignment;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
@@ -37,6 +40,8 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CComplexCastExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFieldReference;
+import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCall;
+import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallAssignmentStatement;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CInitializer;
@@ -53,19 +58,13 @@ import org.sosy_lab.cpachecker.cfa.ast.c.DefaultCExpressionVisitor;
 import org.sosy_lab.cpachecker.cfa.blocks.ReferencedVariable;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CAssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CDeclarationEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionCallEdge;
+import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CReturnStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.util.CFAUtils;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 
 /**
@@ -97,7 +96,7 @@ public class ReferencedVariablesCollector {
 
     // collect information
     for (CFANode node : nodes) {
-      for (CFAEdge leavingEdge : CFAUtils.leavingEdges(node)) {
+      for (CFAEdge leavingEdge : CFAUtils.allLeavingEdges(node)) {
         if (nodes.contains(leavingEdge.getSuccessor()) || (leavingEdge instanceof CFunctionCallEdge)) {
           collectVars(leavingEdge);
         }
@@ -106,10 +105,9 @@ public class ReferencedVariablesCollector {
 
     // create Wrapper-Objects
     for (String var : allVars) {
-      final ReferencedVariable ref = new ReferencedVariable(
-              var,
-              varsInConditions.contains(var),
-              new HashSet<ReferencedVariable>() // cross-references filled later
+      final ReferencedVariable ref =
+          new ReferencedVariable(
+              var, varsInConditions.contains(var), new HashSet<>() // cross-references filled later
               );
       collectedVars.put(var, ref);
     }
@@ -126,12 +124,6 @@ public class ReferencedVariablesCollector {
 
     switch (edge.getEdgeType()) {
 
-      case MultiEdge: {
-        for (CFAEdge innerEdge : (MultiEdge)edge) {
-          collectVars(innerEdge);
-        }
-        break;
-      }
       case AssumeEdge: {
         CAssumeEdge assumeEdge = (CAssumeEdge) edge;
         Set<String> vars = collectVars(assumeEdge.getExpression());
@@ -164,32 +156,43 @@ public class ReferencedVariablesCollector {
       case StatementEdge: {
         CStatement statement = ((CStatementEdge) edge).getStatement();
         if (statement instanceof CAssignment) {
-          CAssignment assignment = (CAssignment) statement;
-          String lhsVarName = getVarname(assignment.getLeftHandSide());
-          Set<String> vars = collectVars(assignment.getRightHandSide());
-          varsToRHS.putAll(lhsVarName, vars);
-          allVars.add(lhsVarName);
-          allVars.addAll(vars);
+            CAssignment assignment = (CAssignment) statement;
+            handleAssignment(assignment);
         } else {
           // other statements are considered side-effect free, ignore variable occurrences in them
         }
         break;
       }
       case ReturnStatementEdge:
-        Optional<CExpression> returnExpr = ((CReturnStatementEdge) edge).getExpression();
-        if (returnExpr.isPresent()) {
-          Set<String> vars = collectVars(returnExpr.get());
-          allVars.addAll(vars);
+        Optional<CAssignment> returnExprAssignment = ((CReturnStatementEdge) edge).asAssignment();
+        if (returnExprAssignment.isPresent()) {
+          handleAssignment(returnExprAssignment.get());
+        }
+        break;
+      case CallToReturnEdge:
+        CFunctionCall funcCall = ((CFunctionSummaryEdge) edge).getExpression();
+        if (funcCall instanceof CFunctionCallAssignmentStatement) {
+          CFunctionCallAssignmentStatement assignment = (CFunctionCallAssignmentStatement) funcCall;
+          handleAssignment(assignment);
         }
         break;
       case BlankEdge:
-      case CallToReturnEdge:
       case FunctionReturnEdge:
-        //nothing to do
+        // nothing to do
         break;
       default:
         throw new AssertionError("unhandled type of edge: " + edge.getEdgeType());
     }
+  }
+
+  private void handleAssignment(CAssignment assignment) {
+    String lhsVarName = getVarname(assignment.getLeftHandSide());
+    // If we have 'a->b = 1', we need to add not only 'a->b', but also 'a'
+    Set<String> lhsVars = collectVars(assignment.getLeftHandSide());
+    Set<String> vars = collectVars(assignment.getRightHandSide());
+    varsToRHS.putAll(lhsVarName, vars);
+    allVars.addAll(lhsVars);
+    allVars.addAll(vars);
   }
 
   private Set<String> collectVars(CRightHandSide pNode) {

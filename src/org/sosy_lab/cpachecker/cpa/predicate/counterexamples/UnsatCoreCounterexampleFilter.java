@@ -32,13 +32,14 @@ import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.cpa.arg.counterexamples.CounterexampleFilter;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateCPA;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
+import org.sosy_lab.java_smt.api.SolverException;
 import org.sosy_lab.cpachecker.util.CPAs;
-import org.sosy_lab.cpachecker.util.predicates.Solver;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.ProverEnvironment;
+import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.ProverEnvironment;
+import org.sosy_lab.java_smt.api.SolverContext.ProverOptions;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -71,7 +72,7 @@ public class UnsatCoreCounterexampleFilter extends AbstractNegatedPathCounterexa
   @Override
   protected Optional<ImmutableList<BooleanFormula>> getCounterexampleRepresentation(List<BooleanFormula> formulas) throws InterruptedException {
 
-    try (ProverEnvironment thmProver = solver.newProverEnvironmentWithUnsatCoreGeneration()) {
+    try (ProverEnvironment thmProver = solver.newProverEnvironment(ProverOptions.GENERATE_UNSAT_CORE)) {
 
       for (BooleanFormula f : formulas) {
         thmProver.push(f);
@@ -80,14 +81,14 @@ public class UnsatCoreCounterexampleFilter extends AbstractNegatedPathCounterexa
       if (!thmProver.isUnsat()) {
         // Negated path is not infeasible, cannot produce unsat core.
         // No filtering possible.
-        return Optional.absent();
+        return Optional.empty();
       }
 
       return Optional.of(ImmutableList.copyOf(thmProver.getUnsatCore()));
 
     } catch (SolverException e) {
       logger.logUserException(Level.WARNING, e, "Solving failed on counterexample path, cannot filter this counterexample");
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 }

@@ -24,7 +24,6 @@
 package org.sosy_lab.cpachecker.cfa.ast.java;
 
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.AbstractExpression;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.java.JClassType;
@@ -34,10 +33,11 @@ import org.sosy_lab.cpachecker.cfa.types.java.JClassType;
  *
  *
  */
-public class JEnumConstantExpression extends AbstractExpression implements JExpression {
+public final class JEnumConstantExpression extends AbstractExpression implements JExpression {
 
   // TODO Change the representation of the constantName from String to JIdExpression
 
+  private static final long serialVersionUID = 253114542568695975L;
   private final String constantName;
 
   public JEnumConstantExpression(FileLocation pFileLocation, JClassType pType, String pConstantName) {
@@ -53,11 +53,6 @@ public class JEnumConstantExpression extends AbstractExpression implements JExpr
 
   public String getConstantName() {
     return constantName;
-  }
-
-  @Override
-  public <R, X extends Exception> R accept(JRightHandSideVisitor<R, X> v) throws X {
-    return v.visit(this);
   }
 
   @Override

@@ -23,6 +23,8 @@
  */
 package org.sosy_lab.cpachecker.cpa.octagon;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,8 +33,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.cpa.octagon.coefficients.IOctagonCoefficients;
@@ -43,13 +43,11 @@ import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonDoubleValue;
 import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonIntValue;
 import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonInterval;
 import org.sosy_lab.cpachecker.cpa.octagon.values.OctagonNumericValue;
-import org.sosy_lab.cpachecker.util.states.MemoryLocation;
+import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.octagon.NumArray;
 import org.sosy_lab.cpachecker.util.octagon.Octagon;
 import org.sosy_lab.cpachecker.util.octagon.OctagonManager;
-
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
 
 /**
@@ -92,7 +90,7 @@ public class OctagonState implements AbstractState {
      */
     MXMY(5);
 
-    private int num;
+    private final int num;
 
     BinaryConstraints(int i) {
       num = i;
@@ -209,7 +207,6 @@ public class OctagonState implements AbstractState {
    * @param oct the octagon which has the preferred size, instead of just using
    *             an int, the OctState is the parameter, so we can check if the variables
    *             are matching if not an Exception is thrown
-   * @return
    */
   public Pair<OctagonState, OctagonState> shrinkToFittingSize(OctagonState oct) {
     int maxEqualIndex = oct.sizeOfVariables()-1;
@@ -744,7 +741,7 @@ public class OctagonState implements AbstractState {
 
     for (int i = 0; i < newState.variableToIndexMap.size(); i++) {
       if (newState.variableToIndexMap.inverse().get(i) == null) {
-        assert false;
+        throw new AssertionError();
       }
     }
     assert octagonManager.dimension(newState.octagon) == newState.sizeOfVariables();

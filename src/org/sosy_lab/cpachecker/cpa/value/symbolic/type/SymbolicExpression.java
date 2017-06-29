@@ -28,7 +28,8 @@ import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cpa.value.type.NumericValue;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
-import com.google.common.base.Optional;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An expression containing {@link SymbolicValue}s.
@@ -44,7 +45,7 @@ public abstract class SymbolicExpression implements SymbolicValue {
   }
 
   protected SymbolicExpression() {
-    representedLocation = Optional.absent();
+    representedLocation = Optional.empty();
   }
 
   @Override
@@ -56,7 +57,7 @@ public abstract class SymbolicExpression implements SymbolicValue {
   }
 
   /**
-   * Accepts the given {@link SymbolicExpressionVisitor}.
+   * Accepts the given {@link SymbolicValueVisitor}.
    *
    * @param pVisitor the visitor to accept
    * @param <VisitorReturnT> the return type of the visitor's specific <code>visit</code> method
@@ -108,5 +109,18 @@ public abstract class SymbolicExpression implements SymbolicValue {
   public Long asLong(CType type) {
     throw new UnsupportedOperationException(
         "Symbolic expressions can't be expressed as numeric values");
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(representedLocation);
+  }
+
+  @Override
+  public boolean equals(final Object pObj) {
+    return pObj != null
+        && pObj.getClass().equals(getClass())
+        && Objects.equals(representedLocation,
+                          ((SymbolicExpression) pObj).representedLocation);
   }
 }

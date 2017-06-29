@@ -26,7 +26,6 @@ package org.sosy_lab.cpachecker.core.algorithm;
 import java.io.IOException;
 
 import javax.annotation.CheckReturnValue;
-
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
@@ -38,9 +37,8 @@ public interface Algorithm {
    *
    * @param reachedSet Input.
    * @return information about how reliable the result is
-   * @throws CPAException
-   * @throws InterruptedException
-   * @throws IOException
+   * @throws CPAException may be thrown by implementors
+   * @throws InterruptedException may be thrown by implementors
    */
   AlgorithmStatus run(ReachedSet reachedSet) throws CPAException, InterruptedException, CPAEnabledAnalysisPropertyViolationException, IOException;
 
@@ -49,6 +47,7 @@ public interface Algorithm {
    * should be interpreted. It is defined as:
    * - if SOUND is false, any proof should be interpreted as potentially flawed and ignored
    * - if PRECISE is false, any counterexample found should be interpreted as potentially flawed and ignored
+   * - if NEVER TERMINATING is true, no execution of the program will terminate.
    *
    * If SOUND and PRECISE are true, this means that the algorithm instance
    * to its best knowledge produces correct proofs and counterexamples.

@@ -25,11 +25,7 @@ package org.sosy_lab.cpachecker.cpa.callstack;
 
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
+import com.google.common.collect.ImmutableSet;
 
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -51,6 +47,7 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
 import org.sosy_lab.cpachecker.cfa.postprocessing.global.singleloop.CFASingleLoopTransformation;
 import org.sosy_lab.cpachecker.cfa.postprocessing.global.singleloop.ProgramCounterValueAssumeEdge;
+import org.sosy_lab.cpachecker.core.AnalysisDirection;
 import org.sosy_lab.cpachecker.core.defaults.SingleEdgeTransferRelation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
@@ -58,16 +55,17 @@ import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.exceptions.UnsupportedCodeException;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.logging.Level;
 
 @Options(prefix="cpa.callstack")
 public class CallstackTransferRelation extends SingleEdgeTransferRelation {
 
   // set of functions that may not appear in the source code
   // the value of the map entry is the explanation for the user
-  static final Map<String, String> UNSUPPORTED_FUNCTIONS
-      = ImmutableMap.of("pthread_create", "threads");
+  @Option(secure=true, description = "unsupported functions cause an exception")
+  protected ImmutableSet<String> unsupportedFunctions = ImmutableSet.of("pthread_create");
 
   @Option(secure=true, name="depth",
       description = "depth of recursion bound")
@@ -97,7 +95,7 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
   protected final LogManagerWithoutDuplicates logger;
 
   public CallstackTransferRelation(Configuration config, LogManager pLogger) throws InvalidConfigurationException {
-    config.inject(this);
+    config.inject(this, CallstackTransferRelation.class);
     logger = new LogManagerWithoutDuplicates(pLogger);
   }
 
@@ -119,8 +117,8 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         AExpression functionNameExp = ((AFunctionCall)edge.getStatement()).getFunctionCallExpression().getFunctionNameExpression();
         if (functionNameExp instanceof AIdExpression) {
           String functionName = ((AIdExpression)functionNameExp).getName();
-          if (UNSUPPORTED_FUNCTIONS.containsKey(functionName)) {
-            throw new UnsupportedCodeException(UNSUPPORTED_FUNCTIONS.get(functionName),
+          if (unsupportedFunctions.contains(functionName)) {
+            throw new UnsupportedCodeException(functionName,
                 edge, edge.getStatement());
           }
         }
@@ -143,9 +141,10 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
       boolean isPredecessorAritificialPCNode = predFunction.equals(CFASingleLoopTransformation.ARTIFICIAL_PROGRAM_COUNTER_FUNCTION_NAME);
       boolean isFunctionTransition = !succFunction.equals(predFunction);
       if (!successorIsInCallstackContext
-          && !e.getCurrentFunction().equals(CFASingleLoopTransformation.ARTIFICIAL_PROGRAM_COUNTER_FUNCTION_NAME)
+          && !e.getCurrentFunction()
+              .equals(CFASingleLoopTransformation.ARTIFICIAL_PROGRAM_COUNTER_FUNCTION_NAME)
           && ((!isSuccessorAritificialPCNode && isArtificialPCVEdge)
-              || isPredecessorAritificialPCNode && isFunctionTransition)) {
+              || (isPredecessorAritificialPCNode && isFunctionTransition))) {
         /*
          * This edge is syntactically reachable, but makes no sense from this
          * state, as it would change function without passing a function entry
@@ -188,9 +187,10 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         final CFANode callNode = succ.getEnteringSummaryEdge().getPredecessor();
         final CallstackState returnElement;
 
-        assert calledFunction.equals(e.getCurrentFunction()) || isWildcardState(e);
+          assert calledFunction.equals(e.getCurrentFunction())
+              || isWildcardState(e, AnalysisDirection.FORWARD);
 
-        if (isWildcardState(e)) {
+          if (isWildcardState(e, AnalysisDirection.FORWARD)) {
           returnElement = e;
 
         } else {
@@ -204,7 +204,8 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
           //    the new abstract state is the predecessor state in the stack
           returnElement = e.getPreviousState();
 
-          assert callerFunction.equals(returnElement.getCurrentFunction()) || isWildcardState(returnElement);
+            assert callerFunction.equals(returnElement.getCurrentFunction())
+                || isWildcardState(returnElement, AnalysisDirection.FORWARD);
         }
 
         return Collections.singleton(returnElement);
@@ -221,11 +222,12 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
    * Checks if the given callstack state should be treated as a wildcard state.
    *
    * @param pState the state to check.
+   * @param direction direction of the analysis
    *
    * @return {@code true} if the given state should be treated as a wildcard,
    * {@code false} otherwise.
    */
-  protected boolean isWildcardState(final CallstackState pState) {
+  protected boolean isWildcardState(final CallstackState pState, AnalysisDirection direction) {
     String function = pState.getCurrentFunction();
 
     // Single loop transformation case
@@ -242,27 +244,16 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
     }
 
     // Normal function call case
-    if (CFAUtils.successorsOf(pState.getCallNode()).filter(FunctionEntryNode.class).anyMatch(new Predicate<FunctionEntryNode>() {
-
-              @Override
-              public boolean apply(FunctionEntryNode pArg0) {
-                return pArg0.getFunctionName().equals(pState.getCurrentFunction());
-              }
-
-            })) {
-      return false;
+    for (FunctionEntryNode node : CFAUtils.successorsOf(pState.getCallNode()).filter(FunctionEntryNode.class)) {
+      if (node.getFunctionName().equals(pState.getCurrentFunction())) {
+        return false;
+      }
     }
 
     // Not a function call node -> wildcard state
-    return true;
-  }
-
-  @Override
-  public Collection<? extends AbstractState> strengthen(
-      AbstractState pElement, List<AbstractState> pOtherElements,
-      CFAEdge pCfaEdge, Precision pPrecision) {
-
-    return null;
+    // Info: a backward-analysis causes an callstack-state with a non-function-call-node,
+    // build from the target state on getInitialState.
+    return direction == AnalysisDirection.FORWARD;
   }
 
   protected boolean skipRecursiveFunctionCall(final CallstackState element,
@@ -320,7 +311,12 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         return false;
       }
 
-      FunctionCallEdge callEdge = findOutgoingCallEdge(element.getCallNode());
+      if (e.getPreviousState() == null) {
+        // reached beginning of program or current BAM-block, abort
+        return false;
+      }
+
+      FunctionCallEdge callEdge = findOutgoingCallEdge(e.getCallNode());
       if (callEdge.getRawStatement().startsWith("pointer call(")) {
         return true;
       }
@@ -345,7 +341,12 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         return false;
       }
 
-      FunctionSummaryEdge summaryEdge = element.getCallNode().getLeavingSummaryEdge();
+      if (e.getPreviousState() == null) {
+        // reached beginning of program or current BAM-block, abort
+        return false;
+      }
+
+      FunctionSummaryEdge summaryEdge = e.getCallNode().getLeavingSummaryEdge();
       if (summaryEdge.getExpression() instanceof AFunctionCallStatement) {
         return true;
       }
@@ -368,7 +369,7 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         return (FunctionCallEdge)edge;
       }
     }
-    throw new AssertionError("Missing function call edge for function call summary edge");
+    throw new AssertionError("Missing function call edge for function call summary edge after node " + predNode);
   }
 
   public void enableRecursiveContext() {

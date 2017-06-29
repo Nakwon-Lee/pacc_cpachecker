@@ -25,21 +25,7 @@ package org.sosy_lab.cpachecker.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
-import org.sosy_lab.cpachecker.cfa.model.FunctionCallEdge;
-import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType;
-
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -49,8 +35,26 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
+import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
+import org.sosy_lab.cpachecker.cfa.model.FunctionCallEdge;
+import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType;
+import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
 
-public class VariableClassification {
+public class VariableClassification implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private final boolean hasRelevantNonIntAddVars;
 
@@ -75,12 +79,16 @@ public class VariableClassification {
   // then all essential fields (by propagation)
   private final Multimap<CCompositeType, String> relevantFields;
 
+  private final Multimap<CCompositeType, String> addressedFields;
+
   private final Set<Partition> partitions;
   private final Set<Partition> intBoolPartitions;
   private final Set<Partition> intEqualPartitions;
   private final Set<Partition> intAddPartitions;
 
   private final Map<Pair<CFAEdge, Integer>, Partition> edgeToPartitions;
+
+  private final transient LogManagerWithoutDuplicates logger;
 
   VariableClassification(boolean pHasRelevantNonIntAddVars,
       Set<String> pIntBoolVars,
@@ -89,13 +97,15 @@ public class VariableClassification {
       Set<String> pRelevantVariables,
       Set<String> pAddressedVariables,
       Multimap<CCompositeType, String> pRelevantFields,
+      Multimap<CCompositeType, String> pAddressedFields,
       Collection<Partition> pPartitions,
       Set<Partition> pIntBoolPartitions,
       Set<Partition> pIntEqualPartitions,
       Set<Partition> pIntAddPartitions,
       Map<Pair<CFAEdge, Integer>, Partition> pEdgeToPartitions,
       Multiset<String> pAssumedVariables,
-      Multiset<String> pAssignedVariables) {
+      Multiset<String> pAssignedVariables,
+    LogManager pLogger) {
     hasRelevantNonIntAddVars = pHasRelevantNonIntAddVars;
     intBoolVars = ImmutableSet.copyOf(pIntBoolVars);
     intEqualVars = ImmutableSet.copyOf(pIntEqualVars);
@@ -103,6 +113,7 @@ public class VariableClassification {
     relevantVariables = ImmutableSet.copyOf(pRelevantVariables);
     addressedVariables = ImmutableSet.copyOf(pAddressedVariables);
     relevantFields = ImmutableSetMultimap.copyOf(pRelevantFields);
+    addressedFields = ImmutableSetMultimap.copyOf(pAddressedFields);
     partitions = ImmutableSet.copyOf(pPartitions);
     intBoolPartitions = ImmutableSet.copyOf(pIntBoolPartitions);
     intEqualPartitions = ImmutableSet.copyOf(pIntEqualPartitions);
@@ -110,10 +121,11 @@ public class VariableClassification {
     edgeToPartitions = ImmutableMap.copyOf(pEdgeToPartitions);
     assumedVariables = ImmutableMultiset.copyOf(pAssumedVariables);
     assignedVariables = ImmutableMultiset.copyOf(pAssignedVariables);
+    logger = new LogManagerWithoutDuplicates(pLogger);
   }
 
   @VisibleForTesting
-  public static VariableClassification empty() {
+  public static VariableClassification empty(LogManager pLogger) {
     return new VariableClassification(false,
         ImmutableSet.<String>of(),
         ImmutableSet.<String>of(),
@@ -121,13 +133,15 @@ public class VariableClassification {
         ImmutableSet.<String>of(),
         ImmutableSet.<String>of(),
         ImmutableSetMultimap.<CCompositeType, String>of(),
+        ImmutableSetMultimap.<CCompositeType, String>of(),
         ImmutableSet.<Partition>of(),
         ImmutableSet.<Partition>of(),
         ImmutableSet.<Partition>of(),
         ImmutableSet.<Partition>of(),
         ImmutableMap.<Pair<CFAEdge, Integer>, Partition>of(),
         ImmutableMultiset.<String>of(),
-        ImmutableMultiset.<String>of());
+        ImmutableMultiset.<String>of(),
+        pLogger);
   }
 
   public boolean hasRelevantNonIntAddVars() {
@@ -170,6 +184,16 @@ public class VariableClassification {
    */
   public Multimap<CCompositeType, String> getRelevantFields() {
     return relevantFields;
+  }
+
+  /**
+   * All fields that have their addresses taken somewhere in the source code.
+   * (only fields accessed explicitly through either dot (.) or arrow (->) operator count).
+   *
+   * @return A collection of (CCompositeType, fieldName) mappings.
+   */
+  public Multimap<CCompositeType, String> getAddressedFields() {
+    return addressedFields;
   }
 
   /** This function returns a collection of scoped names.
@@ -317,51 +341,13 @@ public class VariableClassification {
 
       // check for overflow
       if(newScore < oldScore) {
-        return Integer.MAX_VALUE - 1;
-      }
-      oldScore = newScore;
-    }
+        logger.logOnce(Level.WARNING,
+            "Highest possible value reached in score computation."
+                + " Error path prefix preference may not be applied reliably.");
+        logger.logf(Level.FINE,
+            "Overflow in score computation happened for variables %s.",
+            variableNames.toString());
 
-    return newScore;
-  }
-
-  public int obtainDomainTypeScoreForVariables2(Collection<String> variableNames,
-      Optional<LoopStructure> loopStructure) {
-    final int BOOLEAN_VAR   = 1;
-    final int INTEQUAL_VAR  = 100;
-    final int INTADD_VAR    = 1000;
-    final int UNKNOWN_VAR   = 10000;
-    final int LOOP_VAR      = 1000000000;
-
-    if(variableNames.isEmpty()) {
-      return 0;
-    }
-
-    int newScore = 0;
-    int oldScore = newScore;
-    for (String variableName : variableNames) {
-      int summand = UNKNOWN_VAR;
-
-      if (getIntBoolVars().contains(variableName)) {
-        summand = BOOLEAN_VAR;
-
-      } else if (getIntEqualVars().contains(variableName)) {
-        summand = INTEQUAL_VAR;
-      }
-
-      else if (getIntAddVars().contains(variableName)) {
-        summand = INTADD_VAR;
-      }
-
-      if (loopStructure.isPresent()
-          && loopStructure.get().getLoopIncDecVariables().contains(variableName)) {
-        summand = LOOP_VAR;
-      }
-
-      newScore = newScore + summand;
-
-      // check for overflow
-      if(newScore < oldScore) {
         return Integer.MAX_VALUE - 1;
       }
       oldScore = newScore;
@@ -381,7 +367,9 @@ public class VariableClassification {
 
   /** A Partition is a Wrapper for a Collection of vars, values and edges.
   * The Partitions are disjunct, so no variable and no edge is in 2 Partitions. */
-  public static class Partition {
+  public static class Partition implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
    private final Set<String> vars = new HashSet<>();
    private final Set<BigInteger> values = Sets.newTreeSet();
@@ -462,4 +450,24 @@ public class VariableClassification {
      return vars.toString() + " --> " + Arrays.toString(values.toArray());
    }
  }
+
+  private Object readResolve() {
+    return new VariableClassification(
+        hasRelevantNonIntAddVars,
+        intBoolVars,
+        intEqualVars,
+        intAddVars,
+        relevantVariables,
+        addressedVariables,
+        relevantFields,
+        addressedFields,
+        partitions,
+        intBoolPartitions,
+        intEqualPartitions,
+        intAddPartitions,
+        edgeToPartitions,
+        assumedVariables,
+        assignedVariables,
+        GlobalInfo.getInstance().getLogManager());
+  }
 }

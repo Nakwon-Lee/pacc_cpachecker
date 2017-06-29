@@ -23,6 +23,11 @@
  */
 package org.sosy_lab.cpachecker.cfa.postprocessing.global;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -31,13 +36,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFACreationUtils;
 import org.sosy_lab.cpachecker.cfa.FunctionCallCollector;
 import org.sosy_lab.cpachecker.cfa.Language;
@@ -51,12 +53,7 @@ import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.util.CFATraversal;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SortedSetMultimap;
-import com.google.common.collect.TreeMultimap;
+import org.sosy_lab.cpachecker.util.Pair;
 
 @Options(prefix = "cfa.functionCalls")
 public class FunctionCallUnwinder {
@@ -69,7 +66,7 @@ public class FunctionCallUnwinder {
 
   private final MutableCFA cfa;
 
-  public FunctionCallUnwinder(final MutableCFA pCfa, final Configuration config, final LogManager pLogger)
+  public FunctionCallUnwinder(final MutableCFA pCfa, final Configuration config)
           throws InvalidConfigurationException {
     config.inject(this);
     this.cfa = pCfa;
@@ -144,10 +141,16 @@ public class FunctionCallUnwinder {
       }
     }
 
-    return new MutableCFA(cfa.getMachineModel(), functions, nodes, cfa.getMainFunction(), cfa.getLanguage());
+    return new MutableCFA(
+        cfa.getMachineModel(),
+        functions,
+        nodes,
+        cfa.getMainFunction(),
+        cfa.getFileNames(),
+        cfa.getLanguage());
   }
 
-  private void replaceFunctionCall(final AStatementEdge functionCallEdge, final String newFunctionName) {
+  static void replaceFunctionCall(final AStatementEdge functionCallEdge, final String newFunctionName) {
     final CFANode pred = functionCallEdge.getPredecessor();
     final CFANode succ = functionCallEdge.getSuccessor();
     final AFunctionCall call = (AFunctionCall)functionCallEdge.getStatement();
@@ -174,7 +177,7 @@ public class FunctionCallUnwinder {
   }
 
   /** clones a function and adds it to the maps. */
-  private void cloneFunction(final String oldFunctionname, final String newFunctionname,
+  private static void cloneFunction(final String oldFunctionname, final String newFunctionname,
       final Map<String, FunctionEntryNode> functions, final SortedSetMultimap<String, CFANode> nodes) {
     Preconditions.checkArgument(!functions.containsKey(newFunctionname), "function exists, cloning is not allowed.");
 
@@ -187,7 +190,7 @@ public class FunctionCallUnwinder {
     nodes.putAll(newFunctionname, newFunction.getSecond());
   }
 
-  private static String getNameOfFunction(final AStatementEdge edge) {
+  static String getNameOfFunction(final AStatementEdge edge) {
     if (!(edge instanceof CStatementEdge)) {
       return null;
     }
@@ -203,7 +206,7 @@ public class FunctionCallUnwinder {
   }
 
   /** returns, iff the edge contains a functioncall to another CFA. */
-  private static boolean isFunctionCall(final AStatementEdge edge, final Collection<String> cfaFunctions) {
+  static boolean isFunctionCall(final AStatementEdge edge, final Collection<String> cfaFunctions) {
     // declaration == null -> functionPointer
     // functionName exists in CFA -> functioncall with CFA for called function
     //          -> we assume an original CFA, not a clone

@@ -23,7 +23,20 @@
  */
 package org.sosy_lab.cpachecker.cpa.invariants.formula;
 
+import org.sosy_lab.cpachecker.cpa.invariants.TypeInfo;
 
-public abstract class AbstractFormula<ConstantType> implements InvariantsFormula<ConstantType> {
+
+abstract class AbstractFormula<ConstantType> implements NumeralFormula<ConstantType> {
+
+  private final TypeInfo info;
+
+  public AbstractFormula(TypeInfo pInfo) {
+    this.info = pInfo;
+  }
+
+  @Override
+  public TypeInfo getTypeInfo() {
+    return this.info;
+  }
 
 }

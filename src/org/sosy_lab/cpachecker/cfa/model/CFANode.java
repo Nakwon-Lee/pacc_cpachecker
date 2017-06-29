@@ -23,23 +23,28 @@
  */
 package org.sosy_lab.cpachecker.cfa.model;
 
-import static com.google.common.base.Preconditions.*;
-import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
+import org.sosy_lab.common.UniqueIdGenerator;
+import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
-import org.sosy_lab.cpachecker.util.UniqueIdGenerator;
+public class CFANode implements Comparable<CFANode>, Serializable {
 
-public class CFANode implements Comparable<CFANode> {
+  private static final long serialVersionUID = 5168350921309486536L;
 
   private static final UniqueIdGenerator idGenerator = new UniqueIdGenerator();
 
   private final int nodeNumber;
 
-  private final List<CFAEdge> leavingEdges = new ArrayList<>(1);
-  private final List<CFAEdge> enteringEdges = new ArrayList<>(1);
+  // do not serialize edges, recursive traversal of the CFA causes a stack-overflow.
+  // edge-list is final, except for serialization
+  private transient List<CFAEdge> leavingEdges = new ArrayList<>(1);
+  private transient List<CFAEdge> enteringEdges = new ArrayList<>(1);
 
   // is start node of a loop?
   private boolean isLoopStart = false;
@@ -227,9 +232,7 @@ public class CFANode implements Comparable<CFANode> {
 
     if (getNumLeavingEdges() > 0) {
       CFAEdge edge = getLeavingEdge(0);
-      if (edge instanceof MultiEdge) {
-        edge = ((MultiEdge)edge).getEdges().get(0);
-      }
+
       if (!edge.getFileLocation().equals(FileLocation.DUMMY)) {
         return "before " + edge.getFileLocation();
       }
@@ -237,14 +240,22 @@ public class CFANode implements Comparable<CFANode> {
 
     if (getNumEnteringEdges() > 0) {
       CFAEdge edge = getEnteringEdge(0);
-      if (edge instanceof MultiEdge) {
-        edge = getLast(((MultiEdge)edge).getEdges());
-      }
+
       if (!edge.getFileLocation().equals(FileLocation.DUMMY)) {
         return "after " + edge.getFileLocation();
       }
     }
 
     return "";
+  }
+
+  @SuppressWarnings("unchecked")
+  private void readObject(java.io.ObjectInputStream s)
+      throws java.io.IOException, ClassNotFoundException {
+    s.defaultReadObject();
+
+    // leaving and entering edges have to be updated explicitly after reading a node
+    leavingEdges = new ArrayList<>(1);
+    enteringEdges = new ArrayList<>(1);
   }
 }

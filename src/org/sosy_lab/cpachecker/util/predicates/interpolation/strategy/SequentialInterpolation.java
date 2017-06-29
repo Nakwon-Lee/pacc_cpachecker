@@ -26,14 +26,14 @@ package org.sosy_lab.cpachecker.util.predicates.interpolation.strategy;
 import java.util.List;
 
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.Triple;
+import org.sosy_lab.cpachecker.util.Triple;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
+import org.sosy_lab.java_smt.api.SolverException;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.BooleanFormulaManager;
 import org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 
 import com.google.common.collect.Lists;
 
@@ -53,8 +53,7 @@ public class SequentialInterpolation<T> extends ITPStrategy<T> {
       final InterpolationManager.Interpolator<T> interpolator,
       final List<Triple<BooleanFormula, AbstractState, T>> formulasWithStateAndGroupId)
       throws InterruptedException, SolverException {
-    final List<T> formulas = Lists.transform(formulasWithStateAndGroupId,
-        Triple.<T> getProjectionToThird());
+    final List<T> formulas = Lists.transform(formulasWithStateAndGroupId, Triple::getThird);
     final List<BooleanFormula> interpolants = Lists.newArrayListWithExpectedSize(formulas.size() - 1);
     for (int end_of_A = 0; end_of_A < formulas.size() - 1; end_of_A++) {
       // last iteration is left out because B would be empty

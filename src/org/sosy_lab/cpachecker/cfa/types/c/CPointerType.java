@@ -23,8 +23,11 @@
  */
 package org.sosy_lab.cpachecker.cfa.types.c;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 
 public final class CPointerType implements CType, Serializable {
@@ -34,14 +37,14 @@ public final class CPointerType implements CType, Serializable {
   public static final CPointerType POINTER_TO_CONST_CHAR = new CPointerType(false, false, CNumericTypes.CHAR.getCanonicalType(true, false));
 
   private final CType type;
-  private boolean   isConst;
-  private boolean   isVolatile;
+  private final boolean isConst;
+  private final boolean isVolatile;
 
   public CPointerType(final boolean pConst, final boolean pVolatile,
       final CType pType) {
     isConst = pConst;
     isVolatile = pVolatile;
-    type = pType;
+    type = checkNotNull(pType);
   }
 
   @Override
@@ -59,6 +62,11 @@ public final class CPointerType implements CType, Serializable {
   }
 
   @Override
+  public boolean isIncomplete() {
+    return false;
+  }
+
+  @Override
   public String toString() {
     String decl;
 
@@ -72,6 +80,7 @@ public final class CPointerType implements CType, Serializable {
 
   @Override
   public String toASTString(String pDeclarator) {
+    checkNotNull(pDeclarator);
     // ugly hack but it works:
     // We need to insert the "*" between the type and the name (e.g. "int *var").
     String decl;
@@ -108,7 +117,7 @@ public final class CPointerType implements CType, Serializable {
    * typedefs in it use #getCanonicalType().equals()
    */
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (obj == this) {
       return true;
     }

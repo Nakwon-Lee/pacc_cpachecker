@@ -23,7 +23,8 @@
  */
 package org.sosy_lab.cpachecker.util.predicates.pathformula.arrays;
 
-import java.util.logging.Level;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.log.LogManager;
@@ -39,11 +40,6 @@ import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.core.AnalysisDirection;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
 import org.sosy_lab.cpachecker.util.VariableClassification;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.ArrayFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.Formula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.ArrayFormulaManagerView;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ErrorConditions;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap.SSAMapBuilder;
@@ -52,10 +48,14 @@ import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.CtoFormula
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.CtoFormulaTypeHandler;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.FormulaEncodingOptions;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.PointerTargetSetBuilder;
+import org.sosy_lab.cpachecker.util.predicates.smt.ArrayFormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.ArrayFormula;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.Formula;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Verify;
+import java.util.Optional;
+import java.util.logging.Level;
 
 
 public class CToFormulaConverterWithArrays extends CtoFormulaConverter {
@@ -78,7 +78,8 @@ public class CToFormulaConverterWithArrays extends CtoFormulaConverter {
       ErrorConditions pErrorConditions) {
 
     // Create a CRightHandSideVisitor with support for arrays!
-    return new ExpressionToFormulaVisitorWithArrays(this, fmgr, machineModel, pEdge, pFunction, pSsa, pConstraints);
+    return new ExpressionToFormulaVisitorWithArrays(
+        this, fmgr, machineModel, pEdge, pFunction, pSsa, pConstraints);
   }
 
   @Override
@@ -112,13 +113,9 @@ public class CToFormulaConverterWithArrays extends CtoFormulaConverter {
   private <TI extends Formula, TE extends Formula> ArrayFormula<TI, TE> makeArrayVariable(String pName,
       CType pType, SSAMapBuilder pSsa, boolean bMakeFresh) {
 
-    if (bMakeFresh) {
-      int freshIndex = makeFreshIndex(pName, pType, pSsa);
-      return (ArrayFormula<TI, TE>) fmgr.makeVariable(this.getFormulaTypeFromCType(pType), pName, freshIndex);
-    } else {
-      int useIndex = getIndex(pName, pType, pSsa);
-      return (ArrayFormula<TI, TE>) fmgr.makeVariable(this.getFormulaTypeFromCType(pType), pName, useIndex);
-    }
+    int index = bMakeFresh ? makeFreshIndex(pName, pType, pSsa) : getIndex(pName, pType, pSsa);
+    return (ArrayFormula<TI, TE>)
+        fmgr.makeVariable(this.getFormulaTypeFromCType(pType), pName, index);
   }
 
   @SuppressWarnings("unchecked")
@@ -161,19 +158,20 @@ public class CToFormulaConverterWithArrays extends CtoFormulaConverter {
 
       // TODO: How can we handle this case better?
       logger.logOnce(Level.WARNING, "Result might be unsound. Aliasing of array variables detected!", pEdge.getRawStatement());
-      return bfmgr.makeBoolean(true);
+      return bfmgr.makeTrue();
 
     } else if (pLhs instanceof CArraySubscriptExpression) {
 
-      // ATTENTION: WE DO NOT SUPPORT MULTI-DIMENSIONAL-ARRAYS AT THE MOMENT!
-      if (pLhs.getExpressionType() instanceof CArrayType
-          && ((CArrayType) pLhs.getExpressionType()).getType() instanceof CArrayType) {
+      // a[e]
+      final CArraySubscriptExpression lhsExpr = (CArraySubscriptExpression) pLhs;
 
-        logger.logOnce(Level.WARNING, "Result might be unsound. Unsupported multi-dimensional arrays found!", pEdge.getRawStatement());
-        return bfmgr.makeBoolean(true);
+      // ATTENTION: WE DO NOT SUPPORT MULTI-DIMENSIONAL-ARRAYS AT THE MOMENT!
+      if (lhsExpr.getArrayExpression() instanceof CArraySubscriptExpression) {
+        logger.logOnce(Level.WARNING, "Result might be unsound. Unsupported "
+            + "multi-dimensional arrays found!", pEdge.getRawStatement());
+        return bfmgr.makeTrue();
       }
 
-      final CArraySubscriptExpression lhsExpr = (CArraySubscriptExpression) pLhs; // a[e]
       // .getArrayExpression() provides a CIdExpression
       //    with type CArrayType; this would be different for multi-dimensional arrays!!
       Verify.verify(lhsExpr.getArrayExpression() instanceof CIdExpression);

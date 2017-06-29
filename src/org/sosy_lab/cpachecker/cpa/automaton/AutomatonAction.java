@@ -26,7 +26,6 @@ package org.sosy_lab.cpachecker.cpa.automaton;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-
 import org.sosy_lab.cpachecker.core.interfaces.AbstractQueryableState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonExpression.ResultValue;
@@ -49,9 +48,8 @@ abstract class AutomatonAction {
   /**
    * Returns if the action can execute on the given AutomatonExpressionArguments.
    * If it cannot execute this is probably because of missing AbstractStates (from other CPAs).
-   * @param pArgs
-   * @return
-   * @throws CPATransferException
+   * @param pArgs the arguments that should be used for execution
+   * @throws CPATransferException may be thrown in subclasses
    */
   boolean canExecuteOn(AutomatonExpressionArguments pArgs) throws CPATransferException {
     return true;
@@ -121,6 +119,11 @@ abstract class AutomatonAction {
         pArgs.getLogger().log(Level.WARNING, "Defined a Variable " + varId + " that was unknown before (not set in automaton Definition).");
       }
       return defaultResultValue;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("DO %s=%s", varId, var);
     }
   }
 

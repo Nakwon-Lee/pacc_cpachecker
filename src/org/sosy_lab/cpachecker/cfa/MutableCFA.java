@@ -23,15 +23,18 @@
  */
 package org.sosy_lab.cpachecker.cfa;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SortedSetMultimap;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
@@ -39,31 +42,30 @@ import org.sosy_lab.cpachecker.util.LiveVariables;
 import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.VariableClassification;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.SortedSetMultimap;
-
 public class MutableCFA implements CFA {
 
   private final MachineModel machineModel;
   private final SortedMap<String, FunctionEntryNode> functions;
   private final SortedSetMultimap<String, CFANode> allNodes;
   private final FunctionEntryNode mainFunction;
+  private final List<Path> fileNames;
   private final Language language;
-  private Optional<LoopStructure> loopStructure = Optional.absent();
-  private Optional<LiveVariables> liveVariables = Optional.absent();
+  private Optional<LoopStructure> loopStructure = Optional.empty();
+  private Optional<LiveVariables> liveVariables = Optional.empty();
 
   public MutableCFA(
       MachineModel pMachineModel,
       SortedMap<String, FunctionEntryNode> pFunctions,
       SortedSetMultimap<String, CFANode> pAllNodes,
       FunctionEntryNode pMainFunction,
+      List<Path> pFileNames,
       Language pLanguage) {
 
     machineModel = pMachineModel;
     functions = pFunctions;
     allNodes = pAllNodes;
     mainFunction = pMainFunction;
+    fileNames = ImmutableList.copyOf(pFileNames);
     language = pLanguage;
 
     assert functions.keySet().equals(allNodes.keySet());
@@ -144,8 +146,8 @@ public class MutableCFA implements CFA {
     return loopStructure;
   }
 
-  public void setLoopStructure(Optional<LoopStructure> pLoopStructure) {
-    loopStructure = checkNotNull(pLoopStructure);
+  public void setLoopStructure(LoopStructure pLoopStructure) {
+    loopStructure = Optional.of(pLoopStructure);
   }
 
   @Override
@@ -153,17 +155,25 @@ public class MutableCFA implements CFA {
     if (loopStructure.isPresent()) {
       return Optional.of(loopStructure.get().getAllLoopHeads());
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   public ImmutableCFA makeImmutableCFA(Optional<VariableClassification> pVarClassification) {
-    return new ImmutableCFA(machineModel, functions, allNodes, mainFunction,
-        loopStructure, pVarClassification, liveVariables, language);
+    return new ImmutableCFA(
+        machineModel,
+        functions,
+        allNodes,
+        mainFunction,
+        loopStructure,
+        pVarClassification,
+        liveVariables,
+        fileNames,
+        language);
   }
 
   @Override
   public Optional<VariableClassification> getVarClassification() {
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override
@@ -171,8 +181,8 @@ public class MutableCFA implements CFA {
     return liveVariables;
   }
 
-  public void setLiveVariables(Optional<LiveVariables> pLiveVariables) {
-    liveVariables = pLiveVariables;
+  public void setLiveVariables(LiveVariables pLiveVariables) {
+    liveVariables = Optional.of(pLiveVariables);
   }
 
   @Override
@@ -180,4 +190,8 @@ public class MutableCFA implements CFA {
       return language;
   }
 
+  @Override
+  public List<Path> getFileNames() {
+    return fileNames;
+  }
 }

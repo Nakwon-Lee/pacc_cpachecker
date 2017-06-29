@@ -33,9 +33,9 @@ import java.util.Map.Entry;
 import org.sosy_lab.common.Appender;
 import org.sosy_lab.common.Appenders;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.BooleanFormulaManager;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -78,16 +78,12 @@ public class AssumptionWithLocation implements Appender {
     return Appenders.toString(this);
   }
 
-  private static final Function<Entry<CFANode, BooleanFormula>, String> assumptionFormatter
-      = new Function<Entry<CFANode, BooleanFormula>, String>() {
-
-    @Override
-    public String apply(Map.Entry<CFANode, BooleanFormula> entry) {
-      int nodeId = entry.getKey().getNodeNumber();
-      BooleanFormula assumption = entry.getValue();
-      return "pc = " + nodeId + "\t =====>  " + assumption.toString();
-    }
-  };
+  private static final Function<Entry<CFANode, BooleanFormula>, String> assumptionFormatter =
+      entry -> {
+        int nodeId = entry.getKey().getNodeNumber();
+        BooleanFormula assumption = entry.getValue();
+        return "pc = " + nodeId + "\t =====>  " + assumption.toString();
+      };
 
   public void add(CFANode node, BooleanFormula assumption) {
     checkNotNull(node);

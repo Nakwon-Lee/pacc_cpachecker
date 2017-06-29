@@ -25,23 +25,6 @@ package org.sosy_lab.cpachecker.cpa.arg;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Level;
-
-import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.Precision;
-import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
-import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
-import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSetWrapper;
-import org.sosy_lab.cpachecker.exceptions.CPAException;
-import org.sosy_lab.cpachecker.util.Precisions;
-
 import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -50,6 +33,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSetWrapper;
+import org.sosy_lab.cpachecker.exceptions.CPAException;
+import org.sosy_lab.cpachecker.util.Precisions;
 
 /**
  * This class is a modifiable live view of a reached set, which shows the ARG
@@ -119,11 +116,13 @@ public class ARGReachedSet {
   /**
    * Like {@link #removeSubtree(ARGState)}, but when re-adding elements to the
    * waitlist adapts precisions with respect to the supplied precision p (see
-   * {@link #adaptPrecision(ARGState, Precision)}).
+   * {@link #adaptPrecision(Precision, Precision, Predicate)}).
    * @param e The root of the removed subtree, may not be the initial element.
    * @param p The new precision.
+   * @throws InterruptedException if operation is interrupted
    */
-  public void removeSubtree(ARGState e, Precision p, Predicate<? super Precision> pPrecisionType) {
+  public void removeSubtree(ARGState e, Precision p, Predicate<? super Precision> pPrecisionType)
+      throws InterruptedException {
     for (ARGState ae : removeSubtree0(e)) {
       mReached.updatePrecision(ae, adaptPrecision(mReached.getPrecision(ae), p, pPrecisionType));
       mReached.reAddToWaitlist(ae);
@@ -133,26 +132,43 @@ public class ARGReachedSet {
   /**
    * Like {@link #removeSubtree(ARGState)}, but when re-adding elements to the
    * waitlist adapts precisions with respect to the supplied precision p (see
-   * {@link #adaptPrecision(ARGState, Precision)}).
+   * {@link #adaptPrecision(Precision, Precision, Predicate)}).
    * If multiple precisions are given,
    * adapt all matching sub-precisions of a WrappedPrecision.
    *
-   * @param e The root of the removed subtree, may not be the initial element.
-   * @param p The new precision.
+   * @param pState The root of the removed subtree, may not be the initial element.
+   * @param pPrecisions The new precisions.
+   * @param pPrecTypes the types of the precisions.
+   * @throws InterruptedException if operation is interrupted
    */
-  public void removeSubtree(ARGState e, List<Precision> precisions, List<Predicate<? super Precision>> precisionTypes) {
+  public void removeSubtree(
+      ARGState pState, List<Precision> pPrecisions, List<Predicate<? super Precision>> pPrecTypes)
+      throws InterruptedException {
 
-    Preconditions.checkArgument(precisions.size() == precisionTypes.size());
+    Preconditions.checkNotNull(pState);
+    Preconditions.checkNotNull(pPrecisions);
+    Preconditions.checkNotNull(pPrecTypes);
 
-    Set<ARGState> toWaitlist = removeSubtree0(e);
+    Preconditions.checkArgument(pPrecisions.size() == pPrecTypes.size());
 
-    for (ARGState ae : toWaitlist) {
-      Precision prec = mReached.getPrecision(ae);
-      for (int i = 0; i < precisions.size(); i++) {
-        prec = adaptPrecision(prec, precisions.get(i), precisionTypes.get(i));
+    Set<ARGState> toWaitlist = removeSubtree0(pState);
+
+    for (ARGState waitingState : toWaitlist) {
+      Precision waitingStatePrec = mReached.getPrecision(waitingState);
+      Preconditions.checkState(waitingStatePrec != null);
+
+      for (int i = 0; i < pPrecisions.size(); i++) {
+        Precision adaptedPrec = adaptPrecision(waitingStatePrec, pPrecisions.get(i), pPrecTypes.get(i));
+
+        // adaptedPrec == null, if the precision component was not changed
+        if (adaptedPrec != null ) {
+          waitingStatePrec = adaptedPrec;
+        }
+        Preconditions.checkState(waitingStatePrec != null);
       }
-      mReached.updatePrecision(ae, prec);
-      mReached.reAddToWaitlist(ae);
+
+      mReached.updatePrecision(waitingState, waitingStatePrec);
+      mReached.reAddToWaitlist(waitingState);
     }
   }
 
@@ -161,9 +177,10 @@ public class ARGReachedSet {
    * unreachable. This method takes care of the coverage relationships of the
    * removed nodes, re-adding covered nodes to the waitlist if necessary.
    * @param rootOfInfeasiblePart The root of the subtree to remove.
-   * @param pReached The reached set.
    */
   public void removeInfeasiblePartofARG(ARGState rootOfInfeasiblePart) {
+    dumpSubgraph(rootOfInfeasiblePart);
+
     Set<ARGState> infeasibleSubtree = rootOfInfeasiblePart.getSubgraph();
 
     for (ARGState removedNode : infeasibleSubtree) {
@@ -187,7 +204,12 @@ public class ARGReachedSet {
    * @param argState the state to be removed including its subtree
    */
   public void cutOffSubtree(ARGState argState) {
-    mReached.removeAll(argState.getSubgraph());
+    Set<ARGState> subgraph = argState.getSubgraph();
+    mReached.removeAll(subgraph);
+
+    for (ARGState ae : subgraph) {
+      ae.detachFromARG();
+    }
   }
 
   /**
@@ -195,7 +217,7 @@ public class ARGReachedSet {
    * precision of the state to the supplied precision.
    *
    * @param state the state to (re)add to the waitlist
-   * @param the new precision to apply at this state
+   * @param precision the new precision to apply at this state
    * @param pPrecisionType the type of the precision
    */
   public void readdToWaitlist(ARGState state, Precision precision, Predicate<? super Precision> pPrecisionType) {
@@ -203,25 +225,28 @@ public class ARGReachedSet {
     mReached.reAddToWaitlist(state);
   }
 
+  public void updatePrecisionForState(ARGState state, Precision precision, Predicate<? super Precision> pPrecisionType) {
+    mReached.updatePrecision(state, adaptPrecision(mReached.getPrecision(state), precision, pPrecisionType));
+  }
+
   /**
    * Set a new precision for each single state in the reached set.
-   * @param p The new precision, may be for a single CPA (c.f. {@link #adaptPrecision(ARGState, Precision)}).
+   * @param pNewPrecision The new precision, may be for a single CPA
+   *                      (c.f. {@link #adaptPrecision(Precision, Precision, Predicate)}).
+   * @param pPrecisionType the type of the precision
    */
   public void updatePrecisionGlobally(Precision pNewPrecision,
       Predicate<? super Precision> pPrecisionType) {
     Map<Precision, Precision> precisionUpdateCache = Maps.newIdentityHashMap();
 
-    for (AbstractState s : mReached) {
-      Precision oldPrecision = mReached.getPrecision(s);
+    mReached.forEach(
+        (s, oldPrecision) -> {
+          Precision newPrecision =
+              precisionUpdateCache.computeIfAbsent(
+                  oldPrecision, oldPrec -> adaptPrecision(oldPrec, pNewPrecision, pPrecisionType));
 
-      Precision newPrecision = precisionUpdateCache.get(oldPrecision);
-      if (newPrecision == null) {
-        newPrecision = adaptPrecision(oldPrecision, pNewPrecision, pPrecisionType);
-        precisionUpdateCache.put(oldPrecision, newPrecision);
-      }
-
-      mReached.updatePrecision(s, newPrecision);
-    }
+          mReached.updatePrecision(s, newPrecision);
+        });
   }
 
   /**
@@ -252,6 +277,11 @@ public class ARGReachedSet {
     for (ARGState ae : toUnreach) {
       newToUnreach.addAll(ae.getCoveredByThis());
     }
+    // we remove the covered states completely,
+    // maybe we re-explore them later and find coverage again.
+    // caution: siblings of the covered state might be re-explored, too,
+    // they should be covered by the existing/previous siblings
+    // (if sibling not removed and precision is not weaker)
     toUnreach.addAll(newToUnreach);
 
     Set<ARGState> toWaitlist = removeSet(toUnreach);
@@ -264,16 +294,16 @@ public class ARGReachedSet {
       return;
     }
 
-    ARGToDotWriter refinementGraph = cpa.getRefinementGraphWriter();
+    ARGToDotWriter refinementGraph = cpa.getARGExporter().getRefinementGraphWriter();
     if (refinementGraph == null) {
       return;
     }
 
-    SetMultimap<ARGState, ARGState> successors = ARGUtils.projectARG(e,
-        ARGUtils.CHILDREN_OF_STATE, ARGUtils.RELEVANT_STATE);
+    SetMultimap<ARGState, ARGState> successors =
+        ARGUtils.projectARG(e, ARGState::getChildren, ARGUtils.RELEVANT_STATE);
 
-    SetMultimap<ARGState, ARGState> predecessors = ARGUtils.projectARG(e,
-        ARGUtils.PARENTS_OF_STATE, ARGUtils.RELEVANT_STATE);
+    SetMultimap<ARGState, ARGState> predecessors =
+        ARGUtils.projectARG(e, ARGState::getParents, ARGUtils.RELEVANT_STATE);
 
     try {
       refinementGraph.enterSubgraph("cluster_" + refinementNumber,
@@ -309,13 +339,6 @@ public class ARGReachedSet {
    * @return the elements to re-add to the waitlist
    */
   private SortedSet<ARGState> removeSet(Set<ARGState> elements) {
-    if (cpa != null) {
-      // This method call is "just" for avoiding a memory leak,
-      // so we can ignore it if we have no reference to the CPA,
-      // however, users of this class should really try to provide the CPA
-      // instance to reduce memory usage.
-      cpa.clearCounterexamples(elements);
-    }
     mReached.removeAll(elements);
 
     SortedSet<ARGState> toWaitlist = new TreeSet<>();
@@ -379,7 +402,6 @@ public class ARGReachedSet {
    * which means that all states in this subtree do not cover any states anymore.
    * @param v The state which should be covered if possible.
    * @return whether the covering was successful
-   * @throws CPAException
    */
   public boolean tryToCover(ARGState v) throws CPAException, InterruptedException {
     assert v.mayCover();
@@ -433,7 +455,6 @@ public class ARGReachedSet {
    * @param v the state which should be covered if possible
    * @param beUnsound whether or not the be unsound
    * @return whether the covering was successful
-   * @throws CPAException
    */
   public boolean tryToCover(ARGState v, boolean beUnsound) throws CPAException, InterruptedException {
     assert v.mayCover();
@@ -466,9 +487,24 @@ public class ARGReachedSet {
     }
 
     @Override
-    public void removeSubtree(ARGState pE, Precision pP,
-        Predicate<? super Precision> pPrecisionType) {
+    public void removeSubtree(
+        ARGState pE, Precision pP, Predicate<? super Precision> pPrecisionType)
+        throws InterruptedException {
       delegate.removeSubtree(pE, pP, pPrecisionType);
+    }
+  }
+
+  /**
+   * This method should only be used with great caution! It removes all pending
+   * states from the waitlist, and therefore effectively prevents the analysis
+   * from continuing.
+   *
+   * Depending on the states contained in the reached set this can lead to unsound
+   * behaviour (e.g. no state in waitlist anymore, but an existing error was not found)
+   */
+  public void clearWaitlist() {
+    while (mReached.hasWaitingState()) {
+      mReached.popFromWaitlist();
     }
   }
 }

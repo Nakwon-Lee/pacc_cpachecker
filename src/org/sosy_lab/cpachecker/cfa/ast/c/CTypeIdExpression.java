@@ -24,13 +24,13 @@
 package org.sosy_lab.cpachecker.cfa.ast.c;
 
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.AbstractExpression;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 
 public final class CTypeIdExpression extends AbstractExpression implements CExpression {
 
+  private static final long serialVersionUID = -665995216646475799L;
   private final TypeIdOperator operator;
   private final CType type;
 
@@ -71,17 +71,22 @@ public final class CTypeIdExpression extends AbstractExpression implements CExpr
   }
 
   public enum TypeIdOperator {
-    SIZEOF,
-    TYPEID,
-    ALIGNOF,
-    TYPEOF,
+    SIZEOF("sizeof"),
+    ALIGNOF("_Alignof"),
+    TYPEOF("typeof"),
     ;
+
+    private final String cRepresentation;
+
+    private TypeIdOperator(String pCRepresentation) {
+      cRepresentation = pCRepresentation;
+    }
 
     /**
      * Returns the string representation of this operator
      */
     public String getOperator() {
-      return toString().toLowerCase();
+      return cRepresentation;
     }
   }
 

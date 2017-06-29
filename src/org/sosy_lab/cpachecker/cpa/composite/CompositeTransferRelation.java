@@ -25,64 +25,59 @@ package org.sosy_lab.cpachecker.cpa.composite;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.FluentIterable.from;
+import static com.google.common.collect.Iterables.any;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
+import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractStateByType;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.configuration.Option;
-import org.sosy_lab.common.configuration.Options;
+import org.sosy_lab.cpachecker.cfa.CFA;
+import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCall;
+import org.sosy_lab.cpachecker.cfa.ast.c.CSimpleDeclaration;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
+import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocation;
+import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocations;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
-import org.sosy_lab.cpachecker.core.interfaces.Targetable;
 import org.sosy_lab.cpachecker.core.interfaces.TransferRelation;
 import org.sosy_lab.cpachecker.core.interfaces.pcc.ProofChecker;
 import org.sosy_lab.cpachecker.cpa.assumptions.storage.AssumptionStorageTransferRelation;
-import org.sosy_lab.cpachecker.cpa.automaton.AutomatonState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateTransferRelation;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-
-@Options(prefix="cpa.composite")
-public final class CompositeTransferRelation implements TransferRelation {
-
-  @Option(secure=true,
-      description="Split MultiEdges and pass each inner edge to the component CPAs"
-          + " to allow strengthen calls after each single edge."
-          + " Does not work with backwards analysis!")
-  private boolean splitMultiEdges = false;
+final class CompositeTransferRelation implements TransferRelation {
 
   private final ImmutableList<TransferRelation> transferRelations;
+  private final CFA cfa;
   private final int size;
-  private int assumptionIndex = -1;
-  private int predicatesIndex = -1;
-  private final boolean isErrorStateDetectableInStrengthening;
+  private final int assumptionIndex;
+  private final int predicatesIndex;
+  private final boolean aggregateBasicBlocks;
 
-  public CompositeTransferRelation(ImmutableList<TransferRelation> transferRelations,
-      boolean pErrorDetctableInStrengthen, Configuration config) throws InvalidConfigurationException {
-    config.inject(this);
-    this.transferRelations = transferRelations;
-    size = transferRelations.size();
-
-    isErrorStateDetectableInStrengthening = pErrorDetctableInStrengthen;
+  CompositeTransferRelation(
+      ImmutableList<TransferRelation> pTransferRelations, CFA pCFA, boolean pAggregateBasicBlocks) {
+    transferRelations = pTransferRelations;
+    cfa = pCFA;
+    size = pTransferRelations.size();
+    aggregateBasicBlocks = pAggregateBasicBlocks;
 
     // prepare special case handling if both predicates and assumptions are used
+    int predicatesIndex = -1;
+    int assumptionIndex = -1;
     for (int i = 0; i < size; i++) {
-      TransferRelation t = transferRelations.get(i);
+      TransferRelation t = pTransferRelations.get(i);
       if (t instanceof PredicateTransferRelation) {
         predicatesIndex = i;
       }
@@ -90,6 +85,8 @@ public final class CompositeTransferRelation implements TransferRelation {
         assumptionIndex = i;
       }
     }
+    this.predicatesIndex = predicatesIndex;
+    this.assumptionIndex = assumptionIndex;
   }
 
   @Override
@@ -100,9 +97,7 @@ public final class CompositeTransferRelation implements TransferRelation {
     CompositePrecision compositePrecision = (CompositePrecision)precision;
     Collection<CompositeState> results;
 
-
-
-    AbstractStateWithLocation locState = extractStateByType(compositeState, AbstractStateWithLocation.class);
+    AbstractStateWithLocations locState = extractStateByType(compositeState, AbstractStateWithLocations.class);
     if (locState == null) {
       throw new CPATransferException("Analysis without any CPA tracking locations is not supported, please add one to the configuration (e.g., LocationCPA).");
     }
@@ -126,7 +121,7 @@ public final class CompositeTransferRelation implements TransferRelation {
     CompositePrecision compositePrecision = (CompositePrecision)precision;
 
     Collection<CompositeState> results = new ArrayList<>(1);
-    getAbstractSuccessorForEdge(compositeState, compositePrecision, cfaEdge, results);
+    getAbstractSuccessorForSimpleEdge(compositeState, compositePrecision, cfaEdge, results);
 
     return results;
   }
@@ -135,33 +130,104 @@ public final class CompositeTransferRelation implements TransferRelation {
   private void getAbstractSuccessorForEdge(CompositeState compositeState, CompositePrecision compositePrecision, CFAEdge cfaEdge,
       Collection<CompositeState> compositeSuccessors) throws CPATransferException, InterruptedException {
 
-    if (splitMultiEdges && cfaEdge instanceof MultiEdge) {
-      // We want to resolve MultiEdges here such that for every edge along
-      // the MultiEdge there is a separate call to TransferRelation.getAbstractSuccessorsForEdge
-      // and especially to TransferRelation.strengthen.
-      // As there can be multiple successors at each step,
-      // we keep a list of "frontier states", handle one edge for each of them,
-      // and use the successors of all these states as the new frontier.
-      Collection<CompositeState> currentStates = new ArrayList<>(1);
-      currentStates.add(compositeState);
+    if (aggregateBasicBlocks) {
+      final CFANode startNode = cfaEdge.getPredecessor();
 
-      for (CFAEdge simpleEdge : ((MultiEdge)cfaEdge).getEdges()) {
-        Collection<CompositeState> successorStates = new ArrayList<>(currentStates.size());
+      // dynamic multiEdges may be used if the following conditions apply
+      if (isValidMultiEdgeStart(startNode)
+          && isValidMultiEdgeComponent(cfaEdge)) {
 
-        for (CompositeState currentState : currentStates) {
-          getAbstractSuccessorForSimpleEdge(currentState, compositePrecision, simpleEdge, successorStates);
+        Collection<CompositeState> currentStates = new ArrayList<>(1);
+        currentStates.add(compositeState);
+
+        while (isValidMultiEdgeComponent(cfaEdge)) {
+          Collection<CompositeState> successorStates = new ArrayList<>(currentStates.size());
+
+          for (CompositeState currentState : currentStates) {
+            getAbstractSuccessorForSimpleEdge(currentState, compositePrecision, cfaEdge, successorStates);
+          }
+
+          // if we found a target state in the current successors immediately return
+          if (from(successorStates).anyMatch(AbstractStates.IS_TARGET_STATE)) {
+            compositeSuccessors.addAll(successorStates);
+            return;
+          }
+
+          // make successor states the new to-be-handled states for the next edge
+          currentStates = Collections.unmodifiableCollection(successorStates);
+
+          // if there is more than one leaving edge we do not create a further
+          // multi edge part
+          if (cfaEdge.getSuccessor().getNumLeavingEdges() == 1) {
+            cfaEdge = cfaEdge.getSuccessor().getLeavingEdge(0);
+          } else {
+            break;
+          }
         }
 
-        assert !from(successorStates).anyMatch(AbstractStates.IS_TARGET_STATE);
-        // make successor states the new to-be-handled states for the next edge
-        currentStates = Collections.unmodifiableCollection(successorStates);
-      }
+        compositeSuccessors.addAll(currentStates);
 
-      compositeSuccessors.addAll(currentStates);
+        // no use for dynamic multi edges right now, just compute the successor
+        // for the given edge
+      } else {
+        getAbstractSuccessorForSimpleEdge(compositeState, compositePrecision, cfaEdge, compositeSuccessors);
+      }
 
     } else {
       getAbstractSuccessorForSimpleEdge(compositeState, compositePrecision, cfaEdge, compositeSuccessors);
     }
+  }
+
+  private boolean isValidMultiEdgeStart(CFANode node) {
+    return node.getNumLeavingEdges() == 1         // linear chain of edges
+        && node.getLeavingSummaryEdge() == null   // without a functioncall
+        && node.getNumEnteringEdges() > 0;        // without a functionstart
+  }
+
+  /**
+   * This method checks if the given edge and its successor node are a valid
+   * component for a continuing dynamic MultiEdge.
+   */
+  private boolean isValidMultiEdgeComponent(CFAEdge edge) {
+    boolean result = edge.getEdgeType() == CFAEdgeType.BlankEdge
+        || edge.getEdgeType() == CFAEdgeType.DeclarationEdge
+        || edge.getEdgeType() == CFAEdgeType.StatementEdge
+        || edge.getEdgeType() == CFAEdgeType.ReturnStatementEdge;
+
+    CFANode nodeAfterEdge = edge.getSuccessor();
+
+    result =
+        result
+            && nodeAfterEdge.getNumEnteringEdges() == 1
+            && nodeAfterEdge.getClass() == CFANode.class;
+
+    return result && !containsFunctionCall(edge);
+  }
+
+  /**
+   * This method checks, if the given (statement) edge contains a function call
+   * directly or via a function pointer.
+   *
+   * @param edge the edge to inspect
+   * @return whether or not this edge contains a function call or not.
+   */
+  private boolean containsFunctionCall(CFAEdge edge) {
+    if (edge.getEdgeType() == CFAEdgeType.StatementEdge) {
+      CStatementEdge statementEdge = (CStatementEdge)edge;
+
+      if ((statementEdge.getStatement() instanceof CFunctionCall)) {
+        CFunctionCall call = ((CFunctionCall) statementEdge.getStatement());
+        CSimpleDeclaration declaration = call.getFunctionCallExpression().getDeclaration();
+
+        // declaration == null -> functionPointer
+        // functionName exists in CFA -> functioncall with CFA for called function
+        // otherwise: call of non-existent function, example: nondet_int() -> ignore this case
+        return declaration == null
+            || cfa.getAllFunctionNames().contains(declaration.getQualifiedName());
+      }
+      return (statementEdge.getStatement() instanceof CFunctionCall);
+    }
+    return false;
   }
 
   private void getAbstractSuccessorForSimpleEdge(CompositeState compositeState, CompositePrecision compositePrecision, CFAEdge cfaEdge,
@@ -169,6 +235,26 @@ public final class CompositeTransferRelation implements TransferRelation {
     assert cfaEdge != null;
 
     // first, call all the post operators
+    Collection<List<AbstractState>> allResultingElements =
+        callTransferRelation(compositeState, compositePrecision, cfaEdge);
+
+    // second, call strengthen for each result
+    for (List<AbstractState> lReachedState : allResultingElements) {
+
+      Collection<List<AbstractState>> lResultingElements =
+          callStrengthen(lReachedState, compositePrecision, cfaEdge);
+
+      // finally, create a CompositeState for each result of strengthen
+      for (List<AbstractState> lList : lResultingElements) {
+        compositeSuccessors.add(new CompositeState(lList));
+      }
+    }
+  }
+
+  private Collection<List<AbstractState>> callTransferRelation(
+      final CompositeState compositeState,
+      final CompositePrecision compositePrecision, final CFAEdge cfaEdge)
+          throws CPATransferException, InterruptedException {
     int resultCount = 1;
     List<AbstractState> componentElements = compositeState.getWrappedStates();
     checkArgument(componentElements.size() == size, "State with wrong number of component states given");
@@ -193,85 +279,70 @@ public final class CompositeTransferRelation implements TransferRelation {
     }
 
     // create cartesian product of all elements we got
-    Collection<List<AbstractState>> allResultingElements
-        = createCartesianProduct(allComponentsSuccessors, resultCount);
+    return createCartesianProduct(allComponentsSuccessors, resultCount);
+  }
 
-    AbstractState foundInStrengthen = null;
+  private Collection<List<AbstractState>> callStrengthen(
+      final List<AbstractState> reachedState,
+      final CompositePrecision compositePrecision, final CFAEdge cfaEdge)
+          throws CPATransferException, InterruptedException {
+    List<Collection<? extends AbstractState>> lStrengthenResults = new ArrayList<>(size);
+    int resultCount = 1;
 
-    // second, call strengthen for each result of the cartesian product
-    for (List<AbstractState> lReachedState : allResultingElements) {
+    for (int i = 0; i < size; i++) {
 
-      List<Collection<? extends AbstractState>> lStrengthenResults = new ArrayList<>(size);
+      TransferRelation lCurrentTransfer = transferRelations.get(i);
+      AbstractState lCurrentElement = reachedState.get(i);
+      Precision lCurrentPrecision = compositePrecision.get(i);
 
-      resultCount = 1;
+      Collection<? extends AbstractState> lResultsList = lCurrentTransfer.strengthen(lCurrentElement, reachedState, cfaEdge, lCurrentPrecision);
 
-      for (int i = 0; i < size; i++) {
+      resultCount *= lResultsList.size();
+      if (resultCount == 0) {
+        // shortcut
+        break;
+      }
 
-        TransferRelation lCurrentTransfer = transferRelations.get(i);
-        AbstractState lCurrentElement = lReachedState.get(i);
-        Precision lCurrentPrecision = compositePrecision.get(i);
+      lStrengthenResults.add(lResultsList);
+    }
 
-        Collection<? extends AbstractState> lResultsList = lCurrentTransfer.strengthen(lCurrentElement, lReachedState, cfaEdge, lCurrentPrecision);
+    // special case handling if we have predicate and assumption cpas
+    // TODO remove as soon as we call strengthen in a fixpoint loop
+    if (predicatesIndex >= 0 && assumptionIndex >= 0 && resultCount > 0) {
+      AbstractState predElement = Iterables.getOnlyElement(lStrengthenResults.get(predicatesIndex));
+      AbstractState assumptionElement = Iterables.getOnlyElement(lStrengthenResults.get(assumptionIndex));
+      Precision predPrecision = compositePrecision.get(predicatesIndex);
+      TransferRelation predTransfer = transferRelations.get(predicatesIndex);
 
-        if (lResultsList == null) {
-          lStrengthenResults.add(Collections.singleton(lCurrentElement));
+      Collection<? extends AbstractState> predResult = predTransfer.strengthen(predElement, Collections.singletonList(assumptionElement), cfaEdge, predPrecision);
+      resultCount *= predResult.size();
+
+      lStrengthenResults.set(predicatesIndex, predResult);
+    }
+
+    // create cartesian product
+    Collection<List<AbstractState>> strengthenedStates =
+        createCartesianProduct(lStrengthenResults, resultCount);
+
+    // If state was not a target state before but a target state was found during strengthening,
+    // we call strengthen again such that the other CPAs can act on this information.
+    // Note that this terminates because in the inner call the input state
+    // is already a target state and this branch won't be taken.
+    // TODO Generalize this into a full fixpoint algorithm.
+    if (!any(reachedState, IS_TARGET_STATE)) {
+      Collection<List<AbstractState>> newStrengthenedStates = new ArrayList<>(resultCount);
+
+      for (List<AbstractState> strengthenedState : strengthenedStates) {
+        if (any(strengthenedState, IS_TARGET_STATE)) {
+          newStrengthenedStates.addAll(callStrengthen(strengthenedState, compositePrecision, cfaEdge));
         } else {
-          resultCount *= lResultsList.size();
-
-          if (resultCount == 0) {
-            // shortcut
-            break;
-          }
-
-          if (isErrorStateDetectableInStrengthening && foundInStrengthen == null) {
-            if (lCurrentElement instanceof AutomatonState) {
-              for (AbstractState strengthenState : lResultsList) {
-                if (((Targetable) strengthenState).isTarget()) {
-                  foundInStrengthen = strengthenState;
-
-                  break;
-                }
-              }
-            }
-          }
-
-          lStrengthenResults.add(lResultsList);
+          newStrengthenedStates.add(strengthenedState);
         }
       }
+      return newStrengthenedStates;
 
-      // special case handling if we have predicate and assumption cpas
-      if (predicatesIndex >= 0 && assumptionIndex >= 0 && resultCount > 0) {
-        AbstractState predElement = Iterables.getOnlyElement(lStrengthenResults.get(predicatesIndex));
-        AbstractState assumptionElement = Iterables.getOnlyElement(lStrengthenResults.get(assumptionIndex));
-        Precision predPrecision = compositePrecision.get(predicatesIndex);
-        TransferRelation predTransfer = transferRelations.get(predicatesIndex);
-
-        Collection<? extends AbstractState> predResult = predTransfer.strengthen(predElement, Collections.singletonList(assumptionElement), cfaEdge, predPrecision);
-        resultCount *= predResult.size();
-
-        lStrengthenResults.set(predicatesIndex, predResult);
-      }
-
-      // special case handling error state found during strengthening if we have predicate
-      if (predicatesIndex >= 0 && foundInStrengthen!=null && resultCount > 0) {
-        AbstractState predElement = Iterables.getOnlyElement(lStrengthenResults.get(predicatesIndex));
-        Precision predPrecision = compositePrecision.get(predicatesIndex);
-        TransferRelation predTransfer = transferRelations.get(predicatesIndex);
-
-        Collection<? extends AbstractState> predResult = predTransfer.strengthen(predElement, Collections.singletonList(foundInStrengthen), cfaEdge, predPrecision);
-        resultCount *= predResult.size();
-
-        lStrengthenResults.set(predicatesIndex, predResult);
-      }
-
-      // create cartesian product again
-      Collection<List<AbstractState>> lResultingElements
-          = createCartesianProduct(lStrengthenResults, resultCount);
-
-      // finally, create a CompositeState for each result of the cartesian product
-      for (List<AbstractState> lList : lResultingElements) {
-        compositeSuccessors.add(new CompositeState(lList));
-      }
+    } else {
+      return strengthenedStates;
     }
   }
 
@@ -323,11 +394,38 @@ public final class CompositeTransferRelation implements TransferRelation {
   }
 
   @Override
-  public Collection<? extends AbstractState> strengthen(AbstractState element,
-      List<AbstractState> otherElements, CFAEdge cfaEdge,
-      Precision precision) {
-    // strengthen is only called by the composite CPA on its component CPAs
-    return null;
+  public Collection<? extends AbstractState> strengthen(
+      AbstractState element,
+      List<AbstractState> otherElements,
+      CFAEdge cfaEdge,
+      Precision precision) throws CPATransferException, InterruptedException {
+
+    CompositeState compositeState = (CompositeState) element;
+    CompositePrecision compositePrecision = (CompositePrecision) precision;
+    List<Collection<? extends AbstractState>> lStrengthenResults = new ArrayList<>(size);
+    int resultCount = 1;
+
+    for (int i = 0; i < size; i++) {
+
+      TransferRelation lCurrentTransfer = transferRelations.get(i);
+      AbstractState lCurrentElement = compositeState.get(i);
+      Precision lCurrentPrecision = compositePrecision.get(i);
+
+      Collection<? extends AbstractState> lResultsList =
+          lCurrentTransfer.strengthen(lCurrentElement, otherElements, cfaEdge, lCurrentPrecision);
+
+      resultCount *= lResultsList.size();
+      if (resultCount == 0) {
+        // shortcut
+        break;
+      }
+
+      lStrengthenResults.add(lResultsList);
+    }
+
+
+    Collection<List<AbstractState>> lResultingElements = createCartesianProduct(lStrengthenResults, resultCount);
+    return transformedImmutableListCopy(lResultingElements, CompositeState::new);
   }
 
   boolean areAbstractSuccessors(AbstractState pElement, CFAEdge pCfaEdge, Collection<? extends AbstractState> pSuccessors, List<ConfigurableProgramAnalysis> cpas) throws CPATransferException, InterruptedException {

@@ -23,72 +23,63 @@
  */
 package org.sosy_lab.cpachecker.cpa.automaton;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.collect.FluentIterable.from;
 
-import java.util.ArrayDeque;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.configuration.Option;
-import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
-import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
-import org.sosy_lab.cpachecker.cfa.model.MultiEdge;
+import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.core.defaults.SingleEdgeTransferRelation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonExpression.ResultValue;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonState.AutomatonUnknownState;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
-import org.sosy_lab.cpachecker.util.SourceLocationMapper;
+import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.statistics.StatIntHist;
-import org.sosy_lab.cpachecker.util.statistics.StatKind;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import org.sosy_lab.cpachecker.util.statistics.ThreadSafeTimerContainer.TimerWrapper;
 
 /** The TransferRelation of this CPA determines the AbstractSuccessor of a {@link AutomatonState}
  * and strengthens an {@link AutomatonState.AutomatonUnknownState}.
  */
-@Options(prefix = "cpa.automaton")
 class AutomatonTransferRelation extends SingleEdgeTransferRelation {
-
-  @Option(secure=true, description = "Collect information about matched (and traversed) tokens.")
-  private boolean collectTokenInformation = false;
 
   private final ControlAutomatonCPA cpa;
   private final LogManager logger;
+  private final MachineModel machineModel;
 
-  Timer totalPostTime = new Timer();
-  Timer matchTime = new Timer();
-  Timer assertionsTime = new Timer();
-  Timer actionTime = new Timer();
-  Timer totalStrengthenTime = new Timer();
-  StatIntHist automatonSuccessors = new StatIntHist(StatKind.AVG, "Automaton transfer successors");
+  private final TimerWrapper totalPostTime;
+  private final TimerWrapper matchTime;
+  private final TimerWrapper assertionsTime;
+  private final TimerWrapper actionTime;
+  private final TimerWrapper totalStrengthenTime;
+  private final StatIntHist automatonSuccessors;
 
-  public AutomatonTransferRelation(ControlAutomatonCPA pCpa, Configuration config,
-      LogManager pLogger) throws InvalidConfigurationException {
-    config.inject(this);
+  public AutomatonTransferRelation(
+      ControlAutomatonCPA pCpa, LogManager pLogger, MachineModel pMachineModel) {
     this.cpa = pCpa;
     this.logger = pLogger;
+    this.machineModel = pMachineModel;
+
+    totalPostTime = pCpa.stats.totalPostTime.getNewTimer();
+    matchTime = pCpa.stats.matchTime.getNewTimer();
+    assertionsTime = pCpa.stats.assertionsTime.getNewTimer();
+    actionTime = pCpa.stats.actionTime.getNewTimer();
+    totalStrengthenTime = pCpa.stats.totalStrengthenTime.getNewTimer();
+    automatonSuccessors = pCpa.stats.automatonSuccessors;
   }
 
   @Override
@@ -105,73 +96,14 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
       return Collections.singleton(top);
     }
 
-    if (!(pCfaEdge instanceof MultiEdge)) {
-      Collection<? extends AbstractState> result = getAbstractSuccessors0((AutomatonState)pElement, pPrecision, pCfaEdge);
-      automatonSuccessors.setNextValue(result.size());
-      return result;
-    }
-
-    final List<CFAEdge> edges = ((MultiEdge)pCfaEdge).getEdges();
-    checkArgument(!edges.isEmpty());
-
-    // As long as each transition produces only 0 or 1 successors,
-    // we can just iterate through the edges.
-    AutomatonState currentState = (AutomatonState)pElement;
-    Collection<AutomatonState> currentSuccessors = null;
-    int edgeIndex;
-    for (edgeIndex=0; edgeIndex<edges.size(); edgeIndex++) {
-      CFAEdge edge = edges.get(edgeIndex);
-      currentSuccessors = getAbstractSuccessors0(currentState, pPrecision, edge);
-      if (currentSuccessors.isEmpty()) {
-        automatonSuccessors.setNextValue(0);
-        return currentSuccessors; // bottom
-      } else if (currentSuccessors.size() == 1) {
-        automatonSuccessors.setNextValue(1);
-        currentState = Iterables.getOnlyElement(currentSuccessors);
-      } else { // currentSuccessors.size() > 1
-        break;
-      }
-    }
-
-    if (edgeIndex == edges.size()) {
-      automatonSuccessors.setNextValue(currentSuccessors.size());
-      return currentSuccessors;
-    }
-
-    // If there are two or more successors once, we use a waitlist algorithm.
-    Deque<Pair<AutomatonState, Integer>> queue = new ArrayDeque<>(1);
-    for (AutomatonState successor : currentSuccessors) {
-      queue.addLast(Pair.of(successor, edgeIndex));
-    }
-    currentSuccessors.clear();
-
-    List<AutomatonState> results = new ArrayList<>();
-    while (!queue.isEmpty()) {
-      Pair<AutomatonState, Integer> entry = queue.pollFirst();
-      AutomatonState state = entry.getFirst();
-      edgeIndex = entry.getSecond();
-      CFAEdge edge = edges.get(edgeIndex);
-      Integer successorIndex = edgeIndex+1;
-
-      if (successorIndex == edges.size()) {
-        // last iteration
-        results.addAll(getAbstractSuccessors0(state, pPrecision, edge));
-
-      } else {
-        for (AutomatonState successor : getAbstractSuccessors0(state, pPrecision, edge)) {
-          queue.addLast(Pair.of(successor, successorIndex));
-        }
-      }
-
-    }
-
-    automatonSuccessors.setNextValue(results.size());
-    return results;
+    Collection<? extends AbstractState> result =
+        getAbstractSuccessors0((AutomatonState) pElement, pCfaEdge);
+    automatonSuccessors.setNextValue(result.size());
+    return result;
   }
 
   private Collection<AutomatonState> getAbstractSuccessors0(
-      AutomatonState pElement, Precision pPrecision, CFAEdge pCfaEdge)
-      throws CPATransferException {
+      AutomatonState pElement, CFAEdge pCfaEdge) throws CPATransferException {
     totalPostTime.start();
     try {
       if (pElement instanceof AutomatonUnknownState) {
@@ -182,7 +114,6 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
       }
 
       return getFollowStates(pElement, null, pCfaEdge, false);
-
     } finally {
       totalPostTime.stop();
     }
@@ -196,7 +127,6 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
    *
    * If the state is a NonDet-State multiple following states may be returned.
    * If the only following state is BOTTOM an empty set is returned.
-   * @throws CPATransferException
    */
   private Collection<AutomatonState> getFollowStates(AutomatonState state, List<AbstractState> otherElements, CFAEdge edge, boolean failOnUnknownMatch) throws CPATransferException {
     Preconditions.checkArgument(!(state instanceof AutomatonUnknownState));
@@ -204,16 +134,12 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
       return Collections.emptySet();
     }
 
-    if (collectTokenInformation) {
-      SourceLocationMapper.getKnownToEdge(edge);
-    }
-
     if (state.getInternalState().getTransitions().isEmpty()) {
       // shortcut
       return Collections.singleton(state);
     }
 
-    Collection<AutomatonState> lSuccessors = Sets.newHashSetWithExpectedSize(2);
+    Collection<AutomatonState> lSuccessors = Sets.newLinkedHashSetWithExpectedSize(2);
     AutomatonExpressionArguments exprArgs = new AutomatonExpressionArguments(state, state.getVars(), otherElements, edge, logger);
     boolean edgeMatched = false;
     int failedMatches = 0;
@@ -266,8 +192,13 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
 
           } else {
             // matching transitions, but unfulfilled assertions: goto error state
-            String violatedPropertyDescription = Strings.nullToEmpty(t.getViolatedPropertyDescription(exprArgs));
-            AutomatonState errorState = AutomatonState.automatonStateFactory(Collections.<String, AutomatonVariable>emptyMap(), AutomatonInternalState.ERROR, cpa, 0, 0, violatedPropertyDescription);
+            final String desc = Strings.nullToEmpty(t.getViolatedPropertyDescription(exprArgs));
+            AutomatonSafetyProperty prop =
+                new AutomatonSafetyProperty(state.getOwningAutomaton(), t, desc);
+
+            AutomatonState errorState = AutomatonState.automatonStateFactory(
+                Collections.<String, AutomatonVariable>emptyMap(), AutomatonInternalState.ERROR, cpa, 0, 0, prop);
+
             logger.log(Level.INFO, "Automaton going to ErrorState on edge \"" + edge.getDescription() + "\"");
             lSuccessors.add(errorState);
           }
@@ -295,11 +226,24 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
         exprArgs.putTransitionVariables(transitionVariables);
         t.executeActions(exprArgs);
         actionTime.stop();
-        String violatedPropertyDescription = null;
+
+        AutomatonSafetyProperty violatedProperty = null;
         if (t.getFollowState().isTarget()) {
-          violatedPropertyDescription = t.getViolatedPropertyDescription(exprArgs);
+          final String desc = Strings.nullToEmpty(t.getViolatedPropertyDescription(exprArgs));
+          violatedProperty = new AutomatonSafetyProperty(state.getOwningAutomaton(), t, desc);
         }
-        AutomatonState lSuccessor = AutomatonState.automatonStateFactory(newVars, t.getFollowState(), cpa, t.getAssumptions(), state.getMatches() + 1, state.getFailedMatches(), violatedPropertyDescription);
+
+        AutomatonState lSuccessor =
+            AutomatonState.automatonStateFactory(
+                newVars,
+                t.getFollowState(),
+                cpa,
+                t.getAssumptions(edge, logger, machineModel),
+                t.getCandidateInvariants(),
+                state.getMatches() + 1,
+                state.getFailedMatches(),
+                violatedProperty);
+
         if (!(lSuccessor instanceof AutomatonState.BOTTOM)) {
           lSuccessors.add(lSuccessor);
         } else {
@@ -310,12 +254,6 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
     } else {
       // stay in same state, no transitions to be executed here (no transition matched)
       AutomatonState stateNewCounters = AutomatonState.automatonStateFactory(state.getVars(), state.getInternalState(), cpa, state.getMatches(), state.getFailedMatches() + failedMatches, null);
-      if (collectTokenInformation) {
-        stateNewCounters.addNoMatchTokens(state.getTokensSinceLastMatch());
-        if (edge.getEdgeType() != CFAEdgeType.DeclarationEdge) {
-          stateNewCounters.addNoMatchTokens(SourceLocationMapper.getAbsoluteTokensFromCFAEdge(edge, true));
-        }
-      }
       return Collections.singleton(stateNewCounters);
     }
   }
@@ -337,7 +275,7 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
                                     CFAEdge pCfaEdge, Precision pPrecision)
                                     throws CPATransferException {
     if (! (pElement instanceof AutomatonUnknownState)) {
-      return null;
+      return Collections.singleton(pElement);
     } else {
       totalStrengthenTime.start();
       AutomatonUnknownState lUnknownState = (AutomatonUnknownState)pElement;
@@ -354,7 +292,7 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
         Collection<List<AbstractState>> newCombinations = new HashSet<>();
         for (List<AbstractState> otherStates : strengtheningCombinations) {
           Collection<List<AbstractState>> newPartialCombinations = new ArrayList<>();
-          newPartialCombinations.add(new ArrayList<AbstractState>());
+          newPartialCombinations.add(new ArrayList<>());
           for (AbstractState otherState : otherStates) {
             AbstractState toAdd = otherState;
             if (otherState instanceof AutomatonUnknownState) {
@@ -397,6 +335,7 @@ class AutomatonTransferRelation extends SingleEdgeTransferRelation {
         successors.addAll(getFollowStates(lUnknownState.getPreviousState(), otherStates, pCfaEdge, true));
       }
       totalStrengthenTime.stop();
+
       assert !from(successors).anyMatch(instanceOf(AutomatonUnknownState.class));
       return successors;
     }

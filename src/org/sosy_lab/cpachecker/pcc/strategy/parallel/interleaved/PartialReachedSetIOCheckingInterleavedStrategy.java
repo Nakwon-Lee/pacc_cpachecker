@@ -23,10 +23,14 @@
  */
 package org.sosy_lab.cpachecker.pcc.strategy.parallel.interleaved;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,16 +44,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.zip.ZipInputStream;
-
-import org.sosy_lab.common.Pair;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.Triple;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.PropertyChecker.PropertyCheckerCPA;
@@ -57,12 +60,10 @@ import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.pcc.strategy.AbstractStrategy;
 import org.sosy_lab.cpachecker.pcc.strategy.parallel.ParallelPartitionChecker;
 import org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.PartialReachedSetDirectedGraph;
-import org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitionChecker;
 import org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitioningIOHelper;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitioningUtils;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.Triple;
 
 public class PartialReachedSetIOCheckingInterleavedStrategy extends AbstractStrategy {
 
@@ -71,11 +72,15 @@ public class PartialReachedSetIOCheckingInterleavedStrategy extends AbstractStra
   private final ShutdownNotifier shutdownNotifier;
   private final Lock lock = new ReentrantLock();
 
-  public PartialReachedSetIOCheckingInterleavedStrategy(final Configuration pConfig, final LogManager pLogger,
-      final ShutdownNotifier pShutdownNotifier, final PropertyCheckerCPA pCpa)
+  public PartialReachedSetIOCheckingInterleavedStrategy(
+      final Configuration pConfig,
+      final LogManager pLogger,
+      final ShutdownNotifier pShutdownNotifier,
+      final Path pProofFile,
+      final @Nullable PropertyCheckerCPA pCpa)
       throws InvalidConfigurationException {
-    super(pConfig, pLogger);
-    ioHelper = new PartitioningIOHelper(pConfig, pLogger, pShutdownNotifier, pCpa);
+    super(pConfig, pLogger, pProofFile);
+    ioHelper = new PartitioningIOHelper(pConfig, pLogger, pShutdownNotifier);
     cpa = pCpa;
     shutdownNotifier = pShutdownNotifier;
     addPCCStatistic(ioHelper.getPartitioningStatistc());
@@ -130,7 +135,7 @@ public class PartialReachedSetIOCheckingInterleavedStrategy extends AbstractStra
 
       logger.log(Level.INFO,
               "Check if initial state and all nodes which should be contained in different partition are covered by certificate (partition node).");
-      if (!PartitionChecker.areElementsCoveredByPartitionElement(inOtherPartition, partitionNodes, cpa.getStopOperator(),
+      if (!PartitioningUtils.areElementsCoveredByPartitionElement(inOtherPartition, partitionNodes, cpa.getStopOperator(),
           initPrec)) {
         logger.log(Level.SEVERE,
             "Initial state or a state which should be in other partition is not covered by certificate.");
@@ -170,6 +175,13 @@ public class PartialReachedSetIOCheckingInterleavedStrategy extends AbstractStra
   protected void readProofFromStream(final ObjectInputStream pIn) throws ClassNotFoundException,
       InvalidConfigurationException, IOException {
     ioHelper.readMetadata(pIn, true);
+  }
+
+  @Override
+  public Collection<Statistics> getAdditionalProofGenerationStatistics() {
+    Collection<Statistics> result = new ArrayList<>(super.getAdditionalProofGenerationStatistics());
+    result.add(ioHelper.getGraphStatistic());
+    return result;
   }
 
   private class PartitionReader implements Runnable {

@@ -24,7 +24,6 @@
 package org.sosy_lab.cpachecker.cfa.ast.java;
 
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.AbstractExpression;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.java.JClassOrInterfaceType;
@@ -37,8 +36,9 @@ import org.sosy_lab.cpachecker.cfa.types.java.JType;
  * as the type Definition. Otherwise, it evaluates to false.
  *
  */
-public class JRunTimeTypeEqualsType extends AbstractExpression implements JExpression {
+public final class JRunTimeTypeEqualsType extends AbstractExpression implements JExpression {
 
+  private static final long serialVersionUID = -2513620435920744071L;
   private final JRunTimeTypeExpression runTimeTypeExpression;
   private final JClassOrInterfaceType typeDef;
 
@@ -56,11 +56,6 @@ public class JRunTimeTypeEqualsType extends AbstractExpression implements JExpre
   @Override
   public JType getExpressionType() {
     return (JType) super.getExpressionType();
-  }
-
-  @Override
-  public <R, X extends Exception> R accept(JRightHandSideVisitor<R, X> v) throws X {
-    return v.visit(this);
   }
 
   @Override

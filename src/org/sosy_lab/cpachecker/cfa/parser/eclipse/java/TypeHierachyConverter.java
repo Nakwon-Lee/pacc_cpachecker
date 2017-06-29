@@ -23,16 +23,15 @@
  */
 package org.sosy_lab.cpachecker.cfa.parser.eclipse.java;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-
-import javax.annotation.Nullable;
-
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -57,10 +56,6 @@ import org.sosy_lab.cpachecker.cfa.types.java.JConstructorType;
 import org.sosy_lab.cpachecker.cfa.types.java.JMethodType;
 import org.sosy_lab.cpachecker.cfa.types.java.JType;
 
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.FluentIterable;
-
 class TypeHierachyConverter {
 
   public final LogManager logger;
@@ -84,8 +79,7 @@ class TypeHierachyConverter {
     IMethodBinding methodBinding = md.resolveBinding();
 
     if (methodBinding == null) {
-      logger.log(Level.WARNING, md.getName());
-      logger.log(Level.WARNING, " can't be resolved.");
+      logger.log(Level.WARNING, md.getName(), "can't be resolved.");
       return JMethodDeclaration.createUnresolvedMethodDeclaration();
     }
 
@@ -99,14 +93,7 @@ class TypeHierachyConverter {
     List<JParameterDeclaration> param =
         convertParameterList(md.parameters(), pFileOfDeclaration, methodName);
 
-    List<JType> parameterTypes = FluentIterable.from(param).transform(
-        new Function<JParameterDeclaration, JType>() {
-          @Override
-          @Nullable
-          public JType apply(@Nullable JParameterDeclaration pDecl) {
-            Preconditions.checkNotNull(pDecl);
-            return pDecl.getType();
-          }}).toList();
+    List<JType> parameterTypes = Lists.transform(param, JParameterDeclaration::getType);
 
     FileLocation fileLoc = convertFileLocation(md, pFileOfDeclaration);
 
@@ -147,7 +134,7 @@ class TypeHierachyConverter {
   /**
    * Converts a List of Field Declaration into the intern AST.
    *
-   * @param field Declarations given to be transformed.
+   * @param fd Declarations given to be transformed.
    * @return intern AST of the Field Declarations.
    */
   public Set<JFieldDeclaration> convert(FieldDeclaration fd, String pFileOfDeclaration) {
@@ -262,16 +249,18 @@ class TypeHierachyConverter {
     if (l == null) {
       return FileLocation.DUMMY;
     } else if (l.getRoot().getNodeType() != ASTNode.COMPILATION_UNIT) {
-      logger.log(Level.WARNING, "Can't find Placement Information for :"
-          + l.toString());
+      logger.log(Level.WARNING, "Can't find Placement Information for: ", l);
       return FileLocation.DUMMY;
     }
 
     CompilationUnit co = (CompilationUnit) l.getRoot();
 
-    return new FileLocation(co.getLineNumber(l.getLength() + l.getStartPosition()),
-        fileOfDeclaration, l.getLength(), l.getStartPosition(),
-        co.getLineNumber(l.getStartPosition()));
+    return new FileLocation(
+        fileOfDeclaration,
+        l.getStartPosition(),
+        l.getLength(),
+        co.getLineNumber(l.getStartPosition()),
+        co.getLineNumber(l.getLength() + l.getStartPosition()));
   }
 
   public JClassOrInterfaceType convertClassOrInterfaceType(ITypeBinding pTypeBinding) {

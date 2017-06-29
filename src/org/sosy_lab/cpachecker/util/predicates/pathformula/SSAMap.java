@@ -23,17 +23,12 @@
  */
 package org.sosy_lab.cpachecker.util.predicates.pathformula;
 
-import java.io.Serializable;
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import com.google.common.base.Equivalence;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 
-import org.sosy_lab.common.Pair;
-import org.sosy_lab.common.Triple;
 import org.sosy_lab.common.collect.Collections3;
+import org.sosy_lab.common.collect.MapsDifference;
 import org.sosy_lab.common.collect.PathCopyingPersistentTreeMap;
 import org.sosy_lab.common.collect.PersistentSortedMap;
 import org.sosy_lab.common.collect.PersistentSortedMaps;
@@ -46,10 +41,11 @@ import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CTypes;
 
-import com.google.common.base.Equivalence;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 /**
  * Maps a variable name to its latest "SSA index", that should be used when
@@ -64,27 +60,34 @@ public class SSAMap implements Serializable {
 
   private final int defaultValue;
 
-  private static MergeConflictHandler<String, CType> TYPE_CONFLICT_CHECKER = new MergeConflictHandler<String, CType>() {
-    @Override
-    public CType resolveConflict(String name, CType type1, CType type2) {
-      Preconditions.checkArgument(
-          type1 instanceof CFunctionType || type2 instanceof CFunctionType
-          || (isEnumPointerType(type1) && isEnumPointerType(type2))
-          || type1.equals(type2)
-          , "Cannot change type of variable %s in SSAMap from %s to %s", name, type1, type2);
+  private static MergeConflictHandler<String, CType> TYPE_CONFLICT_CHECKER =
+      new MergeConflictHandler<String, CType>() {
+        @Override
+        public CType resolveConflict(String name, CType type1, CType type2) {
+          Preconditions.checkArgument(
+              type1 instanceof CFunctionType
+                  || type2 instanceof CFunctionType
+                  || (isEnumPointerType(type1) && isEnumPointerType(type2))
+                  || type1.equals(type2),
+              "Cannot change type of variable %s in SSAMap from %s to %s",
+              name,
+              type1,
+              type2);
 
-      return type1;
-    }
+          return type1;
+        }
 
-    private boolean isEnumPointerType(CType type) {
-      if (type instanceof CPointerType) {
-        type = ((CPointerType) type).getType();
-        return (type instanceof CComplexType) && ((CComplexType)type).getKind() == ComplexTypeKind.ENUM
-            || (type instanceof CElaboratedType) && ((CElaboratedType)type).getKind() == ComplexTypeKind.ENUM;
-      }
-      return false;
-    }
-  };
+        private boolean isEnumPointerType(CType type) {
+          if (type instanceof CPointerType) {
+            type = ((CPointerType) type).getType();
+            return ((type instanceof CComplexType)
+                    && ((CComplexType) type).getKind() == ComplexTypeKind.ENUM)
+                || ((type instanceof CElaboratedType)
+                    && ((CElaboratedType) type).getKind() == ComplexTypeKind.ENUM);
+          }
+          return false;
+        }
+      };
 
   /**
    * Builder for SSAMaps. Its state starts with an existing SSAMap, but may be
@@ -120,13 +123,15 @@ public class SSAMap implements Serializable {
     }
 
     public int getFreshIndex(String variable) {
-      return freshValueProvider.getFreshValue(variable, SSAMap.getIndex(variable, vars, ssa.defaultValue));
+      return freshValueProvider.getFreshValue(variable,
+          SSAMap.getIndex(variable, vars, ssa.defaultValue));
     }
 
     public CType getType(String name) {
       return varTypes.get(name);
     }
 
+    @SuppressWarnings("CheckReturnValue")
     public SSAMapBuilder setIndex(String name, CType type, int idx) {
       Preconditions.checkArgument(idx > 0, "Indices need to be positive for this SSAMap implementation:", name, type, idx);
       int oldIdx = getIndex(name);
@@ -197,10 +202,10 @@ public class SSAMap implements Serializable {
   }
 
   private static final SSAMap EMPTY_SSA_MAP = new SSAMap(
-      PathCopyingPersistentTreeMap.<String, Integer>of(),
-      new FreshValueProvider.DefaultFreshValueProvider(),
+      PathCopyingPersistentTreeMap.of(),
+      new FreshValueProvider(),
       0,
-      PathCopyingPersistentTreeMap.<String, CType>of());
+      PathCopyingPersistentTreeMap.of());
 
   /**
    * Returns an empty immutable SSAMap.
@@ -219,7 +224,8 @@ public class SSAMap implements Serializable {
    * Further returns a list with all variables for which different indices
    * were found, together with the two conflicting indices.
    */
-  public static Pair<SSAMap, List<Triple<String, Integer, Integer>>> merge(SSAMap s1, SSAMap s2) {
+  public static SSAMap merge(
+      SSAMap s1, SSAMap s2, MapsDifference.Visitor<String, Integer> collectDifferences) {
     // This method uses some optimizations to avoid work when parts of both SSAMaps
     // are equal. These checks use == instead of equals() because it is much faster
     // and we create sets lazily (so when they are not identical, they are
@@ -229,26 +235,30 @@ public class SSAMap implements Serializable {
 
     PersistentSortedMap<String, Integer> vars;
     FreshValueProvider freshValueProvider;
-    List<Triple<String, Integer, Integer>> differences;
     if (s1.vars == s2.vars && s1.freshValueProvider == s2.freshValueProvider) {
-      differences = ImmutableList.of();
       // both are absolutely identical
-      return Pair.of(s1, differences);
+      return s1;
 
     } else {
-      differences = new ArrayList<>();
-      vars = PersistentSortedMaps.merge(s1.vars, s2.vars, Equivalence.equals(),
-          PersistentSortedMaps.<String, Integer>getMaximumMergeConflictHandler(), differences);
+      vars =
+          PersistentSortedMaps.merge(
+              s1.vars,
+              s2.vars,
+              Equivalence.equals(),
+              PersistentSortedMaps.getMaximumMergeConflictHandler(),
+              collectDifferences);
       freshValueProvider = s1.freshValueProvider.merge(s2.freshValueProvider);
     }
 
-    PersistentSortedMap<String, CType> varTypes = PersistentSortedMaps.merge(
-        s1.varTypes, s2.varTypes,
-        CTypes.canonicalTypeEquivalence(),
-        TYPE_CONFLICT_CHECKER,
-        null);
+    PersistentSortedMap<String, CType> varTypes =
+        PersistentSortedMaps.merge(
+            s1.varTypes,
+            s2.varTypes,
+            CTypes.canonicalTypeEquivalence(),
+            TYPE_CONFLICT_CHECKER,
+            MapsDifference.ignoreMapsDifference());
 
-    return Pair.of(new SSAMap(vars, freshValueProvider, 0, varTypes), differences);
+    return new SSAMap(vars, freshValueProvider, 0, varTypes);
   }
 
   private final PersistentSortedMap<String, Integer> vars;

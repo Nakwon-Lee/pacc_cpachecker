@@ -24,7 +24,6 @@
 package org.sosy_lab.cpachecker.cfa.ast.java;
 
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.AbstractExpression;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.java.JArrayType;
@@ -32,8 +31,10 @@ import org.sosy_lab.cpachecker.cfa.types.java.JClassOrInterfaceType;
 import org.sosy_lab.cpachecker.cfa.types.java.JType;
 
 
-public class JVariableRunTimeType extends AbstractExpression implements JRunTimeTypeExpression {
+public final class JVariableRunTimeType extends AbstractExpression
+    implements JRunTimeTypeExpression {
 
+  private static final long serialVersionUID = 1949325105551973491L;
   private final JIdExpression referencedVariable;
 
   public JVariableRunTimeType(FileLocation pFileLocation, JIdExpression pReferencedVariable) {
@@ -49,11 +50,6 @@ public class JVariableRunTimeType extends AbstractExpression implements JRunTime
   @Override
   public JType getExpressionType() {
     return (JType)super.getExpressionType();
-  }
-
-  @Override
-  public <R, X extends Exception> R accept(JRightHandSideVisitor<R, X> v) throws X {
-    return v.visit(this);
   }
 
   @Override

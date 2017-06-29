@@ -26,13 +26,15 @@ package org.sosy_lab.cpachecker.util.predicates.pathformula;
 import static com.google.common.truth.Truth.assertThat;
 import static org.sosy_lab.cpachecker.util.test.TestDataTools.makeDeclaration;
 
+import com.google.common.collect.ImmutableList;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.junit.Before;
 import org.junit.Test;
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.Triple;
 import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.log.TestLogManager;
+import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression.BinaryOperator;
@@ -50,17 +52,18 @@ import org.sosy_lab.cpachecker.cfa.types.c.CArrayType;
 import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.core.AnalysisDirection;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
-import org.sosy_lab.cpachecker.exceptions.SolverException;
-import org.sosy_lab.cpachecker.util.VariableClassification;
-import org.sosy_lab.cpachecker.util.predicates.FormulaManagerFactory.Solvers;
-import org.sosy_lab.cpachecker.util.predicates.Solver;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
-import org.sosy_lab.cpachecker.util.test.SolverBasedTest0;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.Triple;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
 import org.sosy_lab.cpachecker.util.test.TestDataTools;
+import org.sosy_lab.java_smt.SolverContextFactory.Solvers;
+import org.sosy_lab.java_smt.api.SolverException;
+import org.sosy_lab.java_smt.test.SolverBasedTest0;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.util.Optional;
 
+@SuppressFBWarnings("NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
 public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
 
   private static final CArrayType unlimitedIntArrayType = new CArrayType(false, false, CNumericTypes.INT, null);
@@ -101,26 +104,28 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
         .setOption("cpa.predicate.handleArrays", "true")
         .build();
 
-    mgv = new FormulaManagerView(factory, config, TestLogManager.getInstance());
-    solver = new Solver(mgv, factory, config, TestLogManager.getInstance());
+    solver = new Solver(factory, config, LogManager.createTestLogManager());
+    mgv = solver.getFormulaManager();
 
-    pfmgrFwd = new PathFormulaManagerImpl(
-        mgv,
-        myConfig,
-        TestLogManager.getInstance(),
-        ShutdownNotifier.create(),
-        MachineModel.LINUX32,
-        Optional.<VariableClassification>absent(),
-        AnalysisDirection.FORWARD);
+    pfmgrFwd =
+        new PathFormulaManagerImpl(
+            mgv,
+            myConfig,
+            LogManager.createTestLogManager(),
+            ShutdownNotifier.createDummy(),
+            MachineModel.LINUX32,
+            Optional.empty(),
+            AnalysisDirection.FORWARD);
 
-    pfmgrBwd = new PathFormulaManagerImpl(
-        mgv,
-        myConfig,
-        TestLogManager.getInstance(),
-        ShutdownNotifier.create(),
-        MachineModel.LINUX32,
-        Optional.<VariableClassification>absent(),
-        AnalysisDirection.BACKWARD);
+    pfmgrBwd =
+        new PathFormulaManagerImpl(
+            mgv,
+            myConfig,
+            LogManager.createTestLogManager(),
+            ShutdownNotifier.createDummy(),
+            MachineModel.LINUX32,
+            Optional.empty(),
+            AnalysisDirection.BACKWARD);
 
     eb = new CBinaryExpressionBuilder(MachineModel.LINUX64, logger);
 
@@ -172,7 +177,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op2
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst()
         ));
@@ -193,7 +198,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op2
       = TestDataTools.makeNegatedAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst()
         ));
@@ -218,7 +223,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst()
@@ -244,7 +249,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _2, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst()
@@ -270,7 +275,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst()
@@ -296,7 +301,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeNegatedAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst()
@@ -340,13 +345,13 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op8
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_2, _100, BinaryOperator.GREATER_THAN));
 
-    PathFormula branch1 = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch1 = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst(),
         _op4.getFirst()
         ));
-    PathFormula branch2 = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch2 = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op5.getFirst(),
         _op6.getFirst(),
@@ -390,13 +395,13 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op8
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_2, _100, BinaryOperator.GREATER_THAN));
 
-    PathFormula branch1 = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch1 = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst(),
         _op4.getFirst()
         ));
-    PathFormula branch2 = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch2 = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op5.getFirst(),
         _op6.getFirst()
@@ -434,13 +439,13 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op8
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_2, _100, BinaryOperator.GREATER_THAN));
 
-    PathFormula branch1 = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch1 = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op2.getFirst(),
         _op3.getFirst(),
         _op4.getFirst()
         ));
-    PathFormula branch2 = pfmgrFwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch2 = pfmgrFwd.makeFormulaForPath(ImmutableList.of(
         _op1.getFirst(),
         _op5.getFirst()
         ));
@@ -468,7 +473,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op2
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op2.getFirst(),
         _op1.getFirst()
         ));
@@ -489,7 +494,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op2
       = TestDataTools.makeNegatedAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op2.getFirst(),
         _op1.getFirst()
         ));
@@ -514,7 +519,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op3.getFirst(),
         _op2.getFirst(),
         _op1.getFirst()
@@ -540,7 +545,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _2, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op3.getFirst(),
         _op2.getFirst(),
         _op1.getFirst()
@@ -566,7 +571,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op3.getFirst(),
         _op2.getFirst(),
         _op1.getFirst()
@@ -592,7 +597,7 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op3
       = TestDataTools.makeNegatedAssume(eb.buildBinaryExpression(_a_at_0, _1, BinaryOperator.EQUALS));
 
-    PathFormula result = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula result = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op3.getFirst(),
         _op2.getFirst(),
         _op1.getFirst()
@@ -636,13 +641,13 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op8
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_2, _100, BinaryOperator.GREATER_THAN));
 
-    PathFormula branch1 = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch1 = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op8.getFirst(),
         _op4.getFirst(),
         _op3.getFirst(),
         _op2.getFirst()
         ));
-    PathFormula branch2 = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch2 = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op8.getFirst(),
         _op7.getFirst(),
         _op6.getFirst(),
@@ -686,13 +691,13 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op8
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_2, _100, BinaryOperator.GREATER_THAN));
 
-    PathFormula branch1 = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch1 = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op8.getFirst(),
         _op4.getFirst(),
         _op3.getFirst(),
         _op2.getFirst()
         ));
-    PathFormula branch2 = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch2 = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op8.getFirst(),
         _op6.getFirst(),
         _op5.getFirst()
@@ -730,13 +735,13 @@ public class PathFormulaManagerImplArraysTest0 extends SolverBasedTest0 {
     Pair<CAssumeEdge, CExpression> _op8
       = TestDataTools.makeAssume(eb.buildBinaryExpression(_a_at_2, _100, BinaryOperator.GREATER_THAN));
 
-    PathFormula branch1 = pfmgrBwd.makeFormulaForPath(Lists.newArrayList(
+    PathFormula branch1 = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op8.getFirst(),
         _op4.getFirst(),
         _op3.getFirst(),
         _op2.getFirst()
         ));
-    PathFormula branch2 = pfmgrBwd.makeFormulaForPath(Lists.<CFAEdge>newArrayList(
+    PathFormula branch2 = pfmgrBwd.makeFormulaForPath(ImmutableList.of(
         _op8.getFirst(),
         _op5.getFirst()
         ));

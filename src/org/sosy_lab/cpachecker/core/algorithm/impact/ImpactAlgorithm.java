@@ -26,16 +26,18 @@ package org.sosy_lab.cpachecker.core.algorithm.impact;
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import java.io.PrintStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-
-import org.sosy_lab.common.Pair;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -56,22 +58,22 @@ import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
-import org.sosy_lab.cpachecker.util.predicates.Solver;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.BooleanFormula;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.PathFormulaManager;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.BooleanFormulaManagerView;
-import org.sosy_lab.cpachecker.util.predicates.interfaces.view.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.predicates.interpolation.CounterexampleTraceInfo;
 import org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.CachingPathFormulaManager;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormulaManager;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormulaManagerImpl;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import org.sosy_lab.cpachecker.util.predicates.smt.BooleanFormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
+import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
+import org.sosy_lab.java_smt.api.BooleanFormula;
+import org.sosy_lab.java_smt.api.SolverException;
 
 /**
  * This is an implementation of McMillan's algorithm which was presented in the
@@ -105,7 +107,7 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
     }
 
     @Override
-    public void printStatistics(PrintStream out, Result pResult, ReachedSet pReached) {
+    public void printStatistics(PrintStream out, Result pResult, UnmodifiableReachedSet pReached) {
       out.println("Time for expand:                    " + expandTime);
       if (useForcedCovering) {
         out.println("  Time for forced covering:         " + forceCoverTime);
@@ -144,17 +146,21 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
     imgr = new InterpolationManager(pfmgr, solver, cfa.getLoopStructure(), cfa.getVarClassification(), config, pShutdownNotifier, logger);
   }
 
-  public AbstractState getInitialState(CFANode location) {
-    return new Vertex(bfmgr, bfmgr.makeBoolean(true), cpa.getInitialState(location, StateSpacePartition.getDefaultPartition()));
+  public AbstractState getInitialState(CFANode location) throws InterruptedException {
+    return new Vertex(bfmgr, bfmgr.makeTrue(), cpa.getInitialState(location, StateSpacePartition.getDefaultPartition()));
   }
 
-  public Precision getInitialPrecision(CFANode location) {
+  public Precision getInitialPrecision(CFANode location) throws InterruptedException {
     return cpa.getInitialPrecision(location, StateSpacePartition.getDefaultPartition());
   }
 
   @Override
   public AlgorithmStatus run(ReachedSet pReachedSet) throws CPAException, InterruptedException {
-    unwind(pReachedSet);
+    try {
+      unwind(pReachedSet);
+    } catch (SolverException e) {
+      throw new CPAException("Solver Failure", e);
+    }
     pReachedSet.popFromWaitlist();
     return AlgorithmStatus.SOUND_AND_PRECISE;
   }
@@ -174,12 +180,12 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
         if (successors.isEmpty()) {
           // edge not feasible
           // create fake vertex
-          new Vertex(bfmgr, v, bfmgr.makeBoolean(false), null);
+          new Vertex(bfmgr, v, bfmgr.makeFalse(), null);
           continue;
         }
         assert successors.size() == 1;
 
-        Vertex w = new Vertex(bfmgr, v, bfmgr.makeBoolean(true), Iterables.getOnlyElement(successors));
+        Vertex w = new Vertex(bfmgr, v, bfmgr.makeTrue(), Iterables.getOnlyElement(successors));
         reached.add(w, precision);
         reached.popFromWaitlist(); // we don't use the waitlist
       }
@@ -188,7 +194,8 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
     }
   }
 
-  private List<Vertex> refine(final Vertex v) throws CPAException, InterruptedException {
+  private List<Vertex> refine(final Vertex v)
+      throws CPAException, SolverException, InterruptedException {
     refinementTime.start();
     try {
       assert (v.isTarget() && ! bfmgr.isFalse(v.getStateFormula()));
@@ -236,7 +243,7 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
 
       // itp of last element is always false, set it
       if (! bfmgr.isFalse(v.getStateFormula())) {
-        v.setStateFormula(bfmgr.makeBoolean(false));
+        v.setStateFormula(bfmgr.makeFalse());
         v.cleanCoverage();
         changedElements.add(v);
       }
@@ -259,7 +266,8 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
         && cpa.getStopOperator().stop(v.getWrappedState(), Collections.singleton(w.getWrappedState()), prec);
   }
 
-  private boolean cover(Vertex v, Vertex w, Precision prec) throws CPAException, InterruptedException {
+  private boolean cover(Vertex v, Vertex w, Precision prec)
+      throws CPAException, InterruptedException, SolverException {
     coverTime.start();
     try {
       assert !v.isCovered();
@@ -285,14 +293,9 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
    * Preconditions:
    * v may be covered by w ({@link #mayCover(Vertex, Vertex, Precision)}).
    * v is not coverable by w in its current state.
-   *
-   * @param v
-   * @param w
-   * @return
-   * @throws CPAException
-   * @throws InterruptedException
    */
-  private boolean forceCover(Vertex v, Vertex w, Precision prec) throws CPAException, InterruptedException {
+  private boolean forceCover(Vertex v, Vertex w, Precision prec)
+      throws CPAException, InterruptedException, SolverException {
     List<Vertex> path = new ArrayList<>();
     Vertex x = v;
     {
@@ -342,8 +345,6 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
     assert interpolants.size() == formulas.size() - 1;
     assert interpolants.size() ==  path.size();
 
-    List<Vertex> changedElements = new ArrayList<>();
-
     for (Pair<BooleanFormula, Vertex> interpolationPoint : Pair.zipList(interpolants, path)) {
       BooleanFormula itp = interpolationPoint.getFirst();
       Vertex p = interpolationPoint.getSecond();
@@ -358,7 +359,6 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
       if (!solver.implies(stateFormula, itp)) {
         p.setStateFormula(bfmgr.and(stateFormula, itp));
         p.cleanCoverage();
-        changedElements.add(p);
       }
     }
 
@@ -368,7 +368,8 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
     return true;
   }
 
-  private boolean close(Vertex v, ReachedSet reached) throws CPAException, InterruptedException {
+  private boolean close(Vertex v, ReachedSet reached)
+      throws CPAException, InterruptedException, SolverException {
     closeTime.start();
     try {
       if (v.isCovered()) {
@@ -391,62 +392,70 @@ public class ImpactAlgorithm implements Algorithm, StatisticsProvider {
     }
   }
 
-  private boolean dfs(Vertex v, ReachedSet reached) throws CPAException, InterruptedException {
-    if (close(v, reached)) {
-      return true; // no need to expand
-    }
+  private boolean dfs(Vertex pVertex, ReachedSet reached)
+      throws CPAException, InterruptedException, SolverException {
 
-    if (v.isTarget()) {
-      List<Vertex> changedElements = refine(v);
-      if (changedElements.isEmpty()) {
-        return false; // real counterexample
+    Deque<Vertex> stack = new ArrayDeque<>();
+    stack.push(pVertex);
+    while (!stack.isEmpty()) {
+      Vertex v = stack.pop();
+
+      if (close(v, reached)) {
+        return true; // no need to expand
       }
 
-      // optimization: instead of closing all ancestors of v,
-      // close only those that were strengthened during refine
-      for (Vertex w : changedElements) {
-        if (close(w, reached)) {
-          break; // all further elements are covered anyway
+      if (v.isTarget()) {
+        List<Vertex> changedElements = refine(v);
+        if (changedElements.isEmpty()) {
+          return false; // real counterexample
         }
-      }
 
-      assert bfmgr.isFalse(v.getStateFormula());
-      return true; // no need to expand further
-    }
-
-    if (!v.isLeaf()) {
-      return true; // no need to expand
-    }
-
-    if (useForcedCovering) {
-      forceCoverTime.start();
-      try {
-        Precision prec = reached.getPrecision(v);
-        for (AbstractState ae : reached.getReached(v)) {
-          Vertex w = (Vertex)ae;
-          if (mayCover(v, w, prec)) {
-            if (forceCover(v, w, prec)) {
-              assert v.isCovered();
-              return true; // no need to expand
-            }
+        // optimization: instead of closing all ancestors of v,
+        // close only those that were strengthened during refine
+        for (Vertex w : changedElements) {
+          if (close(w, reached)) {
+            break; // all further elements are covered anyway
           }
         }
-      } finally {
-        forceCoverTime.stop();
-      }
-    }
 
-    expand(v, reached);
-    for (Vertex w : v.getChildren()) {
-      if (!bfmgr.isFalse(w.getStateFormula())) {
-        dfs(w, reached);
+        assert bfmgr.isFalse(v.getStateFormula());
+        return true; // no need to expand further
+      }
+
+      if (!v.isLeaf()) {
+        return true; // no need to expand
+      }
+
+      if (useForcedCovering) {
+        forceCoverTime.start();
+        try {
+          Precision prec = reached.getPrecision(v);
+          for (AbstractState ae : reached.getReached(v)) {
+            Vertex w = (Vertex) ae;
+            if (mayCover(v, w, prec)) {
+              if (forceCover(v, w, prec)) {
+                assert v.isCovered();
+                return true; // no need to expand
+              }
+            }
+          }
+        } finally {
+          forceCoverTime.stop();
+        }
+      }
+
+      expand(v, reached);
+      for (Vertex w : v.getChildren()) {
+        if (!bfmgr.isFalse(w.getStateFormula())) {
+          stack.push(w);
+        }
       }
     }
 
     return true;
   }
 
-  private void unwind(ReachedSet reached) throws CPAException, InterruptedException {
+  private void unwind(ReachedSet reached) throws CPAException, InterruptedException, SolverException {
 
     outer:
     while (true) {

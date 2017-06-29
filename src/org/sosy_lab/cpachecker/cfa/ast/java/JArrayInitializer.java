@@ -25,7 +25,6 @@ package org.sosy_lab.cpachecker.cfa.ast.java;
 
 import java.util.List;
 import java.util.Objects;
-
 import org.sosy_lab.cpachecker.cfa.ast.AbstractExpression;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.types.java.JArrayType;
@@ -40,8 +39,10 @@ import org.sosy_lab.cpachecker.cfa.types.java.JArrayType;
  * the array cell is initialized with from left to right.
  *
  */
-public class JArrayInitializer extends AbstractExpression implements JAstNode, JInitializer, JExpression {
+public final class JArrayInitializer extends AbstractExpression
+    implements JAstNode, JInitializer, JExpression {
 
+  private static final long serialVersionUID = -9034136529891743726L;
   private final List<JExpression> initializerExpressions;
 
   public JArrayInitializer(FileLocation pFileLocation, List<JExpression> pInitializerExpression, JArrayType pType) {
@@ -78,11 +79,6 @@ public class JArrayInitializer extends AbstractExpression implements JAstNode, J
     astString.append("}");
 
     return astString.toString();
-  }
-
-  @Override
-  public <R, X extends Exception> R accept(JRightHandSideVisitor<R, X> v) throws X {
-    return v.visit(this);
   }
 
   @Override
