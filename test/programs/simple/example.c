@@ -1,3 +1,5 @@
+extern void __VERIFIER_error() __attribute__ ((__noreturn__));
+
 int main(void){
 	int a;
 	int b;
@@ -13,8 +15,7 @@ int main(void){
 	}
 
 	if(a!=b){
-	ERROR:
-		goto ERROR;
+		ERROR: __VERIFIER_error();
 	}
 
 	return 0;
