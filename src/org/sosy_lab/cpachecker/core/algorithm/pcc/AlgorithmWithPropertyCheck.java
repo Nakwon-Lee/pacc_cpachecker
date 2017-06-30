@@ -23,10 +23,8 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm.pcc;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;
-
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.algorithm.Algorithm;
 import org.sosy_lab.cpachecker.core.defaults.SingletonPrecision;
@@ -56,12 +54,8 @@ public class AlgorithmWithPropertyCheck implements Algorithm, StatisticsProvider
     logger.log(Level.INFO, "Start analysis.");
 
     AlgorithmStatus result = null;
-    try {
-      result = analysis.run(pReachedSet);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+
+    result = analysis.run(pReachedSet);
 
     if (result.isSound()) {
       logger.log(Level.INFO, "Start property checking.");

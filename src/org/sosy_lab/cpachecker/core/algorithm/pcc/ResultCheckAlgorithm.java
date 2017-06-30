@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm.pcc;
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -141,12 +142,7 @@ public class ResultCheckAlgorithm implements Algorithm, StatisticsProvider {
 
     try {
       stats.analysisTimer.start();
-      try {
-        status = analysisAlgorithm.run(pReachedSet);
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      status = analysisAlgorithm.run(pReachedSet);
     } finally {
       stats.analysisTimer.stop();
       logger.log(Level.INFO, "Analysis stopped.");

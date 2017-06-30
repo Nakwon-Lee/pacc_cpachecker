@@ -111,12 +111,7 @@ public class PartialARGsCombiner implements Algorithm, StatisticsProvider {
 
     stats.analysisTime.start();
     try {
-      try {
-        status = restartAlgorithm.run(reached);
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      status = restartAlgorithm.run(reached);
     } finally {
       stats.analysisTime.stop();
     }

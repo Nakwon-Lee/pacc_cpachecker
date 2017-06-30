@@ -51,9 +51,10 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithDummyLocation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocations;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
+import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
-public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable, SearchInfoable {
+public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable{
 
   private static final long serialVersionUID = 2608287648397165040L;
 
@@ -595,17 +596,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
 
   public void incBlkDepth(){
     blkDepth++;
-  }
-
-  @Override
-  public SearchInfo getSearchInfo() {
-    return searchinfo;
-  }
-
-  @Override
-  public void setSearchInfo(SearchInfo pSInfo) {
-    // TODO Auto-generated method stub
-    searchinfo = pSInfo;
   }
 
   public int isAbsState(){

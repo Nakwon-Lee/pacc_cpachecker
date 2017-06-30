@@ -46,7 +46,13 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import org.sosy_lab.common.ShutdownManager;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
@@ -85,14 +91,6 @@ import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.resources.ResourceLimit;
 import org.sosy_lab.cpachecker.util.resources.ResourceLimitChecker;
 import org.sosy_lab.cpachecker.util.resources.WalltimeLimit;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class LiveVariables {
 
@@ -533,12 +531,7 @@ public class LiveVariables {
     logger.log(Level.INFO, "Starting live variables collection ...");
     try {
       do {
-        try {
-          analysisParts.algorithm.run(analysisParts.reachedSet);
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        analysisParts.algorithm.run(analysisParts.reachedSet);
       } while (analysisParts.reachedSet.hasWaitingState());
 
     } catch (CPAException | InterruptedException e) {

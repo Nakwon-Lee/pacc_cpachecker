@@ -41,7 +41,6 @@ import org.sosy_lab.cpachecker.core.algorithm.AnalysisWithRefinableEnablerCPAAlg
 import org.sosy_lab.cpachecker.core.algorithm.AssumptionCollectorAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.BDDCPARestrictionAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CEGARAlgorithm;
-import org.sosy_lab.cpachecker.core.algorithm.CEGARSnappableAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CPAAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.CustomInstructionRequirementsExtractingAlgorithm;
 import org.sosy_lab.cpachecker.core.algorithm.ExceptionHandlingAlgorithm;
@@ -327,11 +326,7 @@ public class CoreComponentsFactory {
       }
 
       if (useCEGAR) {
-        if (useSnappableAlgorithm){
-          algorithm = new CEGARSnappableAlgorithm(algorithm, cpa, config, logger);
-        }else{
-          algorithm = new CEGARAlgorithm(algorithm, cpa, config, logger);
-        }
+        algorithm = new CEGARAlgorithm(algorithm, cpa, config, logger);
       }
 
       if (usePDR) {

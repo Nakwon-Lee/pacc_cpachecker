@@ -169,13 +169,8 @@ public final class BMCHelper {
 
   public static AlgorithmStatus unroll(LogManager pLogger, ReachedSet pReachedSet, ReachedSetInitializer pInitializer, Algorithm pAlgorithm, ConfigurableProgramAnalysis pCPA) throws CPAException, InterruptedException {
     adjustReachedSet(pLogger, pReachedSet, pInitializer, pCPA);
-    try {
-      return pAlgorithm.run(pReachedSet);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return null;
+
+    return pAlgorithm.run(pReachedSet);
   }
 
   /**

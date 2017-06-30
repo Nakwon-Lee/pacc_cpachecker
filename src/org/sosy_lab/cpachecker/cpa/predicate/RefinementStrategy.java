@@ -66,8 +66,6 @@ public abstract class RefinementStrategy {
   private final StatInt numberOfAffectedStates = new StatInt(StatKind.SUM, "Number of affected states");
   private final StatInt totalPathLengthToInfeasibility = new StatInt(StatKind.AVG, "Length of refined path (in blocks)");
 
-  private boolean useImpact = false;
-
   protected AbstractStatistics basicRefinementStatistics = new AbstractStatistics() {
     @Override
     public void printStatistics(PrintStream out, Result pResult, UnmodifiableReachedSet pReached) {
@@ -89,42 +87,6 @@ public abstract class RefinementStrategy {
   public RefinementStrategy(Solver pSolver) {
     solver = pSolver;
     bfmgr = solver.getFormulaManager().getBooleanFormulaManager();
-  }
-
-  //DEBUG
-  public RefinementStrategy(Solver pSolver, boolean pUseImpact) {
-    solver = pSolver;
-    bfmgr = solver.getFormulaManager().getBooleanFormulaManager();
-    useImpact = pUseImpact;
-  }
-  //GUBED
-
-  public boolean needsInterpolants() {
-    return true;
-  }
-
-  @ForOverride
-  protected void analyzePathPrecisions(ARGReachedSet argReached, List<ARGState> path) {
-    int equalPrecisions = 0;
-    int differentPrecisions = 0;
-
-    UnmodifiableReachedSet reached = argReached.asReachedSet();
-    PredicatePrecision lastPaPrec = null;
-    for (ARGState state : path) {
-      Precision prec = reached.getPrecision(state);
-      PredicatePrecision paPrec = Precisions.extractPrecisionByType(prec, PredicatePrecision.class);
-      if (lastPaPrec != null) {
-        if (lastPaPrec.equals(paPrec)) {
-          equalPrecisions++;
-        } else {
-          differentPrecisions++;
-        }
-      }
-      lastPaPrec = paPrec;
-    }
-
-    equalPrecisionsOnPaths.setNextValue(equalPrecisions);
-    differentPrecisionsOnPaths.setNextValue(differentPrecisions);
   }
 
   /**
@@ -244,20 +206,8 @@ public abstract class RefinementStrategy {
     }
 
     numberOfAffectedStates.setNextValue(changedElements.size());
-
-    //DEBUG
-    //System.out.println("number of affected states: " + numberOfAffectedStates);
-    //GUBED
     if (infeasiblePartOfARG == pTargetState) {
       pathLengthToInfeasibility++;
-
-      //if it is impact, it is not exception that there is no changed element
-      if (changedElements.isEmpty() && !useImpact) {
-        // The only reason why this might appear is that the very last block is
-        // infeasible in itself, however, we check for such cases during strengthen,
-        // so they shouldn't appear here.
-        throw new RefinementFailedException(RefinementFailedException.Reason.InterpolationFailed, null);
-      }
     }
 
     // Update global statistics

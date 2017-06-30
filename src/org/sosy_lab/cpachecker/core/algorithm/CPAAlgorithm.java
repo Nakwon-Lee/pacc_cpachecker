@@ -58,7 +58,6 @@ import org.sosy_lab.cpachecker.core.interfaces.TransferRelation;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGMergeJoinCPAEnabledAnalysis;
-import org.sosy_lab.cpachecker.cpa.predicate.PredicateForcedCovering;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.Pair;
@@ -200,32 +199,6 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
     this.forcedCovering = pForcedCovering;
     status = AlgorithmStatus.SOUND_AND_PRECISE.withPrecise(!pIsImprecise);
   }
-
-//DEBUG
-  public boolean setStatsOfFC(Fitness pFitness) throws Exception{
-    if(forcedCovering != null){
-      if(forcedCovering instanceof PredicateForcedCovering){
-        PredicateForcedCovering pFC = (PredicateForcedCovering) forcedCovering;
-        pFC.setAttemptedFC(pFitness.nOfAttemptedFC);
-        pFC.setSuccesfullFC(pFitness.nOfSuccessfulFC);
-        return true;
-      }
-    }
-    throw new Exception();
-  }
-
-  public boolean setFitnessFC(Fitness pFitness){
-    if(forcedCovering != null){
-      if(forcedCovering instanceof PredicateForcedCovering){
-        PredicateForcedCovering pFC = (PredicateForcedCovering) forcedCovering;
-        pFitness.nOfAttemptedFC = pFC.getAttemptedFC();
-        pFitness.nOfSuccessfulFC = pFC.getSuccesfullFC();
-        return true;
-      }
-    }
-    return false;
-  }
-  //GUBED
 
   @Override
   public AlgorithmStatus run(final ReachedSet reachedSet) throws InterruptedException, CPAException   {

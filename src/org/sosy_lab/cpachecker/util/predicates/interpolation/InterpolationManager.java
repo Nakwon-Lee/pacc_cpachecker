@@ -178,7 +178,9 @@ public final class InterpolationManager {
   private final LoopStructure loopStructure;
   private final VariableClassification variableClassification;
 
+  //DEBUG
   private boolean useFC = false;
+  //GUBED
 
   public InterpolationManager(
       PathFormulaManager pPmgr,
@@ -213,7 +215,7 @@ public final class InterpolationManager {
       interpolator = null;
     }
   }
-  //DEBUG
+
   public InterpolationManager(
       PathFormulaManager pPmgr,
       Solver pSolver,
@@ -230,14 +232,14 @@ public final class InterpolationManager {
     bfmgr = fmgr.getBooleanFormulaManager();
     pmgr = pPmgr;
     solver = pSolver;
-    loopStructure = pLoopStructure.orNull();
-    variableClassification = pVarClassification.orNull();
+    loopStructure = pLoopStructure.orElse(null);
+    variableClassification = pVarClassification.orElse(null);
 
     if (itpTimeLimit.isEmpty()) {
       executor = null;
     } else {
       // important to use daemon threads here, because we never have the chance to stop the executor
-      executor = Executors.newSingleThreadExecutor(Threads.threadFactoryBuilder().setDaemon(true).build());
+      executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
     }
 
     if (reuseInterpolationEnvironment) {
@@ -246,9 +248,10 @@ public final class InterpolationManager {
       interpolator = null;
     }
 
+    //DEBUG
     useFC = pFC;
+    //GUBED
   }
-  //GUBED
 
   /**
    * Counterexample analysis. This method is just an helper to delegate the actual work This is used

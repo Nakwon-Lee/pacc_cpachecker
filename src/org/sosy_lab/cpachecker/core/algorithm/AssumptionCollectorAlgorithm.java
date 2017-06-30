@@ -151,12 +151,7 @@ public class AssumptionCollectorAlgorithm implements Algorithm, StatisticsProvid
       restartCPA = false;
       try {
         // run the inner algorithm to fill the reached set
-        try {
-          status = status.update(innerAlgorithm.run(reached));
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        status = status.update(innerAlgorithm.run(reached));
 
       } catch (RefinementFailedException failedRefinement) {
         logger.log(Level.FINER, "Dumping assumptions due to:", failedRefinement);

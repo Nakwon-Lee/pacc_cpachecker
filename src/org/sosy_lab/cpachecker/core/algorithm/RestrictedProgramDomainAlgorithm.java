@@ -47,13 +47,7 @@ public class RestrictedProgramDomainAlgorithm implements Algorithm {
       }
     }
 
-    try {
-      return innerAlgorithm.run(pReachedSet);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return null;
+    return innerAlgorithm.run(pReachedSet);
   }
 
 }

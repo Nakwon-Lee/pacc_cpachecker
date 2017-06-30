@@ -23,7 +23,8 @@
  */
 package org.sosy_lab.cpachecker.cpa.predicate;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState.getPredicateState;
 
 import java.io.PrintStream;
@@ -90,10 +91,7 @@ class ImpactRefinementStrategy extends RefinementStrategy {
 
   protected ImpactRefinementStrategy(final Configuration config, final Solver pSolver,
       final PredicateAbstractionManager pPredAbsMgr) throws InvalidConfigurationException {
-    //super(pSolver);
-	//DEBUG
-    super(pSolver, true);
-    //GUBED
+    super(pSolver);
 
     bfmgr = pSolver.getFormulaManager().getBooleanFormulaManager();
     predAbsMgr = pPredAbsMgr;

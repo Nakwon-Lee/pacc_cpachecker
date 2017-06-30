@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -81,8 +80,6 @@ import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.interfaces.Targetable;
 import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
-import org.sosy_lab.cpachecker.core.reachedset.ReachedSetCloneable;
-import org.sosy_lab.cpachecker.core.reachedset.ReachedSetList;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.ParserException;
 import org.sosy_lab.cpachecker.util.CPAs;
@@ -92,8 +89,6 @@ import org.sosy_lab.cpachecker.util.SpecificationProperty;
 import org.sosy_lab.cpachecker.util.automaton.TargetLocationProvider;
 import org.sosy_lab.cpachecker.util.automaton.TargetLocationProviderImpl;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
-import org.sosy_lab.cpachecker.util.snapshot.Fitness;
-import org.sosy_lab.cpachecker.util.snapshot.Pair;
 
 @Options
 public class CPAchecker {
@@ -463,22 +458,7 @@ public class CPAchecker {
 
   private AlgorithmStatus runAlgorithm(final Algorithm algorithm,
       final ReachedSet reached,
-      final MainCPAStatistics stats) throws CPAException, InterruptedException, IOException {
-
-  //DEBUG
-    try{
-      File file = new File("numofcoveringcandies.txt");
-
-      FileWriter fw = new FileWriter(file, true);
-
-      fw.write("Start\n");
-      fw.flush();
-
-      fw.close();
-    }catch(Exception e){
-      e.printStackTrace();
-    }
-    //GUBED
+      final MainCPAStatistics stats) throws CPAException, InterruptedException {
 
     logger.log(Level.INFO, "Starting analysis ...");
 
@@ -501,21 +481,6 @@ public class CPAchecker {
 
     } finally {
       stats.stopAnalysisTimer();
-
-      //DEBUG
-      try{
-        File file = new File("numofcoveringcandies.txt");
-
-        FileWriter fw = new FileWriter(file, true);
-
-        fw.write("End\n");
-        fw.flush();
-
-        fw.close();
-      }catch(Exception e){
-        e.printStackTrace();
-      }
-      //GUBED
 
       // unregister management interface for CPAchecker
       mxbean.unregister();

@@ -26,11 +26,10 @@ package org.sosy_lab.cpachecker.core.algorithm;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
-import java.io.IOException;
+import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.IntegerOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -49,8 +48,6 @@ import org.sosy_lab.cpachecker.cpa.assumptions.storage.AssumptionStorageState;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.CPAs;
-
-import com.google.common.collect.ImmutableSet;
 
 @Options(prefix="adjustableconditions")
 public class RestartWithConditionsAlgorithm implements Algorithm {
@@ -91,12 +88,7 @@ public class RestartWithConditionsAlgorithm implements Algorithm {
 
     do {
       // run the inner algorithm to fill the reached set
-      try {
-        status = status.update(innerAlgorithm.run(pReached));
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      status = status.update(innerAlgorithm.run(pReached));
 
       if (from(pReached).anyMatch(IS_TARGET_STATE) && status.isPrecise()) {
         return status;

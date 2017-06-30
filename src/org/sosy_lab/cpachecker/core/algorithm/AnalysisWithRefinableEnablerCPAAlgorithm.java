@@ -214,12 +214,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
     AlgorithmStatus status = null;
 
     try {
-      try {
-        status = algorithm.run(pReachedSet);
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      status = algorithm.run(pReachedSet);
     } catch (CPAEnabledAnalysisPropertyViolationException e) {
       if(e.getFailureCause()==null){
         throw new CPAException("Error state not known to analysis with enabler CPA. Cannot continue analysis.");
