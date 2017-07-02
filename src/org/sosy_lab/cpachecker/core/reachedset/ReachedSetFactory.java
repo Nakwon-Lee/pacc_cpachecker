@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.core.reachedset;
 
+import javax.annotation.Nullable;
 import org.sosy_lab.common.configuration.ClassOption;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -41,8 +42,6 @@ import org.sosy_lab.cpachecker.core.waitlist.ThreadingSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariableWaitlist;
-
-import javax.annotation.Nullable;
 
 @Options(prefix="analysis")
 public class ReachedSetFactory {
@@ -108,14 +107,14 @@ public class ReachedSetFactory {
       description = "use dynamicsortedwaitlist")
   boolean dynamicWaitlist = false;
 
-  @Option(secure=true, name = "traversal.nOfVars",
-      description = "number of variables for search info")
-  int nOfVars = 0;
+  @Option(secure=true, name = "traversal.SearchVars",
+      description = "Name of of variables for search info")
+  String searchVars = null;
 
   @Option(secure=true, name = "traversal.searchformula",
       description = "the name of using searchformula")
   @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
-  Class<? extends SearchStrategyFormula> searchFormClass;
+  SearchStrategyFormula.Factory searchFormClass;
 
   @Option(secure=true, name = "reachedSet",
       description = "which reached set implementation to use?"
@@ -181,9 +180,9 @@ public class ReachedSetFactory {
     }else{*/
 
     if (dynamicWaitlist) {
-      assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
+      assert searchVars != null : "if Dynamic search, searchVars must not be empty string";
       assert searchFormClass != null : "searchFormClass must not be null";
-      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, nOfVars, searchFormClass);
+      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, searchVars, searchFormClass);
     }
     if (useAutomatonInformation) {
       waitlistFactory = AutomatonMatchesWaitlist.factory(waitlistFactory);

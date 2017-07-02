@@ -23,51 +23,65 @@
  */
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
+import java.util.Set;
 import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
-import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 
 public class ABlkDFSCSRPOSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
-  public ABlkDFSCSRPOSearchStrategyFormula(Integer nOfVars){
-    super();
+  private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","tD","uID"};
+
+  public ABlkDFSCSRPOSearchStrategyFormula(Set<String> pVars){
+    super(pVars, varsUsed);
   }
 
   @Override
-  public int compare(SearchInfo pO1, SearchInfo pO2) {
-    Integer ret = 0;
+  public int compare(ARGState e1, ARGState e2) {
+    int ret = 0;
 
-    assert pO1 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
-    assert pO2 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
-
-    SimpleSearchInfo spO1 = (SimpleSearchInfo)pO1;
-    SimpleSearchInfo spO2 = (SimpleSearchInfo)pO2;
-
-    if (spO1.getInfos().get("isAbsSt") > spO2.getInfos().get("isAbsSt")) {
+    if (e1.isAbs() < e2.isAbs()) {
       ret = -1;
-    }else if (spO1.getInfos().get("isAbsSt") < spO2.getInfos().get("isAbsSt")) {
+    }else if (e1.isAbs() > e2.isAbs()) {
       ret = 1;
-    }else if (spO1.getInfos().get("isAbsSt") == 1 && spO2.getInfos().get("isAbsSt") == 1){
-      if (spO1.getInfos().get("BlkDepth") > spO2.getInfos().get("BlkDepth")) {
-        ret = 1;
-      }else if (spO1.getInfos().get("BlkDepth") < spO2.getInfos().get("BlkDepth")) {
-        ret = -1;
-        }
-    }else{ //both are non-abstraction state
-      if (spO1.getInfos().get("CallStack") > spO2.getInfos().get("CallStack")){
-        ret = 1;
-      }else if (spO1.getInfos().get("CallStack") < spO2.getInfos().get("CallStack")){
-        ret = -1;
-      }else{
-        if (spO1.getInfos().get("RPOrder") > spO2.getInfos().get("RPOrder")){
-          ret = 1;
-        }else if (spO1.getInfos().get("RPOrder") < spO2.getInfos().get("RPOrder")){
-          ret = -1;
-        }
+    }else{
+      switch(e1.isAbs()){
+        case 1:
+          if (e1.blkD() > e2.blkD()) {
+            ret = -1;
+          }else if (e1.blkD() < e2.blkD()) {
+            ret = 1;
+          }else{
+            if (e1.uID() < e2.uID()){
+              ret = -1;
+            }else if (e1.uID() > e2.uID()){
+              ret = 1;
+            }
+          }
+         break;
+        case 0:
+          if (e1.CS() > e2.CS()){
+            ret = -1;
+          }else if (e1.CS() < e2.CS()){
+            ret = 1;
+          }else{
+            if (e1.RPO() > e2.RPO()){
+              ret = -1;
+            }else if (e1.RPO() < e2.RPO()){
+              ret = 1;
+            }else{
+              if (e1.uID() < e2.uID()){
+                ret = -1;
+              }else if (e1.uID() > e2.uID()){
+                ret = 1;
+              }
+            }
+          }
+          break;
+        default:
+          break;
       }
     }
-
     return ret;
   }
 

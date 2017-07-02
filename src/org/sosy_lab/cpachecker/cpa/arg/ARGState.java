@@ -51,6 +51,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithDummyLocation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocations;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
+import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
@@ -78,11 +79,13 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
 
   private final int stateId;
 
-  //DEBUG
+//DEBUG
   private int treeDepth = 0;
   private int blkDepth = 0;
   private int isAbsSt = 0;
-  //GUBED
+  private int callStack = 0;
+  private int revpostodr = 0;
+//GUBED
 
   // If this is a target state, we may store additional information here.
   private transient CounterexampleInfo counterexample;
@@ -96,13 +99,21 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       addParent(pParentElement);
     }
 
-    //DEBUG
+  //DEBUG
     PredicateAbstractState predicateState = AbstractStates.extractStateByType(pWrappedState, PredicateAbstractState.class);
     // assert predicateState != null : "extractStateByType is failed! (predicateState)";
-
     if (predicateState != null && predicateState.isAbstractionState()){
       isAbsSt = 1;
+      blkDepth = blkDepth + 1;
     }
+
+    CallstackState csState = AbstractStates.extractStateByType(pWrappedState, CallstackState.class);
+    // assert csState != null : "extractStateByType is failed! (csState)";
+    if (csState != null){
+      callStack = csState.getDepth();
+    }
+
+    revpostodr = AbstractStates.extractLocation(pWrappedState).getReversePostorderId();
     //GUBED
   }
 
@@ -338,9 +349,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     assert (children.contains(child));
     children.remove(child);
     child.parents.remove(this);
-    //DEBUG
-    child.updateTreeDepth();
-    //GUBED
   }
 
   // counterexample
@@ -575,31 +583,29 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   }
 
   //DEBUG
-  public void updateTreeDepth(){
 
-    treeDepth = 0;
-
-    for (ARGState tPar : parents){
-      if (treeDepth <= tPar.treeDepth){
-        treeDepth = tPar.treeDepth + 1;
-      }
-    }
-  }
-
-  public int getTreeDepth(){
+  public int tD(){
     return treeDepth;
   }
 
-  public int getBlkDepth(){
+  public int blkD(){
     return blkDepth;
   }
 
-  public void incBlkDepth(){
-    blkDepth++;
-  }
-
-  public int isAbsState(){
+  public int isAbs(){
     return isAbsSt;
   }
-  //GUBED
+
+  public int CS(){
+    return callStack;
+  }
+
+  public int RPO(){
+    return revpostodr;
+  }
+
+  public int uID(){
+    return stateId;
+  }
+//GUBED
 }

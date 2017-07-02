@@ -23,56 +23,187 @@
  */
 package org.sosy_lab.cpachecker.core.waitlist;
 
-import org.sosy_lab.common.Classes;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeMap;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
+import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
-public class DynamicSortedWaitlist extends AbstractSortedWaitlist<ARGState> {
+@Options(prefix="waitlist")
+public class DynamicSortedWaitlist implements Waitlist {
 
-  private int nOfVars;
+  //invariant: all entries in this map are non-empty
+  private NavigableMap<ARGState, Waitlist> waitlist;
+
+  //DEBUG
+  private final WaitlistFactory wrappedWaitlist;
+  //protected final WaitlistFactory wrappedWaitlist;
+  //GUBED
+
+  private int size = 0;
+
+  private Set<String> vars;
 
   private SearchStrategyFormula searchForm;
 
-  protected DynamicSortedWaitlist(WaitlistFactory pSecondaryStrategy, int nVars, Class<? extends SearchStrategyFormula> pSSForm) throws InvalidConfigurationException {
-    super(pSecondaryStrategy);
+  protected DynamicSortedWaitlist(WaitlistFactory pSecondaryStrategy, String pVars, SearchStrategyFormula.Factory pSSForm) throws InvalidConfigurationException {
 
-    nOfVars = nVars;
+    String[] tVars = pVars.split(",");
+
+    vars = new HashSet<>();
+
+    for(String tv : tVars){
+      vars.add(tv);
+    }
 
     assert pSSForm != null : "pSSForm must not be null!";
 
-    searchForm = Classes.createInstance(SearchStrategyFormula.class, pSSForm,
-        new Class<?>[] {Integer.class},
-        new Object[] {nOfVars});
+    searchForm = pSSForm.create(vars);
+
+    wrappedWaitlist = Preconditions.checkNotNull(pSecondaryStrategy);
+
+    waitlist = new TreeMap<>(searchForm);
   }
 
   @Override
-  public AbstractState pop(){
-    AbstractState ret = super.pop();
+  public void add(AbstractState pState) {
+
     /*
-    assert ret instanceof SearchInfoable : "poped state must be a SearchIfoable";
-    SearchInfoable siaRet = (SearchInfoable) ret;
-    SearchInfo siRet = siaRet.getSearchInfo();
-    assert siRet instanceof SimpleSearchInfo : "poped state must have SimpleSearchInfo";
-    SimpleSearchInfo ssiRet = (SimpleSearchInfo)siRet;
-    System.out.println("sel! "+ssiRet.getInfos().get("BlkDepth"));
-    if (ssiRet.getInfos().get("BlkDepth")==0){
-      System.out.println("What!?");
-    }
-
-    PredicateAbstractState predicateState = AbstractStates.extractStateByType(ret, PredicateAbstractState.class);
-    assert predicateState != null : "extractStateByType is failed! (predicateState)";
-
-    if (predicateState.isAbstractionState()){
-      System.out.println("AbstractionState!!!");
+    ARGState ast = AbstractStates.extractStateByType(pState, ARGState.class);
+    if (ast.getStateId() == 0){
+      System.out.println("what?!");
     }
     */
 
-    return ret;
+    ARGState key = getSortKey(pState);
+    Waitlist localWaitlist = waitlist.get(key);
+    if (localWaitlist == null) {
+      localWaitlist = wrappedWaitlist.createWaitlistInstance();
+      waitlist.put(key, localWaitlist);
+    } else {
+      assert !localWaitlist.isEmpty();
+    }
+    localWaitlist.add(pState);
+    size++;
   }
 
   @Override
+  public boolean contains(AbstractState pState) {
+    ARGState key = getSortKey(pState);
+    Waitlist localWaitlist = waitlist.get(key);
+    if (localWaitlist == null) {
+      return false;
+    }
+    assert !localWaitlist.isEmpty();
+    return localWaitlist.contains(pState);
+  }
+
+  @Override
+  public void clear() {
+    waitlist.clear();
+    size = 0;
+  }
+
+  @Override
+  public boolean isEmpty() {
+    assert waitlist.isEmpty() == (size == 0);
+    return waitlist.isEmpty();
+  }
+
+  @Override
+  public Iterator<AbstractState> iterator() {
+    return Iterables.concat(waitlist.values()).iterator();
+  }
+
+  @Override
+  //DEBUG
+  //originally final method but I modify it as non-final
+  //GUBED
+  public AbstractState pop() {
+    Entry<ARGState, Waitlist> highestEntry = null;
+    /*
+    //DEBUG
+    if (this instanceof CallstackSortedWaitlist){
+      if (waitlist.size() > 0){
+        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+          System.out.print(entry.getValue().getClass().getName());
+          System.out.println(" "+entry.getValue().size()+"  key: "+entry.getKey());
+          }
+        }
+    }
+    boolean check = true;
+    if (this instanceof DynamicSortedWaitlist){
+      if (waitlist.size() > 0){
+        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
+          K key = entry.getKey();
+          if (key instanceof SimpleSearchInfo){
+            SimpleSearchInfo skey = (SimpleSearchInfo) key;
+            if (skey.getInfos().get("isAbsSt")==0){
+              check = false;
+            }
+          }
+        }
+      }
+    }
+    if (check){
+      System.out.println("good! only AbsSts");
+    }
+    //GUBED
+     * * */
+
+
+    highestEntry = waitlist.firstEntry();
+    Waitlist localWaitlist = highestEntry.getValue();
+    assert !localWaitlist.isEmpty();
+    AbstractState result = localWaitlist.pop();
+    if (localWaitlist.isEmpty()) {
+      waitlist.remove(highestEntry.getKey());
+    }
+    size--;
+    return result;
+  }
+
+  @Override
+  public boolean remove(AbstractState pState) {
+
+    ARGState key = getSortKey(pState);
+    Waitlist localWaitlist = waitlist.get(key);
+    if (localWaitlist == null) {
+      return false;
+    }
+    assert !localWaitlist.isEmpty();
+    boolean result = localWaitlist.remove(pState);
+    if (result) {
+      if (localWaitlist.isEmpty()) {
+        waitlist.remove(key);
+      }
+      size--;
+    }
+    return result;
+  }
+
+  public WaitlistFactory getWLF(){
+    return wrappedWaitlist;
+  }
+
+  @Override
+  public int size() {
+    return size;
+  }
+
+  @Override
+  public String toString() {
+    return waitlist.toString();
+  }
+
   protected ARGState getSortKey(AbstractState pState) {
     assert pState instanceof ARGState : "given state must be a ARGState";
     ARGState argstate = (ARGState)pState;
@@ -80,13 +211,13 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<ARGState> {
     return argstate;
   }
 
-  public static WaitlistFactory factory(final WaitlistFactory pSecondaryStrategy, final int pNOfVars, final Class<? extends SearchStrategyFormula> pSSForm) {
+  public static WaitlistFactory factory(final WaitlistFactory pSecondaryStrategy, final String pSearchVars, final SearchStrategyFormula.Factory pSSForm) {
     return new WaitlistFactory() {
 
       @Override
       public Waitlist createWaitlistInstance() {
         try {
-          return new DynamicSortedWaitlist(pSecondaryStrategy, pNOfVars, pSSForm);
+          return new DynamicSortedWaitlist(pSecondaryStrategy, pSearchVars, pSSForm);
         } catch (InvalidConfigurationException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -95,5 +226,6 @@ public class DynamicSortedWaitlist extends AbstractSortedWaitlist<ARGState> {
         return null;
       }
     };
-  }
+}
+
 }

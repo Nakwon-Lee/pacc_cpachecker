@@ -23,19 +23,22 @@
  */
 package org.sosy_lab.cpachecker.core.defaults;
 
-import java.util.LinkedHashMap;
-
+import java.util.Set;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 
 public abstract class AbstractSearchStrategyFormula implements SearchStrategyFormula {
-  protected final LinkedHashMap<String, Integer> correlations;
 
-  protected AbstractSearchStrategyFormula(){
-    correlations = new LinkedHashMap<>();
-  }
+  protected AbstractSearchStrategyFormula(Set<String> pVars, String[] varsUsed){
+    boolean varmatch = true;
 
-  public LinkedHashMap<String, Integer> getCorrelations(){
-    return correlations;
+    for (String var : varsUsed){
+      if(!pVars.contains(var)){
+        varmatch = false;
+        break;
+      }
+    }
+
+    assert varmatch : "Used search variables are inconsistent.";
   }
 
 }
