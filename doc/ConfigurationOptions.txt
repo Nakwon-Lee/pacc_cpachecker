@@ -162,6 +162,9 @@ analysis.algorithm.proofCheckWithARGCMCStrategy = false
 # ConfigurableProgramAnalysisWithPropertyChecker
 analysis.algorithm.propertyCheck = false
 
+# use snappable algorithms
+analysis.algorithm.snappable = false
+
 # Use termination algorithm to prove (non-)termination.
 analysis.algorithm.termination = false
 
@@ -261,12 +264,24 @@ analysis.stopAfterError = true
 # create summary call statement edges
 analysis.summaryEdges = false
 
+# Name of of variables for search info
+analysis.traversal.SearchVars = no default value
+
 # traverse in the order defined by the values of an automaton variable
 analysis.traversal.byAutomatonVariable = no default value
 
+# use dynamicsortedwaitlist
+analysis.traversal.dynamic = false
+
 # which strategy to adopt for visiting states?
 analysis.traversal.order = DFS
-  enum:     [DFS, BFS, RAND, RANDOM_PATH]
+  enum:     [DFS, BFS, RAND, RANDOM_PATH, DYNAMIC]
+
+# use searchinfoable
+analysis.traversal.searchInfoable = false
+
+# the name of using searchformula
+analysis.traversal.searchformula = no default value
 
 # handle abstract states with more automaton matches first? (only if
 # AutomatonCPA enabled)
@@ -2442,6 +2457,12 @@ enabledanalysis.allowLazyRefinement = false
 # Which CPA is used as enabler in the current analysis.
 enabledanalysis.enablerCPA = PREDICATE
   enum:     [APRON, INTERVAL, OCTAGON, PREDICATE, VALUE]
+
+# how many attempts are conducted?
+fc.limit = 3
+
+# FC is modified or not
+fc.modifc = false
 
 # enable the Forced Covering optimization
 impact.useForcedCovering = true

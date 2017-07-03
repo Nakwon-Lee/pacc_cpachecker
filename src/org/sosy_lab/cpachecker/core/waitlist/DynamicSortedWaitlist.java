@@ -32,12 +32,10 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
-@Options(prefix="waitlist")
 public class DynamicSortedWaitlist implements Waitlist {
 
   //invariant: all entries in this map are non-empty
