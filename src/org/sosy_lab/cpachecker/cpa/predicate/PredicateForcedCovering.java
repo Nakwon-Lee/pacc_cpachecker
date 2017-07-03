@@ -120,7 +120,8 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   boolean modifiedFC = false;
   @Option(secure=true, name="limit", description="how many attempts are conducted?")
   int pAttemptslimit = 3;
-  Comparator<AbstractState> pComp = new FCComparator();
+
+  Comparator<AbstractState> pComp;
   //GUBED
 
   public static int getNumOfAffectedStates(){
@@ -169,6 +170,8 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     fmgr = predicateCpa.getSolver().getFormulaManager();
     predAbsMgr = predicateCpa.getPredicateManager();
     impact = new ImpactUtility(config, fmgr, predAbsMgr);
+
+    pComp = new FCComparator();
 
     //DEBUG
     config.inject(this);
