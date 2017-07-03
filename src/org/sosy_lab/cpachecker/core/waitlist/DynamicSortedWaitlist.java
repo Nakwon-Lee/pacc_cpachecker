@@ -52,7 +52,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
   private SearchStrategyFormula searchForm;
 
-  protected DynamicSortedWaitlist(WaitlistFactory pSecondaryStrategy, String pVars, SearchStrategyFormula.Factory pSSForm) throws InvalidConfigurationException {
+  protected DynamicSortedWaitlist(WaitlistFactory pSecondaryStrategy, String pVars, SearchStrategyFormula.Factory pSSForm) throws InvalidConfigurationException{
 
     String[] tVars = pVars.split(",");
 
