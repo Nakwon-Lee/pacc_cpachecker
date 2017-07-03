@@ -4,9 +4,9 @@
 
 ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkDFSCSRPO.xml
 
-./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkCSRPO.xml
+#./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkCSRPO.xml
 
-./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_CSRPO.xml
+#./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_CSRPO.xml
 
 #./scripts/benchmark.py ./doc/examples/benchmark_remo_CSBFS.xml
 
