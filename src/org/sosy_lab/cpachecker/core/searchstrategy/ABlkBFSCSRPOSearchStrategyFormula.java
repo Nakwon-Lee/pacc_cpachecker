@@ -30,7 +30,7 @@ import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 public class ABlkBFSCSRPOSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
-  private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","tD","uID"};
+  private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","uID"};
 
   public ABlkBFSCSRPOSearchStrategyFormula(Set<String> pVars){
     super(pVars, varsUsed);

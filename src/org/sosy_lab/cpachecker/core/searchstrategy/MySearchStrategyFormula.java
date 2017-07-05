@@ -30,7 +30,7 @@ import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
 
-  private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","tD","uID"};
+  private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","uID"};
 
   public MySearchStrategyFormula(Set<String> pVars){
     super(pVars, varsUsed);
@@ -39,14 +39,71 @@ public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
   @Override
   public int compare(ARGState e1, ARGState e2) {
 
-    int ret = 0;
-
-    if (e1.uID() < e2.uID()){
-      ret = -1;
-    }else if (e1.uID() > e2.uID()){
-      ret = 1;
+int ret = 0;
+if(e1.blkD()<e2.blkD()){
+ ret = -1;
+}
+else if(e1.blkD()>e2.blkD()){
+ ret = 1;
+}
+else{
+ if(e1.isAbs()<e2.isAbs()){
+  ret = -1;
+ }
+ else if(e1.isAbs()>e2.isAbs()){
+  ret = 1;
+ }
+ else{
+ switch(e1.isAbs()){
+ case 0:
+  if(e1.CS()<e2.CS()){
+   ret = -1;
+  }
+  else if(e1.CS()>e2.CS()){
+   ret = 1;
+  }
+  else{
+   if(e1.uID()>e2.uID()){
+    ret = -1;
+   }
+   else if(e1.uID()<e2.uID()){
+    ret = 1;
+   }
+   else{
+   }
+  }
+  break;
+ case 1:
+   if(e1.uID()>e2.uID()){
+    ret = -1;
+   }
+   else if(e1.uID()<e2.uID()){
+    ret = 1;
+   }
+   else{
+    if(e1.RPO()>e2.RPO()){
+     ret = -1;
     }
-
+    else if(e1.RPO()<e2.RPO()){
+     ret = 1;
+    }
+    else{
+     if(e1.CS()>e2.CS()){
+      ret = -1;
+     }
+     else if(e1.CS()<e2.CS()){
+      ret = 1;
+     }
+     else{
+     }
+    }
+   }
+  break;
+ default:
+  break;
+ }
+ }
+}
     return ret;
   }
 

@@ -80,7 +80,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   private final int stateId;
 
 //DEBUG
-  private int treeDepth = 0;
   private int blkDepth = 0;
   private int isAbsSt = 0;
   private int callStack = 0;
@@ -97,6 +96,11 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     stateId = idGenerator.getFreshId();
     if (pParentElement != null) {
       addParent(pParentElement);
+      //DEBUG
+      if (pParentElement.blkDepth > blkDepth){
+        blkDepth = pParentElement.blkDepth;
+      }
+      //GUBED
     }
 
   //DEBUG
@@ -135,18 +139,12 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (!parents.contains(pOtherParent)) {
       assert !pOtherParent.children.contains(this);
       parents.add(pOtherParent);
-
       //DEBUG
-      if (treeDepth <= pOtherParent.treeDepth) {
-        treeDepth = pOtherParent.treeDepth + 1;
-      }
-
       if (pOtherParent.blkDepth > blkDepth){
         blkDepth = pOtherParent.blkDepth;
       }
-    //GUBED
-
-        pOtherParent.children.add(this);
+      //GUBED
+      pOtherParent.children.add(this);
     } else {
       assert pOtherParent.children.contains(this);
     }
@@ -583,10 +581,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   }
 
   //DEBUG
-
-  public int tD(){
-    return treeDepth;
-  }
 
   public int blkD(){
     return blkDepth;
