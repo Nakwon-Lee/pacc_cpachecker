@@ -1,8 +1,8 @@
 #!/bin/bash
 
-nohup ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkBFSCSRPO.xml &
+./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkBFSCSRPO.xml
 
-nohup ./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkDFSCSRPO.xml &
+./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkDFSCSRPO.xml
 
 #./scripts/benchexec --no-compress-results ./doc/examples/benchmark_remo_BlkCSRPO.xml
 
