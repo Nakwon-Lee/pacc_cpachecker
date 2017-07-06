@@ -40,69 +40,21 @@ public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
   public int compare(ARGState e1, ARGState e2) {
 
 int ret = 0;
-if(e1.blkD()<e2.blkD()){
+if(e1.isAbs()<e2.isAbs()){
  ret = -1;
 }
-else if(e1.blkD()>e2.blkD()){
+else if(e1.isAbs()>e2.isAbs()){
  ret = 1;
 }
 else{
- if(e1.isAbs()<e2.isAbs()){
-  ret = -1;
- }
- else if(e1.isAbs()>e2.isAbs()){
-  ret = 1;
- }
- else{
- switch(e1.isAbs()){
- case 0:
-  if(e1.CS()<e2.CS()){
-   ret = -1;
-  }
-  else if(e1.CS()>e2.CS()){
-   ret = 1;
-  }
-  else{
-   if(e1.uID()>e2.uID()){
-    ret = -1;
-   }
-   else if(e1.uID()<e2.uID()){
-    ret = 1;
-   }
-   else{
-   }
-  }
-  break;
- case 1:
-   if(e1.uID()>e2.uID()){
-    ret = -1;
-   }
-   else if(e1.uID()<e2.uID()){
-    ret = 1;
-   }
-   else{
-    if(e1.RPO()>e2.RPO()){
-     ret = -1;
-    }
-    else if(e1.RPO()<e2.RPO()){
-     ret = 1;
-    }
-    else{
-     if(e1.CS()>e2.CS()){
-      ret = -1;
-     }
-     else if(e1.CS()<e2.CS()){
-      ret = 1;
-     }
-     else{
-     }
-    }
-   }
-  break;
- default:
-  break;
- }
- }
+switch(e1.isAbs()){
+case 0:
+ break;
+case 1:
+ break;
+default:
+ break;
+}
 }
     return ret;
   }
