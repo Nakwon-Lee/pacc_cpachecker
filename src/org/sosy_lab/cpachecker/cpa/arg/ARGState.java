@@ -84,6 +84,8 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
   private int isAbsSt = 0;
   private int callStack = 0;
   private int revpostodr = 0;
+  private int lenPath = 0;
+  private int loopDepth = 0;
 //GUBED
 
   // If this is a target state, we may store additional information here.
@@ -97,9 +99,15 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (pParentElement != null) {
       addParent(pParentElement);
       //DEBUG
+      /*
       if (pParentElement.blkDepth > blkDepth){
         blkDepth = pParentElement.blkDepth;
       }
+
+      if (pParentElement.loopDepth > loopDepth){
+        loopDepth = pParentElement.loopDepth;
+      }
+      */
       //GUBED
     }
 
@@ -109,6 +117,7 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (predicateState != null && predicateState.isAbstractionState()){
       isAbsSt = 1;
       blkDepth = blkDepth + 1;
+      lenPath = predicateState.getPathFormula().getLength();
     }
 
     CallstackState csState = AbstractStates.extractStateByType(pWrappedState, CallstackState.class);
@@ -117,7 +126,41 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       callStack = csState.getDepth();
     }
 
-    revpostodr = AbstractStates.extractLocation(pWrappedState).getReversePostorderId();
+    CFANode thisnode = AbstractStates.extractLocation(pWrappedState);
+    revpostodr = thisnode.getReversePostorderId();
+
+    if (thisnode.isLoopStart()){
+      loopDepth = loopDepth + 1;
+    }
+/*
+    int noEnEdges = thisnode.getNumLeavingEdges();
+    for (int i = 0; i < noEnEdges; i++){
+      CFAEdge aEnEdge = thisnode.getLeavingEdge(i);
+      CFAEdgeType type = aEnEdge.getEdgeType();
+      switch(type){
+        case BlankEdge:
+          break;
+        case AssumeEdge:
+          AssumeEdge asE = (AssumeEdge) aEnEdge;
+          System.out.println(asE.getExpression().toASTString());
+          break;
+        case StatementEdge:
+          break;
+        case DeclarationEdge:
+          break;
+        case ReturnStatementEdge:
+          break;
+        case FunctionCallEdge:
+          break;
+        case FunctionReturnEdge:
+          break;
+        case CallToReturnEdge:
+          break;
+        default:
+          break;
+      }
+    }
+*/
     //GUBED
   }
 
@@ -142,6 +185,9 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       //DEBUG
       if (pOtherParent.blkDepth > blkDepth){
         blkDepth = pOtherParent.blkDepth;
+      }
+      if (pOtherParent.loopDepth > loopDepth){
+        loopDepth = pOtherParent.loopDepth;
       }
       //GUBED
       pOtherParent.children.add(this);
@@ -600,6 +646,14 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
 
   public int uID(){
     return stateId;
+  }
+
+  public int LenP(){
+    return lenPath;
+  }
+
+  public int loopD(){
+    return loopDepth;
   }
 //GUBED
 }

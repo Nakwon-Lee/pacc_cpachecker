@@ -103,6 +103,7 @@ import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.LiveVariables;
 import org.sosy_lab.cpachecker.util.LoopStructure;
+import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.VariableClassification;
 import org.sosy_lab.cpachecker.util.VariableClassificationBuilder;
@@ -429,6 +430,15 @@ private boolean classifyNodes = false;
     if (useLoopStructure) {
       addLoopStructure(cfa);
     }
+
+    //DEBUG
+    // Annotate CFA nodes with some information for later use
+    // number of variables in a loop condition
+    CFALoopConditionMetrics loopCondCal = new CFALoopConditionMetrics();
+    for (Loop aloop : cfa.getLoopStructure().get().getAllLoops()){
+      loopCondCal.calcNumofVarsinCond(aloop);
+    }
+    //GUBED
 
     // FOURTH, insert call and return edges and build the supergraph
     if (interprocedural) {

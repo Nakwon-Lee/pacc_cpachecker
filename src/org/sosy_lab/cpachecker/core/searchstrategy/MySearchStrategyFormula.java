@@ -49,8 +49,112 @@ else if(e1.isAbs()>e2.isAbs()){
 else{
 switch(e1.isAbs()){
 case 0:
+ if(e1.CS()>e2.CS()){
+  ret = -1;
+ }
+ else if(e1.CS()<e2.CS()){
+  ret = 1;
+ }
+ else{
+  if(e1.RPO()>e2.RPO()){
+   ret = -1;
+  }
+  else if(e1.RPO()<e2.RPO()){
+   ret = 1;
+  }
+  else{
+  }
+ }
  break;
 case 1:
+ if(e1.CS()<e2.CS()){
+  ret = -1;
+ }
+ else if(e1.CS()>e2.CS()){
+  ret = 1;
+ }
+ else{
+  if(e1.loopD()>e2.loopD()){
+   ret = -1;
+  }
+  else if(e1.loopD()<e2.loopD()){
+   ret = 1;
+  }
+  else{
+   if(e1.RPO()<e2.RPO()){
+    ret = -1;
+   }
+   else if(e1.RPO()>e2.RPO()){
+    ret = 1;
+   }
+   else{
+    if(e1.blkD()<e2.blkD()){
+     ret = -1;
+    }
+    else if(e1.blkD()>e2.blkD()){
+     ret = 1;
+    }
+    else{
+     if(e1.blkD()>e2.blkD()){
+      ret = -1;
+     }
+     else if(e1.blkD()<e2.blkD()){
+      ret = 1;
+     }
+     else{
+      if(e1.LenP()>e2.LenP()){
+       ret = -1;
+      }
+      else if(e1.LenP()<e2.LenP()){
+       ret = 1;
+      }
+      else{
+       if(e1.CS()<e2.CS()){
+        ret = -1;
+       }
+       else if(e1.CS()>e2.CS()){
+        ret = 1;
+       }
+       else{
+        if(e1.RPO()<e2.RPO()){
+         ret = -1;
+        }
+        else if(e1.RPO()>e2.RPO()){
+         ret = 1;
+        }
+        else{
+         if(e1.LenP()<e2.LenP()){
+          ret = -1;
+         }
+         else if(e1.LenP()>e2.LenP()){
+          ret = 1;
+         }
+         else{
+          if(e1.CS()>e2.CS()){
+           ret = -1;
+          }
+          else if(e1.CS()<e2.CS()){
+           ret = 1;
+          }
+          else{
+           if(e1.LenP()>e2.LenP()){
+            ret = -1;
+           }
+           else if(e1.LenP()<e2.LenP()){
+            ret = 1;
+           }
+           else{
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
  break;
 default:
  break;

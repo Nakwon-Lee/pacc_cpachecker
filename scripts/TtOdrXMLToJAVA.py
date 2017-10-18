@@ -1,3 +1,4 @@
+import sys
 import xml.etree.ElementTree as ET
 
 def xmltoJava(pXmlfile,pJavafile):
@@ -8,7 +9,7 @@ def xmltoJava(pXmlfile,pJavafile):
 	children = list(elemroot)
 	for child in children:
 		code = code + xmltoJavaDFS(child, 0)
-
+	ET.dump(elemtree)
 	writingToJava(code,pJavafile)
 
 def writingToJava(code,pjfile):
@@ -36,6 +37,7 @@ def writingToJava(code,pjfile):
 	outfile.write(code)
 	for line in backlines:
 		outfile.write(line)
+	outfile.flush()
 	outfile.close()
 
 def xmltoJavaDFS(elem, key):
@@ -105,3 +107,9 @@ def makeDefaultCase(key):
 def makeBreak(key):
 	return ((key+1)*' ') + 'break;\n'
 
+def main(args):
+	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
+	xmltoJava(args[1],searchstrategyjavafile)
+
+if __name__ == '__main__':
+    main(sys.argv)

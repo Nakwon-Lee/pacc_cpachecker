@@ -7,6 +7,7 @@
   <!-- SV-Comp files assume that malloc always succeeds -->
 
   <option name="-setprop">cpa.predicate.memoryAllocationsAlwaysSucceed=true</option>
+
   <!-- Witness files are several GB in total, ignore them for now. Currently our BuildBot cannot handle this.
   <resultfiles>**.graphml</resultfiles>
   -->
@@ -34,10 +35,9 @@
   </tasks>
 <!--
   <tasks name="ReachSafety-ECA">
-    <includesfile>../../../sv-benchmarks/c/ReachSafety-ECA-my.set</includesfile>
-    <propertyfile>../../../sv-benchmarks/c/ReachSafety.prp</propertyfile>
+    <includesfile>../programs/benchmarks/ReachSafety-ECA.set</includesfile>
+    <propertyfile>../programs/benchmarks/ReachSafety.prp</propertyfile>
   </tasks>
-
   <tasks name="ReachSafety-Loops">
     <includesfile>../programs/benchmarks/ReachSafety-Loops.set</includesfile>
     <propertyfile>../programs/benchmarks/ReachSafety.prp</propertyfile>
@@ -65,10 +65,7 @@
   </tasks>
 -->
 
-  <rundefinition name="csrpo-abel">
-    <option name="-Dy-CSRPO-PredAbs-ABEl"/>
-  </rundefinition>
-  <rundefinition name="csrpo-abelf">
-    <option name="-Dy-CSRPO-PredAbs-ABElf"/>
+  <rundefinition name="dy-ts-bitprecise-abel-my">
+    <option name="-sv-comp17--03-predicateAnalysis-bitprecise-my"/>
   </rundefinition>
 </benchmark>
