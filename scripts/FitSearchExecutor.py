@@ -36,6 +36,7 @@ def main():
 	filename = sys.argv[2]
 	csvfile = sys.argv[3]
 	mydir = sys.argv[4]
+	os.mkdir(mydir)
 
 	fc = FileCollector(dirname, filename)
 	fc.makeFilelistCsv(csvfile)
@@ -43,8 +44,8 @@ def main():
 	k = 0
 	for afile in fc.filelist:
 
-		fitvalsfile = mydir + fitvalspre + [str(k)] + '.csv'
-		fitvalsfilefull = mydir + fitvalsprefull + [str(k)] + '.csv'
+		fitvalsfile = mydir + fitvalspre + str(k) + '.csv'
+		fitvalsfilefull = mydir + fitvalsprefull + str(k) + '.csv'
 
 		for i in range(30):
 
@@ -53,7 +54,7 @@ def main():
 			#TODO generate a random TS
 			executor.genRanTS(currxmlfile, searchstrategyjavafile)
 
-			executor.makeArgv(mycore, mymem, mytime, afile)
+			executor.makeArgv(mycore, mymem, mytime, str(afile))
 
 			#TODO execute with the generated TS
 			newvals = executor.Execute(outlog, fitvars)
