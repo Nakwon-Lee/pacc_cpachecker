@@ -17,6 +17,35 @@ for egg in glob.glob(os.path.join(os.path.dirname(__file__), os.pardir, 'lib', '
 import benchexec.runexecutor
 from TraversalStrategyModels import *
 
+class RanTSExecutor:
+	def __init__(self, labfuncs):
+		self.atos = TSS.makingAtomTotalOrders(labfuncs)
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-noout', '-Dy-MySearchStrategy-PredAbs-ABElf', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.myargv = None
+
+	def makeArgv(self, cores, memlimit, timelimit, filen):
+		self.myargv = copy.deepcopy(self.defaultargv)
+		self.myargv.insert(1,str(cores))
+		self.myargv.insert(1,"--cores")
+		self.myargv.insert(1,str(timelimit))
+		self.myargv.insert(1,"--timelimit")
+		self.myargv.insert(1,str(memlimit))
+		self.myargv.insert(1,"--memlimit")
+		self.myargv.append(filen)
+
+	def genRanTS(self, currxmlfile, searchstrategyjavafile):
+		indiv = TraversalStrategy(self.atos)
+		indiv.randomOdrGen()
+		TSS.ttOdrToXML(indiv,currxmlfile)
+		XtJ.xmltoJava(currxmlfile,searchstrategyjavafile)
+
+	def Execute(self, outlog, fitvars):
+		print(self.myargv)
+		TSS.buildExecutable()
+		benchexec.runexecutor.main(self.myargv)
+		newvals = TSS.other_after_run(outlog,fitvars)
+		return newvals
+
 def main():
 	outlog = 'output.log'
 	fitvalsfile = 'fitvalues.csv'
@@ -24,19 +53,21 @@ def main():
 	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
 	fitvars = ('NoAffS','VL','VC','Time','Result')
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
-	atos = None
-	atos = TSS.makingAtomTotalOrders(labfuncs)
+
+	mycore = 0 
+	mytime = 900
+	mymem = 7000000000
+	myfile = sys.argv[1]
+
+	executor = RanTSExecutor(labfuncs)
 
 	#TODO generate a random TS
-	indiv = TraversalStrategy(atos)
-	indiv.randomOdrGen()
-	TSS.ttOdrToXML(indiv,currxmlfile)
-	XtJ.xmltoJava(currxmlfile,searchstrategyjavafile)
+	executor.genRanTS(currxmlfile, searchstrategyjavafile)
+
+	executor.makeArgv(mycore, mymem, mytime, myfile)
 
 	#TODO execute with the generated TS
-	TSS.buildExecutable()
-	benchexec.runexecutor.main()
-	newvals = TSS.other_after_run(outlog,fitvars)
+	newvals = executor.Execute(outlog, fitvars)
 
 	#TODO save fitvars of the executed result
 	csvfile = open(fitvalsfile, 'a')

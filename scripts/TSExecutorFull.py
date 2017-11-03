@@ -22,6 +22,8 @@ def main():
 	fitvalsfile = 'fitvaluesFull.csv'
 	fitvars = ('NoAffS','VL','VC','Time','Result')
 
+	print(sys.argv)
+
 	TSS.buildExecutable()
 	benchexec.runexecutor.main()
 	newvals = TSS.other_after_run(outlog,fitvars)
