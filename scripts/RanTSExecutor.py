@@ -20,7 +20,7 @@ from TraversalStrategyModels import *
 class RanTSExecutor:
 	def __init__(self, labfuncs):
 		self.atos = TSS.makingAtomTotalOrders(labfuncs)
-		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-noout', '-Dy-MySearchStrategy-PredAbs-ABElf', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy-PredAbs-ABElf', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
 		self.myargv = None
 
 	def makeArgv(self, cores, memlimit, timelimit, filen):
@@ -49,7 +49,7 @@ class RanTSExecutor:
 		return newvals
 
 def main():
-	outlog = 'output.log'
+	outlog = 'output/Statistics.txt'
 	fitvalsfile = 'fitvalues.csv'
 	currxmlfile = 'currts.xml'
 	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
