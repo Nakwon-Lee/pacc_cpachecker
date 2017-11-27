@@ -39,18 +39,18 @@ def main():
 	os.mkdir(mydir)
 
 	fc = FileCollector(dirname, filename)
-	fc.makeFilelistCsv(csvfile)
+	fc.makeFilelistCsv(csvfile,mydir)
 
 	k = 0
 	for afile in fc.filelist:
 
 		fitvalsfile = mydir + fitvalspre + str(k) + '.csv'
 		fitvalsfilefull = mydir + fitvalsprefull + str(k) + '.csv'
-		
+		os.mkdir(mydir + currxmlfile + str(k) + '/')
 
 		for i in range(30):
 
-			tsxmlcurr = mydir + currxmlfile + str(i) + '/' + currxmlfile + str(k) + '.xml'
+			tsxmlcurr = mydir + currxmlfile + str(k) + '/' + currxmlfile + str(i) + '.xml'
 
 			executor = RanTSExecutor(labfuncs)
 

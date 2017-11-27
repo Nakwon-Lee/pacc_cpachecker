@@ -27,7 +27,7 @@ def main():
 	filename = args[2]
 	csvfile = args[3]
 	fc = FileCollector(dirname, filename)
-	fc.makeFilelistCsv(csvfile)
+	fc.makeFilelistCsv(csvfile, './')
 
 if __name__ == '__main__':
 	main()
