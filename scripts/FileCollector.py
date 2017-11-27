@@ -6,7 +6,7 @@ class FileCollector:
 	def __init__(self, dirname, filename):
 		self.p = Path(dirname)
 		self.files = filename
-	def makeFilelistCsv(self, csvfile):
+	def makeFilelistCsv(self, csvfile, mydir):
 		self.filelist = set(self.p.glob(self.files))
 		fieldnames = ['No.','file name']
 		filediclist = []
@@ -14,7 +14,7 @@ class FileCollector:
 		for afile in self.filelist:
 			filediclist.append({fieldnames[0]:str(i),fieldnames[1]:afile})
 			i = i + 1
-		csvf = open(csvfile, 'w')
+		csvf = open(mydir+csvfile, 'w')
 		csvwriter = csv.DictWriter(csvf, fieldnames=fieldnames)
 		csvwriter.writeheader()
 		for elem in filediclist:
@@ -30,6 +30,6 @@ def main():
 	fc.makeFilelistCsv(csvfile)
 
 if __name__ == '__main__':
-    main()
+	main()
 
 

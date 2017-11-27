@@ -61,6 +61,21 @@ def other_after_run(outlog,var):
 			else:
 				dic[var[4]] = 0
 
+		if line.find("Attempted forced coverings:") is not -1:
+			tokens = line.split()
+			token = tokens[len(tokens)-1]
+			dic[var[5]] = int(token)
+
+		if line.find("Successful forced coverings:") is not -1:
+			tokens = line.split()
+			token = tokens[len(tokens)-2]
+			dic[var[6]] = int(token)
+
+		if line.find("Number of refinements:") is not -1:
+			tokens = line.split()
+			token = tokens[len(tokens)-1]
+			dic[var[7]] = int(token)
+
 	return dic
 
 def comparefitness(old,new):
@@ -204,14 +219,42 @@ def generalizedFit(pop,fitvars):
 	for i in range(len(pop)):
 		genval = {}
 		for fitvar in fitvars:
-			diff = maxs[fitvar]-mins[fitvar]
-			if diff == 0:
-				genval[fitvar] = 0
+			if fitvar != 'Time' and fitvar != 'Result':
+				diff = maxs[fitvar]-mins[fitvar]
+				if diff == 0:
+					genval[fitvar] = 0
+				else:
+					genval[fitvar] = (pop[i][1][fitvar]-mins[fitvar])/(maxs[fitvar]-mins[fitvar])
 			else:
-				genval[fitvar] = (pop[i][1][fitvar]-mins[fitvar])/(maxs[fitvar]-mins[fitvar])
+				genval[fitvar] = pop[i][1][fitvar]
 		genFit.append(genval)
 	
 	return genFit
+
+class TSSearch:
+	def __init__(self, labfuncs):
+		self.atos = makingAtomTotalOrders(labfuncs)
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy-FCm-ABElf', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.myargv = None
+
+	def makeArgv(self, cores, memlimit, timelimit, filen):
+		self.myargv = copy.deepcopy(self.defaultargv)
+		self.myargv.insert(1,str(cores))
+		self.myargv.insert(1,"--cores")
+		self.myargv.insert(1,str(timelimit))
+		self.myargv.insert(1,"--softtimelimit")
+		self.myargv.insert(1,str(timelimit+90))
+		self.myargv.insert(1,"--walltimelimit")
+		self.myargv.insert(1,str(memlimit))
+		self.myargv.insert(1,"--memlimit")
+		self.myargv.append(filen)
+
+	def Execute(self, outlog, fitvars):
+		print(self.myargv)
+		buildExecutable()
+		benchexec.runexecutor.main(self.myargv)
+		newvals = other_after_run(outlog,fitvars)
+		return newvals
 
 def main():
 
@@ -222,7 +265,7 @@ def main():
 	tempts = None
 	bestvals = None
 	outlog = 'output.log'
-	fitvars = ('NoAffS','VL','VC','Time','Result')
+	fitvars = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR')
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
 	atos = None
 	valuefile = 'fitvalues.txt'
@@ -235,6 +278,11 @@ def main():
 	popsize = 20
 	elitismsize = 2
 	evallimit = 10
+
+	mycore = 0
+	mytime = 900
+	mymem = 7000000000
+	myfile = sys.argv[1]
 
 	assert popsize > elitismsize
 
@@ -294,11 +342,13 @@ def main():
 				ttOdrToXML(population[i][0],currxmlfile)
 				XtJ.xmltoJava(currxmlfile,searchstrategyjavafile)
 
+				executor = TSSearch(labfuncs)
+
+				executor.makeArgv(mycore, mymem, mytime, myfile)
+
 				# Calculate the fitness of the new solution
 				# execution of cpachecker with new total order
-				buildExecutable()
-				benchexec.runexecutor.main()
-				newvals = other_after_run(outlog,fitvars)
+				newvals = executor.Execute(outlog, fitvars)
 
 				population[i] = (population[i][0],newvals)
 

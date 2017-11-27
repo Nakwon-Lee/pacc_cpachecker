@@ -23,9 +23,9 @@ def main():
 	outlog = 'output.log'
 	fitvalspre = 'fitvalues'
 	fitvalsprefull = 'fitvaluesFull'
-	currxmlfile = 'currts.xml'
+	currxmlfile = 'tsxml'
 	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
-	fitvars = ('NoAffS','VL','VC','Time','Result')
+	fitvars = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR')
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
 
 	mycore = 0 
@@ -46,13 +46,16 @@ def main():
 
 		fitvalsfile = mydir + fitvalspre + str(k) + '.csv'
 		fitvalsfilefull = mydir + fitvalsprefull + str(k) + '.csv'
+		
 
 		for i in range(30):
+
+			tsxmlcurr = mydir + currxmlfile + str(i) + '/' + currxmlfile + str(k) + '.xml'
 
 			executor = RanTSExecutor(labfuncs)
 
 			#TODO generate a random TS
-			executor.genRanTS(currxmlfile, searchstrategyjavafile)
+			executor.genRanTS(tsxmlcurr, searchstrategyjavafile)
 
 			executor.makeArgv(mycore, mymem, mytime, str(afile))
 
@@ -68,25 +71,21 @@ def main():
 			csvwriter.writerow(newvals)
 			csvfile.close()
 
-			#executor = RanTSExecutor(labfuncs)
-
-			#TODO generate a random TS
-
-			#executor.makeArgv(mycore, mymem, mytimefull, afile)
-
-			#TODO execute with the generated TS
-			#newvals = executor.Execute(outlog, fitvars)
+			# for full execution
+			executor = RanTSExecutor(labfuncs)
+			executor.makeArgv(mycore, mymem, mytimefull, str(afile))
+			newvals = executor.Execute(outlog, fitvars)
 
 			#TODO save fitvars of the executed result
-			#csvfile = open(fitvalsfilefull, 'a')
-			#csvwriter = csv.DictWriter(csvfile, fieldnames=fitvars)
-			#print(csvfile.tell())
-			#if csvfile.tell() == 0:
-			#	csvwriter.writeheader()
-			#csvwriter.writerow(newvals)
-			#csvfile.close()
+			csvfile = open(fitvalsfilefull, 'a')
+			csvwriter = csv.DictWriter(csvfile, fieldnames=fitvars)
+			print(csvfile.tell())
+			if csvfile.tell() == 0:
+				csvwriter.writeheader()
+			csvwriter.writerow(newvals)
+			csvfile.close()
 
 		k = k + 1
 
 if __name__ == '__main__':
-    main()
+	main()
