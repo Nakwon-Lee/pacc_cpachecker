@@ -1,0 +1,30 @@
+- Optimzing Traversal Strategy for Lazy Abstraction -
+
+
+- results of experiments
+
+The directories "bests_FCtime_*" include the results of experiments, where the part "*" is the target file name.
+In the directory, the files named as "bestfitvalues*.txt" have the value of performance metrics of the best order tree in each generation of genetic algorithm.
+Each file named as "bestrun*.csv" shows the results of ten executions with the optimized order tree, "bestts*.xml".
+In "bestts*.xml", the "Odr=0" means that corresponding atomic total order is increasing order, and the "Odr=1" means decending order.
+The file "bestrun_control.csv" is the result of the existing traversal strategy.
+The file "fitvalues.csv" includes the execution results of 30 random traversal strategies.
+
+
+- model checking tool
+
+We use the open souce model checking tool CPAchecker. The order tree converting and optimization tools are provided as python scripts. The all required scripts are included in The directoty "scripts/". In the scripts we use various functions of CPAchecker and open source model checker benchmark tool "benchexec".
+
+
+- running a optimization
+
+The command line interpace for a run of traversal strategy optimization for a given target program:
+
+$python3 scripts/TSSearch.py "target file"
+
+The commnad line interpace for converting an order tree to java source code:
+
+$python3 scripts/TtOdrXMLToJAVA.py "order tree xml file"
+
+Order tree must be a XML form. You can find the example order trees denoted as XML file in the directories of experiment results. The converted source code is directly applied to the Java file "src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java", which is used as the traversal strategy of model checking run during optimization process.
+
