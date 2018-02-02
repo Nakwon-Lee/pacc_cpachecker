@@ -248,7 +248,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
       }
 
       //DEBUG
-      if(attempts > attemptslimit){
+      if(attempts >= attemptslimit){
         break;
       }
       attempts++;

@@ -994,15 +994,7 @@ public final class InterpolationManager {
       // with incremental checking it was missing (when the path is infeasible
       // and formulas get pushed afterwards)
 
-      //DEBUG
-      boolean ret = itpProver.isUnsat();
-
-      if (!ret){
-        System.out.println("What!");
-      }
-      return ret;
-      //return itpProver.isUnsat();
-      //GUBED
+      return itpProver.isUnsat();
     }
 
     private void close() {
