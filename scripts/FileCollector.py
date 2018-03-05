@@ -6,12 +6,13 @@ class FileCollector:
 	def __init__(self, dirname, filename):
 		self.p = Path(dirname)
 		self.files = filename
+		self.filelist = None
 	def makeFilelistCsv(self, csvfile, mydir):
 		fileset = set(self.p.glob(self.files))
 		fieldnames = ['No.','file name']
 		filediclist = []
 		i = 0
-		for afile in self.filelist:
+		for afile in fileset:
 			filediclist.append({fieldnames[0]:str(i),fieldnames[1]:str(afile)})
 			i = i + 1
 		self.filelist = filediclist
