@@ -3,10 +3,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import glob
 import os
 import sys
+import shutil
 import xml.etree.ElementTree as ET
 import TtOdrXMLToJAVA as XtJ
 import copy
 import GeneticAlgo as GA
+import Comparator as Comp
 
 sys.dont_write_bytecode = True # prevent creation of .pyc files
 for egg in glob.glob(os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'python-benchmark', '*.egg')):
@@ -20,91 +22,6 @@ from TraversalStrategyModels import *
 def buildExecutable():
 	tool = cpaTool.Tool()
 	tool.executable()
-
-def other_after_run(outlog,var):
-
-	print('filename: ',outlog)
-
-	f = open(outlog,"r")
-	lines = f.readlines()
-	f.close()
-
-	dic = {}
-
-	# loop for extracting other metrics
-
-	for line in lines:
-		if line.find("Number of affected states:") is not -1:
-			tokens = line.split()
-			dic[var[0]] = int(tokens[4])
-
-		if line.find("Visited lines:") is not -1:
-			tokens = line.split()
-			dic[var[1]] = int(tokens[len(tokens)-1])
-    
-		if line.find("Visited conditions:") is not -1:
-			tokens = line.split()
-			dic[var[2]] = int(tokens[len(tokens)-1])
-
-		if line.find("Total CPU time for CPAchecker:") is not -1:
-			tokens = line.split()
-			token = tokens[len(tokens)-1]
-			dic[var[3]] = float(token[0:len(token)-1])
-
-		if line.find("Verification result:") is not -1:
-			tokens = line.split()
-			token = tokens[2]
-			result = token[0:len(token)-1]
-			print(result)
-			if result == 'TRUE' or result == 'FALSE':
-				dic[var[4]] = 1
-			else:
-				dic[var[4]] = 0
-
-		if line.find("Attempted forced coverings:") is not -1:
-			tokens = line.split()
-			token = tokens[len(tokens)-1]
-			dic[var[5]] = int(token)
-
-		if line.find("Successful forced coverings:") is not -1:
-			tokens = line.split()
-			token = tokens[len(tokens)-2]
-			dic[var[6]] = int(token)
-
-		if line.find("Number of refinements:") is not -1:
-			tokens = line.split()
-			token = tokens[len(tokens)-1]
-			dic[var[7]] = int(token)
-
-	return dic
-
-def comparefitness(old,new):
-	
-	ret = 0
-
-	if old['Result'] > new['Result']:
-		ret = -1
-	elif old['Result'] < new['Result']:
-		ret = 1
-	elif old['Result'] == new['Result'] and old['Result'] == 1:
-		#print('Result is ',1)
-		if old['Time'] < new['Time']:
-			ret = -1
-		elif old['Time'] > new['Time']:
-			ret = 1
-		else:
-			pass
-	elif old['Result'] == new['Result'] and old['Result'] == 0:
-		#print('Result is ',0)
-		oldfit = (0.62807*old['NoAffS'])+(-1.27101*old['VL'])+(1.18150*old['VC'])-0.02434
-		newfit = (0.62807*new['NoAffS'])+(-1.27101*new['VL'])+(1.18150*new['VC'])-0.02434
-		if oldfit < newfit:
-			ret = -1
-		elif oldfit > newfit:
-			ret = 1
-		else:
-			pass
-	return ret
 
 def makingAtomTotalOrders(labfuncs):
 
@@ -179,7 +96,7 @@ def solToString(sols):
 	retstr = retstr + ']\n'
 	return retstr
 
-def binarySearchIdx(sortedlist,tup):
+def binarySearchIdx(sortedlist,tup,pcomp):
 	listlen = len(sortedlist)
 	jumplen = listlen//2
 	retidx = jumplen
@@ -187,7 +104,7 @@ def binarySearchIdx(sortedlist,tup):
 	right = listlen
 	while(jumplen>0):
 		retidx = left + jumplen
-		key = comparefitness(sortedlist[retidx],tup)
+		key = pcomp.compare(sortedlist[retidx],tup)
 		if key == -1: # tup is worse
 			left = retidx + 1
 		elif key == 1 or key == 0: # tup is better or equal
@@ -198,47 +115,84 @@ def binarySearchIdx(sortedlist,tup):
 	if (right - left) == 0:
 		pass
 	elif (right - left) == 1:
-		key2 = comparefitness(sortedlist[retidx],tup)
+		key2 = pcomp.compare(sortedlist[retidx],tup)
 		if key2 == -1:
 			retidx = retidx + 1
 		elif key2 == 1 or key2 == 0:
 			pass
 	return retidx
 
-def generalizedFit(pop,fitvars):
-	genFit = []
-	maxs = {}
-	mins = {}
-	for fitvar in fitvars:
-		tlist = []
-		for j in range(len(pop)):
-			tlist.append(pop[j][1][fitvar])
-		maxs[fitvar] = max(tlist)
-		mins[fitvar] = min(tlist)
+class MetricsHandler:
+	def __init__(self, outlog):
+		self.fitvars = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR')
+		self.out = outlog
 
-	for i in range(len(pop)):
-		genval = {}
-		for fitvar in fitvars:
-			if fitvar != 'Time' and fitvar != 'Result':
-				diff = maxs[fitvar]-mins[fitvar]
-				if diff == 0:
-					genval[fitvar] = 0
+	def other_after_run(self):
+
+		print('filename: ', self.out)
+
+		f = open(self.out,"r")
+		lines = f.readlines()
+		f.close()
+
+		dic = {}
+
+		# loop for extracting other metrics
+
+		for line in lines:
+			if line.find("Number of affected states:") is not -1:
+				tokens = line.split()
+				dic[self.fitvars[0]] = int(tokens[4])
+
+			if line.find("Visited lines:") is not -1:
+				tokens = line.split()
+				dic[self.fitvars[1]] = int(tokens[len(tokens)-1])
+	    
+			if line.find("Visited conditions:") is not -1:
+				tokens = line.split()
+				dic[self.fitvars[2]] = int(tokens[len(tokens)-1])
+
+			if line.find("Total CPU time for CPAchecker:") is not -1:
+				tokens = line.split()
+				token = tokens[len(tokens)-1]
+				dic[self.fitvars[3]] = float(token[0:len(token)-1])
+
+			if line.find("Verification result:") is not -1:
+				tokens = line.split()
+				token = tokens[2]
+				result = token[0:len(token)-1]
+				print(result)
+				if result == 'TRUE' or result == 'FALSE':
+					dic[self.fitvars[4]] = 1
 				else:
-					genval[fitvar] = (pop[i][1][fitvar]-mins[fitvar])/(maxs[fitvar]-mins[fitvar])
-			else:
-				genval[fitvar] = pop[i][1][fitvar]
-		genFit.append(genval)
-	
-	return genFit
+					dic[self.fitvars[4]] = 0
+
+			if line.find("Attempted forced coverings:") is not -1:
+				tokens = line.split()
+				token = tokens[len(tokens)-1]
+				dic[self.fitvars[5]] = int(token)
+
+			if line.find("Successful forced coverings:") is not -1:
+				tokens = line.split()
+				token = tokens[len(tokens)-2]
+				dic[self.fitvars[6]] = int(token)
+
+			if line.find("Number of refinements:") is not -1:
+				tokens = line.split()
+				token = tokens[len(tokens)-1]
+				dic[self.fitvars[7]] = int(token)
+
+		return dic
 
 class TSSearch:
 	def __init__(self, labfuncs):
 		self.atos = makingAtomTotalOrders(labfuncs)
-		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy-FCm-ABElf', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
 		self.myargv = None
 
-	def makeArgv(self, cores, memlimit, timelimit, filen):
+	def makeArgv(self, cores, memlimit, timelimit, algo, filen):
 		self.myargv = copy.deepcopy(self.defaultargv)
+		self.myargv[4] = self.myargv[4] + algo
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
 		self.myargv.insert(1,str(timelimit))
@@ -249,11 +203,11 @@ class TSSearch:
 		self.myargv.insert(1,"--memlimit")
 		self.myargv.append(filen)
 
-	def Execute(self, outlog, fitvars):
+	def Execute(self, handler):
 		print(self.myargv)
 		buildExecutable()
 		benchexec.runexecutor.main(self.myargv)
-		newvals = other_after_run(outlog,fitvars)
+		newvals = handler.other_after_run()
 		return newvals
 
 def main():
@@ -264,8 +218,7 @@ def main():
 	bestts = None
 	tempts = None
 	bestvals = None
-	outlog = 'output.log'
-	fitvars = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR')
+	outlog = 'output/Statistics.txt'
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
 	atos = None
 	valuefile = 'fitvalues.txt'
@@ -273,6 +226,8 @@ def main():
 	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
 	currxmlfile = 'currts.xml'
 	bestxmlfile = 'bestts.xml'
+
+	mhdlr = MetricsHandler(outlog)
 
 	population = []
 	popsize = 20
@@ -283,6 +238,7 @@ def main():
 	mytime = 900
 	mymem = 7000000000
 	myfile = sys.argv[1]
+	myalgo = sys.argv[2]
 
 	assert popsize > elitismsize
 
@@ -348,20 +304,25 @@ def main():
 
 				# Calculate the fitness of the new solution
 				# execution of cpachecker with new total order
-				newvals = executor.Execute(outlog, fitvars)
+				newvals = executor.Execute(hdlr)
+
+				shutil.rmtree('output/')
 
 				population[i] = (population[i][0],newvals)
 
-				assert len(newvals) == len(fitvars)
+				#assert len(newvals) == len(hdlr.fitvars), 'length of handled output missmatched'
 
-		#TODO generalize fitness values
-		genfit = generalizedFit(population,fitvars)
+		#TODO if preprocessing or generalization is needed, do it in this section
+		comparator = Comp.GeneralTSComparator()
+		genfit = comparator.preprocessing(population,hdlr.fitvars)
+		#preprocessing or generalization end
+
 		sortedgenfitlist = []
 		sortedpop = []
 
 		for i in range(len(population)):
 			lensortedpop = len(sortedpop)
-			positioninlist = binarySearchIdx(sortedgenfitlist,genfit[i])
+			positioninlist = binarySearchIdx(sortedgenfitlist,genfit[i],comparator)
 			temptuplist = []
 			temptuplist.append(genfit[i])
 			sortedgenfitlist = sortedgenfitlist[0:positioninlist] + temptuplist + sortedgenfitlist[positioninlist:lensortedpop]

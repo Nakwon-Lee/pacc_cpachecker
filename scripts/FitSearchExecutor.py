@@ -20,7 +20,7 @@ import benchexec.runexecutor
 from TraversalStrategyModels import *
 
 def main():
-	outlog = 'output.log'
+	outlog = 'output/Statistics.txt'
 	fitvalspre = 'fitvalues'
 	fitvalsprefull = 'fitvaluesFull'
 	currxmlfile = 'tsxml'
@@ -31,40 +31,49 @@ def main():
 	mycore = 0 
 	mytime = 30
 	mytimefull = 900
-	mymem = 12000000000
+	mymem = 7000000000
 	dirname = sys.argv[1]
 	filename = sys.argv[2]
 	csvfile = sys.argv[3]
 	mydir = sys.argv[4]
+	myalgo = sys.argv[5]
 	os.mkdir(mydir)
 
-	fc = FileCollector(dirname, filename)
-	fc.makeFilelistCsv(csvfile,mydir)
+	hdlr = TSS.MetricsHandler(outlog)
 
-	k = 0
+	fc = None
+	if dirname != 'GIVEN':
+		fc = FileCollector(dirname, filename)
+		fc.makeFilelistCsv(csvfile, mydir)
+	else:
+		fc = FileCollector(dirname, filename)
+		fc.makeFilelistCsvGiven(csvfile, mydir, filename)
+
 	for afile in fc.filelist:
 
-		fitvalsfile = mydir + fitvalspre + str(k) + '.csv'
-		fitvalsfilefull = mydir + fitvalsprefull + str(k) + '.csv'
-		os.mkdir(mydir + currxmlfile + str(k) + '/')
+		fitvalsfile = mydir + fitvalspre + afile['No.'] + '.csv'
+		fitvalsfilefull = mydir + fitvalsprefull + afile['No.'] + '.csv'
+		os.mkdir(mydir + currxmlfile + afile['No.'] + '/')
 
 		for i in range(30):
 
-			tsxmlcurr = mydir + currxmlfile + str(k) + '/' + currxmlfile + str(i) + '.xml'
+			tsxmlcurr = mydir + currxmlfile + afile['No.'] + '/' + currxmlfile + str(i) + '.xml'
 
 			executor = RanTSExecutor(labfuncs)
 
 			#TODO generate a random TS
 			executor.genRanTS(tsxmlcurr, searchstrategyjavafile)
 
-			executor.makeArgv(mycore, mymem, mytime, str(afile))
+			executor.makeArgv(mycore, mymem, mytime, myalgo, afile['file name'])
 
 			#TODO execute with the generated TS
-			newvals = executor.Execute(outlog, fitvars)
+			newvals = executor.Execute(hdlr)
+
+			#assert len(newvals) == len(hdlr.fitvars), 'length of handled output missmatched'
 
 			#TODO save fitvars of the executed result
 			csvfile = open(fitvalsfile, 'a')
-			csvwriter = csv.DictWriter(csvfile, fieldnames=fitvars)
+			csvwriter = csv.DictWriter(csvfile, fieldnames=hdlr.fitvars)
 			print(csvfile.tell())
 			if csvfile.tell() == 0:
 				csvwriter.writeheader()
@@ -73,19 +82,17 @@ def main():
 
 			# for full execution
 			executor = RanTSExecutor(labfuncs)
-			executor.makeArgv(mycore, mymem, mytimefull, str(afile))
-			newvals = executor.Execute(outlog, fitvars)
+			executor.makeArgv(mycore, mymem, mytimefull, myalgo, afile['file name'])
+			newvals = executor.Execute(hdlr)
 
 			#TODO save fitvars of the executed result
 			csvfile = open(fitvalsfilefull, 'a')
-			csvwriter = csv.DictWriter(csvfile, fieldnames=fitvars)
+			csvwriter = csv.DictWriter(csvfile, fieldnames=hdlr.fitvars)
 			print(csvfile.tell())
 			if csvfile.tell() == 0:
 				csvwriter.writeheader()
 			csvwriter.writerow(newvals)
 			csvfile.close()
-
-		k = k + 1
 
 if __name__ == '__main__':
 	main()
