@@ -29,7 +29,7 @@ class RanTSExecutor:
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
 		self.myargv.insert(1,str(timelimit))
-		self.myargv.insert(1,"--softtimelimit")
+		self.myargv.insert(1,"--hardtimelimit")
 		self.myargv.insert(1,str(timelimit*2))
 		self.myargv.insert(1,"--walltimelimit")
 		self.myargv.insert(1,str(memlimit))
