@@ -4,6 +4,7 @@ import glob
 import os
 import sys
 import csv
+import shutil
 import xml.etree.ElementTree as ET
 import TtOdrXMLToJAVA as XtJ
 import copy
@@ -68,6 +69,7 @@ def main():
 
 			#TODO execute with the generated TS
 			newvals = executor.Execute(hdlr)
+			shutil.rmtree('output/')
 
 			#assert len(newvals) == len(hdlr.fitvars), 'length of handled output missmatched'
 
@@ -84,6 +86,7 @@ def main():
 			executor = RanTSExecutor(labfuncs)
 			executor.makeArgv(mycore, mymem, mytimefull, myalgo, afile['file name'])
 			newvals = executor.Execute(hdlr)
+			shutil.rmtree('output/')
 
 			#TODO save fitvars of the executed result
 			csvfile = open(fitvalsfilefull, 'a')

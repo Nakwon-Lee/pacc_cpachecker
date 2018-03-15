@@ -4,6 +4,7 @@ import glob
 import os
 import sys
 import csv
+import shutil
 import xml.etree.ElementTree as ET
 import TtOdrXMLToJAVA as XtJ
 import copy
@@ -29,7 +30,7 @@ class RanTSExecutor:
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
 		self.myargv.insert(1,str(timelimit))
-		self.myargv.insert(1,"--timelimit")
+		self.myargv.insert(1,"--softtimelimit")
 		self.myargv.insert(1,str(timelimit*2))
 		self.myargv.insert(1,"--walltimelimit")
 		self.myargv.insert(1,str(memlimit))
