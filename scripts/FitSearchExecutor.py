@@ -43,12 +43,15 @@ def main():
 	hdlr = TSS.MetricsHandler(outlog)
 
 	fc = None
-	if dirname != 'GIVEN':
-		fc = FileCollector(dirname, filename)
-		fc.makeFilelistCsv(csvfile, mydir)
-	else:
+	if dirname == 'GIVEN':
 		fc = FileCollector(dirname, filename)
 		fc.makeFilelistCsvGiven(csvfile, mydir, filename)
+	elif dirname == 'GIVEN2':
+		fc = FileCollector(dirname, filename)
+		fc.makeFilelistCsvGiven2(csvfile, mydir, filename)
+	else:
+		fc = FileCollector(dirname, filename)
+		fc.makeFilelistCsv(csvfile, mydir)
 
 	for afile in fc.filelist:
 

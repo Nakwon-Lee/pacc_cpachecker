@@ -295,16 +295,17 @@ class MetricsHandler:
 class TSSearch:
 	def __init__(self, labfuncs):
 		self.atos = makingAtomTotalOrders(labfuncs)
-		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-heap', '-preprocess', '-stats', '-noout', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-heap', '-timelimit', '-preprocess', '-stats', '-noout', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
 		self.myargv = None
 
 	def makeArgv(self, cores, memlimit, timelimit, algo, filen):
 		self.myargv = copy.deepcopy(self.defaultargv)
 		self.myargv[4] = self.myargv[4] + algo
 		self.myargv.insert(6,str(int(memlimit*0.8)))
+		self.myargv.insert(8,str(int(timelimit)))
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
-		self.myargv.insert(1,str(timelimit))
+		self.myargv.insert(1,str(timelimit+10))
 		self.myargv.insert(1,"--softtimelimit")
 		self.myargv.insert(1,str(timelimit*2))
 		self.myargv.insert(1,"--walltimelimit")
