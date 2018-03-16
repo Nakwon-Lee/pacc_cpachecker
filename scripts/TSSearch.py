@@ -305,8 +305,6 @@ class TSSearch:
 		self.myargv.insert(8,str(int(timelimit)))
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
-		self.myargv.insert(1,str(timelimit+10))
-		self.myargv.insert(1,"--softtimelimit")
 		self.myargv.insert(1,str(timelimit*2))
 		self.myargv.insert(1,"--walltimelimit")
 		self.myargv.insert(1,str(memlimit))
