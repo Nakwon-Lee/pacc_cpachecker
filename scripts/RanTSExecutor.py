@@ -21,12 +21,13 @@ from TraversalStrategyModels import *
 class RanTSExecutor:
 	def __init__(self, labfuncs):
 		self.atos = TSS.makingAtomTotalOrders(labfuncs)
-		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-heap', '-preprocess', '-stats', '-noout', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
 		self.myargv = None
 
 	def makeArgv(self, cores, memlimit, timelimit, algo, filen):
 		self.myargv = copy.deepcopy(self.defaultargv)
 		self.myargv[4] = self.myargv[4] + algo
+		self.myargv.insert(6,str(int(memlimit*0.8)))
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
 		self.myargv.insert(1,str(timelimit))
@@ -51,7 +52,7 @@ class RanTSExecutor:
 		return newvals
 
 def main():
-	outlog = 'output/Statistics.txt'
+	outlog = 'output.log'
 	fitvalsfile = 'fitvalues.csv'
 	currxmlfile = 'currts.xml'
 	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
@@ -59,7 +60,7 @@ def main():
 
 	mycore = 0 
 	mytime = 900
-	mymem = 7000000000
+	mymem = 12000000000
 	myfile = sys.argv[1]
 	myalgo = sys.argv[2]
 

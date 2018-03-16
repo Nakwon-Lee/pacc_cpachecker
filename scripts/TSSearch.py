@@ -295,12 +295,13 @@ class MetricsHandler:
 class TSSearch:
 	def __init__(self, labfuncs):
 		self.atos = makingAtomTotalOrders(labfuncs)
-		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-preprocess', '-stats', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-heap', '-preprocess', '-stats', '-noout', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
 		self.myargv = None
 
 	def makeArgv(self, cores, memlimit, timelimit, algo, filen):
 		self.myargv = copy.deepcopy(self.defaultargv)
 		self.myargv[4] = self.myargv[4] + algo
+		self.myargv.insert(6,str(int(memlimit*0.8)))
 		self.myargv.insert(1,str(cores))
 		self.myargv.insert(1,"--cores")
 		self.myargv.insert(1,str(timelimit))
@@ -326,7 +327,7 @@ def main():
 	bestts = None
 	tempts = None
 	bestvals = None
-	outlog = 'output/Statistics.txt'
+	outlog = 'output.log'
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
 	atos = None
 	valuefile = 'fitvalues.txt'
@@ -344,7 +345,7 @@ def main():
 
 	mycore = 0
 	mytime = 900
-	mymem = 7000000000
+	mymem = 12000000000
 	myfile = sys.argv[1]
 	myalgo = sys.argv[2]
 
@@ -413,8 +414,6 @@ def main():
 				# Calculate the fitness of the new solution
 				# execution of cpachecker with new total order
 				newvals = executor.Execute(mhdlr)
-
-				shutil.rmtree('output/')
 
 				population[i] = (population[i][0],newvals)
 

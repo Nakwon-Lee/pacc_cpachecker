@@ -20,7 +20,7 @@ import benchexec.runexecutor
 from TraversalStrategyModels import *
 
 def main():
-	outlog = 'output/Statistics.txt'
+	outlog = 'output.log'
 	fitvalsfile = 'fitvaluesFull.csv'
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
 	mycore = 0 

@@ -21,7 +21,7 @@ import benchexec.runexecutor
 from TraversalStrategyModels import *
 
 def main():
-	outlog = 'output/Statistics.txt'
+	outlog = 'output.log'
 	fitvalspre = 'fitvalues'
 	fitvalsprefull = 'fitvaluesFull'
 	currxmlfile = 'tsxml'
@@ -32,7 +32,7 @@ def main():
 	mycore = 0 
 	mytime = 30
 	mytimefull = 900
-	mymem = 7000000000
+	mymem = 12000000000
 	dirname = sys.argv[1]
 	filename = sys.argv[2]
 	csvfile = sys.argv[3]
@@ -69,7 +69,8 @@ def main():
 
 			#TODO execute with the generated TS
 			newvals = executor.Execute(hdlr)
-			shutil.rmtree('output/')
+
+			os.system('mv output.log ' + mydir + currxmlfile + afile['No.'] + '/' + 'output' + str(i) + '.log')
 
 			#assert len(newvals) == len(hdlr.fitvars), 'length of handled output missmatched'
 
@@ -86,7 +87,8 @@ def main():
 			executor = RanTSExecutor(labfuncs)
 			executor.makeArgv(mycore, mymem, mytimefull, myalgo, afile['file name'])
 			newvals = executor.Execute(hdlr)
-			shutil.rmtree('output/')
+
+			os.system('mv output.log ' + mydir + currxmlfile + afile['No.'] + '/' + 'outputF' + str(i) + '.log')
 
 			#TODO save fitvars of the executed result
 			csvfile = open(fitvalsfilefull, 'a')
