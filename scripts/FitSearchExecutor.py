@@ -32,7 +32,7 @@ def main():
 	mycore = 0 
 	mytime = 30
 	mytimefull = 900
-	mymem = 12000000000
+	mymem = 7000000000
 	dirname = sys.argv[1]
 	filename = sys.argv[2]
 	csvfile = sys.argv[3]

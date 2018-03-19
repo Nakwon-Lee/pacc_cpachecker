@@ -124,7 +124,7 @@ def binarySearchIdx(sortedlist,tup,pcomp):
 
 class MetricsHandler:
 	def __init__(self, outlog):
-		self.fitvars = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs','NoCSucc','AvgLenTPblk','DNonTItpblk','ENonTItp','ENonTItpblk','FCov','LCov','CCov','SizRS','TPredAbs','NoPredBAbs','TimPrec','NoBDDN','SizBDDQ','SizBDDQAvg','MaxWait','AvgWait','NoRL')
+		self.fitvars = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs','NoCSucc','AvgLenTPblk','DNonTItpblk','ENonTItp','ENonTItpblk','FCov','LCov','CCov','SizRS','TPredAbs','NoPredBAbs','TimPrec','NoBDDN','SizBDDQ','SizBDDQAvg','MaxWait','AvgWait','NoRL','TimPreAdj','TimTran')
 		self.out = outlog
 
 	def other_after_run(self):
@@ -290,6 +290,18 @@ class MetricsHandler:
 				token = tokens[4]
 				dic[self.fitvars[30]] = int(token)
 
+			if line.find("Time for precision adjustment:") is not -1:
+				tokens = line.split()
+				token = tokens[len(tokens)-1]
+				token = token[0:len(token)-1]
+				dic[self.fitvars[31]] = int(token)
+
+			if line.find("Time for transfer relation:") is not -1:
+				tokens = line.split()
+				token = tokens[len(tokens)-1]
+				token = token[0:len(token)-1]
+				dic[self.fitvars[32]] = int(token)
+
 		return dic
 
 class TSSearch:
@@ -344,7 +356,7 @@ def main():
 
 	mycore = 0
 	mytime = 900
-	mymem = 12000000000
+	mymem = 7000000000
 	myfile = sys.argv[1]
 	myalgo = sys.argv[2]
 
