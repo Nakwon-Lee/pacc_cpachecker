@@ -294,13 +294,13 @@ class MetricsHandler:
 				tokens = line.split()
 				token = tokens[len(tokens)-1]
 				token = token[0:len(token)-1]
-				dic[self.fitvars[31]] = int(token)
+				dic[self.fitvars[31]] = float(token)
 
 			if line.find("Time for transfer relation:") is not -1:
 				tokens = line.split()
 				token = tokens[len(tokens)-1]
 				token = token[0:len(token)-1]
-				dic[self.fitvars[32]] = int(token)
+				dic[self.fitvars[32]] = float(token)
 
 		return dic
 
