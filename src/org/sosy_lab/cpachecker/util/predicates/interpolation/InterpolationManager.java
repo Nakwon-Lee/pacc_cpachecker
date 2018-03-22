@@ -997,9 +997,6 @@ public final class InterpolationManager {
       //DEBUG
       boolean ret = itpProver.isUnsat();
 
-      if (!ret){
-        System.out.println("What!");
-      }
       return ret;
       //return itpProver.isUnsat();
       //GUBED
