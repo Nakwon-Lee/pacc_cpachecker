@@ -1,0 +1,61 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-challenges/linux-3.14__complex_emg__linux-kernel-locking-mutex__drivers-media-usb-gspca-gspca_topro_true-unreach-call.cil.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_9ij0pzcm/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+Dead code detected: Label switch_break is not reachable. (CFAFunctionBuilder.leave, INFO)
+
+line 27944: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 28096: Dead code detected: return (arg0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 28294: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 28009: Function pointer *arg0 with type int (*)(struct usb_interface *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28020: Function pointer *arg0 with type int (*)(struct usb_interface *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 30s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     22960
+Number of CFA edges:             23526
+Number of relevant variables:    536
+Number of functions:             163
+Number of loops:                 13
+
+Time for analysis setup:         38.196s
+  Time for loading CPAs:          0.000s
+  Time for loading parser:        0.653s
+  Time for CFA construction:     37.469s
+    Time for parsing file(s):     1.757s
+    Time for AST to CFA:          3.182s
+    Time for CFA sanity check:    1.165s
+    Time for post-processing:    31.171s
+      Time for var class.:        1.598s
+Time for Analysis:                0.000s
+CPU time for analysis:            0.000s
+Total time for CPAchecker:       38.180s
+Total CPU time for CPAchecker:    1.030s
+Time for statistics:              0.022s
+
+Time for Garbage Collector:       4.235s (in 42 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:               2103MB (  2006 MiB) max;   1355MB (  1292 MiB) avg;   2186MB (  2085 MiB) peak
+Used non-heap memory:             30MB (    28 MiB) max;     27MB (    26 MiB) avg;     30MB (    28 MiB) peak
+Allocated heap memory:          2420MB (  2308 MiB) max;   1884MB (  1797 MiB) avg
+Allocated non-heap memory:        31MB (    29 MiB) max;     28MB (    27 MiB) avg
+Total process virtual memory:   8063MB (  7689 MiB) max;   8055MB (  7682 MiB) avg
+
+More details about the verification run can be found in the directory "./output".
