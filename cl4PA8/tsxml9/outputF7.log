@@ -1,0 +1,352 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-3.14/linux-3.14__complex_emg__linux-kernel-locking-mutex__drivers-net-can-mcp251x_true-unreach-call.cil.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_7aw5aq0w/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 5368: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Dead code detected: Label switch_break is not reachable. (CFAFunctionBuilder.leave, INFO)
+
+Dead code detected: Label switch_break is not reachable. (CFAFunctionBuilder.leave, INFO)
+
+line 8432: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9524: Dead code detected: return (arg0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9560: Dead code detected: return (arg0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9881: Dead code detected: return (arg0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9895: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10262: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10451: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10478: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10506: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 5588: Function pointer *(ops->alloc) with type void *(*)(struct device *, size_t , dma_addr_t *, gfp_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 5629: Function pointer *(ops->free) with type void (*)(struct device *, size_t , void *, dma_addr_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8630: Function pointer *arg0 with type int (*)(struct platform_device *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8641: Function pointer *arg0 with type int (*)(struct platform_device *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8652: Function pointer *arg0 with type void (*)(struct device *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 9646: Function pointer *arg0 with type void (*)(struct device *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function external_allocated_data to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_pre_probe to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_switch_to_interrupt_context to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_switch_to_process_context to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 9635: Ignoring call via function pointer ldv_rtc_class_instance_probe_5_10::arg0 for which no suitable target was found in line: tmp = (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 9635: Ignoring function call through function pointer *arg0: tmp = (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8806: Ignoring call via function pointer ldv_pm_ops_instance_runtime_idle_3_27::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8806: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8828: Ignoring call via function pointer ldv_pm_ops_instance_runtime_suspend_3_25::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8828: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8817: Ignoring call via function pointer ldv_pm_ops_instance_runtime_resume_3_24::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8817: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8729: Ignoring call via function pointer ldv_pm_ops_instance_prepare_3_22::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8729: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8861: Ignoring call via function pointer ldv_pm_ops_instance_suspend_noirq_3_20::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8861: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8795: Ignoring call via function pointer ldv_pm_ops_instance_resume_noirq_3_19::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8795: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8850: Ignoring call via function pointer ldv_pm_ops_instance_suspend_late_3_18::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8850: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8784: Ignoring call via function pointer ldv_pm_ops_instance_resume_early_3_17::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8784: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8674: Ignoring call via function pointer ldv_pm_ops_instance_freeze_late_3_14::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8674: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8883: Ignoring call via function pointer ldv_pm_ops_instance_thaw_early_3_13::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8883: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8685: Ignoring call via function pointer ldv_pm_ops_instance_freeze_noirq_3_12::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8685: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8894: Ignoring call via function pointer ldv_pm_ops_instance_thaw_noirq_3_11::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8894: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8707: Ignoring call via function pointer ldv_pm_ops_instance_poweroff_late_3_8::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8707: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8751: Ignoring call via function pointer ldv_pm_ops_instance_restore_early_3_7::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8751: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8718: Ignoring call via function pointer ldv_pm_ops_instance_poweroff_noirq_3_6::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8718: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8762: Ignoring call via function pointer ldv_pm_ops_instance_restore_noirq_3_5::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8762: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8453: Ignoring call via function pointer ldv_interrupt_instance_handler_1_5::arg0 for which no suitable target was found in line: tmp = (*arg0)(arg1, arg2); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8453: Ignoring function call through function pointer *arg0: tmp = (*arg0)(arg1, arg2); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function spi_register_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 8652: Ignoring call via function pointer ldv_pm_ops_instance_complete_3_3::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8652: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 9646: Ignoring call via function pointer ldv_rtc_class_instance_release_5_2::arg0 for which no suitable target was found in line: (*arg0)(arg1); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 9646: Ignoring function call through function pointer *arg0: (*arg0)(arg1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function driver_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 900s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 900s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            2484389 (17% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  2317896 (93%)
+  Because of loop head:            165717 (7%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         776 (0%)
+  Times precision was empty:       1643898 (66%)
+  Times precision was {false}:     3878 (0%)
+  Times result was cached:         803981 (32%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      32632 (1%)
+  Times result was 'false':        123633 (5%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         2208067
+  BDD entailment checks:           866963
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       40
+Number of predicates discovered:          46
+Number of abstraction locations:          78
+Max number of predicates per location:    46
+Avg number of predicates per location:    16
+Total predicates per abstraction:         13680056
+Max number of predicates per abstraction: 46
+Avg number of predicates per abstraction: 374.69
+Number of irrelevant predicates:          7050468 (52%)
+Number of preds handled by boolean abs:   348944 (3%)
+  Total number of models for allsat:      197807
+  Max number of models for allsat:        576
+  Avg number of models for allsat:        6.06
+
+Time for post operator:                 75.860s
+  Time for path formula creation:       70.875s
+Time for strengthen operator:           10.870s
+Time for prec operator:                521.994s
+  Time for abstraction:                499.779s (Max:     2.112s, Count: 2484389)
+    Boolean abstraction:                85.143s
+    Solving time:                       52.514s (Max:     0.080s)
+    Model enumeration time:             22.994s
+    Time for BDD construction:           7.001s (Max:     0.102s)
+Time for merge operator:                 4.807s
+Time for coverage check:                 1.039s
+  Time for BDD entailment checks:        0.739s
+Total time for SMT solver (w/o itp):    75.508s
+
+Number of path formula cache hits:   15826947 (92%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:    40.240s
+
+Total number of created targets for pointer analysis: 0
+
+
+Number of BDD nodes:                               67478
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                      138978 (count: 2803004, min: 0, max: 2010, avg: 0.05)
+Time for BDD node cleanup:                             0.459s
+Time for BDD garbage collection:                       0.099s (in 2 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                 16.624s
+  Time for transition matches:                         9.489s
+  Time for transition assertions:                      0.002s
+  Time for transition actions:                         0.002s
+Automaton transfers with branching:                0
+Automaton transfer successors:                     14343777 (count: 14343777, min: 1, max: 1, avg: 1.00) [1 x 14343777]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            10362273
+Max size of waitlist:            1868
+Average size of waitlist:        610
+Number of computed successors:   11878641
+Max successors for one state:    2
+Number of times merged:          670552
+Number of times stopped:         833749
+Number of times breaked:         776
+
+Total time for CPA algorithm:       856.789s (Max:     6.843s)
+  Time for choose from waitlist:      3.812s
+  Time for precision adjustment:    586.931s
+  Time for transfer relation:       201.271s
+  Time for merge operator:           13.417s
+  Time for stop operator:            13.156s
+  Time for adding to reached set:    14.831s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   776
+Avg. length of target path (in blocks):               24632 (count: 776, min: 15, max: 48, avg: 31.74)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                  26.509s
+  Counterexample analysis:                             9.239s (Max:     0.035s, Calls: 776)
+    Refinement sat check:                              5.816s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.024s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.199s
+  Precision update:                                    0.472s
+  ARG update:                                         16.240s
+
+Length of refined path (in blocks):                   15697 (count: 776, min: 11, max: 30, avg: 20.23)
+Number of affected states:                             9599 (count: 776, min: 4, max: 23, avg: 12.37)
+Length (states) of path with itp 'true':               5322 (count: 776, min: 6, max: 22, avg: 6.86)
+Length (states) of path with itp non-trivial itp:      9599 (count: 776, min: 4, max: 23, avg: 12.37)
+Length (states) of path with itp 'false':               776 (count: 776, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:           8 (count: 776, min: 0, max: 1, avg: 0.01)
+Equal non-trivial interpolants along paths:            8815 (count: 776, min: 3, max: 22, avg: 11.36)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                776
+Number of successful refinements:     776
+Number of failed refinements:         0
+Max. size of reached set before ref.: 43767
+Max. size of reached set after ref.:  39012
+Avg. size of reached set before ref.: 17722.28
+Avg. size of reached set after ref.:  3667.56
+
+Total time for CEGAR algorithm:     893.783s
+Time for refinements:                34.730s
+Average time for refinement:          0.044s
+Max time for refinement:              0.336s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.306
+  Visited lines:          1700
+  Total lines:            3399
+  Line coverage:          0.500
+  Visited conditions:     328
+  Total conditions:       732
+  Condition coverage:     0.448
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     4844
+Number of CFA edges:             5463
+Number of relevant variables:    703
+Number of functions:             242
+Number of loops:                 12
+Size of reached set:             14798
+  Number of reached locations:   954 (20%)
+    Avg states per location:     15
+    Max states per location:     222 (at node N304)
+  Number of reached functions:   74 (31%)
+  Number of partitions:          14745
+    Avg size of partitions:      1
+    Max size of partitions:      12 (with key [N1994 (before line 8337), Function main called from node N1979, stack depth 1 [49122b8f], stack [main]])
+  Number of target states:       0
+  Size of final wait list        793
+
+Time for analysis setup:          6.471s
+  Time for loading CPAs:          1.054s
+  Time for loading parser:        0.700s
+  Time for CFA construction:      4.567s
+    Time for parsing file(s):     1.161s
+    Time for AST to CFA:          1.768s
+    Time for CFA sanity check:    0.320s
+    Time for post-processing:     1.106s
+      Time for var class.:        0.512s
+Time for Analysis:              893.783s
+CPU time for analysis:          893.690s
+Total time for CPAchecker:      900.261s
+Total CPU time for CPAchecker:  900.150s
+Time for statistics:              0.352s
+
+Time for Garbage Collector:      52.226s (in 1548 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                919MB (   876 MiB) max;    430MB (   410 MiB) avg;    942MB (   898 MiB) peak
+Used non-heap memory:             41MB (    39 MiB) max;     40MB (    38 MiB) avg;     41MB (    39 MiB) peak
+Allocated heap memory:          1096MB (  1045 MiB) max;    652MB (   622 MiB) avg
+Allocated non-heap memory:        43MB (    41 MiB) max;     42MB (    40 MiB) avg
+Total process virtual memory:   8897MB (  8485 MiB) max;   8328MB (  7942 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".
