@@ -1,0 +1,299 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-drivers--media--tuners--tda18271.ko-ldv_main2_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_qmkauyph/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 4795: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5973: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8196: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 7059: Function pointer *(fe->callback) with type int (*)(void *, int, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7187: Function pointer *(fe->ops.analog_ops.standby) with type void (*)(struct dvb_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function ldv_handler_precall to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function list_del to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 5610-5611: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\017", "tda18271_set_standby_mode", "sm = %d, sm_lt = %d, sm_xt = %d\n", sm, sm_lt, sm_xt) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function i2c_unlock_adapter to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 5362-5363: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "__tda18271_write_regs", "ERROR: idx = 0x%x, len = %d, i2c_transfer returned: %d\n", idx, max, ret) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6987: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_init", "error %d on line %d\n", ret, 871) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function i2c_transfer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 5196-5197: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_read_regs", "ERROR: i2c_transfer returned: %d\n", ret) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6955-6956: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_ir_cal_init", "error %d on line %d\n", ret, 852) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6999: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_init", "error %d on line %d\n", ret, 876) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function msleep to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 6602-6603: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_powerscan_init", "error %d on line %d\n", ret, 591) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6758-6759: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_calc_rf_filter_curve", "error %d on line %d\n", ret, 694) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6821-6822: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271c2_rf_cal_init", "error %d on line %d\n", ret, 727) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6376: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_por", "error %d on line %d\n", ret, 353) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6834-6835: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271c2_rf_cal_init", "error %d on line %d\n", ret, 731) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6616-6617: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_powerscan_init", "error %d on line %d\n", ret, 596) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 4434-4435: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\017", "tda18271_lookup_rf_band", "(%d) rf_band = %02x\n", i, __CPAchecker_TMP_1) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 4402-4408: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\017", "tda18271_lookup_rf_band", "(%d) rfmax = %d < freq = %d, rf1_def = %d, rf2_def = %d, rf3_def = %d, rf1 = %d, rf2 = %d, rf3 = %d, rf_a1 = %d, rf_a2 = %d, rf_b1 = %d, rf_b2 = %d\n", i, ((map + ((unsigned long)i))->rfmax) * 1000U, *freq, (map + ((unsigned long)i))->rf1_def, (map + ((unsigned long)i))->rf2_def, (map + ((unsigned long)i))->rf3_def, (map + ((unsigned long)i))->rf1, (map + ((unsigned long)i))->rf2, (map + ((unsigned long)i))->rf3, (map + ((unsigned long)i))->rf_a1, (map + ((unsigned long)i))->rf_a2, (map + ((unsigned long)i))->rf_b1, (map + ((unsigned long)i))->rf_b2) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6658-6659: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_rf_tracking_filters_init", "error %d on line %d\n", i, 627) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6774-6775: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_calc_rf_filter_curve", "error %d on line %d\n", ret, 702) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 6680-6681: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\017", "tda18271_rf_tracking_filters_init", "freq = %d, rf = %d\n", freq, rf) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __builtin_va_start to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Cannot get declaration of function __builtin_va_start, ignoring calls to it. (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 5899: Return type of function __builtin_va_end is void, but result is used as type int: __builtin_va_end((__va_list_tag *)(&args)); (PredicateCPA:CtoFormulaConverter.getReturnType, WARNING)
+
+Assuming external function __builtin_va_end to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6390: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_por", "error %d on line %d\n", ret, 359) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6403: Ignoring parameters passed as varargs to function _tda_printk: _tda_printk(priv, "\v", "tda18271_por", "error %d on line %d\n", ret, 366) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __i2c_transfer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function i2c_lock_adapter to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line. (CallstackCPA:CallstackTransferRelation.getAbstractSuccessorsForEdge, INFO)
+
+Error: line 7837: Unsupported feature (recursion): tda18271_init(fe); (CallstackTransferRelation.getAbstractSuccessorsForEdge, SEVERE)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            6250 (18% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  5319 (85%)
+  Because of loop head:            798 (13%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         133 (2%)
+  Times precision was empty:       2235 (36%)
+  Times precision was {false}:     137 (2%)
+  Times result was cached:         3384 (54%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      494 (8%)
+  Times result was 'false':        387 (6%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         3914
+  BDD entailment checks:           958
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       39
+Number of predicates discovered:          6
+Number of abstraction locations:          72
+Max number of predicates per location:    4
+Avg number of predicates per location:    1
+Total predicates per abstraction:         6696
+Max number of predicates per abstraction: 4
+Avg number of predicates per abstraction: 10.61
+Number of irrelevant predicates:          1774 (26%)
+Number of preds handled by boolean abs:   827 (12%)
+  Total number of models for allsat:      474
+  Max number of models for allsat:        1
+  Avg number of models for allsat:        0.96
+
+Time for post operator:                  2.694s
+  Time for path formula creation:        2.647s
+Time for strengthen operator:            0.082s
+Time for prec operator:                 17.861s
+  Time for abstraction:                 17.710s (Max:     0.771s, Count: 6250)
+    Boolean abstraction:                 9.788s
+    Solving time:                       15.120s (Max:     0.726s)
+    Model enumeration time:              0.437s
+    Time for BDD construction:           0.053s (Max:     0.008s)
+Time for merge operator:                 0.129s
+Time for coverage check:                 0.014s
+  Time for BDD entailment checks:        0.012s
+Total time for SMT solver (w/o itp):    15.557s
+
+Number of path formula cache hits:   34301 (83%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     2.433s
+
+Total number of created targets for pointer analysis: 14662
+   Number of created targets for uf: *signed_int is 36
+   Number of created targets for uf: *unsigned_char is 2173
+   Number of created targets for uf: *(struct_list_head)* is 2
+   Number of created targets for uf: *unsigned_int is 260
+
+
+Number of BDD nodes:                               224
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                        1040 (count: 7021, min: 0, max: 196, avg: 0.15)
+Time for BDD node cleanup:                             0.004s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.217s
+Automaton transfers with branching:                0
+Automaton transfer successors:                        35074 (count: 35074, min: 1, max: 1, avg: 1.00) [1 x 35074]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            24672
+Max size of waitlist:            84
+Average size of waitlist:        34
+Number of computed successors:   28574
+Max successors for one state:    2
+Number of times merged:          1478
+Number of times stopped:         2093
+Number of times breaked:         133
+
+Total time for CPA algorithm:        22.461s (Max:     4.754s)
+  Time for choose from waitlist:      0.028s
+  Time for precision adjustment:     18.173s
+  Time for transfer relation:         3.606s
+  Time for merge operator:            0.186s
+  Time for stop operator:             0.120s
+  Time for adding to reached set:     0.117s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   133
+Avg. length of target path (in blocks):                6004 (count: 133, min: 8, max: 130, avg: 45.14)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                  59.878s
+  Counterexample analysis:                            59.544s (Max:     2.505s, Calls: 133)
+    Refinement sat check:                             55.601s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.007s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.060s
+  Precision update:                                    0.047s
+  ARG update:                                          0.108s
+
+Length of refined path (in blocks):                    5598 (count: 133, min: 7, max: 129, avg: 42.09)
+Number of affected states:                             1890 (count: 133, min: 0, max: 121, avg: 14.21)
+Length (states) of path with itp 'true':               3575 (count: 133, min: 1, max: 122, avg: 26.88)
+Length (states) of path with itp non-trivial itp:      1890 (count: 133, min: 0, max: 121, avg: 14.21)
+Length (states) of path with itp 'false':               133 (count: 133, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:           0 (count: 133, min: 0, max: 0, avg: 0.00)
+Equal non-trivial interpolants along paths:            1766 (count: 133, min: 0, max: 120, avg: 13.28)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                133
+Number of successful refinements:     133
+Number of failed refinements:         0
+Max. size of reached set before ref.: 1442
+Max. size of reached set after ref.:  1381
+Avg. size of reached set before ref.: 471.10
+Avg. size of reached set after ref.:  284.47
+
+Total time for CEGAR algorithm:      82.636s
+Time for refinements:                60.136s
+Average time for refinement:          0.452s
+Max time for refinement:              2.510s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.318
+  Visited lines:          1125
+  Total lines:            3050
+  Line coverage:          0.369
+  Visited conditions:     200
+  Total conditions:       906
+  Condition coverage:     0.221
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     4267
+Number of CFA edges:             5026
+Number of relevant variables:    590
+Number of functions:             132
+Number of loops:                 19
+Size of reached set:             1274
+  Number of reached locations:   533 (12%)
+    Avg states per location:     2
+    Max states per location:     21 (at node N1324)
+  Number of reached functions:   42 (32%)
+  Number of partitions:          1273
+    Avg size of partitions:      1
+    Max size of partitions:      2 (with key [N813 (before line 5349), Function __tda18271_write_regs called from node N836, stack depth 6 [564519de], stack [main, tda18271_init, tda18271c2_rf_cal_init, tda18271_por, tda18271_write_regs, __tda18271_write_regs]])
+  Number of target states:       0
+  Size of final wait list        54
+
+Time for analysis setup:          5.303s
+  Time for loading CPAs:          0.829s
+  Time for loading parser:        0.599s
+  Time for CFA construction:      3.719s
+    Time for parsing file(s):     0.984s
+    Time for AST to CFA:          1.366s
+    Time for CFA sanity check:    0.254s
+    Time for post-processing:     0.903s
+      Time for var class.:        0.458s
+Time for Analysis:               82.637s
+CPU time for analysis:           82.630s
+Total time for CPAchecker:       87.950s
+Total CPU time for CPAchecker:   87.920s
+Time for statistics:              0.069s
+
+Time for Garbage Collector:       0.390s (in 35 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                 74MB (    71 MiB) max;     56MB (    53 MiB) avg;     78MB (    74 MiB) peak
+Used non-heap memory:             45MB (    43 MiB) max;     42MB (    40 MiB) avg;     45MB (    43 MiB) peak
+Allocated heap memory:           127MB (   121 MiB) max;    127MB (   121 MiB) avg
+Allocated non-heap memory:        47MB (    45 MiB) max;     44MB (    42 MiB) avg
+Total process virtual memory:   8154MB (  7776 MiB) max;   8131MB (  7754 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

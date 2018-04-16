@@ -1,0 +1,365 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-drivers--media--dvb-core--dvb-core.ko-ldv_main5_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_gx4x2hvz/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_151) started (CPAchecker.run, INFO)
+
+line 6602: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6811: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6814: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6817: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9076: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9190: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9224: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9298: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9322: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9336: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9370: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9404: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9438: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9472: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9506: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9530: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9594: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11396: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11440: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11534: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11608: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11642: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11666: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11790: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11854: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13212: Dead code detected: tmp = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13217: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13222: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1UL:
+    tmp = get_current();
+    __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp->state): : "memory",
+                         "cc");
+    goto ldv_22284;
+    case 2UL:
+    tmp___0 = get_current();
+    __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___0->state): : "memory",
+                         "cc");
+    goto ldv_22284;
+    case 4UL:
+    tmp___1 = get_current();
+    __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                         "cc");
+    goto ldv_22284;
+    case 8UL:
+    tmp___2 = get_current();
+    __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                         "cc");
+    goto ldv_22284;
+    default:
+    __xchg_wrong_size();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 18477: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 18621: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 20710: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 16526: Function pointer *(fe->ops.get_property) with type int (*)(struct dvb_frontend *, struct dtv_property *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 16872: Function pointer *(fe->ops.set_property) with type int (*)(struct dvb_frontend *, struct dtv_property *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17371: Function pointer *(fe->ops.get_tune_settings) with type int (*)(struct dvb_frontend *, struct dvb_frontend_tune_settings *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12282: Function pointer *(ca->pub->poll_slot_status) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13064: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12371: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12389: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12409: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12427: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12765: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12777: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12784: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12836: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12822: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12447: Function pointer *(ca->pub->read_attribute_mem) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12466: Function pointer *(ca->pub->read_attribute_mem) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12481: Function pointer *(ca->pub->read_attribute_mem) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 12717-12718: Function pointer *(ca->pub->write_attribute_mem) with type int (*)(struct dvb_ca_en50221 *, int, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12719: Function pointer *(ca->pub->read_attribute_mem) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12994: Function pointer *(ca->pub->slot_shutdown) with type int (*)(struct dvb_ca_en50221 *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13398: Function pointer *(ca->pub->slot_ts_enable) with type int (*)(struct dvb_ca_en50221 *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13365: Function pointer *(ca->pub->poll_slot_status) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13351: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13324: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13297: Function pointer *(ca->pub->poll_slot_status) with type int (*)(struct dvb_ca_en50221 *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13278: Function pointer *(ca->pub->slot_reset) with type int (*)(struct dvb_ca_en50221 *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12324: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12895: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12912: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12918: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12930: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12936: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12958: Function pointer *(ca->pub->read_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12979: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12945: Function pointer *(ca->pub->write_cam_control) with type int (*)(struct dvb_ca_en50221 *, int, u8 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 8539-8540: Function pointer *(dmxdev->demux->get_stc) with type int (*)(struct dmx_demux *, unsigned int, u64 *, unsigned int *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8527: Function pointer *(dmxdev->demux->set_source) with type int (*)(struct dmx_demux *, dmx_source_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8517: Function pointer *(dmxdev->demux->get_caps) with type int (*)(struct dmx_demux *, struct dmx_caps *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 10187: Function pointer *(feed->cb.ts) with type int (*)(u8 *, size_t , u8 *, size_t , struct dmx_ts_feed *, enum dmx_success ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 10035: Function pointer *(feed->cb.ts) with type int (*)(u8 *, size_t , u8 *, size_t , struct dmx_ts_feed *, enum dmx_success ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 9780-9781: Function pointer *(feed->cb.ts) with type int (*)(u8 *, size_t , u8 *, size_t , struct dmx_ts_feed *, enum dmx_success ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 10383: Function pointer *(demux->feed->cb.ts) with type int (*)(u8 *, size_t , u8 *, size_t , struct dmx_ts_feed *, enum dmx_success ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 9817-9818: Function pointer *(feed->cb.sec) with type int (*)(u8 *, size_t , u8 *, size_t , struct dmx_section_filter *, enum dmx_success ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7953: Function pointer *(dmxdev->demux->allocate_section_feed) with type int (*)(struct dmx_demux *, struct dmx_section_feed **, int (*)(u8 *, size_t , u8 *, size_t , struct dmx_section_filter *, enum dmx_success )) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7960: Function pointer *((*secfeed)->set) with type int (*)(struct dmx_section_feed *, u16 , size_t , int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7857: Function pointer *(dmxdev->demux->allocate_ts_feed) with type int (*)(struct dmx_demux *, struct dmx_ts_feed **, int (*)(u8 *, size_t , u8 *, size_t , struct dmx_ts_feed *, enum dmx_success )) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 7865-7866: Function pointer *(tsfeed->set) with type int (*)(struct dmx_ts_feed *, u16 , int, enum dmx_ts_pes , size_t , struct timespec ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18250: Function pointer *(fe->ops.release) with type void (*)(struct dvb_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18243: Function pointer *(fe->ops.analog_ops.release) with type void (*)(struct dvb_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18231: Function pointer *(fe->ops.release_sec) with type void (*)(struct dvb_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14816: Function pointer *(fe->ops.i2c_gate_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14809: Function pointer *(fe->ops.i2c_gate_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17708: Function pointer *(fe->ops.enable_high_lnb_voltage) with type int (*)(struct dvb_frontend *, long) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17700: Function pointer *(fe->ops.diseqc_recv_slave_reply) with type int (*)(struct dvb_frontend *, struct dvb_diseqc_slave_reply *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17641: Function pointer *(fe->ops.set_voltage) with type int (*)(struct dvb_frontend *, fe_sec_voltage_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17652: Function pointer *(fe->ops.set_voltage) with type int (*)(struct dvb_frontend *, fe_sec_voltage_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17616: Function pointer *(fe->ops.dishnetwork_send_legacy_command) with type int (*)(struct dvb_frontend *, unsigned long) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17605: Function pointer *(fe->ops.set_voltage) with type int (*)(struct dvb_frontend *, fe_sec_voltage_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17594: Function pointer *(fe->ops.set_tone) with type int (*)(struct dvb_frontend *, fe_sec_tone_mode_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17584: Function pointer *(fe->ops.diseqc_send_burst) with type int (*)(struct dvb_frontend *, fe_sec_mini_cmd_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17574: Function pointer *(fe->ops.diseqc_send_master_cmd) with type int (*)(struct dvb_frontend *, struct dvb_diseqc_master_cmd *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17554: Function pointer *(fe->ops.read_ucblocks) with type int (*)(struct dvb_frontend *, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17542: Function pointer *(fe->ops.read_snr) with type int (*)(struct dvb_frontend *, u16 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17530: Function pointer *(fe->ops.read_signal_strength) with type int (*)(struct dvb_frontend *, u16 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17518: Function pointer *(fe->ops.read_ber) with type int (*)(struct dvb_frontend *, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17509: Function pointer *(fe->ops.read_status) with type int (*)(struct dvb_frontend *, fe_status_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17939: Function pointer *(fe->ops.ts_bus_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17896: Function pointer *(fe->ops.ts_bus_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18000: Function pointer *(fe->ops.ts_bus_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15049: Function pointer *(fe->ops.read_status) with type int (*)(struct dvb_frontend *, fe_status_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15556: Function pointer *(fe->ops.i2c_gate_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15549: Function pointer *(fe->ops.i2c_gate_ctrl) with type int (*)(struct dvb_frontend *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15542: Function pointer *(fe->ops.set_voltage) with type int (*)(struct dvb_frontend *, fe_sec_voltage_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15374: Function pointer *(fe->ops.get_frontend_algo) with type enum dvbfe_algo (*)(struct dvb_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15503: Function pointer *(fe->ops.read_status) with type int (*)(struct dvb_frontend *, fe_status_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15489: Function pointer *(fe->ops.search) with type enum dvbfe_search (*)(struct dvb_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 15413-15414: Function pointer *(fe->ops.tune) with type int (*)(struct dvb_frontend *, bool , unsigned int, unsigned int *, fe_status_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15365: Function pointer *(fe->ops.set_voltage) with type int (*)(struct dvb_frontend *, fe_sec_voltage_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15359: Function pointer *(fe->ops.set_tone) with type int (*)(struct dvb_frontend *, fe_sec_tone_mode_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 19829: Function pointer *(demux->allocate_ts_feed) with type int (*)(struct dmx_demux *, struct dmx_ts_feed **, int (*)(u8 *, size_t , u8 *, size_t , struct dmx_ts_feed *, enum dmx_success )) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 19837-19838: Function pointer *(priv->tsfeed->set) with type int (*)(struct dmx_ts_feed *, u16 , int, enum dmx_ts_pes , size_t , struct timespec ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 19746: Function pointer *(demux->allocate_section_feed) with type int (*)(struct dmx_demux *, struct dmx_section_feed **, int (*)(u8 *, size_t , u8 *, size_t , struct dmx_section_filter *, enum dmx_success )) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 19753: Function pointer *(priv->secfeed->set) with type int (*)(struct dmx_section_feed *, u16 , size_t , int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6986: Function pointer *(p->_qproc) with type void (*)(struct file *, wait_queue_head_t *, struct poll_table_struct *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 18332: Destroying the void* pointer ldv_successful_malloc::p produces garbage or the memory pointed by it is unused: var_group3 = ldv_successful_malloc(612); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_handler_precall to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dynamic_dev_dbg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function down_interruptible to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ___ratelimit to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dynamic_pr_debug to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 17896: Ignoring function call through function pointer *(fe->ops.ts_bus_ctrl): ret = (*(fe->ops.ts_bus_ctrl))(fe, 1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function ldv_check_return_value to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 17708: Ignoring function call through function pointer *(fe->ops.enable_high_lnb_voltage): err = (*(fe->ops.enable_high_lnb_voltage))(fe, (long)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17700: Ignoring function call through function pointer *(fe->ops.diseqc_recv_slave_reply): err = (*(fe->ops.diseqc_recv_slave_reply))(fe, (struct dvb_diseqc_slave_reply *)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function do_gettimeofday to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 17641: Ignoring function call through function pointer *(fe->ops.set_voltage): (*(fe->ops.set_voltage))(fe, 1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17616: Ignoring function call through function pointer *(fe->ops.dishnetwork_send_legacy_command): err = (*(fe->ops.dishnetwork_send_legacy_command))(fe, (unsigned long)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17605: Ignoring function call through function pointer *(fe->ops.set_voltage): err = (*(fe->ops.set_voltage))(fe, (enum fe_sec_voltage )((long)parg)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17594: Ignoring function call through function pointer *(fe->ops.set_tone): err = (*(fe->ops.set_tone))(fe, (enum fe_sec_tone_mode )((long)parg)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17584: Ignoring function call through function pointer *(fe->ops.diseqc_send_burst): err = (*(fe->ops.diseqc_send_burst))(fe, (enum fe_sec_mini_cmd )((long)parg)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17574: Ignoring function call through function pointer *(fe->ops.diseqc_send_master_cmd): err = (*(fe->ops.diseqc_send_master_cmd))(fe, (struct dvb_diseqc_master_cmd *)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17564: Ignoring function call through function pointer *(fe->ops.diseqc_reset_overload): err = (*(fe->ops.diseqc_reset_overload))(fe); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17554: Ignoring function call through function pointer *(fe->ops.read_ucblocks): err = (*(fe->ops.read_ucblocks))(fe, (u32 *)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17542: Ignoring function call through function pointer *(fe->ops.read_snr): err = (*(fe->ops.read_snr))(fe, (u16 *)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17530: Ignoring function call through function pointer *(fe->ops.read_signal_strength): err = (*(fe->ops.read_signal_strength))(fe, (u16 *)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17518: Ignoring function call through function pointer *(fe->ops.read_ber): err = (*(fe->ops.read_ber))(fe, (u32 *)parg); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17509: Ignoring function call through function pointer *(fe->ops.read_status): err = (*(fe->ops.read_status))(fe, status); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function up to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6986: Ignoring function call through function pointer *(p->_qproc): (*(p->_qproc))(filp, wait_address, p); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __wake_up to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function module_put to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18000: Ignoring function call through function pointer *(fe->ops.ts_bus_ctrl): (*(fe->ops.ts_bus_ctrl))(fe, 0); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 17939: Ignoring function call through function pointer *(fe->ops.ts_bus_ctrl): (*(fe->ops.ts_bus_ctrl))(fe, 0); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 16317: Ignoring function call through function pointer *(fe->ops.get_frontend): r = (*(fe->ops.get_frontend))(fe); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function dev_warn to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_err to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc

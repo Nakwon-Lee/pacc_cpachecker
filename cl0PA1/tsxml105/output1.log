@@ -1,0 +1,57 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-drivers--media--usb--gspca--gspca_topro.ko-ldv_main0_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_u5zieuxc/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 26034: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Warning: Analysis interrupted (The CPU-time limit of 30s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     21815
+Number of CFA edges:             22271
+Number of relevant variables:    382
+Number of functions:             80
+Number of loops:                 10
+
+Time for analysis setup:         30.489s
+  Time for loading CPAs:          0.822s
+  Time for loading parser:        0.510s
+  Time for CFA construction:     29.073s
+    Time for parsing file(s):     0.994s
+    Time for AST to CFA:          1.983s
+    Time for CFA sanity check:    0.701s
+    Time for post-processing:    25.260s
+      Time for var class.:        1.051s
+Time for Analysis:                0.000s
+CPU time for analysis:            0.000s
+Total time for CPAchecker:       30.494s
+Total CPU time for CPAchecker:    0.780s
+Time for statistics:              0.010s
+
+Time for Garbage Collector:       3.202s (in 39 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:               2148MB (  2049 MiB) max;   1438MB (  1371 MiB) avg;   2236MB (  2133 MiB) peak
+Used non-heap memory:             33MB (    32 MiB) max;     27MB (    26 MiB) avg;     34MB (    33 MiB) peak
+Allocated heap memory:          2588MB (  2468 MiB) max;   2119MB (  2021 MiB) avg
+Allocated non-heap memory:        34MB (    33 MiB) max;     28MB (    27 MiB) avg
+Total process virtual memory:   8084MB (  7710 MiB) max;   8056MB (  7683 MiB) avg
+
+More details about the verification run can be found in the directory "./output".

@@ -1,0 +1,733 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-drivers--misc--sgi-xp--xpc.ko-ldv_main0_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_sos83v9t/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 3538: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3541: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3544: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 3621-3622: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 3625-3626: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 3633-3634: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5474;
+  case 2UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5474;
+  case 4UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddl %0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5474;
+  case 8UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5474;
+  default:
+  __xadd_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3667: Dead code detected: __ptr = (u8 volatile *)(& v->counter); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3672: Dead code detected: __ptr___0 = (u16 volatile *)(& v->counter); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3682: Dead code detected: __ptr___2 = (u64 volatile *)(& v->counter); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __ptr = (u8 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgb %2,%1": "=a" (__ret),
+                       "+m" (*__ptr): "q" (__new), "0" (__old): "memory");
+  goto ldv_5494;
+  case 2UL:
+  __ptr___0 = (u16 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgw %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___0): "r" (__new), "0" (__old): "memory");
+  goto ldv_5494;
+  case 4UL:
+  __ptr___1 = (u32 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgl %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___1): "r" (__new), "0" (__old): "memory");
+  goto ldv_5494;
+  case 8UL:
+  __ptr___2 = (u64 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgq %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___2): "r" (__new), "0" (__old): "memory");
+  goto ldv_5494;
+  default:
+  __cmpxchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5384: Dead code detected: __ptr = (u8 volatile *)(& xpc_die_disconnecting); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5389: Dead code detected: __ptr___0 = (u16 volatile *)(& xpc_die_disconnecting); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5399: Dead code detected: __ptr___2 = (u64 volatile *)(& xpc_die_disconnecting); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __ptr = (u8 volatile *)(& xpc_die_disconnecting);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgb %2,%1": "=a" (__ret),
+                       "+m" (*__ptr): "q" (__new), "0" (__old): "memory");
+  goto ldv_24512;
+  case 2UL:
+  __ptr___0 = (u16 volatile *)(& xpc_die_disconnecting);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgw %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___0): "r" (__new), "0" (__old): "memory");
+  goto ldv_24512;
+  case 4UL:
+  __ptr___1 = (u32 volatile *)(& xpc_die_disconnecting);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgl %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___1): "r" (__new), "0" (__old): "memory");
+  goto ldv_24512;
+  case 8UL:
+  __ptr___2 = (u64 volatile *)(& xpc_die_disconnecting);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgq %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___2): "r" (__new), "0" (__old): "memory");
+  goto ldv_24512;
+  default:
+  __cmpxchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5751: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6879: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6923: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6983: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& kernel_stack)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6986: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& kernel_stack)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6989: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& kernel_stack)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& kernel_stack));
+  goto ldv_6459;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& kernel_stack));
+  goto ldv_6459;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& kernel_stack));
+  goto ldv_6459;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& kernel_stack));
+  goto ldv_6459;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 7181-7196: Dead code detected: switch (4UL) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7183: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7186: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7188: Dead code detected:  (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7192: Dead code detected: __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 7201-7216: Dead code detected: switch (4UL) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7203: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____0): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7206: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7208: Dead code detected:  (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7212: Dead code detected: __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7223: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____1): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7226: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7232: Dead code detected: __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 7241-7256: Dead code detected: switch (4UL) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7243: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____2): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7246: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7248: Dead code detected:  (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7252: Dead code detected: __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_20958;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_20958:
+  pscr_ret__ = pfo_ret__;
+  goto ldv_20964;
+  case 2UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_20968;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_20968:
+  pscr_ret__ = pfo_ret_____0;
+  goto ldv_20964;
+  case 4UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_20977;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_20977:
+  pscr_ret__ = pfo_ret_____1;
+  goto ldv_20964;
+  case 8UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_20986;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_20986:
+  pscr_ret__ = pfo_ret_____2;
+  goto ldv_20964;
+  default:
+  __bad_size_call_parameter();
+  goto ldv_20964;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7841: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9809: Dead code detected: __ptr = (u8 volatile *)(& msg_slot->func); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9814: Dead code detected: __ptr___0 = (u16 volatile *)(& msg_slot->func); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9819: Dead code detected: __ptr___1 = (u32 volatile *)(& msg_slot->func); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1UL:
+    __ptr = (u8 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgb %2,%1": "=a" (__ret),
+                         "+m" (*__ptr): "q" (__new), "0" (__old): "memory");
+    goto ldv_29336;
+    case 2UL:
+    __ptr___0 = (u16 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgw %2,%1": "=a" (__ret),
+                         "+m" (*__ptr___0): "r" (__new), "0" (__old): "memory");
+    goto ldv_29336;
+    case 4UL:
+    __ptr___1 = (u32 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgl %2,%1": "=a" (__ret),
+                         "+m" (*__ptr___1): "r" (__new), "0" (__old): "memory");
+    goto ldv_29336;
+    case 8UL:
+    __ptr___2 = (u64 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgq %2,%1": "=a" (__ret),
+                         "+m" (*__ptr___2): "r" (__new), "0" (__old): "memory");
+    goto ldv_29336;
+    default:
+    __cmpxchg_wrong_size();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10133: Dead code detected: __ptr = (u8 volatile *)(& msg_slot->func); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10138: Dead code detected: __ptr___0 = (u16 volatile *)(& msg_slot->func); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10143: Dead code detected: __ptr___1 = (u32 volatile *)(& msg_slot->func); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1UL:
+    __ptr = (u8 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgb %2,%1": "=a" (__ret___0),
+                         "+m" (*__ptr): "q" (__new), "0" (__old): "memory");
+    goto ldv_29415;
+    case 2UL:
+    __ptr___0 = (u16 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgw %2,%1": "=a" (__ret___0),
+                         "+m" (*__ptr___0): "r" (__new), "0" (__old): "memory");
+    goto ldv_29415;
+    case 4UL:
+    __ptr___1 = (u32 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgl %2,%1": "=a" (__ret___0),
+                         "+m" (*__ptr___1): "r" (__new), "0" (__old): "memory");
+    goto ldv_29415;
+    case 8UL:
+    __ptr___2 = (u64 volatile *)(& msg_slot->func);
+    __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgq %2,%1": "=a" (__ret___0),
+                         "+m" (*__ptr___2): "r" (__new), "0" (__old): "memory");
+    goto ldv_29415;
+    default:
+    __cmpxchg_wrong_size();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10677: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 8928: Function pointer *xp_remote_memcpy with type enum xp_retval (*)(unsigned long, const unsigned long, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6501-6502: Function pointer *(ch->func) with type void (*)(enum xp_retval , short, int, void *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8478: Function pointer *xp_expand_memprotect with type enum xp_retval (*)(unsigned long, unsigned long) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6801: Function pointer *(ch->func) with type void (*)(enum xp_retval , short, int, void *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 8515: Function pointer *xp_restrict_memprotect with type enum xp_retval (*)(unsigned long, unsigned long) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6649: Function pointer *(ch->func) with type void (*)(enum xp_retval , short, int, void *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 9183: Function pointer *xp_remote_memcpy with type enum xp_retval (*)(unsigned long, const unsigned long, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7353: Function pointer *xp_remote_memcpy with type enum xp_retval (*)(unsigned long, const unsigned long, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7113: Function pointer *xp_remote_memcpy with type enum xp_retval (*)(unsigned long, const unsigned long, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 7796: Function pointer *xp_remote_memcpy with type enum xp_retval (*)(unsigned long, const unsigned long, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6722-6724: Function pointer *(xpc_arch_ops.send_payload) with type enum xp_retval (*)(struct xpc_channel *, u32 , void *, u16 , u8 , void (*)(enum xp_retval , short, int, void *), void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6763-6765: Function pointer *(xpc_arch_ops.send_payload) with type enum xp_retval (*)(struct xpc_channel *, u32 , void *, u16 , u8 , void (*)(enum xp_retval , short, int, void *), void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 9847: Function pointer *func with type void (*)(enum xp_retval , short, int, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function ldv_handler_precall to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_set_name to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function is_uv_system to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_err to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 5221: Ignoring function call through function pointer *(xpc_arch_ops.setup_partitions): tmp___0 = (*(xpc_arch_ops.setup_partitions))(); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __mutex_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __raw_spin_lock_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function init_timer_key to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __init_waitqueue_head to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function get_online_cpus to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function cpumask_of_node to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function find_next_bit to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function warn_slowpath_null to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __cpu_to_node to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __alloc_pages_nodemask to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __phys_addr to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function uv_bios_mq_watchlist_alloc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function free_pages to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function uv_setup_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function uv_bios_mq_watchlist_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function request_threaded_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function uv_teardown_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function gru_create_message_queue to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 8477: Ignoring call via function pointer xp_pa for which no suitable target was found in line: tmp___1 = (*xp_pa)(mq->address); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8477: Ignoring function call through function pointer *xp_pa: tmp___1 = (*xp_pa)(mq->address); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 8478: Ignoring call via function pointer xp_expand_memprotect for which no suitable target was found in line: xp_ret = (*xp_expand_memprotect)(tmp___1, (unsigned long)mq_size); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8478: Ignoring function call through function pointer *xp_expand_memprotect: xp_ret = (*xp_expand_memprotect)(tmp___1, (unsigned long)mq_size); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function free_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function set_cpus_allowed_ptr to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 4149: Ignoring function call through function pointer *(xpc_arch_ops.heartbeat_init): (*(xpc_arch_ops.heartbeat_init))(); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function _raw_spin_unlock_irqrestore to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 7517: Ignoring function call through function pointer *(xpc_arch_ops.request_partition_deactivation): (*(xpc_arch_ops.request_partition_deactivation))(part); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function add_timer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function gru_send_message_gpa to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dynamic_dev_dbg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function msleep_interruptible to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 8928: Ignoring call via function pointer xp_remote_memcpy for which no suitable target was found in line: ret = (*xp_remote_memcpy)(tmp, gru_mq_desc_gpa, 32UL); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 8928: Ignoring function call through function pointer *xp_remote_memcpy: ret = (*xp_remote_memcpy)(tmp, gru_mq_desc_gpa, 32UL); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line. (CallstackCPA:CallstackTransferRelation.getAbstractSuccessorsForEdge, INFO)
+
+Error: line 9012: Unsupported feature (recursion): xpc_deactivate_partition(775, part, ret); (CallstackTransferRelation.getAbstractSuccessorsForEdge, SEVERE)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            1356 (17% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  1210 (89%)
+  Because of loop head:            136 (10%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         10 (1%)
+  Times precision was empty:       643 (47%)
+  Times precision was {false}:     144 (11%)
+  Times result was cached:         437 (32%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      132 (10%)
+  Times result was 'false':        25 (2%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         419
+  BDD entailment checks:           143
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       67
+Number of predicates discovered:          3
+Number of abstraction locations:          103
+Max number of predicates per location:    2
+Avg number of predicates per location:    1
+Total predicates per abstraction:         766
+Max number of predicates per abstraction: 2
+Avg number of predicates per abstraction: 2.78
+Number of irrelevant predicates:          358 (47%)
+Number of preds handled by boolean abs:   140 (18%)
+  Total number of models for allsat:      132
+  Max number of models for allsat:        1
+  Avg number of models for allsat:        1.00
+
+Time for post operator:                  2.050s
+  Time for path formula creation:        2.019s
+Time for strengthen operator:            0.025s
+Time for prec operator:                  3.391s
+  Time for abstraction:                  3.258s (Max:     0.334s, Count: 1356)
+    Boolean abstraction:                 1.001s
+    Solving time:                        2.443s (Max:     0.321s)
+    Model enumeration time:              0.017s
+    Time for BDD construction:           0.014s (Max:     0.003s)
+Time for merge operator:                 0.060s
+Time for coverage check:                 0.016s
+  Time for BDD entailment checks:        0.016s
+Total time for SMT solver (w/o itp):     2.460s
+
+Number of path formula cache hits:   3789 (43%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     1.889s
+
+Total number of created targets for pointer analysis: 6098
+   Number of created targets for uf: *(void)* is 9
+   Number of created targets for uf: *signed_int is 4
+   Number of created targets for uf: *unsigned_char is 2
+   Number of created targets for uf: *enum_xp_retval is 2
+   Number of created targets for uf: *unsigned_int is 2
+   Number of created targets for uf: *unsigned_long_int is 2011
+
+
+Number of BDD nodes:                               203
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                         219 (count: 2314, min: 0, max: 116, avg: 0.09)
+Time for BDD node cleanup:                             0.001s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.094s
+Automaton transfers with branching:                0
+Automaton transfer successors:                         8103 (count: 8103, min: 1, max: 1, avg: 1.00) [1 x 8103]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            4213
+Max size of waitlist:            47
+Average size of waitlist:        23
+Number of computed successors:   4730
+Max successors for one state:    2
+Number of times merged:          138
+Number of times stopped:         263
+Number of times breaked:         10
+
+Total time for CPA algorithm:         6.417s (Max:     1.661s)
+  Time for choose from waitlist:      0.036s
+  Time for precision adjustment:      3.535s
+  Time for transfer relation:         2.584s
+  Time for merge operator:            0.066s
+  Time for stop operator:             0.052s
+  Time for adding to reached set:     0.037s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   10
+Avg. length of target path (in blocks):                 936 (count: 10, min: 83, max: 103, avg: 93.60)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                   1.026s
+  Counterexample analysis:                             0.912s (Max:     0.141s, Calls: 10)
+    Refinement sat check:                              0.651s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.001s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.019s
+  Precision update:                                    0.013s
+  ARG update:                                          0.068s
+
+Length of refined path (in blocks):                     926 (count: 10, min: 82, max: 102, avg: 92.60)
+Number of affected states:                              414 (count: 10, min: 7, max: 92, avg: 41.40)
+Length (states) of path with itp 'true':                502 (count: 10, min: 1, max: 83, avg: 50.20)
+Length (states) of path with itp non-trivial itp:       414 (count: 10, min: 7, max: 92, avg: 41.40)
+Length (states) of path with itp 'false':                10 (count: 10, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:           0 (count: 10, min: 0, max: 0, avg: 0.00)
+Equal non-trivial interpolants along paths:             404 (count: 10, min: 6, max: 91, avg: 40.40)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                10
+Number of successful refinements:     10
+Number of failed refinements:         0
+Max. size of reached set before ref.: 835
+Max. size of reached set after ref.:  601
+Avg. size of reached set before ref.: 726.10
+Avg. size of reached set after ref.:  363.00
+
+Total time for CEGAR algorithm:       7.523s
+Time for refinements:                 1.104s
+Average time for refinement:          0.110s
+Max time for refinement:              0.175s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.309
+  Visited lines:          1316
+  Total lines:            4787
+  Line coverage:          0.275
+  Visited conditions:     168
+  Total conditions:       1736
+  Condition coverage:     0.097
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     7435
+Number of CFA edges:             8969
+Number of relevant variables:    1145
+Number of functions:             249
+Number of loops:                 59
+Size of reached set:             812
+  Number of reached locations:   586 (8%)
+    Avg states per location:     1
+    Max states per location:     18 (at node N6102)
+  Number of reached functions:   77 (31%)
+  Number of partitions:          812
+    Avg size of partitions:      1
+    Max size of partitions:      1
+  Number of target states:       0
+  Size of final wait list        41
+
+Time for analysis setup:          5.351s
+  Time for loading CPAs:          0.846s
+  Time for loading parser:        0.499s
+  Time for CFA construction:      3.891s
+    Time for parsing file(s):     0.862s
+    Time for AST to CFA:          1.365s
+    Time for CFA sanity check:    0.347s
+    Time for post-processing:     1.175s
+      Time for var class.:        0.583s
+Time for Analysis:                7.523s
+CPU time for analysis:            7.520s
+Total time for CPAchecker:       12.885s
+Total CPU time for CPAchecker:   12.870s
+Time for statistics:              0.095s
+
+Time for Garbage Collector:       0.309s (in 17 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                 72MB (    68 MiB) max;     46MB (    44 MiB) avg;     75MB (    71 MiB) peak
+Used non-heap memory:             38MB (    36 MiB) max;     31MB (    29 MiB) avg;     39MB (    37 MiB) peak
+Allocated heap memory:           127MB (   121 MiB) max;    127MB (   121 MiB) avg
+Allocated non-heap memory:        40MB (    38 MiB) max;     33MB (    31 MiB) avg
+Total process virtual memory:   8083MB (  7709 MiB) max;   8062MB (  7688 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

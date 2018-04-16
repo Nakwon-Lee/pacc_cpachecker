@@ -1,0 +1,51 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-drivers--media--usb--gspca--gspca_topro.ko-ldv_main0_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_98pv9fat/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 26034: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Error: Invalid configuration (Could not load automaton from file  (ClosedByInterruptException)) (AutomatonParser.parseAutomaton, SEVERE)
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     21815
+Number of CFA edges:             22271
+Number of relevant variables:    382
+Number of functions:             80
+Number of loops:                 10
+
+Time for analysis setup:         30.380s
+  Time for loading CPAs:          0.502s
+  Time for loading parser:        0.575s
+  Time for CFA construction:     29.248s
+    Time for parsing file(s):     1.045s
+    Time for AST to CFA:          2.367s
+    Time for CFA sanity check:    0.714s
+    Time for post-processing:    24.864s
+      Time for var class.:        1.013s
+Time for Analysis:                0.000s
+CPU time for analysis:            0.000s
+Total time for CPAchecker:       30.373s
+Total CPU time for CPAchecker:    0.880s
+Time for statistics:              0.016s
+
+Time for Garbage Collector:       3.605s (in 39 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:               2126MB (  2027 MiB) max;   1394MB (  1330 MiB) avg;   2211MB (  2108 MiB) peak
+Used non-heap memory:             30MB (    29 MiB) max;     26MB (    25 MiB) avg;     31MB (    29 MiB) peak
+Allocated heap memory:          2507MB (  2391 MiB) max;   1998MB (  1906 MiB) avg
+Allocated non-heap memory:        31MB (    30 MiB) max;     28MB (    27 MiB) avg
+Total process virtual memory:   8064MB (  7691 MiB) max;   8055MB (  7681 MiB) avg
+
+More details about the verification run can be found in the directory "./output".
