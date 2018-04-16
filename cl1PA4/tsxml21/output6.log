@@ -1,0 +1,249 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-3.16-rc1/205_9a_array_safes_linux-3.16-rc1.tar.xz-205_9a-drivers--net--arcnet--capmode.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_676ge20p/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 5569: Function pointer *(lp->hw.copy_to_card) with type void (*)(struct net_device *, int, int, void *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 5570: Function pointer *(lp->hw.copy_to_card) with type void (*)(struct net_device *, int, int, void *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 5571: Function pointer *(lp->hw.copy_to_card) with type void (*)(struct net_device *, int, int, void *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 5486-5487: Function pointer *(lp->hw.copy_from_card) with type void (*)(struct net_device *, int, int, void *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 5716: Destroying the void* pointer ldv_successful_zalloc::p produces garbage or the memory pointed by it is unused: tmp___0 = ldv_successful_zalloc(232UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function arcnet_unregister_proto to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 5569: Ignoring function call through function pointer *(lp->hw.copy_to_card): (*(lp->hw.copy_to_card))(dev, bufnum, 0, (void *)hard, 4); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 5570: Ignoring function call through function pointer *(lp->hw.copy_to_card): (*(lp->hw.copy_to_card))(dev, bufnum, ofs, (void *)(&(pkt->soft.cap.proto)), 1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 5571: Ignoring function call through function pointer *(lp->hw.copy_to_card): (*(lp->hw.copy_to_card))(dev, bufnum, ofs + 1, (void *)(&(pkt->soft.cap.mes)), length + -1); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 5685: Destroying the void* pointer ldv_successful_zalloc::p produces garbage or the memory pointed by it is unused: tmp = ldv_successful_zalloc(20UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function skb_put to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dev_kfree_skb_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function skb_pull to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 5486-5487: Ignoring function call through function pointer *(lp->hw.copy_from_card): (*(lp->hw.copy_from_card))(dev, bufnum, (int)(((unsigned int)ofs) + 16U), ((void *)(&(pkt->soft.raw))) + 20U, (int)(((unsigned int)length) - 16U)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Stopping analysis ... (CPAchecker.runAlgorithm, INFO)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            9644 (16% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  6912 (72%)
+  Because of loop head:            2685 (28%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         47 (0%)
+  Times precision was empty:       3296 (34%)
+  Times precision was {false}:     220 (2%)
+  Times result was cached:         4926 (51%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      1202 (12%)
+  Times result was 'false':        1020 (11%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         12646
+  BDD entailment checks:           5272
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       22
+Number of predicates discovered:          45
+Number of abstraction locations:          61
+Max number of predicates per location:    12
+Avg number of predicates per location:    3
+Total predicates per abstraction:         20764
+Max number of predicates per abstraction: 12
+Avg number of predicates per abstraction: 14.60
+Number of irrelevant predicates:          6760 (33%)
+Number of preds handled by boolean abs:   4564 (22%)
+  Total number of models for allsat:      2413
+  Max number of models for allsat:        14
+  Avg number of models for allsat:        2.01
+
+Time for post operator:                  5.642s
+  Time for path formula creation:        5.513s
+Time for strengthen operator:            0.231s
+Time for prec operator:                  9.472s
+  Time for abstraction:                  9.012s (Max:     0.034s, Count: 9644)
+    Boolean abstraction:                 3.815s
+    Solving time:                        2.798s (Max:     0.017s)
+    Model enumeration time:              0.586s
+    Time for BDD construction:           0.228s (Max:     0.012s)
+Time for merge operator:                 0.706s
+Time for coverage check:                 0.092s
+  Time for BDD entailment checks:        0.065s
+Total time for SMT solver (w/o itp):     3.384s
+
+Number of path formula cache hits:   30686 (46%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     5.143s
+
+Total number of created targets for pointer analysis: 6950
+   Number of created targets for uf: *(void)* is 1021
+   Number of created targets for uf: *(struct_ArcProto)* is 4641
+
+
+Number of BDD nodes:                               2702
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                        5304 (count: 18315, min: 0, max: 679, avg: 0.29)
+Time for BDD node cleanup:                             0.030s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.492s
+Automaton transfers with branching:                0
+Automaton transfer successors:                        60966 (count: 60966, min: 1, max: 1, avg: 1.00) [1 x 60966]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            43666
+Max size of waitlist:            30
+Average size of waitlist:        8
+Number of computed successors:   50067
+Max successors for one state:    2
+Number of times merged:          3687
+Number of times stopped:         5157
+Number of times breaked:         47
+
+Total time for CPA algorithm:        21.331s (Max:     1.502s)
+  Time for choose from waitlist:      0.175s
+  Time for precision adjustment:     10.540s
+  Time for transfer relation:         8.108s
+  Time for merge operator:            1.063s
+  Time for stop operator:             0.297s
+  Time for adding to reached set:     0.242s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   47
+Avg. length of target path (in blocks):                2062 (count: 47, min: 14, max: 84, avg: 43.87)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                   3.038s
+  Counterexample analysis:                             2.602s (Max:     0.215s, Calls: 47)
+    Refinement sat check:                              1.746s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.004s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.082s
+  Precision update:                                    0.030s
+  ARG update:                                          0.247s
+
+Length of refined path (in blocks):                    1386 (count: 47, min: 8, max: 62, avg: 29.49)
+Number of affected states:                              577 (count: 47, min: 1, max: 57, avg: 12.28)
+Length (states) of path with itp 'true':                762 (count: 47, min: 4, max: 46, avg: 16.21)
+Length (states) of path with itp non-trivial itp:       577 (count: 47, min: 1, max: 57, avg: 12.28)
+Length (states) of path with itp 'false':                47 (count: 47, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:         106 (count: 47, min: 0, max: 8, avg: 2.26)
+Equal non-trivial interpolants along paths:             424 (count: 47, min: 0, max: 52, avg: 9.02)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                47
+Number of successful refinements:     47
+Number of failed refinements:         0
+Max. size of reached set before ref.: 2875
+Max. size of reached set after ref.:  1046
+Avg. size of reached set before ref.: 1189.89
+Avg. size of reached set after ref.:  280.91
+
+Total time for CEGAR algorithm:      24.679s
+Time for refinements:                 3.286s
+Average time for refinement:          0.069s
+Max time for refinement:              0.242s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.540
+  Visited lines:          1197
+  Total lines:            1280
+  Line coverage:          0.935
+  Visited conditions:     100
+  Total conditions:       118
+  Condition coverage:     0.847
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     1548
+Number of CFA edges:             1594
+Number of relevant variables:    81
+Number of functions:             50
+Number of loops:                 7
+Size of reached set:             1169
+  Number of reached locations:   330 (21%)
+    Avg states per location:     3
+    Max states per location:     18 (at node N271)
+  Number of reached functions:   27 (54%)
+  Number of partitions:          1149
+    Avg size of partitions:      1
+    Max size of partitions:      9 (with key [N284 (before line 5641), Function arcnet_cap_init called from node N299, stack depth 3 [5406f519], stack [main, capmode_module_init, arcnet_cap_init]])
+  Number of target states:       0
+
+Time for analysis setup:          4.803s
+  Time for loading CPAs:          0.954s
+  Time for loading parser:        0.718s
+  Time for CFA construction:      3.016s
+    Time for parsing file(s):     0.985s
+    Time for AST to CFA:          1.048s
+    Time for CFA sanity check:    0.146s
+    Time for post-processing:     0.609s
+      Time for var class.:        0.227s
+Time for Analysis:               24.679s
+CPU time for analysis:           24.680s
+Time for analyzing result:        0.002s
+Total time for CPAchecker:       29.486s
+Total CPU time for CPAchecker:   29.480s
+Time for statistics:              0.119s
+
+Time for Garbage Collector:       0.431s (in 33 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                 73MB (    69 MiB) max;     48MB (    45 MiB) avg;     76MB (    72 MiB) peak
+Used non-heap memory:             40MB (    38 MiB) max;     35MB (    33 MiB) avg;     40MB (    39 MiB) peak
+Allocated heap memory:           127MB (   121 MiB) max;    127MB (   121 MiB) avg
+Allocated non-heap memory:        42MB (    40 MiB) max;     37MB (    35 MiB) avg
+Total process virtual memory:   8088MB (  7713 MiB) max;   8073MB (  7699 MiB) avg
+
+Verification result: TRUE. No property violation found by chosen configuration.
+More details about the verification run can be found in the directory "./output".

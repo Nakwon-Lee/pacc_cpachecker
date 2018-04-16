@@ -1,0 +1,456 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-3.16-rc1/43_2a_consumption_linux-3.16-rc1.tar.xz-43_2a-drivers--media--pci--cx18--cx18.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_x3g1yw0t/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 8827: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8830: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8833: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_3067;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_3067;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_3067;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_3067;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 8865-8866: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 8869-8870: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 8877-8878: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5626;
+  case 2UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5626;
+  case 4UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddl %0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5626;
+  case 8UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5626;
+  default:
+  __xadd_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9443: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9448: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9453: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___0 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___0->state): : "memory",
+                       "cc");
+  goto ldv_52338;
+  case 2UL:
+  tmp___1 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                       "cc");
+  goto ldv_52338;
+  case 4UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_52338;
+  case 8UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_52338;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 28074: Function pointer *(dmx->add_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28080: Function pointer *(dmx->add_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28086: Function pointer *(dmx->connect_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28109: Function pointer *(dmx->remove_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28111: Function pointer *(dmx->remove_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28144: Function pointer *(dmx->remove_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28145: Function pointer *(dmx->remove_frontend) with type int (*)(struct dmx_demux *, struct dmx_frontend *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 19372: Function pointer *(__sd->ops->tuner->g_frequency) with type int (*)(struct v4l2_subdev *, struct v4l2_frequency *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 21776: Function pointer *(cx->pcm_announce_callback) with type void (*)(struct snd_cx18_card *, u8 *, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 21759: Function pointer *(cx->pcm_announce_callback) with type void (*)(struct snd_cx18_card *, u8 *, size_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 10586: Function pointer *(__sd___1->ops->tuner->s_config) with type int (*)(struct v4l2_subdev *, const struct v4l2_priv_tun_config *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 10552: Function pointer *(__sd___0->ops->tuner->s_type_addr) with type int (*)(struct v4l2_subdev *, struct tuner_setup *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 14058-14059: Function pointer *(ops->map_page) with type dma_addr_t (*)(struct device *, struct page *, unsigned long, size_t , enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14125: Function pointer *(ops->sync_single_for_cpu) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14158: Function pointer *(ops->sync_single_for_device) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14092: Function pointer *(ops->unmap_page) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28632: Function pointer *(fe___1->ops.tuner_ops.set_config) with type int (*)(struct dvb_frontend *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28619: Function pointer *__a___9 with type struct dvb_frontend *(*)(struct dvb_frontend *, struct xc2028_config *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 28576-28577: Function pointer *__a___8 with type struct dvb_frontend *(*)(const struct zl10353_config *, struct i2c_adapter *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28552: Function pointer *(fe___0->ops.tuner_ops.set_config) with type int (*)(struct dvb_frontend *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28539: Function pointer *__a___7 with type struct dvb_frontend *(*)(struct dvb_frontend *, struct xc2028_config *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 28493-28494: Function pointer *__a___6 with type struct dvb_frontend *(*)(const struct zl10353_config *, struct i2c_adapter *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 28465-28466: Function pointer *__a___5 with type struct dvb_frontend *(*)(const struct mt352_config *, struct i2c_adapter *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28441: Function pointer *(fe->ops.tuner_ops.set_config) with type int (*)(struct dvb_frontend *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28428: Function pointer *__a___4 with type struct dvb_frontend *(*)(struct dvb_frontend *, struct xc2028_config *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 28385-28386: Function pointer *__a___3 with type struct dvb_frontend *(*)(const struct zl10353_config *, struct i2c_adapter *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28355: Function pointer *__a___2 with type struct dvb_frontend *(*)(struct dvb_frontend *, u8 , struct i2c_adapter *, struct tda18271_config *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 28321-28322: Function pointer *__a___1 with type struct dvb_frontend *(*)(const struct s5h1411_config *, struct i2c_adapter *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 28290: Function pointer *__a___0 with type struct dvb_frontend *(*)(struct dvb_frontend *, struct i2c_adapter *, struct mxl5005s_config *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 28259-28260: Function pointer *__a with type struct dvb_frontend *(*)(const struct s5h1409_config *, struct i2c_adapter *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 27733: Function pointer *(fe->ops.write) with type int (*)(struct dvb_frontend *, u8 *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 16773: Function pointer *(p->_qproc) with type void (*)(struct file *, wait_queue_head_t *, struct poll_table_struct *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 11108: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(32UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_unregister_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_lock_nested to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __pci_register_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function schedule_timeout_uninterruptible to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 25756: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(44UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 25494: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(44UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function request_firmware to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function release_firmware to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __wake_up to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 21148: Ignoring function call through function pointer *(cx->sd_av->ops->video->s_mbus_fmt): (*(cx->sd_av->ops->video->s_mbus_fmt))(cx->sd_av, &fmt); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 21180: Ignoring function call through function pointer *(__sd->ops->audio->s_clock_freq): (*(__sd->ops->audio->s_clock_freq))(__sd, freqs[idx]); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function flush_work to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function cancel_work_sync to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function destroy_workqueue to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function videobuf_mmap_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function i2c_del_adapter to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function free_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function iounmap to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __release_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_disable_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function v4l2_ctrl_handler_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function v4l2_device_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 28142: Ignoring function call through function pointer *(dmx->close): (*(dmx->close))(dmx); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function dvb_net_release to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 28144: Ignoring function call through function pointer *(dmx->remove_frontend): (*(dmx->remove_frontend))(dmx, &(dvb->mem_frontend)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 28145: Ignoring function call through function pointer *(dmx->remove_frontend): (*(dmx->remove_frontend))(dmx, &(dvb->hw_frontend)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function dvb_dmxdev_release to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dvb_dmx_release to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dvb_unregister_frontend to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dvb_frontend_detach to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dvb_unregister_adapter to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __list_del_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __list_add to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 14092: Ignoring function call through function pointer *(ops->unmap_page): (*(ops->unmap_page))(dev, addr, size, dir, attrs); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function debug_dma_unmap_page to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function video_device_release to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function video_unregister_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 16223: Ignoring parameters passed as varargs to function cx18_vapi: cx18_vapi(cx, 537001987U, 1, s->handle) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16221: Ignoring parameters passed as varargs to function cx18_vapi: cx18_vapi(cx, 537001987U, 2, s->handle, gop_end == 0) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ldv__builtin_va_start to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv__builtin_va_end to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv__builtin_va_arg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 16237: Ignoring parameters passed as varargs to function cx18_vapi: cx18_vapi(cx, 537133062U, 1, s->handle) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16238: Ignoring parameters passed as varargs to function cx18_vapi: cx18_vapi(cx, 1073741826U, 1, s->handle) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function cx2341x_handler_set_busy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snprintf to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_check_final_state to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 11321: Destroying the void* pointer ldv_main_exported_20::tmp produces garbage or the memory pointed by it is unused: ldv_main_exported_20(); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 11321: Destroying the void* pointer ldv_main_exported_20::tmp___0 produces garbage or the memory pointed by it is unused: ldv_main_exported_20(); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 11321: Destroying the void* pointer ldv_main_exported_20::tmp___1 produces garbage or the memory pointed by it is unused: ldv_main_exported_20(); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 11321: Destroying the void* pointer ldv_main_exported_20::tmp___4 produces garbage or the memory pointed by it is unused: ldv_main_exported_20(); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function videobuf_waiton to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function videobuf_vmalloc_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function videobuf_iolock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 30s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            28819 (24% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  25852 (90%)
+  Because of loop head:            2967 (10%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         0 (0%)
+  Times precision was empty:       28819 (100%)
+  Times precision was {false}:     0 (0%)
+  Times result was cached:         0 (0%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      0 (0%)
+  Times result was 'false':        0 (0%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         11435
+  BDD entailment checks:           5053
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       164
+Number of predicates discovered:          0
+
+Time for post operator:                  9.230s
+  Time for path formula creation:        9.119s
+Time for strengthen operator:            0.263s
+Time for prec operator:                  1.026s
+  Time for abstraction:                  0.210s (Max:     0.013s, Count: 28819)
+    Solving time:                        0.000s (Max:     0.000s)
+    Model enumeration time:              0.000s
+    Time for BDD construction:           0.000s (Max:     0.000s)
+Time for merge operator:                 0.322s
+Time for coverage check:                 0.073s
+  Time for BDD entailment checks:        0.067s
+Total time for SMT solver (w/o itp):     0.000s
+
+Number of path formula cache hits:   122325 (84%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     7.572s
+
+Total number of created targets for pointer analysis: 31886
+   Number of created targets for uf: *unsigned_short_int is 74
+   Number of created targets for uf: *(void)* is 2
+   Number of created targets for uf: *enum_v4l2_field is 2
+   Number of created targets for uf: *signed_int is 83
+   Number of created targets for uf: *unsigned_char is 67
+   Number of created targets for uf: *(struct_list_head)* is 201
+   Number of created targets for uf: *(struct_firmware)* is 2
+   Number of created targets for uf: *unsigned_long_long_int is 5
+   Number of created targets for uf: *unsigned_int is 193
+   Number of created targets for uf: *char is 557
+   Number of created targets for uf: *unsigned_long_int is 5
+
+
+Number of BDD nodes:                               202
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                           0 (count: 33873, min: 0, max: 0, avg: 0.00)
+Time for BDD node cleanup:                             0.012s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.493s
+Automaton transfers with branching:                0
+Automaton transfer successors:                       119392 (count: 119392, min: 1, max: 1, avg: 1.00) [1 x 119392]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            86037
+Max size of waitlist:            79
+Average size of waitlist:        58
+Number of computed successors:   94316
+Max successors for one state:    2
+Number of times merged:          3191
+Number of times stopped:         8244
+Number of times breaked:         0
+
+Total time for CPA algorithm:        17.882s (Max:    17.882s)
+  Time for choose from waitlist:      0.176s
+  Time for precision adjustment:      2.519s
+  Time for transfer relation:        12.859s
+  Time for merge operator:            0.575s
+  Time for stop operator:             0.365s
+  Time for adding to reached set:     0.409s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                0
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.264
+  Visited lines:          3874
+  Total lines:            12602
+  Line coverage:          0.307
+  Visited conditions:     890
+  Total conditions:       3860
+  Condition coverage:     0.231
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     17835
+Number of CFA edges:             20865
+Number of relevant variables:    2904
+Number of functions:             666
+Number of loops:                 145
+Size of reached set:             86072
+  Number of reached locations:   2425 (14%)
+    Avg states per location:     35
+    Max states per location:     2371 (at node N109)
+  Number of reached functions:   176 (26%)
+  Number of partitions:          86072
+    Avg size of partitions:      1
+    Max size of partitions:      1
+  Number of target states:       0
+  Size of final wait list        36
+
+Time for analysis setup:         12.369s
+  Time for loading CPAs:          1.249s
+  Time for loading parser:        0.665s
+  Time for CFA construction:     10.265s
+    Time for parsing file(s):     1.764s
+    Time for AST to CFA:          3.932s
+    Time for CFA sanity check:    1.108s
+    Time for post-processing:     3.283s
+      Time for var class.:        1.369s
+Time for Analysis:               17.882s
+CPU time for analysis:           17.890s
+Total time for CPAchecker:       30.255s
+Total CPU time for CPAchecker:   30.230s
+Time for statistics:              1.502s
+
+Time for Garbage Collector:       1.739s (in 59 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                167MB (   159 MiB) max;     76MB (    72 MiB) avg;    180MB (   172 MiB) peak
+Used non-heap memory:             40MB (    38 MiB) max;     33MB (    31 MiB) avg;     41MB (    39 MiB) peak
+Allocated heap memory:           214MB (   204 MiB) max;    137MB (   131 MiB) avg
+Allocated non-heap memory:        41MB (    39 MiB) max;     35MB (    33 MiB) avg
+Total process virtual memory:   8085MB (  7710 MiB) max;   8067MB (  7693 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

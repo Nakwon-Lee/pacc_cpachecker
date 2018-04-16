@@ -1,0 +1,381 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-3.16-rc1/205_9a_array_safes_linux-3.16-rc1.tar.xz-205_9a-drivers--net--wan--x25_asy.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_v7bj7j_8/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+lines 5859-5860: Dead code detected: __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5863-5864: Dead code detected: __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5867-5868: Dead code detected: __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc");
+  goto ldv_42980;
+  case 2UL:
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc");
+  goto ldv_42980;
+  case 4UL:
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc");
+  goto ldv_42980;
+  case 8UL:
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (sl->xbuff): : "memory",
+                       "cc");
+  goto ldv_42980;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5894-5895: Dead code detected: __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5898-5899: Dead code detected: __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5902-5903: Dead code detected: __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc");
+  goto ldv_42991;
+  case 2UL:
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc");
+  goto ldv_42991;
+  case 4UL:
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc");
+  goto ldv_42991;
+  case 8UL:
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret___1), "+m" (sl->rbuff): : "memory",
+                       "cc");
+  goto ldv_42991;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+lines 6011-6012: Function pointer *(sl->tty->ops->write) with type int (*)(struct tty_struct *, const unsigned char *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6051: Function pointer *(tty->ops->write) with type int (*)(struct tty_struct *, const unsigned char *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 6803: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___2 = ldv_zalloc(512UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 6813: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___7 = ldv_zalloc(512UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_ndo_uninit_2 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_ndo_init_2 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function skb_push to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function netdev_warn to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lapb_data_received to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 5388: Return type of function __builtin_object_size is void, but result is used as type int: tmp = __builtin_object_size(from, 0); (PredicateCPA:CtoFormulaConverter.getReturnType, WARNING)
+
+Assuming external function __builtin_object_size to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Cannot get declaration of function __builtin_object_size, ignoring calls to it. (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function might_fault to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _copy_to_user to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __copy_to_user_overflow to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function rtnl_lock to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_close to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function rtnl_unlock to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lapb_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function netdev_err to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6051: Ignoring function call through function pointer *(tty->ops->write): actual = (*(tty->ops->write))(tty, __CPAchecker_TMP_2, sl->xleft); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __netif_schedule to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function alloc_netdev_mqs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function register_netdev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function free_netdev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function tty_driver_flush_buffer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function tty_ldisc_flush to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lapb_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function tty_unregister_ldisc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock_bh to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function tty_hangup to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock_bh to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function unregister_netdev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function tty_register_ldisc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function skb_put to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function warn_slowpath_null to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 6011-6012: Ignoring function call through function pointer *(sl->tty->ops->write): actual = (*(sl->tty->ops->write))(sl->tty, __CPAchecker_TMP_1, count); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function lapb_disconnect_request to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lapb_connect_request to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function skb_pull to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lapb_data_request to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function tty_chars_in_buffer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 900s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 900s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            489677 (21% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  423694 (87%)
+  Because of loop head:            65793 (13%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         190 (0%)
+  Times precision was empty:       167672 (34%)
+  Times precision was {false}:     4319 (1%)
+  Times result was cached:         268375 (55%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      49311 (10%)
+  Times result was 'false':        20782 (4%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         1316552
+  BDD entailment checks:           1127394
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       45
+Number of predicates discovered:          76
+Number of abstraction locations:          134
+Max number of predicates per location:    63
+Avg number of predicates per location:    7
+Total predicates per abstraction:         4275842
+Max number of predicates per abstraction: 63
+Avg number of predicates per abstraction: 79.73
+Number of irrelevant predicates:          433478 (10%)
+Number of preds handled by boolean abs:   1674770 (39%)
+  Total number of models for allsat:      1055653
+  Max number of models for allsat:        120
+  Avg number of models for allsat:        21.41
+
+Time for post operator:                 38.669s
+  Time for path formula creation:       37.348s
+Time for strengthen operator:            2.466s
+Time for prec operator:                768.431s
+  Time for abstraction:                761.952s (Max:     0.126s, Count: 489677)
+    Boolean abstraction:               410.166s
+    Solving time:                      186.697s (Max:     0.059s)
+    Model enumeration time:            104.185s
+    Time for BDD construction:          73.016s (Max:     0.104s)
+Time for merge operator:                 2.341s
+Time for coverage check:                 2.391s
+  Time for BDD entailment checks:        2.186s
+Total time for SMT solver (w/o itp):   290.883s
+
+Number of path formula cache hits:   2302440 (83%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:    30.662s
+
+Total number of created targets for pointer analysis: 58575
+   Number of created targets for uf: *(void)* is 30388
+   Number of created targets for uf: *(struct_net_device)* is 1030
+   Number of created targets for uf: *unsigned_char is 446
+   Number of created targets for uf: *(unsigned_char)* is 339
+   Number of created targets for uf: *char is 5299
+   Number of created targets for uf: *unsigned_int is 1863
+   Number of created targets for uf: *unsigned_long_int is 321
+
+
+Number of BDD nodes:                               252476
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                      295391 (count: 1696090, min: 0, max: 1751, avg: 0.17)
+Time for BDD node cleanup:                             0.280s
+Time for BDD garbage collection:                       0.161s (in 7 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  5.298s
+  Time for transition matches:                         2.415s
+  Time for transition assertions:                      0.001s
+  Time for transition actions:                         0.006s
+Automaton transfers with branching:                0
+Automaton transfer successors:                      2300647 (count: 2300647, min: 1, max: 1, avg: 1.00) [1 x 2300647]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            1622299
+Max size of waitlist:            71
+Average size of waitlist:        32
+Number of computed successors:   1826221
+Max successors for one state:    2
+Number of times merged:          94579
+Number of times stopped:         179003
+Number of times breaked:         190
+
+Total time for CPA algorithm:       873.871s (Max:    23.731s)
+  Time for choose from waitlist:      1.038s
+  Time for precision adjustment:    783.938s
+  Time for transfer relation:        67.886s
+  Time for merge operator:            5.443s
+  Time for stop operator:             5.492s
+  Time for adding to reached set:     3.816s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   190
+Avg. length of target path (in blocks):               17161 (count: 190, min: 23, max: 134, avg: 90.32)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                  19.097s
+  Counterexample analysis:                            15.149s (Max:     0.302s, Calls: 190)
+    Refinement sat check:                              5.015s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.021s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.173s
+  Precision update:                                    0.174s
+  ARG update:                                          3.402s
+
+Length of refined path (in blocks):                   15386 (count: 190, min: 16, max: 129, avg: 80.98)
+Number of affected states:                            13688 (count: 190, min: 1, max: 128, avg: 72.04)
+Length (states) of path with itp 'true':               1508 (count: 190, min: 0, max: 76, avg: 7.94)
+Length (states) of path with itp non-trivial itp:     13688 (count: 190, min: 1, max: 128, avg: 72.04)
+Length (states) of path with itp 'false':               190 (count: 190, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:        3872 (count: 190, min: 0, max: 62, avg: 20.38)
+Equal non-trivial interpolants along paths:            9626 (count: 190, min: 0, max: 93, avg: 50.66)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                190
+Number of successful refinements:     190
+Number of failed refinements:         0
+Max. size of reached set before ref.: 37399
+Max. size of reached set after ref.:  14300
+Avg. size of reached set before ref.: 9084.13
+Avg. size of reached set after ref.:  540.84
+
+Total time for CEGAR algorithm:     894.452s
+Time for refinements:                20.501s
+Average time for refinement:          0.107s
+Max time for refinement:              0.319s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.590
+  Visited lines:          1571
+  Total lines:            2011
+  Line coverage:          0.781
+  Visited conditions:     280
+  Total conditions:       358
+  Condition coverage:     0.782
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     2659
+Number of CFA edges:             2903
+Number of relevant variables:    342
+Number of functions:             105
+Number of loops:                 10
+Size of reached set:             3210
+  Number of reached locations:   744 (28%)
+    Avg states per location:     4
+    Max states per location:     65 (at node N1141)
+  Number of reached functions:   62 (59%)
+  Number of partitions:          3019
+    Avg size of partitions:      1
+    Max size of partitions:      33 (with key [N1156 (before line 6706), Function exit_x25_asy called from node N1355, stack depth 2 [71d5721f], stack [main, exit_x25_asy]])
+  Number of target states:       0
+  Size of final wait list        21
+
+Time for analysis setup:          5.793s
+  Time for loading CPAs:          1.045s
+  Time for loading parser:        0.674s
+  Time for CFA construction:      3.914s
+    Time for parsing file(s):     1.113s
+    Time for AST to CFA:          1.357s
+    Time for CFA sanity check:    0.224s
+    Time for post-processing:     1.007s
+      Time for var class.:        0.349s
+Time for Analysis:              894.453s
+CPU time for analysis:          894.290s
+Total time for CPAchecker:      900.251s
+Total CPU time for CPAchecker:  900.080s
+Time for statistics:              0.139s
+
+Time for Garbage Collector:      21.577s (in 1101 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                401MB (   382 MiB) max;    274MB (   262 MiB) avg;    411MB (   392 MiB) peak
+Used non-heap memory:             40MB (    38 MiB) max;     39MB (    37 MiB) avg;     41MB (    39 MiB) peak
+Allocated heap memory:           433MB (   413 MiB) max;    405MB (   386 MiB) avg
+Allocated non-heap memory:        43MB (    41 MiB) max;     43MB (    41 MiB) avg
+Total process virtual memory:  11521MB ( 10987 MiB) max;   9374MB (  8940 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

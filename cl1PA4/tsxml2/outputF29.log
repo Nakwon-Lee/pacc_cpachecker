@@ -1,0 +1,945 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-3.16-rc1/43_2a_consumption_linux-3.16-rc1.tar.xz-43_2a-drivers--usb--host--xhci-hcd.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_r8c2xcsg/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_151) started (CPAchecker.run, INFO)
+
+line 5084: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5087: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5093: Dead code detected: __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5110: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5110: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5111: Dead code detected: __asm__ ("incb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5113: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5113: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5114: Dead code detected: __asm__ ("decb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5116: Dead code detected: __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5120: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5120: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5121: Dead code detected: __asm__ ("incw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5123: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5123: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5124: Dead code detected: __asm__ ("decw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5126: Dead code detected: __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5140: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5140: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5141: Dead code detected: __asm__ ("incq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5143: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5143: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5144: Dead code detected: __asm__ ("decq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5146: Dead code detected: __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incb %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decb %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (val));
+  }
+  goto ldv_6061;
+  case 2UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incw %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decw %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (val));
+  }
+  goto ldv_6061;
+  case 4UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incl %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decl %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addl %1, %%gs:%P0": "+m" (__preempt_count): "ri" (val));
+  }
+  goto ldv_6061;
+  case 8UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incq %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decq %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (val));
+  }
+  goto ldv_6061;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5164: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5164: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5165: Dead code detected: __asm__ ("incb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5167: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5167: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5168: Dead code detected: __asm__ ("decb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5170: Dead code detected: __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (- val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5174: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5174: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5175: Dead code detected: __asm__ ("incw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5177: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5177: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5178: Dead code detected: __asm__ ("decw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5180: Dead code detected: __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (- val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5194: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5194: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5195: Dead code detected: __asm__ ("incq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5197: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5197: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5198: Dead code detected: __asm__ ("decq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5200: Dead code detected: __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (- val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incb %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decb %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (- val));
+  }
+  goto ldv_6073;
+  case 2UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incw %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decw %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (- val));
+  }
+  goto ldv_6073;
+  case 4UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incl %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decl %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addl %1, %%gs:%P0": "+m" (__preempt_count): "ri" (- val));
+  }
+  goto ldv_6073;
+  case 8UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incq %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decq %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (- val));
+  }
+  goto ldv_6073;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23710: Dead code detected: *((u8 *)__gu_p) = (unsigned char )status; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23713: Dead code detected: put_unaligned_le16((int )((unsigned short )status), __gu_p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23719: Dead code detected: put_unaligned_le64((unsigned long long )status, __gu_p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  *((u8 *)__gu_p) = (unsigned char )status;
+  goto ldv_29053;
+  case 2UL:
+  put_unaligned_le16((int )((unsigned short )status), __gu_p);
+  goto ldv_29053;
+  case 4UL:
+  put_unaligned_le32(status, __gu_p);
+  goto ldv_29053;
+  case 8UL:
+  put_unaligned_le64((unsigned long long )status, __gu_p);
+  goto ldv_29053;
+  default:
+  __bad_unaligned_access_size();
+  goto ldv_29053;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 27044: Dead code detected: __ptr = (u8 volatile *)(& v->counter); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 27049: Dead code detected: __ptr___0 = (u16 volatile *)(& v->counter); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 27059: Dead code detected: __ptr___2 = (u64 volatile *)(& v->counter); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __ptr = (u8 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgb %2,%1": "=a" (__ret),
+                       "+m" (*__ptr): "q" (__new), "0" (__old): "memory");
+  goto ldv_5646;
+  case 2UL:
+  __ptr___0 = (u16 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgw %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___0): "r" (__new), "0" (__old): "memory");
+  goto ldv_5646;
+  case 4UL:
+  __ptr___1 = (u32 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgl %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___1): "r" (__new), "0" (__old): "memory");
+  goto ldv_5646;
+  case 8UL:
+  __ptr___2 = (u64 volatile *)(& v->counter);
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; cmpxchgq %2,%1": "=a" (__ret),
+                       "+m" (*__ptr___2): "r" (__new), "0" (__old): "memory");
+  goto ldv_5646;
+  default:
+  __cmpxchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 13713: Function pointer *(ops->alloc) with type void *(*)(struct device *, size_t , dma_addr_t *, gfp_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13745: Function pointer *(ops->free) with type void (*)(struct device *, size_t , void *, dma_addr_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6361-6364: Function pointer *((void (*)(void *, struct xhci_hcd *, struct xhci_container_ctx *, unsigned int))it_func) with type void (*)(void *, struct xhci_hcd *, struct xhci_container_ctx *, unsigned int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 17667-17669: Function pointer *((void (*)(void *, void *, struct xhci_generic_trb *))it_func) with type void (*)(void *, void *, struct xhci_generic_trb *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6042: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6254: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17562: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6095: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13806: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6307: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13858: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6148: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17458: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 22774: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 27236: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6201: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17510: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13911: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17614: Function pointer *((void (*)(void *, struct va_format *))it_func) with type void (*)(void *, struct va_format *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_unregister_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function platform_driver_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 12893: Ignoring function call through function pointer *(timer->function): (*(timer->function))(timer->data); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function msecs_to_jiffies to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 6848-6849: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks, "Compliance mode detected->port %d", i + 1) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ldv__builtin_va_start to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function debug_lockdep_rcu_enabled to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function rcu_is_watching to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function rcu_lockdep_current_cpu_online to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lock_is_held to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6148: Ignoring call via function pointer trace_xhci_dbg_quirks::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 6148: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function lockdep_rcu_suspicious to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv__builtin_va_end to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dynamic_dev_dbg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6850: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks, "Attempting compliance mode recovery") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function usb_hcd_resume_root_hub to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_hcd_poll_rh_status to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18563: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Stop EP timer ran, but another timer marked xHCI as DYING, exiting.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18570: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Stop EP timer ran, but no command pending, exiting.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17562: Ignoring call via function pointer trace_xhci_dbg_cancel_urb___0::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 17562: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function _raw_spin_unlock_irqrestore to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_warn to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6441: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "// Halt the HC") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6307: Ignoring call via function pointer trace_xhci_dbg_init::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 6307: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __const_udelay to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 18522-18523: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Killing URBs for slot ID %u, ep index %u", slot_id, ep_index) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 18504-18505: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Killing URBs for slot ID %u, ep index %u, stream %u", slot_id, ep_index, stream_id + 1) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __list_del_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_hcd_unlink_urb_from_ep to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_hcd_giveback_urb to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_amd_quirk_pll_enable to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18622: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Calling usb_hc_died()") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function usb_hc_died to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18625: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "xHCI host controller is dead.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dev_err to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function list_del to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function complete to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 17667-17669: Ignoring call via function pointer trace_xhci_cmd_completion::it_func for which no suitable target was found in line: (*((void (*)(void *, void *, struct xhci_generic_trb *))it_func))(__data, trb_va, ev); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+lines 17667-17669: Ignoring function call through function pointer *((void (*)(void *, void *, struct xhci_generic_trb *))it_func): (*((void (*)(void *, void *, struct xhci_generic_trb *))it_func))(__data, trb_va, ev); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 18941-18942: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks___0, "NEC firmware version %2x.%02x", ((event->status) >> 8) & 255U, (event->status) & 255U) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17458: Ignoring call via function pointer trace_xhci_dbg_quirks___0::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 17458: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 10468-10469: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks, "Dropped %u ep ctxs, flags = 0x%x, %u now active.", num_dropped_eps, drop_flags, xhci->num_active_eps) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dma_pool_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function radix_tree_lookup to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function radix_tree_delete to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function warn_slowpath_null to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function debug_dma_free_coherent to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 13745: Ignoring function call through function pointer *(ops->free): (*(ops->free))(dev, size, vaddr, bus, attrs); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 18887-18888: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks___0, "Completed config ep cmd - last ep index = %d, state = %d", ep_index, ep_state) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function del_timer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 18398-18399: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Removing canceled TD starting at 0x%llx (dma).", tmp___2) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18237: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Cancel (unchain) link TRB") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 18239-18240: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Address = %p (0x%llx dma); in seg %p (0x%llx dma)", cur_trb, tmp, cur_seg, cur_seg->dma) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 18253-18254: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "TRB to noop at offset 0x%llx", tmp___0) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18144: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Finding endpoint context") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18186: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Finding segment containing last TRB in TD.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18209: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "Cycle state = 0x%x", state->new_cycle_state) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 18210-18211: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "New dequeue segment = %p (virtual)", state->new_deq_seg) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 18213-18214: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_cancel_urb___0, "New dequeue pointer = 0x%llx (DMA)", addr) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ftrace_raw_output_prep to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function trace_seq_printf to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_remove_hcd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_put_hcd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function iounmap to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __release_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function clk_disable to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function clk_unprepare to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_disabled to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function platform_get_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function platform_get_resource to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ioremap_nocache to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_supported to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_set_mask to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_create_hcd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __request_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function devm_clk_get to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_add_hcd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function device_wakeup_enable to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function clk_prepare to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function clk_enable to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_create_shared_hcd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 26972: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ftrace_event_reg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function trace_event_raw_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 26894: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function trace_define_field to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 26816: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function __pci_register_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __platform_driver_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dynamic_pr_debug to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_hcd_pci_shutdown to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_hcd_pci_remove to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_set_power_state to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_hcd_pci_probe to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_complete_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_suspend_noirq_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_restore_noirq_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_poweroff_late_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_poweroff_noirq_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_thaw_noirq_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_freeze_late_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_prepare_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_freeze_noirq_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_resume_noirq_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_thaw_early_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_resume_early_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_restore_early_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_suspend_late_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function msleep to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function usb_root_hub_lost_power to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6499: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "// Reset the HC") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6509: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "Wait for controller to be ready for doorbell rings") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function _raw_spin_unlock_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function free_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_disable_msi to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_disable_msix to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 16259: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed ERST") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13858: Ignoring call via function pointer trace_xhci_dbg_init___0::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 13858: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 16266: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed event ring") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16278: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed command ring") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dma_pool_destroy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 16331: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed segment pool") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16338: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed device context pool") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16345: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed small stream array pool") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16352: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Freed medium stream array pool") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function usb_hcd_is_primary_hcd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6965: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "xhci_init") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __raw_spin_lock_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6972: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "xHCI doesn\'t need link TRB QUIRK") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6969: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks, "QUIRK: Not clearing Link TRB chain bits.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16938-16939: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Supported page size register = 0x%x", page_size) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16958-16959: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Supported page size of %iK", (1 << (i + 12)) / 1024) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16966: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "HCD page size set to %iK", (xhci->page_size) / 1024) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16969-16970: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// xHC can handle at most %d device slots.", val) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16973-16974: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Setting Max device slots reg = 0x%x.", val) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13713: Ignoring function call through function pointer *(ops->alloc): memory = (*(ops->alloc))(dev, size, dma_handle, tmp___1, attrs); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function debug_dma_alloc_coherent to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 16985-16986: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Device context base array address = 0x%llx (DMA), %p (virt)", xhci->dcbaa->dma, xhci->dcbaa) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dma_pool_create to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 7040: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "xhci_run") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6464: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "// Turn on HC, cmd = 0x%x.", temp) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 7005: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "Finished xhci_run for USB3 roothub") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function snprintf to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function request_threaded_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __bitmap_weight to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 11032: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_address, "Bad Slot ID %d", udev->slot_id) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6042: Ignoring call via function pointer trace_xhci_dbg_address::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 6042: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function ldv_check_final_state to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 26759: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(144UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function dma_pool_alloc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 17012-17013: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Allocated command ring at %p", xhci->cmd_ring) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17014: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "First segment DMA is 0x%llx", xhci->cmd_ring->first_seg->dma) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17017-17018: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Setting command ring address to 0x%x", val) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __init_waitqueue_head to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 17030-17031: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Doorbell array is located at offset 0x%x from cap regs base addr", val) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17036: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Allocating event ring") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17056-17057: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Allocated event ring segment table at 0x%llx", dma) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17061-17062: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Set ERST to 0; private num segs = %i, virt addr = %p, dma addr = 0x%llx", xhci->erst.num_entries, xhci->erst.entries, xhci->erst.erst_dma_addr) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17082-17083: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Write ERST size = %i to ir_set 0 (some bits preserved)", val) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17085: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Set ERST entries to point to event ring.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17086-17087: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Set ERST base address for ir_set 0 = 0x%llx", xhci->erst.erst_dma_addr) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16594: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "// Write event ring dequeue pointer, preserving EHB bit") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17093: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Wrote ERST address to ir_set 0.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16038-16039: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Allocating %d scratchpad buffers", num_sp) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16819-16820: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Found %u USB 2.0 ports and %u USB 3.0 ports.", xhci->num_usb2_ports, xhci->num_usb3_ports) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16623-16624: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Ext Cap %p, port offset = %u, count = %u, revision = 0x%x", addr, port_offset, port_count, (int)major_revision) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16638: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "xHCI 0.96: support USB2 software lpm") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16644: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "xHCI 1.0: support USB2 software lpm") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16647: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "xHCI 1.0: support USB2 hardware lpm") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16822: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Limiting USB 3.0 roothub ports to 15.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16828-16829: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "Limiting USB 2.0 roothub ports to %u.", 31) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16886-16887: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "USB 3.0 port at index %u, addr = %p", i, *((xhci->usb3_ports) + ((unsigned long)port_index))) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16852-16853: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init___0, "USB 2.0 port at index %u, addr = %p", i, *((xhci->usb2_ports) + ((unsigned long)port_index))) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6975: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "Finished xhci_init") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dmi_get_system_info to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function set_timer_slack to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function add_timer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6893: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_quirks, "Compliance mode recovery timer initialized") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_enable_msix_range to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6671: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "Failed to enable MSI-X") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6697: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "disable MSI-X interrupt") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_enable_msi_range to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6573: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "failed to allocate MSI entry") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6581: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "disable MSI interrupt") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 7097: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "ERST deq = 64\'h%0lx", (unsigned long)temp_64) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 7098: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "// Set the interrupt modulation register") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 7105-7106: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "// Enable interrupts, cmd = 0x%x.", temp) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 7109-7110: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "// Enabling event ring interrupter %p by writing 0x%x to irq_pending", xhci->ir_set, (temp & 4294967292U) | 2U) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 7124: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_init, "Finished xhci_run for USB2 roothub") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 21257: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_ring_expansion___0, "OLD_ERROR no room on ep ring, try ring expansion") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17614: Ignoring call via function pointer trace_xhci_dbg_ring_expansion___0::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 17614: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function radix_tree_maybe_preload to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function radix_tree_insert to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 14526-14527: Ignoring parameters passed as varargs to function xhci_dbg_trace: xhci_dbg_trace(xhci, &trace_xhci_dbg_ring_expansion, "ring expansion succeed, now has %d segments", ring->num_segs) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13911: Ignoring call via function pointer trace_xhci_dbg_ring_expansion::it_func for which no suitable target was found in line: (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (FunctionPointerCPA:FunctionPointerTransferRelation.getAbstractSuccessorsForEdge, WARNING)
+
+line 13911: Ignoring function call through function pointer *((void (*)(void *, struct va_format *))it_func): (*((void (*)(void *, struct va_format *))it_func))(__data, vaf); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __list_add to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 900s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 900s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            2246091 (19% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  1992312 (89%)
+  Because of loop head:            253529 (11%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         250 (0%)
+  Times precision was empty:       1104296 (49%)
+  Times precision was {false}:     3979 (0%)
+  Times result was cached:         1133983 (50%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      3833 (0%)
+  Times result was 'false':        7338 (0%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         1371635
+  BDD entailment checks:           422789
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       163
+Number of predicates discovered:          30
+Number of abstraction locations:          558
+Max number of predicates per location:    22
+Avg number of predicates per location:    2
+Total predicates per abstraction:         2680713
+Max number of predicates per abstraction: 22
+Avg number of predicates per abstraction: 343.15
+Number of irrelevant predicates:          1992016 (74%)
+Number of preds handled by boolean abs:   10634 (0%)
+  Total number of models for allsat:      4845
+  Max number of models for allsat:        32
+  Avg number of models for allsat:        1.26
+
+Time for post operator:                143.217s
+  Time for path formula creation:      137.599s
+Time for strengthen operator:            9.660s
+Time for prec operator:                153.996s
+  Time for abstraction:                118.302s (Max:     1.500s, Count: 2246091)
+    Boolean abstraction:                 4.049s
+    Solving time:                        6.104s (Max:     0.323s)
+    Model enumeration time:              0.422s
+    Time for BDD construction:           0.230s (Max:     0.021s)
+Time for merge operator:                 9.662s
+Time for coverage check:                 0.538s
+  Time for BDD entailment checks:        0.342s
+Total time for SMT solver (w/o itp):     6.526s
+
+Number of path formula cache hits:   14014422 (96%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:    42.494s
+
+Total number of created targets for pointer analysis: 33799
+   Number of created targets for uf: *(void)* is 14
+   Number of created targets for uf: *(unsigned_char)* is 5
+   Number of created targets for uf: *(unsigned_long_long_int)* is 7
+   Number of created targets for uf: *unsigned_long_int is 195
+   Number of created targets for uf: *signed_int is 99
+   Number of created targets for uf: *unsigned_char is 201
+   Number of created targets for uf: *(struct_xhci_segment)* is 29
+   Number of created targets for uf: *(struct_list_head)* is 218
+   Number of created targets for uf: *(Return_type:_[void],_Parameters:_1,_Parameter_1_type:_[unsigned_long_int],_VarArgs:_false)* is 35
+   Number of created targets for uf: *unsigned_long_long_int is 69
+   Number of created targets for uf: *(union_xhci_trb)* is 41
+   Number of created targets for uf: *unsigned_int is 59
+   Number of created targets for uf: *(struct_usb_hcd)* is 3
+
+
+Number of BDD nodes:                               13052
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                       10650 (count: 1571594, min: 0, max: 396, avg: 0.01)
+Time for BDD node cleanup:                             0.214s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                 15.897s
+  Time for transition matches:                         8.024s
+  Time for transition assertions:                      0.002s
+  Time for transition actions:                         0.001s
+Automaton transfers with branching:                0
+Automaton transfer successors:                     12089347 (count: 12089347, min: 1, max: 1, avg: 1.00) [1 x 12089347]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            7964543
+Max size of waitlist:            114
+Average size of waitlist:        31
+Number of computed successors:   8852786
+Max successors for one state:    2
+Number of times merged:          474423
+Number of times stopped:         872897
+Number of times breaked:         250
+
+Total time for CPA algorithm:       769.108s (Max:     8.327s)
+  Time for choose from waitlist:      3.579s
+  Time for precision adjustment:    219.510s
+  Time for transfer relation:       481.037s
+  Time for merge operator:           15.642s
+  Time for stop operator:            11.528s
+  Time for adding to reached set:    16.464s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   250
+Avg. length of target path (in blocks):              101439 (count: 250, min: 21, max: 814, avg: 405.76)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                 106.100s
+  Counterexample analysis:                            87.176s (Max:     1.021s, Calls: 250)
+    Refinement sat check:                             32.619s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.067s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  1.137s
+  Precision update:                                    0.274s
+  ARG update:                                         16.902s
+
+Length of refined path (in blocks):                   91101 (count: 249, min: 2, max: 813, avg: 365.87)
+Number of affected states:                            74853 (count: 249, min: 0, max: 702, avg: 300.61)
+Length (states) of path with itp 'true':              15999 (count: 249, min: 0, max: 739, avg: 64.25)
+Length (states) of path with itp non-trivial itp:     74853 (count: 249, min: 0, max: 702, avg: 300.61)
+Length (states) of path with itp 'false':               249 (count: 249, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:          96 (count: 249, min: 0, max: 3, avg: 0.39)
+Equal non-trivial interpolants along paths:           74509 (count: 249, min: 0, max: 701, avg: 299.23)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                250
+Number of successful refinements:     249
+Number of failed refinements:         0
+Max. size of reached set before ref.: 77847
+Max. size of reached set after ref.:  74984
+Avg. size of reached set before ref.: 43558.28
+Avg. size of reached set after ref.:  11714.93
+
+Total time for CEGAR algorithm:     888.917s
+Time for refinements:               117.490s
+Average time for refinement:          0.469s
+Max time for refinement:              2.271s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.438
+  Visited lines:          5331
+  Total lines:            15594
+  Line coverage:          0.342
+  Visited conditions:     1407
+  Total conditions:       4902
+  Condition coverage:     0.287
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     21343
+Number of CFA edges:             25828
+Number of relevant variables:    3868
+Number of functions:             534
+Number of loops:                 165
+Size of reached set:             77818
+  Number of reached locations:   4149 (19%)
+    Avg states per location:     18
+    Max states per location:     1306 (at node N440)
+  Number of reached functions:   234 (44%)
+  Number of partitions:          77727
+    Avg size of partitions:      1
+    Max size of partitions:      4 (with key [N6914 (before line 13175), Function main called from node N6890, stack depth 1 [559d9517], stack [main]])
+  Number of target states:       1
+  Size of final wait list        33
+
+Time for analysis setup:         11.319s
+  Time for loading CPAs:          1.396s
+  Time for loading parser:        0.680s
+  Time for CFA construction:      9.062s
+    Time for parsing file(s):     1.655s
+    Time for AST to CFA:          3.485s
+    Time for CFA sanity check:    0.905s
+    Time for post-processing:     2.730s
+      Time for var class.:        1.612s
+Time for Analysis:              888.917s
+CPU time for analysis:          888.860s
+Total time for CPAchecker:      900.245s
+Total CPU time for CPAchecker:  900.160s
+Time for statistics:              1.283s
+
+Time for Garbage Collector:      68.053s (in 1000 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                747MB (   712 MiB) max;    357MB (   340 MiB) avg;    761MB (   726 MiB) peak
+Used non-heap memory:             49MB (    47 MiB) max;     41MB (    40 MiB) avg;     49MB (    47 MiB) peak
+Allocated heap memory:           781MB (   745 MiB) max;    511MB (   487 MiB) avg
+Allocated non-heap memory:        51MB (    49 MiB) max;     51MB (    48 MiB) avg
+Total process virtual memory:   8153MB (  7775 MiB) max;   8130MB (  7754 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

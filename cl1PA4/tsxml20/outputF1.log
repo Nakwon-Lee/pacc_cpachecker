@@ -1,0 +1,756 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-3.16-rc1/43_2a_consumption_linux-3.16-rc1.tar.xz-43_2a-drivers--net--wireless--ath--ath5k--ath5k.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_1ze5xekj/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 23140: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23143: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23149: Dead code detected: __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6004;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23166: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23166: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23167: Dead code detected: __asm__ ("incb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23169: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23169: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23170: Dead code detected: __asm__ ("decb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23172: Dead code detected: __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23176: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23176: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23177: Dead code detected: __asm__ ("incw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23179: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23179: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23180: Dead code detected: __asm__ ("decw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23182: Dead code detected: __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23196: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23196: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23197: Dead code detected: __asm__ ("incq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23199: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23199: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23200: Dead code detected: __asm__ ("decq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23202: Dead code detected: __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incb %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decb %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (val));
+  }
+  goto ldv_6061;
+  case 2UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incw %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decw %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (val));
+  }
+  goto ldv_6061;
+  case 4UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incl %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decl %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addl %1, %%gs:%P0": "+m" (__preempt_count): "ri" (val));
+  }
+  goto ldv_6061;
+  case 8UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incq %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decq %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (val));
+  }
+  goto ldv_6061;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23220: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23220: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23221: Dead code detected: __asm__ ("incb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23223: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23223: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23224: Dead code detected: __asm__ ("decb %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23226: Dead code detected: __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (- val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23230: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23230: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23231: Dead code detected: __asm__ ("incw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23233: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23233: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23234: Dead code detected: __asm__ ("decw %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23236: Dead code detected: __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (- val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23250: Dead code detected: [pao_ID__ == 1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23250: Dead code detected: [!(pao_ID__ == 1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23251: Dead code detected: __asm__ ("incq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23253: Dead code detected: [pao_ID__ == -1] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23253: Dead code detected: [!(pao_ID__ == -1)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23254: Dead code detected: __asm__ ("decq %%gs:%P0": "+m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 23256: Dead code detected: __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (- val)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incb %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decb %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addb %1, %%gs:%P0": "+m" (__preempt_count): "qi" (- val));
+  }
+  goto ldv_6073;
+  case 2UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incw %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decw %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addw %1, %%gs:%P0": "+m" (__preempt_count): "ri" (- val));
+  }
+  goto ldv_6073;
+  case 4UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incl %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decl %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addl %1, %%gs:%P0": "+m" (__preempt_count): "ri" (- val));
+  }
+  goto ldv_6073;
+  case 8UL: ;
+  if (pao_ID__ == 1) {
+    __asm__ ("incq %%gs:%P0": "+m" (__preempt_count));
+  } else
+  if (pao_ID__ == -1) {
+    __asm__ ("decq %%gs:%P0": "+m" (__preempt_count));
+  } else {
+    __asm__ ("addq %1, %%gs:%P0": "+m" (__preempt_count): "re" (- val));
+  }
+  goto ldv_6073;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+lines 26813-26815: Function pointer *(ah->ah_setup_tx_desc) with type int (*)(struct ath5k_hw *, struct ath5k_desc *, unsigned int, unsigned int, int, enum ath5k_pkt_type , unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 23725: Function pointer *(ops->alloc) with type void *(*)(struct device *, size_t , dma_addr_t *, gfp_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 23757: Function pointer *(ops->free) with type void (*)(struct device *, size_t , void *, dma_addr_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 23595-23596: Function pointer *(ops->map_page) with type dma_addr_t (*)(struct device *, struct page *, unsigned long, size_t , enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 23649: Function pointer *(ops->mapping_error) with type int (*)(struct device *, dma_addr_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 23629: Function pointer *(ops->unmap_page) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 24180-24182: Function pointer *((void (*)(void *, struct ath5k_hw *, struct sk_buff *))it_func) with type void (*)(void *, struct ath5k_hw *, struct sk_buff *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 24235-24238: Function pointer *((void (*)(void *, struct ath5k_hw *, struct sk_buff *, struct ath5k_txq *))it_func) with type void (*)(void *, struct ath5k_hw *, struct sk_buff *, struct ath5k_txq *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 24291-24292: Function pointer *((void (*)(void *, struct ath5k_hw *, struct sk_buff *, struct ath5k_txq *, struct ath5k_tx_status *))it_func) with type void (*)(void *, struct ath5k_hw *, struct sk_buff *, struct ath5k_txq *, struct ath5k_tx_status *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 36379: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___3 = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_4 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_4 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_complete_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_suspend_noirq_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_restore_noirq_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_poweroff_late_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_poweroff_noirq_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_thaw_noirq_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_freeze_late_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_prepare_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_freeze_noirq_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_resume_noirq_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_thaw_early_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_resume_early_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_restore_early_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_suspend_late_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 34893: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 34899: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___2 = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_release_11 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function noop_llseek to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function simple_open to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function net_ratelimit to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ieee80211_queue_work to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 33452-33453: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\017", "(%s:%d): debug file triggered reset\n", "write_file_reset", 414) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ldv__builtin_va_start to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv__builtin_va_end to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 31158: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function kstrtoint to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 29901-29902: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "firstep level %d out of range", level) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ioread32 to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function iowrite32 to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 29916-29917: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\017", "(%s:%d): new level %d", "ath5k_ani_set_firstep_level", 283, level) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 34981: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 34983: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___2 = ldv_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 34985: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___3 = ldv_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_release_7 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function default_llseek to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 33173: Return type of function __builtin_object_size is void, but result is used as type int: tmp = __builtin_object_size((const void *)to, 0); (PredicateCPA:CtoFormulaConverter.getReturnType, WARNING)
+
+Assuming external function __builtin_object_size to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Cannot get declaration of function __builtin_object_size, ignoring calls to it. (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function might_fault to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _copy_from_user to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __copy_from_user_overflow to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snprintf to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 28883: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ftrace_event_reg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function trace_event_raw_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function trace_define_field to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 31200: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31202: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31204: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function pci_disable_link_state to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_enable_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_err to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_set_mask to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_disable_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_set_master to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_request_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_iomap to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ieee80211_alloc_hw to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_iounmap to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_release_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _dev_info to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __mutex_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __raw_spin_lock_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function request_threaded_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 27796: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "request_irq failed\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ieee80211_free_hw to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 24137: Ignoring function call through function pointer *(common->bus_ops->read_cachesize): (*(common->bus_ops->read_cachesize))(common, csz); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function free_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 24695: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\f", "bad mode, not copying channels\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28224: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t get channels\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 27838-27839: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\016", "Atheros AR%s chip found (MAC: 0x%x, PHY: 0x%x)\n", tmp___0, ah->ah_mac_srev, __CPAchecker_TMP_3) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function debugfs_create_dir to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function debugfs_create_file to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function debugfs_create_bool to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 27845-27846: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\016", "RF%s 2GHz radio found (0x%x)\n", tmp___1, __CPAchecker_TMP_7) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 27851-27852: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\016", "RF%s 5GHz radio found (0x%x)\n", tmp___2, __CPAchecker_TMP_9) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 27855-27856: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\016", "RF%s multiband radio found (0x%x)\n", tmp___3, __CPAchecker_TMP_11) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 27862-27863: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\016", "RF%s 5GHz radio found (0x%x)\n", tmp___6, __CPAchecker_TMP_15) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 27865-27866: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\016", "RF%s 2GHz radio found (0x%x)\n", tmp___7, __CPAchecker_TMP_17) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 25490: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t allocate descriptors\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28236: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t allocate descriptors\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28248: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup a beacon xmit queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 23629: Ignoring function call through function pointer *(ops->unmap_page): (*(ops->unmap_page))(dev, addr, size, dir, attrs); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function debug_dma_unmap_page to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ieee80211_free_txskb to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __dev_kfree_skb_any to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function warn_slowpath_null to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function debug_dma_free_coherent to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 23757: Ignoring function call through function pointer *(ops->free): (*(ops->free))(dev, size, vaddr, bus, attrs); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 28262: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup cab queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28278: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup xmit queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28293: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup xmit queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28308: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup xmit queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28323: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup xmit queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function tasklet_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __init_work to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lockdep_init_map to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function init_timer_key to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 28381: Ignoring function call through function pointer *(tmp___21->bus_ops->eeprom_read_mac): ret = (*(tmp___21->bus_ops->eeprom_read_mac))(ah, (u8 *)(&mac)); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 28385: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "unable to read address from EEPROM\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ieee80211_iterate_active_interfaces_atomic to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ath_regd_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ieee80211_register_hw to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ath_is_world_regd to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function regulatory_hint to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 28412: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t register ieee80211 hw\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 28400: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t initialize regulatory system\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_match_id to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function sysfs_create_group to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 31046: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "failed to create sysfs group\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function strncpy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function led_classdev_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 29320-29321: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\f", "could not register LED %s\n", name) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 25106-25107: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\017", "(%s:%d): RX filter 0x%x\n", "ath5k_update_bssid_mask_and_opmode", 707, rfilt) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function ath_hw_setbssidmask to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 25075-25077: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\017", "(%s:%d): mode setup opmode %d (%s)\n", "ath5k_update_bssid_mask_and_opmode", 688, __CPAchecker_TMP_1, tmp___0) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 16537-16538: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\017", "(%s:%d): mode %d\n", "ath5k_hw_set_opmode", 1015, (unsigned int)op_mode) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 9611: Ignoring function call through function pointer *(common->bus_ops->eeprom_read): tmp___0 = (*(common->bus_ops->eeprom_read))(common, off, data); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function usleep_range to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 28340: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t setup xmit queue\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 25519: Ignoring parameters passed as varargs to function _ath5k_printk: _ath5k_printk((const struct ath5k_hw *)ah, "\v", "can\'t allocate bufptr\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __list_add to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ieee80211_unregister_hw to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function led_classdev_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function sysfs_remove_group to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 31280: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31326: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31328: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function pci_unregister_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_check_final_state to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __pci_register_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 31127: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31140: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31075: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31101: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31088: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 31114: Destroying the void* pointer ldv_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ieee80211_channel_to_frequency to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 900s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 900s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            217242 (16% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  200794 (92%)
+  Because of loop head:            16367 (8%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         81 (0%)
+  Times precision was empty:       140075 (64%)
+  Times precision was {false}:     1833 (1%)
+  Times result was cached:         73702 (34%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      1632 (1%)
+  Times result was 'false':        1088 (1%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         247404
+  BDD entailment checks:           44874
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       216
+Number of predicates discovered:          15
+Number of abstraction locations:          269
+Max number of predicates per location:    13
+Avg number of predicates per location:    1
+Total predicates per abstraction:         207959
+Max number of predicates per abstraction: 13
+Avg number of predicates per abstraction: 60.02
+Number of irrelevant predicates:          152687 (73%)
+Number of preds handled by boolean abs:   3344 (2%)
+  Total number of models for allsat:      32100
+  Max number of models for allsat:        1296
+  Avg number of models for allsat:        19.67
+
+Time for post operator:                357.812s
+  Time for path formula creation:      356.924s
+Time for strengthen operator:            1.697s
+Time for prec operator:                 98.364s
+  Time for abstraction:                 85.980s (Max:     0.914s, Count: 217242)
+    Boolean abstraction:                29.026s
+    Solving time:                       40.973s (Max:     0.680s)
+    Model enumeration time:             15.759s
+    Time for BDD construction:           0.955s (Max:     0.048s)
+Time for merge operator:                41.224s
+Time for coverage check:                 0.175s
+  Time for BDD entailment checks:        0.120s
+Total time for SMT solver (w/o itp):    56.732s
+
+Number of path formula cache hits:   685100 (45%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:   317.881s
+
+Total number of created targets for pointer analysis: 9080469
+   Number of created targets for uf: *(struct_ath_bus_ops)* is 140
+   Number of created targets for uf: *signed_char is 95173
+   Number of created targets for uf: *enum_nl80211_iftype is 142
+   Number of created targets for uf: *(struct_ath5k_desc)* is 76
+   Number of created targets for uf: *(struct_pci_dev)* is 75
+   Number of created targets for uf: *(struct_ath5k_txq)* is 226
+   Number of created targets for uf: *(unsigned_int)* is 4501
+   Number of created targets for uf: *(struct_ath5k_hw)* is 601
+   Number of created targets for uf: *unsigned_long_int is 3526
+   Number of created targets for uf: *signed_int is 2740
+   Number of created targets for uf: *unsigned_char is 105574
+   Number of created targets for uf: *(Return_type:_[signed_int],_Parameters:_3,_Parameter_1_type:_[(struct_ath5k_hw)*],_Parameter_2_type:_[(struct_ath5k_desc)*],_Parameter_3_type:_[(struct_ath5k_tx_status)*],_VarArgs:_false)* is 75
+   Number of created targets for uf: *(struct_list_head)* is 15301
+   Number of created targets for uf: *(struct_ieee80211_hw)* is 75
+   Number of created targets for uf: *(struct_ieee80211_channel)* is 454
+   Number of created targets for uf: *enum_ath5k_tx_queue_subtype is 3301
+   Number of created targets for uf: *enum_ath5k_int is 149
+   Number of created targets for uf: *enum_ieee80211_band is 1542
+   Number of created targets for uf: *enum_ath5k_tx_queue is 11589
+   Number of created targets for uf: *unsigned_long_long_int is 1905
+   Number of created targets for uf: *unsigned_int is 32471
+   Number of created targets for uf: *(struct_device)* is 75
+   Number of created targets for uf: *(void)* is 2102
+   Number of created targets for uf: *(struct_ieee80211_rate)* is 223
+   Number of created targets for uf: *(Return_type:_[signed_int],_Parameters:_3,_Parameter_1_type:_[(struct_ath5k_hw)*],_Parameter_2_type:_[(struct_ath5k_desc)*],_Parameter_3_type:_[(struct_ath5k_rx_status)*],_VarArgs:_false)* is 75
+   Number of created targets for uf: *unsigned_short_int is 44457
+   Number of created targets for uf: *enum_ath5k_ani_mode is 75
+   Number of created targets for uf: *enum_ath5k_version is 75
+   Number of created targets for uf: *(Return_type:_[signed_int],_Parameters:_14,_Parameter_1_type:_[(struct_ath5k_hw)*],_Parameter_2_type:_[(struct_ath5k_desc)*],_Parameter_3_type:_[unsigned_int],_Parameter_4_type:_[unsigned_int],_Parameter_5_type:_[signed_int],_Parameter_6_type:_[enum_ath5k_pkt_type],_Parameter_7_type:_[unsigned_int],_Parameter_8_type:_[unsigned_int],_Parameter_9_type:_[unsigned_int],_Parameter_10_type:_[unsigned_int],_Parameter_11_type:_[unsigned_int],_Parameter_12_type:_[unsigned_int],_Parameter_13_type:_[unsigned_int],_Parameter_14_type:_[unsigned_int],_VarArgs:_false)* is 75
+   Number of created targets for uf: *_Bool is 2739
+   Number of created targets for uf: *char is 4700
+
+
+Number of BDD nodes:                               35679
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                        4546 (count: 204881, min: 0, max: 601, avg: 0.02)
+Time for BDD node cleanup:                             0.053s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  2.823s
+  Time for transition matches:                         1.684s
+  Time for transition assertions:                      0.001s
+  Time for transition actions:                         0.000s
+Automaton transfers with branching:                0
+Automaton transfer successors:                      1377378 (count: 1377378, min: 1, max: 1, avg: 1.00) [1 x 1377378]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            922595
+Max size of waitlist:            380
+Average size of waitlist:        236
+Number of computed successors:   1081022
+Max successors for one state:    2
+Number of times merged:          101265
+Number of times stopped:         138422
+Number of times breaked:         81
+
+Total time for CPA algorithm:       557.258s (Max:    14.734s)
+  Time for choose from waitlist:      0.738s
+  Time for precision adjustment:    107.017s
+  Time for transfer relation:       398.876s
+  Time for merge operator:           43.050s
+  Time for stop operator:             1.623s
+  Time for adding to reached set:     2.381s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   81
+Avg. length of target path (in blocks):               21066 (count: 81, min: 101, max: 366, avg: 260.07)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                 329.154s
+  Counterexample analysis:                           326.331s (Max:     7.749s, Calls: 81)
+    Refinement sat check:                            298.569s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.015s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.147s
+  Precision update:                                    0.105s
+  ARG update:                                          2.382s
+
+Length of refined path (in blocks):                   16510 (count: 81, min: 12, max: 365, avg: 203.83)
+Number of affected states:                            11639 (count: 81, min: 1, max: 364, avg: 143.69)
+Length (states) of path with itp 'true':               4790 (count: 81, min: 0, max: 196, avg: 59.14)
+Length (states) of path with itp non-trivial itp:     11639 (count: 81, min: 1, max: 364, avg: 143.69)
+Length (states) of path with itp 'false':                81 (count: 81, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:           0 (count: 81, min: 0, max: 0, avg: 0.00)
+Equal non-trivial interpolants along paths:           11558 (count: 81, min: 0, max: 363, avg: 142.69)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                81
+Number of successful refinements:     81
+Number of failed refinements:         0
+Max. size of reached set before ref.: 14516
+Max. size of reached set after ref.:  2618
+Avg. size of reached set before ref.: 12016.79
+Avg. size of reached set after ref.:  480.33
+
+Total time for CEGAR algorithm:     887.505s
+Time for refinements:               330.210s
+Average time for refinement:          4.076s
+Max time for refinement:              7.790s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.162
+  Visited lines:          3003
+  Total lines:            16771
+  Line coverage:          0.179
+  Visited conditions:     577
+  Total conditions:       5606
+  Condition coverage:     0.103
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     24588
+Number of CFA edges:             29180
+Number of relevant variables:    4614
+Number of functions:             721
+Number of loops:                 149
+Size of reached set:             7059
+  Number of reached locations:   1527 (6%)
+    Avg states per location:     4
+    Max states per location:     90 (at node N25)
+  Number of reached functions:   117 (16%)
+  Number of partitions:          7039
+    Avg size of partitions:      1
+    Max size of partitions:      7 (with key [N23795 (before line 36418), Function main called from node N23730, stack depth 1 [5cf69333], stack [main]])
+  Number of target states:       0
+  Size of final wait list        325
+
+Time for analysis setup:         12.917s
+  Time for loading CPAs:          1.227s
+  Time for loading parser:        0.717s
+  Time for CFA construction:     10.821s
+    Time for parsing file(s):     1.905s
+    Time for AST to CFA:          3.915s
+    Time for CFA sanity check:    1.159s
+    Time for post-processing:     3.644s
+      Time for var class.:        1.822s
+Time for Analysis:              887.505s
+CPU time for analysis:          887.420s
+Total time for CPAchecker:      900.426s
+Total CPU time for CPAchecker:  900.300s
+Time for statistics:              0.316s
+
+Time for Garbage Collector:      20.123s (in 552 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                589MB (   562 MiB) max;    318MB (   303 MiB) avg;    607MB (   579 MiB) peak
+Used non-heap memory:             50MB (    47 MiB) max;     41MB (    40 MiB) avg;     50MB (    47 MiB) peak
+Allocated heap memory:           682MB (   650 MiB) max;    470MB (   448 MiB) avg
+Allocated non-heap memory:        52MB (    49 MiB) max;     51MB (    49 MiB) avg
+Total process virtual memory:   8634MB (  8234 MiB) max;   8354MB (  7967 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".
