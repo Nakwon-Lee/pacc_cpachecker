@@ -1,0 +1,61 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/seq-mthreaded/rekh_aso_true-unreach-call.2.M1.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_6_u5fusq/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function nxt_motor_set_speed to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function nxt_motor_set_count to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ecrobot_sound_tone to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __startrek_get_pi_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __startrek_release_pi_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ecrobot_bt_data_logger to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 900s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Shutdown was requested but CPAchecker is still running after 10s, forcing immediate termination now. (ForceTerminationOnShutdown.run, WARNING)
+
+For your information: CPAchecker is currently hanging at
+ org.sosy_lab.java_smt.solvers.mathsat5.Mathsat5NativeApi.msat_solve(Native Method)
+org.sosy_lab.java_smt.solvers.mathsat5.Mathsat5NativeApi.msat_check_sat(Mathsat5NativeApi.java:162)
+org.sosy_lab.java_smt.solvers.mathsat5.Mathsat5AbstractProver.isUnsat(Mathsat5AbstractProver.java:69)
+org.sosy_lab.cpachecker.util.predicates.smt.InterpolatingProverEnvironmentView.isUnsat(InterpolatingProverEnvironmentView.java:74)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager$Interpolator.checkInfeasabilityOfTrace(InterpolationManager.java:998)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager$Interpolator.buildCounterexampleTrace(InterpolationManager.java:843)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager$Interpolator.access$000(InterpolationManager.java:768)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager.buildCounterexampleTrace0(InterpolationManager.java:337)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager.lambda$buildCounterexampleTrace$0(InterpolationManager.java:275)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager$$Lambda$148/1622546120.call(Unknown Source)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager.callWithTimelimit(InterpolationManager.java:284)
+org.sosy_lab.cpachecker.util.predicates.interpolation.InterpolationManager.buildCounterexampleTrace(InterpolationManager.java:274)
+org.sosy_lab.cpachecker.cpa.predicate.PredicateCPARefiner.performInterpolatingRefinement(PredicateCPARefiner.java:333)
+org.sosy_lab.cpachecker.cpa.predicate.PredicateCPARefiner.performRefinementForPath(PredicateCPARefiner.java:278)
+org.sosy_lab.cpachecker.cpa.arg.AbstractARGBasedRefiner.performRefinementForPath(AbstractARGBasedRefiner.java:166)
+org.sosy_lab.cpachecker.cpa.arg.AbstractARGBasedRefiner.performRefinement(AbstractARGBasedRefiner.java:120)
+org.sosy_lab.cpachecker.core.algorithm.CEGARAlgorithm.refine(CEGARAlgorithm.java:258)
+org.sosy_lab.cpachecker.core.algorithm.CEGARAlgorithm.run(CEGARAlgorithm.java:203)
+org.sosy_lab.cpachecker.core.CPAchecker.runAlgorithm(CPAchecker.java:473)
+org.sosy_lab.cpachecker.core.CPAchecker.run(CPAchecker.java:353)
+org.sosy_lab.cpachecker.cmdline.CPAMain.main(CPAMain.java:170) 
+ (ForceTerminationOnShutdown.run, INFO)
+
