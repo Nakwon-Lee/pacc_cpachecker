@@ -1,0 +1,1019 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 9600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-sound--core--snd-rawmidi.ko-ldv_main0_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 9600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_yfpxpfo5/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker 1.6.1-svn 6608050+ (OpenJDK 64-Bit Server VM 1.8.0_151) started (CPAchecker.run, INFO)
+
+line 2858: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 2861: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 2864: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3935: Dead code detected: tmp___10 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3940: Dead code detected: tmp___11 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3945: Dead code detected: tmp___12 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___10 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___10->state): : "memory",
+                       "cc");
+  goto ldv_24468;
+  case 2UL:
+  tmp___11 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___11->state): : "memory",
+                       "cc");
+  goto ldv_24468;
+  case 4UL:
+  tmp___12 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___12->state): : "memory",
+                       "cc");
+  goto ldv_24468;
+  case 8UL:
+  tmp___13 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___13->state): : "memory",
+                       "cc");
+  goto ldv_24468;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4244: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4247: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4253: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device));
+  goto ldv_24532;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device));
+  goto ldv_24532;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device));
+  goto ldv_24532;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device));
+  goto ldv_24532;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu), "=d" (__val_gu): "0" (& _info->device));
+  goto ldv_24532;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4269: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4272: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4278: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream));
+  goto ldv_24541;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream));
+  goto ldv_24541;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream));
+  goto ldv_24541;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream));
+  goto ldv_24541;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& _info->stream));
+  goto ldv_24541;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4294: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4297: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4303: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice));
+  goto ldv_24550;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice));
+  goto ldv_24550;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice));
+  goto ldv_24550;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice));
+  goto ldv_24550;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& _info->subdevice));
+  goto ldv_24550;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4484: Dead code detected: __asm__ volatile ("call __put_user_1": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4487: Dead code detected: __asm__ volatile ("call __put_user_2": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4493: Dead code detected: __asm__ volatile ("call __put_user_8": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __put_user_1": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24589;
+  case 2UL:
+  __asm__ volatile ("call __put_user_2": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24589;
+  case 4UL:
+  __asm__ volatile ("call __put_user_4": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24589;
+  case 8UL:
+  __asm__ volatile ("call __put_user_8": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24589;
+  default:
+  __asm__ volatile ("call __put_user_X": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24589;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4506: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4509: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4515: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream));
+  goto ldv_24601;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream));
+  goto ldv_24601;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream));
+  goto ldv_24601;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream));
+  goto ldv_24601;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu), "=d" (__val_gu): "0" (& info->stream));
+  goto ldv_24601;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4610: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4613: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4619: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24627;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24627;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24627;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24627;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24627;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4648: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4651: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4657: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp));
+  goto ldv_24640;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp));
+  goto ldv_24640;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp));
+  goto ldv_24640;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp));
+  goto ldv_24640;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" ((int *)argp));
+  goto ldv_24640;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4719: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4722: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4728: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp));
+  goto ldv_24662;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp));
+  goto ldv_24662;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp));
+  goto ldv_24662;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp));
+  goto ldv_24662;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu), "=d" (__val_gu): "0" ((int *)argp));
+  goto ldv_24662;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4774: Dead code detected: __asm__ volatile ("call __put_user_1": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4777: Dead code detected: __asm__ volatile ("call __put_user_2": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4783: Dead code detected: __asm__ volatile ("call __put_user_8": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __put_user_1": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24674;
+  case 2UL:
+  __asm__ volatile ("call __put_user_2": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24674;
+  case 4UL:
+  __asm__ volatile ("call __put_user_4": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24674;
+  case 8UL:
+  __asm__ volatile ("call __put_user_8": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24674;
+  default:
+  __asm__ volatile ("call __put_user_X": "=a" (__ret_pu): "0" (__pu_val), "c" ((int *)argp): "ebx");
+  goto ldv_24674;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4800: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4803: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4809: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24685;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24685;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24685;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24685;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" ((int *)argp));
+  goto ldv_24685;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5063: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5068: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5073: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___0 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___0->state): : "memory",
+                       "cc");
+  goto ldv_24751;
+  case 2UL:
+  tmp___1 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                       "cc");
+  goto ldv_24751;
+  case 4UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_24751;
+  case 8UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_24751;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5488: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5493: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5498: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___0 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___0->state): : "memory",
+                       "cc");
+  goto ldv_24857;
+  case 2UL:
+  tmp___1 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                       "cc");
+  goto ldv_24857;
+  case 4UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_24857;
+  case 8UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_24857;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5574: Dead code detected: tmp___9 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5579: Dead code detected: tmp___10 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5584: Dead code detected: tmp___11 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1UL:
+    tmp___9 = get_current();
+    __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret___0), "+m" (tmp___9->state): : "memory",
+                         "cc");
+    goto ldv_24873;
+    case 2UL:
+    tmp___10 = get_current();
+    __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret___0), "+m" (tmp___10->state): : "memory",
+                         "cc");
+    goto ldv_24873;
+    case 4UL:
+    tmp___11 = get_current();
+    __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret___0), "+m" (tmp___11->state): : "memory",
+                         "cc");
+    goto ldv_24873;
+    case 8UL:
+    tmp___12 = get_current();
+    __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret___0), "+m" (tmp___12->state): : "memory",
+                         "cc");
+    goto ldv_24873;
+    default:
+    __xchg_wrong_size();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5705: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5708: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5714: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26102;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26102;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26102;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26102;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26102;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5728: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5731: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5737: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1UL:
+    __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size));
+    goto ldv_26111;
+    case 2UL:
+    __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size));
+    goto ldv_26111;
+    case 4UL:
+    __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size));
+    goto ldv_26111;
+    case 8UL:
+    __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size));
+    goto ldv_26111;
+    default:
+    __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___0), "=d" (__val_gu___0): "0" (& src->buffer_size));
+    goto ldv_26111;
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5751: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5754: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5760: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+      case 1UL:
+      __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min));
+      goto ldv_26120;
+      case 2UL:
+      __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min));
+      goto ldv_26120;
+      case 4UL:
+      __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min));
+      goto ldv_26120;
+      case 8UL:
+      __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min));
+      goto ldv_26120;
+      default:
+      __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___1), "=d" (__val_gu___1): "0" (& src->avail_min));
+      goto ldv_26120;
+      } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5774: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5777: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5783: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+        case 1UL:
+        __asm__ volatile ("call __get_user_1": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing));
+        goto ldv_26129;
+        case 2UL:
+        __asm__ volatile ("call __get_user_2": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing));
+        goto ldv_26129;
+        case 4UL:
+        __asm__ volatile ("call __get_user_4": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing));
+        goto ldv_26129;
+        case 8UL:
+        __asm__ volatile ("call __get_user_8": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing));
+        goto ldv_26129;
+        default:
+        __asm__ volatile ("call __get_user_X": "=a" (__ret_gu___2), "=d" (__val_gu___2): "0" (& src->no_active_sensing));
+        goto ldv_26129;
+        } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5835: Dead code detected: __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5838: Dead code detected: __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5844: Dead code detected: __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __get_user_1": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26152;
+  case 2UL:
+  __asm__ volatile ("call __get_user_2": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26152;
+  case 4UL:
+  __asm__ volatile ("call __get_user_4": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26152;
+  case 8UL:
+  __asm__ volatile ("call __get_user_8": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26152;
+  default:
+  __asm__ volatile ("call __get_user_X": "=a" (__ret_gu), "=d" (__val_gu): "0" (& src->stream));
+  goto ldv_26152;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5877: Dead code detected: __asm__ volatile ("call __put_user_1": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5880: Dead code detected: __asm__ volatile ("call __put_user_2": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 5886: Dead code detected: __asm__ volatile ("call __put_user_8": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile ("call __put_user_1": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx");
+  goto ldv_26165;
+  case 2UL:
+  __asm__ volatile ("call __put_user_2": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx");
+  goto ldv_26165;
+  case 4UL:
+  __asm__ volatile ("call __put_user_4": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx");
+  goto ldv_26165;
+  case 8UL:
+  __asm__ volatile ("call __put_user_8": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx");
+  goto ldv_26165;
+  default:
+  __asm__ volatile ("call __put_user_X": "=a" (__ret_pu): "0" (__pu_val), "c" (& src->tstamp.tv_sec): "ebx");
+  goto ldv_26165;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5900-5901: Dead code detected: __asm__ volatile ("call __put_user_1": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5904-5905: Dead code detected: __asm__ volatile ("call __put_user_2": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5912-5913: Dead code detected: __asm__ volatile ("call __put_user_8": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1UL:
+    __asm__ volatile ("call __put_user_1": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx");
+    goto ldv_26174;
+    case 2UL:
+    __asm__ volatile ("call __put_user_2": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx");
+    goto ldv_26174;
+    case 4UL:
+    __asm__ volatile ("call __put_user_4": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx");
+    goto ldv_26174;
+    case 8UL:
+    __asm__ volatile ("call __put_user_8": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx");
+    goto ldv_26174;
+    default:
+    __asm__ volatile ("call __put_user_X": "=a" (__ret_pu___0): "0" (__pu_val___0),
+                         "c" (& src->tstamp.tv_nsec): "ebx");
+    goto ldv_26174;
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5928-5929: Dead code detected: __asm__ volatile ("call __put_user_1": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5932-5933: Dead code detected: __asm__ volatile ("call __put_user_2": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5940-5941: Dead code detected: __asm__ volatile ("call __put_user_8": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+      case 1UL:
+      __asm__ volatile ("call __put_user_1": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx");
+      goto ldv_26183;
+      case 2UL:
+      __asm__ volatile ("call __put_user_2": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx");
+      goto ldv_26183;
+      case 4UL:
+      __asm__ volatile ("call __put_user_4": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx");
+      goto ldv_26183;
+      case 8UL:
+      __asm__ volatile ("call __put_user_8": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx");
+      goto ldv_26183;
+      default:
+      __asm__ volatile ("call __put_user_X": "=a" (__ret_pu___1): "0" (__pu_val___1),
+                           "c" (& src->avail): "ebx");
+      goto ldv_26183;
+      } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5956-5957: Dead code detected: __asm__ volatile ("call __put_user_1": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5960-5961: Dead code detected: __asm__ volatile ("call __put_user_2": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 5968-5969: Dead code detected: __asm__ volatile ("call __put_user_8": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+        case 1UL:
+        __asm__ volatile ("call __put_user_1": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx");
+        goto ldv_26192;
+        case 2UL:
+        __asm__ volatile ("call __put_user_2": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx");
+        goto ldv_26192;
+        case 4UL:
+        __asm__ volatile ("call __put_user_4": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx");
+        goto ldv_26192;
+        case 8UL:
+        __asm__ volatile ("call __put_user_8": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx");
+        goto ldv_26192;
+        default:
+        __asm__ volatile ("call __put_user_X": "=a" (__ret_pu___2): "0" (__pu_val___2),
+                             "c" (& src->xruns): "ebx");
+        goto ldv_26192;
+        } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 4040: Function pointer *(substream->ops->close) with type int (*)(struct snd_rawmidi_substream *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 4042: Function pointer *(substream->runtime->private_free) with type void (*)(struct snd_rawmidi_substream *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3636: Function pointer *(substream->ops->open) with type int (*)(struct snd_rawmidi_substream *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3220: Function pointer *(p->_qproc) with type void (*)(struct file *, wait_queue_head_t *, struct poll_table_struct *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6338: Function pointer *(rmidi->ops->dev_register) with type int (*)(struct snd_rawmidi *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3534: Function pointer *(substream->ops->drain) with type void (*)(struct snd_rawmidi_substream *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6267: Function pointer *(rmidi->private_free) with type void (*)(struct snd_rawmidi *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6259: Function pointer *(rmidi->ops->dev_unregister) with type int (*)(struct snd_rawmidi *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3331: Function pointer *(runtime->event) with type void (*)(struct snd_rawmidi_substream *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3431: Function pointer *(substream->ops->trigger) with type void (*)(struct snd_rawmidi_substream *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3417: Function pointer *(substream->ops->trigger) with type void (*)(struct snd_rawmidi_substream *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function ldv_handler_precall to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_ctl_register_ioctl to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_ctl_register_ioctl_compat to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __snd_printk to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_info_free_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6259: Ignoring function call through function pointer *(rmidi->ops->dev_unregister): (*(rmidi->ops->dev_unregister))(rmidi); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function list_del to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6267: Ignoring function call through function pointer *(rmidi->private_free): (*(rmidi->private_free))(rmidi); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function might_fault to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 3431: Ignoring function call through function pointer *(substream->ops->trigger): (*(substream->ops->trigger))(substream, up___0); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function cancel_work_sync to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 3417: Ignoring function call through function pointer *(substream->ops->trigger): (*(substream->ops->trigger))(substream, up___0); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 3133: Return type of function __builtin_object_size is void, but result is used as type int: tmp = __builtin_object_size((const void *)to, 0); (PredicateCPA:CtoFormulaConverter.getReturnType, WARNING)
+
+Assuming external function __builtin_object_size to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Cannot get declaration of function __builtin_object_size, ignoring calls to it. (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function strcpy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _copy_from_user to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _copy_to_user to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock_irqrestore to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function prepare_to_wait to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function finish_wait to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function msleep to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 3534: Ignoring function call through function pointer *(substream->ops->drain): (*(substream->ops->drain))(substream); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function warn_slowpath_fmt to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function schedule_timeout to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 3220: Ignoring function call through function pointer *(p->_qproc): (*(p->_qproc))(filp, wait_address, p); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 4040: Ignoring function call through function pointer *(substream->ops->close): (*(substream->ops->close))(substream); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 4042: Ignoring function call through function pointer *(substream->runtime->private_free): (*(substream->runtime->private_free))(substream); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function put_pid to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __wake_up to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_ctl_unregister_ioctl to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_ctl_unregister_ioctl_compat to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function krealloc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_card_file_remove to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function module_put to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function nonseekable_open to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __list_del_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __list_add to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_lookup_oss_minor_data to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function try_module_get to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_card_unref to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_lookup_minor_data to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_card_file_add to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_unregister_oss_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_oss_info_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_unregister_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_register_device_for_dev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function add_wait_queue to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6338: Ignoring function call through function pointer *(rmidi->ops->dev_register): err = (*(rmidi->ops->dev_register))(rmidi); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function snd_register_oss_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function remove_wait_queue to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function schedule to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_read_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_read_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __raw_spin_lock_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __init_waitqueue_head to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __init_work to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lockdep_init_map to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 3636: Ignoring function call through function pointer *(substream->ops->open): err = (*(substream->ops->open))(substream); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function snd_info_create_card_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_info_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_seq_device_new to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function snd_device_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_check_return_value to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 30s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            83645 (19% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  79875 (95%)
+  Because of loop head:            3534 (4%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         236 (0%)
+  Times precision was empty:       40895 (49%)
+  Times precision was {false}:     472 (1%)
+  Times result was cached:         41588 (50%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      690 (1%)
+  Times result was 'false':        1044 (1%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         52273
+  BDD entailment checks:           16409
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       36
+Number of predicates discovered:          14
+Number of abstraction locations:          162
+Max number of predicates per location:    5
+Avg number of predicates per location:    1
+Total predicates per abstraction:         58798
+Max number of predicates per abstraction: 5
+Avg number of predicates per abstraction: 50.60
+Number of irrelevant predicates:          30033 (51%)
+Number of preds handled by boolean abs:   1034 (2%)
+  Total number of models for allsat:      682
+  Max number of models for allsat:        1
+  Avg number of models for allsat:        0.99
+
+Time for post operator:                  6.313s
+  Time for path formula creation:        6.112s
+Time for strengthen operator:            0.325s
+Time for prec operator:                  7.286s
+  Time for abstraction:                  6.312s (Max:     0.034s, Count: 83645)
+    Boolean abstraction:                 1.003s
+    Solving time:                        1.179s (Max:     0.021s)
+    Model enumeration time:              0.034s
+    Time for BDD construction:           0.082s (Max:     0.010s)
+Time for merge operator:                 0.409s
+Time for coverage check:                 0.040s
+  Time for BDD entailment checks:        0.036s
+Total time for SMT solver (w/o itp):     1.213s
+
+Number of path formula cache hits:   468975 (87%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     4.908s
+
+Total number of created targets for pointer analysis: 11042
+   Number of created targets for uf: *(struct_snd_rawmidi)* is 102
+   Number of created targets for uf: *signed_int is 41
+   Number of created targets for uf: *(struct_list_head)* is 177
+   Number of created targets for uf: *(unsigned_char)* is 67
+   Number of created targets for uf: *(struct_snd_rawmidi_substream)* is 306
+   Number of created targets for uf: *unsigned_int is 3
+   Number of created targets for uf: *(Return_type:_[void],_Parameters:_1,_Parameter_1_type:_[(struct_snd_rawmidi_substream)*],_VarArgs:_false)* is 67
+   Number of created targets for uf: *unsigned_long_int is 3
+
+
+Number of BDD nodes:                               241
+Size of BDD node table:                            464047
+Size of BDD cache:                                 46411
+Size of BDD node cleanup queue:                        1541 (count: 63988, min: 0, max: 175, avg: 0.02)
+Time for BDD node cleanup:                             0.015s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.534s
+  Time for transition matches:                         0.221s
+  Time for transition assertions:                      0.000s
+  Time for transition actions:                         0.006s
+Automaton transfers with branching:                0
+Automaton transfer successors:                       452058 (count: 452058, min: 1, max: 1, avg: 1.00) [1 x 452058]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            301175
+Max size of waitlist:            43
+Average size of waitlist:        26
+Number of computed successors:   333918
+Max successors for one state:    2
+Number of times merged:          17932
+Number of times stopped:         31051
+Number of times breaked:         236
+
+Total time for CPA algorithm:        22.332s (Max:     0.499s)
+  Time for choose from waitlist:      0.198s
+  Time for precision adjustment:      9.054s
+  Time for transfer relation:        10.456s
+  Time for merge operator:            0.693s
+  Time for stop operator:             0.428s
+  Time for adding to reached set:     0.474s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   236
+Avg. length of target path (in blocks):                8792 (count: 236, min: 8, max: 69, avg: 37.25)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                   3.124s
+  Counterexample analysis:                             2.389s (Max:     0.030s, Calls: 236)
+    Refinement sat check:                              1.685s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.001s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.058s
+  Precision update:                                    0.091s
+  ARG update:                                          0.463s
+
+Length of refined path (in blocks):                    7515 (count: 236, min: 7, max: 52, avg: 31.84)
+Number of affected states:                             3453 (count: 236, min: 0, max: 41, avg: 14.63)
+Length (states) of path with itp 'true':               3826 (count: 236, min: 1, max: 38, avg: 16.21)
+Length (states) of path with itp non-trivial itp:      3453 (count: 236, min: 0, max: 41, avg: 14.63)
+Length (states) of path with itp 'false':               236 (count: 236, min: 1, max: 1, avg: 1.00)
+Different non-trivial interpolants along paths:           0 (count: 236, min: 0, max: 0, avg: 0.00)
+Equal non-trivial interpolants along paths:            3223 (count: 236, min: 0, max: 40, avg: 13.66)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                236
+Number of successful refinements:     236
+Number of failed refinements:         0
+Max. size of reached set before ref.: 7944
+Max. size of reached set after ref.:  7888
+Avg. size of reached set before ref.: 3977.19
+Avg. size of reached set after ref.:  2719.89
+
+Total time for CEGAR algorithm:      26.515s
+Time for refinements:                 3.859s
+Average time for refinement:          0.016s
+Max time for refinement:              0.044s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.559
+  Visited lines:          1899
+  Total lines:            2843
+  Line coverage:          0.668
+  Visited conditions:     516
+  Total conditions:       834
+  Condition coverage:     0.619
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     4054
+Number of CFA edges:             4617
+Number of relevant variables:    609
+Number of functions:             161
+Number of loops:                 21
+Size of reached set:             5101
+  Number of reached locations:   1455 (36%)
+    Avg states per location:     3
+    Max states per location:     78 (at node N28)
+  Number of reached functions:   90 (56%)
+  Number of partitions:          5090
+    Avg size of partitions:      1
+    Max size of partitions:      2 (with key [N399 (before line 3487), Function snd_rawmidi_drain_output called from node N882, stack depth 5 [174c8cfc], stack [main, snd_rawmidi_release, rawmidi_release_priv, close_substream, snd_rawmidi_drain_output]])
+  Number of target states:       0
+  Size of final wait list        20
+
+Time for analysis setup:          3.325s
+  Time for loading CPAs:          0.537s
+  Time for loading parser:        0.365s
+  Time for CFA construction:      2.330s
+    Time for parsing file(s):     0.584s
+    Time for AST to CFA:          0.830s
+    Time for CFA sanity check:    0.194s
+    Time for post-processing:     0.580s
+      Time for var class.:        0.332s
+Time for Analysis:               26.515s
+CPU time for analysis:           26.530s
+Total time for CPAchecker:       29.843s
+Total CPU time for CPAchecker:   29.850s
+Time for statistics:              0.102s
+
+Time for Garbage Collector:       0.769s (in 68 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                139MB (   132 MiB) max;     80MB (    76 MiB) avg;    144MB (   138 MiB) peak
+Used non-heap memory:             41MB (    39 MiB) max;     37MB (    35 MiB) avg;     41MB (    39 MiB) peak
+Allocated heap memory:           255MB (   243 MiB) max;    255MB (   243 MiB) avg
+Allocated non-heap memory:        43MB (    41 MiB) max;     39MB (    37 MiB) avg
+Total process virtual memory:  12150MB ( 11587 MiB) max;  12139MB ( 11576 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".
