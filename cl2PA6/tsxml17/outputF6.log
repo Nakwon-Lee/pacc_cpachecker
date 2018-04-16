@@ -1,0 +1,516 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-4.2-rc1/linux-4.2-rc1.tar.xz-43_2a-drivers--block--DAC960.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_dfzphhn0/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 6082: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6085: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6091: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6106;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6106;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6106;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6106;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 12427: Function pointer *(KernelCommand->CompletionFunction) with type void (*)(struct DAC960_V1_KernelCommand *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13318: Function pointer *(KernelCommand->CompletionFunction) with type void (*)(struct DAC960_V2_KernelCommand *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6528: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6569: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 15842: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15844: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15846: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___2 = ldv_init_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15852: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___5 = ldv_init_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15854: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___6 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15862: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___10 = ldv_init_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15864: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___11 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15866: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___12 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15868: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___13 = ldv_init_zalloc(8UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 15870: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___14 = ldv_init_zalloc(16UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_10 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_open_10 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function noop_llseek to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_15 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function seq_lseek to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function seq_read to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function single_release to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_shutdown_2 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function capable to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_lock_nested to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __might_fault to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function strcpy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function check_disk_change to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 7777-7778: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Illegal Logical Device Geometry %d\n", p, __CPAchecker_TMP_6) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function single_open to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function PDE_DATA to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 15701: Ignoring function call through function pointer *(timer->function): (*(timer->function))(timer->data); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 11307-11308: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"More than %d DAC960 Controllers detected - ignoring from Controller at\n", (DAC960_Controller_T *)0, 8) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 6347: Return type of function __builtin_object_size is void, but result is used as type int: tmp = __builtin_object_size((const void *)to, 0); (PredicateCPA:CtoFormulaConverter.getReturnType, WARNING)
+
+Assuming external function __builtin_object_size to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Cannot get declaration of function __builtin_object_size, ignoring calls to it. (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 6366: Return type of function __builtin_object_size is void, but result is used as type int: tmp = __builtin_object_size(from, 0); (PredicateCPA:CtoFormulaConverter.getReturnType, WARNING)
+
+Assuming external function ldv__builtin_va_start to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function vsprintf to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv__builtin_va_end to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __pci_register_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function add_timer to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __copy_from_user_overflow to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _copy_from_user to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_alloc_attrs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __copy_to_user_overflow to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _copy_to_user to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function remove_proc_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_unregister_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_check_final_state to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function memcpy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 12211-12212: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Background Initialization Aborted\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12202-12203: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Background Initialization Completed Successfully\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12192-12193: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Background Initialization Cancelled\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12188-12189: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Background Initialization Suspended\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12182-12184: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Background Initialization in Progress: Logical Drive %d (/dev/rd/c%dd%d) %d%% completed\n", Controller, LogicalDriveNumber___4, __CPAchecker_TMP_93, LogicalDriveNumber___4, ((BlocksCompleted___1 >> 7) * 100U) / (LogicalDriveSize___1 >> 7)) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 12173: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Background Initialization Started\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12155-12157: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check in Progress: Logical Drive %d (/dev/rd/c%dd%d) %d%% completed\n", Controller, LogicalDriveNumber___3, __CPAchecker_TMP_91, LogicalDriveNumber___3, ((BlocksCompleted___0 >> 7) * 100U) / (LogicalDriveSize___0 >> 7)) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 12133: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Rebuild Successfully Terminated\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 12130: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Rebuild Completed Successfully\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12124-12125: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Rebuild Failed due to Failure of Drive Being Rebuilt\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12120-12121: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Rebuild Failed due to Bad Blocks on Other Drives\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12116-12117: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Rebuild Failed due to Logical Drive Failure\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12110-12112: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Rebuild in Progress: Logical Drive %d (/dev/rd/c%dd%d) %d%% completed\n", Controller, LogicalDriveNumber___2, __CPAchecker_TMP_90, LogicalDriveNumber___2, ((BlocksCompleted >> 7) * 100U) / (LogicalDriveSize >> 7)) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12053-12055: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d is now %s\n", Controller, (int)(Controller->FW.V1.DeviceStateChannel), (int)(Controller->FW.V1.DeviceStateTargetID), __CPAchecker_TMP_64) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11996-11998: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d Error Log: Sense Key = %X, ASC = %02X, ASCQ = %02X\n", Controller, __CPAchecker_TMP_43, __CPAchecker_TMP_44, (int)SenseKey, (int)AdditionalSenseCode, (int)AdditionalSenseCodeQualifier) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11984-11986: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d %s\n", Controller, __CPAchecker_TMP_37, __CPAchecker_TMP_38, DAC960_EventMessages[(int)AdditionalSenseCodeQualifier]) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11892-11893: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Deferred Write Error Flag is now %s\n", Controller, __CPAchecker_TMP_12) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11943-11944: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check Successfully Terminated\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11939-11940: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check Failed - Other Causes\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11935-11936: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check Failed - Logical Drive Failed\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11931-11932: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check Failed - Physical Device Failed\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11927-11928: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check Completed with Error\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11917-11918: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Consistency Check Completed Successfully\n", Controller) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 12266: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12275: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12305: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12334: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12358: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12371: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12380: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12389: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12399: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 12257: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function complete to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 12075-12077: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) is now %s\n", Controller, LogicalDriveNumber___1, __CPAchecker_TMP_76, LogicalDriveNumber___1, __CPAchecker_TMP_78) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12082-12084: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) is now %s\n", Controller, LogicalDriveNumber___1, __CPAchecker_TMP_85, LogicalDriveNumber___1, __CPAchecker_TMP_87) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11857-11859: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) Now Exists\n", Controller, LogicalDriveNumber, __CPAchecker_TMP_5, LogicalDriveNumber) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11876-11878: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) No Longer Exists\n", Controller, LogicalDriveNumber___0, __CPAchecker_TMP_10, LogicalDriveNumber___0) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12025-12028: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d Errors: Parity = %d, Soft = %d, Hard = %d, Misc = %d\n", Controller, Channel, TargetID, __CPAchecker_TMP_55, __CPAchecker_TMP_56, __CPAchecker_TMP_57, __CPAchecker_TMP_58) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 13120-13122: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) is now %s\n", Controller, (int)LogicalDeviceNumber, __CPAchecker_TMP_94, (int)LogicalDeviceNumber, __CPAchecker_TMP_96) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 13127-13130: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) Errors: Soft = %d, Failed = %d, Deferred Write = %d\n", Controller, (int)LogicalDeviceNumber, __CPAchecker_TMP_107, (int)LogicalDeviceNumber, __CPAchecker_TMP_108, __CPAchecker_TMP_109, __CPAchecker_TMP_110) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 13167-13169: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) Background Initialization %s\n", Controller, (int)LogicalDeviceNumber, __CPAchecker_TMP_124, (int)LogicalDeviceNumber, __CPAchecker_TMP_125) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13264: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 13293: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 13230: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 13191-13193: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) No Longer Exists\n", Controller, LogicalDriveNumber, __CPAchecker_TMP_127, LogicalDriveNumber) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 13076-13077: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d No Longer Exists\n", Controller, __CPAchecker_TMP_87, __CPAchecker_TMP_88) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 13034-13036: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d is now %s\n", Controller, __CPAchecker_TMP_29, __CPAchecker_TMP_30, __CPAchecker_TMP_32) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 13041-13044: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d Errors: Parity = %d, Soft = %d, Hard = %d, Misc = %d\n", Controller, __CPAchecker_TMP_71, __CPAchecker_TMP_72, __CPAchecker_TMP_73, __CPAchecker_TMP_74, __CPAchecker_TMP_75, __CPAchecker_TMP_76) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12961-12962: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d No Longer Exists\n", Controller, __CPAchecker_TMP_6, __CPAchecker_TMP_7) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __might_sleep to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function prepare_to_wait_event to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function schedule_timeout to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function finish_wait to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_free_attrs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 11999-12004: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d Error Log: Information = %02X%02X%02X%02X %02X%02X%02X%02X\n", Controller, __CPAchecker_TMP_45, __CPAchecker_TMP_46, (int)((EventLogEntry->Information)[0]), (int)((EventLogEntry->Information)[1]), (int)((EventLogEntry->Information)[2]), (int)((EventLogEntry->Information)[3]), (int)((EventLogEntry->CommandSpecificInformation)[0]), (int)((EventLogEntry->CommandSpecificInformation)[1]), (int)((EventLogEntry->CommandSpecificInformation)[2]), (int)((EventLogEntry->CommandSpecificInformation)[3])) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11705-11706: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Unexpected Error Status %04X on %s:\n", Controller, (int)(Command->FW.V1.CommandStatus), CommandName) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11701-11702: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Bad Data Encountered on %s:\n", Controller, CommandName) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11697-11698: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Attempt to Access Beyond End of Logical Drive on %s:\n", Controller, CommandName) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11693-11694: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Logical Drive Nonexistent or Offline on %s:\n", Controller, CommandName) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 11689-11690: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Irrecoverable Data Error on %s:\n", Controller, CommandName) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function blk_rq_map_sg to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __wake_up to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 12427: Ignoring function call through function pointer *(KernelCommand->CompletionFunction): (*(KernelCommand->CompletionFunction))(KernelCommand); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 12822-12824: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"%s in Progress: Logical Drive %d (/dev/rd/c%dd%d) %d%% completed\n", Controller, MessageString, LogicalDeviceNumber, __CPAchecker_TMP_0, LogicalDeviceNumber, ((BlocksCompleted >> 7) * 100UL) / (LogicalDeviceSize >> 7)) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13242: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 12484-12485: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(4, (unsigned char *)"Error Condition %s on %s:\n", Controller, SenseErrors[__CPAchecker_TMP_1], CommandName) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13318: Ignoring function call through function pointer *(KernelCommand->CompletionFunction): (*(KernelCommand->CompletionFunction))(KernelCommand); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 13045-13048: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d Errors: Timeouts = %d, Retries = %d, Aborts = %d, Predicted = %d\n", Controller, __CPAchecker_TMP_77, __CPAchecker_TMP_78, __CPAchecker_TMP_79, __CPAchecker_TMP_80, __CPAchecker_TMP_81, __CPAchecker_TMP_82) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function _raw_spin_unlock_irqrestore to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function schedule to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function unregister_blkdev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function del_gendisk to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function blk_cleanup_queue to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function blk_peek_request to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 12806-12807: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Unknown Controller Event Code %04X\n", Controller, Event->EventCode) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 12803: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Controller %s\n", Controller, EventMessage) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12799-12800: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Enclosure %d %s\n", Controller, __CPAchecker_TMP_26, (unsigned char *)(&MessageBuffer)) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12780-12781: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d %s\n", Controller, __CPAchecker_TMP_15, __CPAchecker_TMP_16, EventMessage) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12770-12772: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(5, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) %s\n", Controller, __CPAchecker_TMP_9, __CPAchecker_TMP_10, __CPAchecker_TMP_11, EventMessage) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12765-12767: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Logical Drive %d (/dev/rd/c%dd%d) %s\n", Controller, __CPAchecker_TMP_6, __CPAchecker_TMP_7, __CPAchecker_TMP_8, EventMessage) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12761-12762: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Physical Device %d:%d %s\n", Controller, __CPAchecker_TMP_4, __CPAchecker_TMP_5, EventMessage) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 12753-12754: Ignoring parameters passed as varargs to function DAC960_Message: DAC960_Message(6, (unsigned char *)"Unknown Controller Event Code %04X\n", Controller, Event->EventCode) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __init_waitqueue_head to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 8561: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function _raw_spin_lock_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_pool_destroy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_pool_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __memmove to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function misc_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 11417: Ignoring function call through function pointer *(Controller->QueueCommand): (*(Controller->QueueCommand))(Command); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line. (CallstackCPA:CallstackTransferRelation.getAbstractSuccessorsForEdge, INFO)
+
+Error: line 11417: Unsupported feature (recursion): DAC960_V1_QueueReadWriteCommand(Command); (line was originally pointer call(DAC960_V1_QueueReadWriteCommand) (*(Controller->QueueCommand))(Command);) (CallstackTransferRelation.getAbstractSuccessorsForEdge, SEVERE)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            87489 (13% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  81234 (93%)
+  Because of loop head:            6255 (7%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         0 (0%)
+  Times precision was empty:       87489 (100%)
+  Times precision was {false}:     0 (0%)
+  Times result was cached:         0 (0%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      0 (0%)
+  Times result was 'false':        0 (0%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         37276
+  BDD entailment checks:           1540
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       246
+Number of predicates discovered:          0
+
+Time for post operator:                 66.060s
+  Time for path formula creation:       65.649s
+Time for strengthen operator:            0.641s
+Time for prec operator:                  3.103s
+  Time for abstraction:                  0.393s (Max:     0.081s, Count: 87489)
+    Solving time:                        0.000s (Max:     0.000s)
+    Model enumeration time:              0.000s
+    Time for BDD construction:           0.000s (Max:     0.000s)
+Time for merge operator:                16.184s
+Time for coverage check:                 0.037s
+  Time for BDD entailment checks:        0.034s
+Total time for SMT solver (w/o itp):     0.000s
+
+Number of path formula cache hits:   516716 (69%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:    55.818s
+
+Total number of created targets for pointer analysis: 1309647
+   Number of created targets for uf: *(union_DAC960_V1_StatusMailbox)* is 4
+   Number of created targets for uf: *(struct_DAC960_SCSI_Inquiry_UnitSerialNumber)* is 61
+   Number of created targets for uf: *(union_DAC960_V2_CommandMailbox)* is 6
+   Number of created targets for uf: *(struct_DAC960_V2_PhysicalDeviceInfo)* is 64
+   Number of created targets for uf: *(struct_DAC960_V1_KernelCommand)* is 120
+   Number of created targets for uf: *(unsigned_char)* is 64
+   Number of created targets for uf: *(struct_request)* is 293
+   Number of created targets for uf: *(union_DAC960_V2_StatusMailbox)* is 4
+   Number of created targets for uf: *(struct_DAC960_Command)* is 6425
+   Number of created targets for uf: *(struct_completion)* is 120
+   Number of created targets for uf: *(struct_DAC960_V2_LogicalDeviceInfo)* is 64
+   Number of created targets for uf: *unsigned_long_int is 2971
+   Number of created targets for uf: *unsigned_short_int is 3095
+   Number of created targets for uf: *enum_ldv_27387 is 5713
+   Number of created targets for uf: *enum_ldv_27334 is 2
+   Number of created targets for uf: *(union_DAC960_V1_CommandMailbox)* is 6
+   Number of created targets for uf: *signed_int is 217
+   Number of created targets for uf: *unsigned_char is 2635
+   Number of created targets for uf: *enum_ldv_27713 is 11
+   Number of created targets for uf: *_Bool is 5125
+   Number of created targets for uf: *enum_ldv_27492 is 28
+   Number of created targets for uf: *unsigned_int is 154
+   Number of created targets for uf: *enum_ldv_27397 is 15
+
+
+Number of BDD nodes:                               202
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                           0 (count: 89030, min: 0, max: 0, avg: 0.00)
+Time for BDD node cleanup:                             0.024s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  1.544s
+  Time for transition matches:                         0.852s
+  Time for transition assertions:                      0.000s
+  Time for transition actions:                         0.000s
+Automaton transfers with branching:                0
+Automaton transfer successors:                       676378 (count: 676378, min: 1, max: 1, avg: 1.00) [1 x 676378]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            256724
+Max size of waitlist:            45263
+Average size of waitlist:        26182
+Number of computed successors:   321393
+Max successors for one state:    2
+Number of times merged:          17868
+Number of times stopped:         19408
+Number of times breaked:         0
+
+Total time for CPA algorithm:       100.598s (Max:   100.598s)
+  Time for choose from waitlist:      0.236s
+  Time for precision adjustment:      6.546s
+  Time for transfer relation:        74.332s
+  Time for merge operator:           16.618s
+  Time for stop operator:             0.503s
+  Time for adding to reached set:     0.915s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                0
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.491
+  Visited lines:          4279
+  Total lines:            7528
+  Line coverage:          0.568
+  Visited conditions:     1562
+  Total conditions:       2752
+  Condition coverage:     0.568
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     11288
+Number of CFA edges:             13574
+Number of relevant variables:    1546
+Number of functions:             273
+Number of loops:                 100
+Size of reached set:             301986
+  Number of reached locations:   3102 (27%)
+    Avg states per location:     97
+    Max states per location:     11596 (at node N846)
+  Number of reached functions:   134 (49%)
+  Number of partitions:          301986
+    Avg size of partitions:      1
+    Max size of partitions:      1
+  Number of target states:       0
+  Size of final wait list        45263
+
+Time for analysis setup:          8.660s
+  Time for loading CPAs:          1.171s
+  Time for loading parser:        0.753s
+  Time for CFA construction:      6.572s
+    Time for parsing file(s):     1.308s
+    Time for AST to CFA:          2.350s
+    Time for CFA sanity check:    0.721s
+    Time for post-processing:     2.036s
+      Time for var class.:        0.954s
+Time for Analysis:              100.598s
+CPU time for analysis:          100.590s
+Total time for CPAchecker:      109.264s
+Total CPU time for CPAchecker:  109.230s
+Time for statistics:              2.709s
+
+Time for Garbage Collector:       7.163s (in 200 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                537MB (   512 MiB) max;    184MB (   175 MiB) avg;    561MB (   535 MiB) peak
+Used non-heap memory:             39MB (    37 MiB) max;     37MB (    35 MiB) avg;     40MB (    38 MiB) peak
+Allocated heap memory:           596MB (   568 MiB) max;    281MB (   268 MiB) avg
+Allocated non-heap memory:        41MB (    39 MiB) max;     40MB (    38 MiB) avg
+Total process virtual memory:   8100MB (  7724 MiB) max;   8087MB (  7713 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

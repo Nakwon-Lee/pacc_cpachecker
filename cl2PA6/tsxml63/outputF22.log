@@ -1,0 +1,222 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-4.2-rc1/linux-4.2-rc1.tar.xz-08_1a-drivers--rapidio--rapidio.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_wttpveto/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 2797: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 2800: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 2806: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6002;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6002;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6002;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6002;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 3949: Dead code detected: __ms = 1UL; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 4715: Dead code detected: __ms = 1UL; (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 6182: Function pointer *(mport->ops->lcread) with type int (*)(struct rio_mport *, int, u32 , int, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6204: Function pointer *(mport->ops->lcread) with type int (*)(struct rio_mport *, int, u32 , int, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6160: Function pointer *(mport->ops->lcread) with type int (*)(struct rio_mport *, int, u32 , int, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6238: Function pointer *(mport->ops->lcwrite) with type int (*)(struct rio_mport *, int, u32 , int, u32 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6257: Function pointer *(mport->ops->lcwrite) with type int (*)(struct rio_mport *, int, u32 , int, u32 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6219: Function pointer *(mport->ops->lcwrite) with type int (*)(struct rio_mport *, int, u32 , int, u32 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3106: Function pointer *(chan->device->device_prep_slave_sg) with type struct dma_async_tx_descriptor *(*)(struct dma_chan *, struct scatterlist *, unsigned int, enum dma_transfer_direction , unsigned long, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6725: Function pointer *(rdrv->probe) with type int (*)(struct rio_dev *, const struct rio_device_id *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 4338: Function pointer *(((struct rio_switch *)(&(rdev->rswitch)))->ops->em_handle) with type int (*)(struct rio_dev *, u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 4288: Function pointer *(rdev->pwcback) with type int (*)(struct rio_dev *, union rio_pw_msg *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6358-6359: Function pointer *(mport->ops->cread) with type int (*)(struct rio_mport *, int, u16 , u8 , u32 , int, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6382-6383: Function pointer *(mport->ops->cread) with type int (*)(struct rio_mport *, int, u16 , u8 , u32 , int, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6334-6335: Function pointer *(mport->ops->cread) with type int (*)(struct rio_mport *, int, u16 , u8 , u32 , int, u32 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 6515: Function pointer *(mport->ops->dsend) with type int (*)(struct rio_mport *, int, u16 , u16 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6420-6421: Function pointer *(mport->ops->cwrite) with type int (*)(struct rio_mport *, int, u16 , u8 , u32 , int, u32 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6441-6442: Function pointer *(mport->ops->cwrite) with type int (*)(struct rio_mport *, int, u16 , u8 , u32 , int, u32 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 6399-6400: Function pointer *(mport->ops->cwrite) with type int (*)(struct rio_mport *, int, u16 , u8 , u32 , int, u32 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3365: Function pointer *(mport->ops->close_inb_mbox) with type void (*)(struct rio_mport *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3418: Function pointer *(mport->ops->close_outb_mbox) with type void (*)(struct rio_mport *, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3350: Function pointer *(mport->ops->open_inb_mbox) with type int (*)(struct rio_mport *, void *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 3403: Function pointer *(mport->ops->open_outb_mbox) with type int (*)(struct rio_mport *, void *, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 4820-4821: Function pointer *(ops->add_entry) with type int (*)(struct rio_mport *, u16 , u8 , u16 , u16 , u8 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 4931-4932: Function pointer *(ops->clr_table) with type int (*)(struct rio_mport *, u16 , u8 , u16 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 4877-4878: Function pointer *(ops->get_entry) with type int (*)(struct rio_mport *, u16 , u8 , u16 , u16 , u8 *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_module_exit to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6753: Ignoring function call through function pointer *(rdrv->remove): (*(rdrv->remove))(rdev); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function add_uevent_var to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __class_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function bus_register to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function class_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function get_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 6725: Ignoring function call through function pointer *(rdrv->probe): error = (*(rdrv->probe))(rdev, id); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function put_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 8530: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8430: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8396: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8362: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8328: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8260: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8226: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8192: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8124: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8090: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8056: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8532: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8466: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8432: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8398: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8364: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8296: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8262: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8228: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8194: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8160: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8126: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8058: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8499: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___0 = ldv_init_zalloc(160UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8040: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(72UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8534: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8468: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8434: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8400: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8366: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8332: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8298: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8264: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8230: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8196: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1416UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8162: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8128: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(48UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8094: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 8060: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Shutdown requested (The CPU-time limit of 900s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Shutdown was requested but CPAchecker is still running after 10s, forcing immediate termination now. (ForceTerminationOnShutdown.run, WARNING)
+
+For your information: CPAchecker is currently hanging at
+ org.sosy_lab.java_smt.solvers.mathsat5.Mathsat5NativeApi.msat_pop_backtrack_point(Native Method)
+org.sosy_lab.java_smt.solvers.mathsat5.Mathsat5AbstractProver.pop(Mathsat5AbstractProver.java:93)
+org.sosy_lab.java_smt.solvers.mathsat5.Mathsat5TheoremProver.allSat(Mathsat5TheoremProver.java:110)
+org.sosy_lab.cpachecker.util.predicates.smt.ProverEnvironmentView.allSat(ProverEnvironmentView.java:64)
+org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractionManager.computeBooleanAbstraction(PredicateAbstractionManager.java:947)
+org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractionManager.computeAbstraction(PredicateAbstractionManager.java:776)
+org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractionManager.buildAbstraction(PredicateAbstractionManager.java:403)
+org.sosy_lab.cpachecker.cpa.predicate.PredicatePrecisionAdjustment.computeAbstraction(PredicatePrecisionAdjustment.java:188)
+org.sosy_lab.cpachecker.cpa.predicate.PredicatePrecisionAdjustment.prec(PredicatePrecisionAdjustment.java:107)
+org.sosy_lab.cpachecker.cpa.composite.CompositePrecisionAdjustment.prec(CompositePrecisionAdjustment.java:89)
+org.sosy_lab.cpachecker.cpa.arg.ARGPrecisionAdjustment.prec(ARGPrecisionAdjustment.java:96)
+org.sosy_lab.cpachecker.cpa.arg.ARGPrecisionAdjustment.prec(ARGPrecisionAdjustment.java:70)
+org.sosy_lab.cpachecker.core.algorithm.CPAAlgorithm.handleState(CPAAlgorithm.java:312)
+org.sosy_lab.cpachecker.core.algorithm.CPAAlgorithm.run0(CPAAlgorithm.java:241)
+org.sosy_lab.cpachecker.core.algorithm.CPAAlgorithm.run(CPAAlgorithm.java:207)
+org.sosy_lab.cpachecker.core.algorithm.CEGARAlgorithm.run(CEGARAlgorithm.java:198)
+org.sosy_lab.cpachecker.core.CPAchecker.runAlgorithm(CPAchecker.java:473)
+org.sosy_lab.cpachecker.core.CPAchecker.run(CPAchecker.java:353)
+org.sosy_lab.cpachecker.cmdline.CPAMain.main(CPAMain.java:170) 
+ (ForceTerminationOnShutdown.run, INFO)
+

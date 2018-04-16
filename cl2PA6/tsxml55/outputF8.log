@@ -1,0 +1,900 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-4.2-rc1/linux-4.2-rc1.tar.xz-43_2a-drivers--scsi--esas2r--esas2r.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_3rehcbu3/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+lines 7658-7659: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 7662-7663: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 7670-7671: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5763;
+  case 2UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5763;
+  case 4UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddl %0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5763;
+  case 8UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5763;
+  default:
+  __xadd_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13846: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13849: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13852: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0));
+  goto ldv_5541;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0));
+  goto ldv_5541;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0));
+  goto ldv_5541;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& cpu_tss.x86_tss.sp0));
+  goto ldv_5541;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13943-13995: Dead code detected: switch (size) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13944: Dead code detected: [!(size == 1U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13945-13947: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovb %2,%b1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorb %b1,%b1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=q" (*((u8 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (1), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13949: Dead code detected: [size == 2U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13949: Dead code detected: [!(size == 2U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13950-13952: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %2,%w1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorw %w1,%w1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u16 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (2), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13954: Dead code detected: [size == 4U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13954: Dead code detected: [!(size == 4U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13955-13957: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovl %2,%k1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorl %k1,%k1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u32 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (4), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13959: Dead code detected: [size == 8U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13959: Dead code detected: [!(size == 8U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13960-13962: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (8), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13964: Dead code detected: [size == 10U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13964: Dead code detected: [!(size == 10U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13965-13967: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (10), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13969: Dead code detected: [!(tmp___0 != 0L)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13970: Dead code detected: return (ret); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13974-13976: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %2,%w1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorw %w1,%w1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u16 *)dst + 8U)): "m" (*((struct __large_struct *)src + 8U)),
+                       "i" (2), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13978: Dead code detected: [size == 16U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13978: Dead code detected: [!(size == 16U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13979-13981: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (16), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13983: Dead code detected: [!(tmp___1 != 0L)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13984: Dead code detected: return (ret); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13988-13990: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst + 8U)): "m" (*((struct __large_struct *)src + 8U)),
+                       "i" (8), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (size) {
+  case 1U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovb %2,%b1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorb %b1,%b1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=q" (*((u8 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (1), "0" (ret));
+  return (ret);
+  case 2U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %2,%w1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorw %w1,%w1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u16 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (2), "0" (ret));
+  return (ret);
+  case 4U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovl %2,%k1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorl %k1,%k1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u32 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (4), "0" (ret));
+  return (ret);
+  case 8U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (8), "0" (ret));
+  return (ret);
+  case 10U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (10), "0" (ret));
+  tmp___0 = ldv__builtin_expect(ret != 0, 0L);
+  if (tmp___0 != 0L) {
+    return (ret);
+  } else {
+
+  }
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %2,%w1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorw %w1,%w1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u16 *)dst + 8U)): "m" (*((struct __large_struct *)src + 8U)),
+                       "i" (2), "0" (ret));
+  return (ret);
+  case 16U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst)): "m" (*((struct __large_struct *)src)),
+                       "i" (16), "0" (ret));
+  tmp___1 = ldv__builtin_expect(ret != 0, 0L);
+  if (tmp___1 != 0L) {
+    return (ret);
+  } else {
+
+  }
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %2,%1\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\txorq %1,%1\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret),
+                       "=r" (*((u64 *)dst + 8U)): "m" (*((struct __large_struct *)src + 8U)),
+                       "i" (8), "0" (ret));
+  return (ret);
+  default:
+  tmp___2 = copy_user_generic(dst, src, size);
+  return ((int )tmp___2);
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14020-14066: Dead code detected: switch (size) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14021: Dead code detected: [!(size == 1U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14022-14023: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovb %b1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "iq" (*((u8 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (1), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14025: Dead code detected: [size == 2U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14025: Dead code detected: [!(size == 2U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14026-14027: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %w1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "ir" (*((u16 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (2), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14029: Dead code detected: [size == 4U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14029: Dead code detected: [!(size == 4U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14030-14031: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovl %k1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "ir" (*((u32 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (4), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14033: Dead code detected: [size == 8U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14033: Dead code detected: [!(size == 8U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14034-14035: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (8), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14037: Dead code detected: [size == 10U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14037: Dead code detected: [!(size == 10U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14038-14039: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (10), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14041: Dead code detected: [!(tmp___0 != 0L)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14042: Dead code detected: return (ret); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14046: Dead code detected: __asm__ volatile ("": : : "memory"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14050: Dead code detected: [size == 16U] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14050: Dead code detected: [!(size == 16U)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 14051-14052: Dead code detected: __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (16), "0" (ret)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14054: Dead code detected: [!(tmp___1 != 0L)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14055: Dead code detected: return (ret); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14059: Dead code detected: __asm__ volatile ("": : : "memory"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (size) {
+  case 1U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovb %b1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "iq" (*((u8 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (1), "0" (ret));
+  return (ret);
+  case 2U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %w1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "ir" (*((u16 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (2), "0" (ret));
+  return (ret);
+  case 4U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovl %k1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "ir" (*((u32 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (4), "0" (ret));
+  return (ret);
+  case 8U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (8), "0" (ret));
+  return (ret);
+  case 10U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (10), "0" (ret));
+  tmp___0 = ldv__builtin_expect(ret != 0, 0L);
+  if (tmp___0 != 0L) {
+    return (ret);
+  } else {
+
+  }
+  __asm__ volatile ("": : : "memory");
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovw %w1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "ir" (*((u16 *)src + 4UL)),
+                       "m" (*((struct __large_struct *)dst + 4U)), "i" (2), "0" (ret));
+  return (ret);
+  case 16U:
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src)),
+                       "m" (*((struct __large_struct *)dst)), "i" (16), "0" (ret));
+  tmp___1 = ldv__builtin_expect(ret != 0, 0L);
+  if (tmp___1 != 0L) {
+    return (ret);
+  } else {
+
+  }
+  __asm__ volatile ("": : : "memory");
+  __asm__ volatile ("661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xcb\n6651:\n\t.popsection\n1:\tmovq %1,%2\n2: 661:\n\t\n662:\n.skip -(((6651f-6641f)-(662b-661b)) > 0) * ((6651f-6641f)-(662b-661b)),0x90\n663:\n.pushsection .altinstructions,\"a\"\n .long 661b - .\n .long 6641f - .\n .word ( 9*32+20)\n .byte 663b-661b\n .byte 6651f-6641f\n .byte 663b-662b\n.popsection\n.pushsection .altinstr_replacement, \"ax\"\n6641:\n\t.byte 0x0f,0x01,0xca\n6651:\n\t.popsection\n.section .fixup,\"ax\"\n3:\tmov %3,%0\n\tjmp 2b\n.previous\n .pushsection \"__ex_table\",\"a\"\n .balign 8\n .long (1b) - .\n .long (3b) - .\n .popsection\n": "=r" (ret): "er" (*((u64 *)src + 1UL)),
+                       "m" (*((struct __large_struct *)dst + 1U)), "i" (8), "0" (ret));
+  return (ret);
+  default:
+  tmp___2 = copy_user_generic(dst, src, size);
+  return ((int )tmp___2);
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 19272-19287: Dead code detected: switch (4UL) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19274: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19277: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19279: Dead code detected:  (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19283: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 19292-19307: Dead code detected: switch (4UL) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19294: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____0): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19297: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19299: Dead code detected:  (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19303: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19314: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____1): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19317: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19323: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 19332-19347: Dead code detected: switch (4UL) (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19334: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____2): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19337: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19339: Dead code detected:  (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19343: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (cpu_number));
+  goto ldv_39825;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_39825:
+  pscr_ret__ = pfo_ret__;
+  goto ldv_39831;
+  case 2UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____0): "m" (cpu_number));
+  goto ldv_39835;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_39835:
+  pscr_ret__ = pfo_ret_____0;
+  goto ldv_39831;
+  case 4UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____1): "m" (cpu_number));
+  goto ldv_39844;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_39844:
+  pscr_ret__ = pfo_ret_____1;
+  goto ldv_39831;
+  case 8UL: ;
+  switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret_____2): "m" (cpu_number));
+  goto ldv_39853;
+  default:
+  __bad_percpu_size();
+  }
+  ldv_39853:
+  pscr_ret__ = pfo_ret_____2;
+  goto ldv_39831;
+  default:
+  __bad_size_call_parameter();
+  goto ldv_39831;
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 18942: Function pointer *(rq->__annonCompField107.cmd->scsi_done) with type void (*)(struct scsi_cmnd *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18424: Function pointer *(cmd->scsi_done) with type void (*)(struct scsi_cmnd *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18377: Function pointer *(cmd->scsi_done) with type void (*)(struct scsi_cmnd *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 18219: Function pointer *(cmd->scsi_done) with type void (*)(struct scsi_cmnd *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 19881: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(72UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19885: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___3 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19891: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___6 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19893: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___7 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19895: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___8 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19897: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___9 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19899: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___10 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19901: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___11 = ldv_init_zalloc(32UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19903: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___12 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 19907: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___14 = ldv_init_zalloc(256UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_5 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function scsi_change_queue_depth to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_10 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_10 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_shutdown_4 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_resume_early_4 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_suspend_late_4 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_8 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_9 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_9 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_7 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_7 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_open_3 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_11 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_11 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_6 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_6 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18136: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(sh->shost_gendev)), "esas2r_info() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18479: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "host_reset (%p)", cmd) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18489: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "bus_reset (%p)", cmd) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18117: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(sh->shost_gendev)), "esas2r_release() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18372: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "eh_abort (%p)", cmd) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18569: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "device_reset (%p)", cmd) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18579: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "target_reset (%p)", cmd) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18077: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(4L, "esas2r_show_info (%p,%d)", m, sh->host_no) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17934: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "%s called", "esas2r_init") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18053: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "%s called", "esas2r_exit") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17898: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "esas2r_remove pdev==NULL") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17783-17785: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(4L, (const struct device *)(&(pcid->dev)), "esas2r_probe() 0x%02x 0x%02x 0x%02x 0x%02x", __CPAchecker_TMP_0, __CPAchecker_TMP_1, __CPAchecker_TMP_2, __CPAchecker_TMP_3) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 19492: Ignoring function call through function pointer *(timer->function): (*(timer->function))(timer->data); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function ldv__builtin_va_start to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 15456: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(4L, "ioctl (%p, %x, %p)", hostdata, cmd, arg) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function memcpy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18219: Ignoring function call through function pointer *(cmd->scsi_done): (*(cmd->scsi_done))(cmd); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function down_interruptible to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_free_attrs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_alloc_attrs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv__builtin_va_end to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function free_irq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function scsi_unregister to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18377: Ignoring function call through function pointer *(cmd->scsi_done): (*(cmd->scsi_done))(cmd); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __list_del_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function seq_printf to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function seq_puts to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function seq_putc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 17940: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: can_queue must be no larger than 2048, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17936: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: can_queue must be at least 1, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17950: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: cmd_per_lun must be no larger than 2048, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17946: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: cmd_per_lun must be at least 1, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17956: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: sg_tablesize must be at least 32, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17966: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: esas2r_max_sectors must be no larger than 0xffff, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17962: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "warning: esas2r_max_sectors must be at least 1, value forced.") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __pci_register_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18055: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "unregister proc") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 18062: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "pci_unregister_driver() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 10613: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "resuming adapter()") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17910-17911: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "esas2r_remove(%p) called; host:%p", pdev, host) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 10579: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "suspending adapter()") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17786-17787: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pcid->dev)), "before pci_enable_device() enable_cnt: %d", pcid->enable_cnt.counter) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 19171-19172: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "An async event of type \"%s\" was received from the firmware.  The event contents are:", type) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function scsi_device_lookup to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 19107-19108: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(2L, (const struct device *)(&(a->host->shost_gendev)), "no target found at id %d", (int)target_id) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function scsi_device_set_state to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 19101-19102: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(scsi_dev->sdev_gendev)), "scsi_remove_device() called for 0:%d:0", (int)target_id) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 19080-19081: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(a->host->shost_gendev)), "scsi_add_device() called for 0:%d:0", (int)target_id) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 19076-19077: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(2L, (const struct device *)(&(scsi_dev->sdev_gendev)), "scsi device already exists at id %d", (int)target_id) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 14319-14320: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(1L, "could not allocate %d bytes of consistent memory for a buffered ioctl!", bi->length) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function __register_chrdev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function remove_proc_entry to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_unregister_driver to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_check_final_state to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10614: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "pci_set_power_state(PCI_D0) called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17914-17915: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(2L, (const struct device *)(&(pdev->dev)), "unknown host in %s", "esas2r_remove") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_enable_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 17796: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pcid->dev)), "pci_enable_device() OK") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 17790-17791: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(1L, (const struct device *)(&(pcid->dev)), "pci_enable_device() FAIL (%d)", err) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17698: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(2L, "write_hw kzalloc failed for %d bytes", 576UL) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 13704: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "performing a bus reset") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function _raw_spin_unlock_irqrestore to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 18424: Ignoring function call through function pointer *(cmd->scsi_done): (*(cmd->scsi_done))(cmd); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function __unregister_chrdev to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_set_power_state to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10616: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "pci_enable_wake(PCI_D0, 0) called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function sysfs_remove_bin_file to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 17797-17798: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pcid->dev)), "after pci_enable_device() enable_cnt: %d", pcid->enable_cnt.counter) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function list_del to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10618: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "pci_restore_state() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 10383-10384: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(a->pcid->dev)), "free_irq(%d) called", a->pcid->irq) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function scsi_host_alloc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 17808: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "scsi_host_alloc() OK host: %p", host) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17801: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(1L, "scsi_host_alloc() FAIL") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function jiffies_to_msecs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_restore_state to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10620: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "pci_enable_device() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_disable_msi to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10588: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "pci_save_state() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 17819: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(3L, "pci_set_master() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_set_master to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 10662-10663: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(1L, (const struct device *)(&(pdev->dev)), "esas2r_resume(): %d", rez) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_request_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 9985: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(1L, "pci_request_region(2) failed, error %d", error) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function iounmap to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_release_region to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_save_state to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10590: Ignoring parameters passed as varargs to function esas2r_log_dev: esas2r_log_dev(3L, (const struct device *)(&(pdev->dev)), "pci_disable_device() called") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dma_get_required_mask to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 10122: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(1L, "tried to init existing adapter index %u!", index) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 10116: Ignoring parameters passed as varargs to function esas2r_log: esas2r_log(1L, "tried to init invalid adapter index %u!", index) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 12819: Ignoring function call through function pointer *(rq->interrupt_cb): (*(rq->interrupt_cb))(a, rq); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line. (CallstackCPA:CallstackTransferRelation.getAbstractSuccessorsForEdge, INFO)
+
+Error: line 12821: Unsupported feature (recursion): esas2r_start_request(a, rq); (CallstackTransferRelation.getAbstractSuccessorsForEdge, SEVERE)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            1861 (14% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  1698 (91%)
+  Because of loop head:            163 (9%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         0 (0%)
+  Times precision was empty:       1861 (100%)
+  Times precision was {false}:     0 (0%)
+  Times result was cached:         0 (0%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      0 (0%)
+  Times result was 'false':        0 (0%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         980
+  BDD entailment checks:           234
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       139
+Number of predicates discovered:          0
+
+Time for post operator:                  2.940s
+  Time for path formula creation:        2.886s
+Time for strengthen operator:            0.070s
+Time for prec operator:                  0.213s
+  Time for abstraction:                  0.048s (Max:     0.011s, Count: 1861)
+    Solving time:                        0.000s (Max:     0.000s)
+    Model enumeration time:              0.000s
+    Time for BDD construction:           0.000s (Max:     0.000s)
+Time for merge operator:                 0.203s
+Time for coverage check:                 0.042s
+  Time for BDD entailment checks:        0.041s
+Total time for SMT solver (w/o itp):     0.000s
+
+Number of path formula cache hits:   5240 (38%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     2.666s
+
+Total number of created targets for pointer analysis: 265
+   Number of created targets for uf: *(void)* is 2
+   Number of created targets for uf: *(Return_type:_[(char)*],_Parameters:_0,_VarArgs:_false)* is 2
+   Number of created targets for uf: *unsigned_char is 25
+   Number of created targets for uf: *(struct_esas2r_adapter)* is 21
+   Number of created targets for uf: *unsigned_long_long_int is 2
+   Number of created targets for uf: *unsigned_int is 2
+
+
+Number of BDD nodes:                               202
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                           0 (count: 2096, min: 0, max: 0, avg: 0.00)
+Time for BDD node cleanup:                             0.002s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.203s
+Automaton transfers with branching:                0
+Automaton transfer successors:                        13104 (count: 13104, min: 1, max: 1, avg: 1.00) [1 x 13104]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            6287
+Max size of waitlist:            314
+Average size of waitlist:        151
+Number of computed successors:   7205
+Max successors for one state:    2
+Number of times merged:          373
+Number of times stopped:         607
+Number of times breaked:         0
+
+Total time for CPA algorithm:         5.262s (Max:     5.262s)
+  Time for choose from waitlist:      0.048s
+  Time for precision adjustment:      0.572s
+  Time for transfer relation:         3.910s
+  Time for merge operator:            0.284s
+  Time for stop operator:             0.177s
+  Time for adding to reached set:     0.057s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                0
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.322
+  Visited lines:          2919
+  Total lines:            9291
+  Line coverage:          0.314
+  Visited conditions:     754
+  Total conditions:       3276
+  Condition coverage:     0.230
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     13658
+Number of CFA edges:             16414
+Number of relevant variables:    2287
+Number of functions:             429
+Number of loops:                 83
+Size of reached set:             6599
+  Number of reached locations:   1823 (13%)
+    Avg states per location:     3
+    Max states per location:     117 (at node N107)
+  Number of reached functions:   138 (32%)
+  Number of partitions:          6599
+    Avg size of partitions:      1
+    Max size of partitions:      1
+  Number of target states:       0
+  Size of final wait list        313
+
+Time for analysis setup:         10.037s
+  Time for loading CPAs:          1.391s
+  Time for loading parser:        0.783s
+  Time for CFA construction:      7.698s
+    Time for parsing file(s):     1.733s
+    Time for AST to CFA:          2.713s
+    Time for CFA sanity check:    0.878s
+    Time for post-processing:     2.174s
+      Time for var class.:        1.038s
+Time for Analysis:                5.262s
+CPU time for analysis:            5.270s
+Total time for CPAchecker:       15.304s
+Total CPU time for CPAchecker:   15.280s
+Time for statistics:              0.239s
+
+Time for Garbage Collector:       0.623s (in 26 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                102MB (    97 MiB) max;     54MB (    51 MiB) avg;    108MB (   103 MiB) peak
+Used non-heap memory:             36MB (    35 MiB) max;     29MB (    27 MiB) avg;     37MB (    35 MiB) peak
+Allocated heap memory:           127MB (   121 MiB) max;    127MB (   121 MiB) avg
+Allocated non-heap memory:        38MB (    36 MiB) max;     30MB (    29 MiB) avg
+Total process virtual memory:   8085MB (  7710 MiB) max;   8053MB (  7679 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".

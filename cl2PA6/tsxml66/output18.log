@@ -1,0 +1,384 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-4.2-rc1/linux-4.2-rc1.tar.xz-32_7a-drivers--scsi--qla2xxx--qla2xxx.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_cvtyz3nm/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 12617: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12620: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12623: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12959: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12962: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12968: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14298: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+Dead code detected: Label retry_lock2 is not reachable. (CFAFunctionBuilder.leave, INFO)
+
+line 19548: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19553: Dead code detected: tmp___3 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19558: Dead code detected: tmp___4 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  case 2UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  case 4UL:
+  tmp___4 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___4->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  case 8UL:
+  tmp___5 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___5->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19859: Dead code detected: tmp___35 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19864: Dead code detected: tmp___36 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19869: Dead code detected: tmp___37 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___35 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret___0), "+m" (tmp___35->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  case 2UL:
+  tmp___36 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret___0), "+m" (tmp___36->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  case 4UL:
+  tmp___37 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret___0), "+m" (tmp___37->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  case 8UL:
+  tmp___38 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret___0), "+m" (tmp___38->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 28816: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 29235-29236: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 29239-29240: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 29247-29248: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  case 2UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  case 4UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddl %0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  case 8UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  default:
+  __xadd_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 36979: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 42479: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 43858: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 43991: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 44110: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 46204: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 50095: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 52567: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 56312: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 60273: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 66044: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 67691: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 68463: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71308: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71465: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71468: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71474: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 74410: Dead code detected: return (0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 75634: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 75639: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 75644: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___0 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___0->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  case 2UL:
+  tmp___1 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  case 4UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  case 8UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 77057: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 81120: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85803: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85954: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85957: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85963: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 86307: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 94228: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 95935: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 87730: Function pointer *(ha->tgt.tgt_ops->handle_tmr) with type int (*)(struct qla_tgt_mgmt_cmd *, uint32_t , uint8_t , uint32_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90228: Function pointer *(ha->tgt.tgt_ops->handle_tmr) with type int (*)(struct qla_tgt_mgmt_cmd *, uint32_t , uint8_t , uint32_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 89888-89889: Function pointer *(ha->tgt.tgt_ops->handle_cmd) with type int (*)(struct scsi_qla_host *, struct qla_tgt_cmd *, unsigned char *, uint32_t , int, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90868: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 42695: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 68688: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 86166: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13650: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 68729: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 86207: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 36125-36126: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33306-33307: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33388-33389: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33904-33905: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33932-33934: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 34007-34008: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33997-33998: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33781-33782: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 51057-51058: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 18658-18659: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 43255: Function pointer *(ha->isp_ops->calc_req_entries) with type uint16_t (*)(uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 63045-63048: Function pointer *(fcport->vha->hw->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 87775: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90251: Function pointer *(ha->tgt.tgt_ops->find_sess_by_loop_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 91538: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90940: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 87069-87071: Function pointer *(ha->tgt.tgt_ops->check_initiator_node_acl) with type int (*)(struct scsi_qla_host *, unsigned char *, void *, uint8_t *, uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 87029-87030: Function pointer *(ha->tgt.tgt_ops->update_sess) with type void (*)(struct qla_tgt_sess *, port_id_t , uint16_t , bool ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 87149-87150: Function pointer *(ha->tgt.tgt_ops->update_sess) with type void (*)(struct qla_tgt_sess *, port_id_t , uint16_t , bool ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90041: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90182: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90149: Function pointer *(ha->tgt.tgt_ops->handle_tmr) with type int (*)(struct qla_tgt_mgmt_cmd *, uint32_t , uint8_t , uint32_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 92113: Function pointer *callback with type int (*)(struct scsi_qla_host *, void *, u64 , u64 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 86784: Function pointer *(ha->tgt.tgt_ops->find_sess_by_loop_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 91611: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Error: Invalid configuration (Cannot parse witness: Error while accessing witness file: null!) (AutomatonGraphmlParser.isGraphmlAutomatonFromConfiguration, SEVERE)
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     80604
+Number of CFA edges:             102677
+Number of relevant variables:    11700
+Number of functions:             1973
+Number of loops:                 561
+
+Time for analysis setup:         30.908s
+  Time for loading CPAs:          0.826s
+  Time for loading parser:        0.675s
+  Time for CFA construction:     29.309s
+    Time for parsing file(s):     3.396s
+    Time for AST to CFA:          8.932s
+    Time for CFA sanity check:    3.884s
+    Time for post-processing:    13.406s
+      Time for var class.:        5.390s
+Time for Analysis:                0.000s
+CPU time for analysis:            0.000s
+Total time for CPAchecker:       30.885s
+Total CPU time for CPAchecker:    1.070s
+Time for statistics:              0.032s
+
+Time for Garbage Collector:       3.912s (in 43 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                935MB (   892 MiB) max;    334MB (   318 MiB) avg;    966MB (   921 MiB) peak
+Used non-heap memory:             35MB (    34 MiB) max;     29MB (    28 MiB) avg;     36MB (    35 MiB) peak
+Allocated heap memory:          1278MB (  1219 MiB) max;    570MB (   544 MiB) avg
+Allocated non-heap memory:        36MB (    35 MiB) max;     30MB (    29 MiB) avg
+Total process virtual memory:   8064MB (  7691 MiB) max;   8054MB (  7681 MiB) avg
+
+More details about the verification run can be found in the directory "./output".

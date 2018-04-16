@@ -1,0 +1,761 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABElf -heap 5600000000 -timelimit 900 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-linux-4.2-rc1/linux-4.2-rc1.tar.xz-32_7a-drivers--scsi--qla2xxx--qla2xxx.ko-entry_point_true-unreach-call.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_7imviv3t/tmp
+Using the following resource limits: CPU-time limit of 900s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 12617: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12620: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12623: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  case 2UL:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  case 4UL:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  case 8UL:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2696;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12959: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12962: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12968: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6740;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14298: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+Dead code detected: Label retry_lock2 is not reachable. (CFAFunctionBuilder.leave, INFO)
+
+line 19548: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19553: Dead code detected: tmp___3 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19558: Dead code detected: tmp___4 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  case 2UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  case 4UL:
+  tmp___4 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___4->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  case 8UL:
+  tmp___5 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___5->state): : "memory",
+                       "cc");
+  goto ldv_68103;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19859: Dead code detected: tmp___35 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19864: Dead code detected: tmp___36 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 19869: Dead code detected: tmp___37 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___35 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret___0), "+m" (tmp___35->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  case 2UL:
+  tmp___36 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret___0), "+m" (tmp___36->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  case 4UL:
+  tmp___37 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret___0), "+m" (tmp___37->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  case 8UL:
+  tmp___38 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret___0), "+m" (tmp___38->state): : "memory",
+                       "cc");
+  goto ldv_68116;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 28816: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 29235-29236: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 29239-29240: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 29247-29248: Dead code detected: __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddb %b0, %1\n": "+q" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  case 2UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddw %w0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  case 4UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddl %0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  case 8UL:
+  __asm__ volatile (".pushsection .smp_locks,\"a\"\n.balign 4\n.long 671f - .\n.popsection\n671:\n\tlock; xaddq %q0, %1\n": "+r" (__ret),
+                       "+m" (v->counter): : "memory", "cc");
+  goto ldv_5596;
+  default:
+  __xadd_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 36979: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 42479: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 43858: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 43991: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 44110: Dead code detected: return (1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 46204: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 50095: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 52567: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 56312: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 60273: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 66044: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 67691: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 68463: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71308: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71465: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71468: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 71474: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6708;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 74410: Dead code detected: return (0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 75634: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 75639: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 75644: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1UL:
+  tmp___0 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___0->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  case 2UL:
+  tmp___1 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  case 4UL:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  case 8UL:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_67187;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 77057: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 81120: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85803: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85954: Dead code detected: __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85957: Dead code detected: __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 85963: Dead code detected: __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1UL:
+  __asm__ ("movb %%gs:%1,%0": "=q" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  case 2UL:
+  __asm__ ("movw %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  case 4UL:
+  __asm__ ("movl %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  case 8UL:
+  __asm__ ("movq %%gs:%1,%0": "=r" (pfo_ret__): "m" (__preempt_count));
+  goto ldv_6800;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 86307: Dead code detected: return; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 94228: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 95935: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 87730: Function pointer *(ha->tgt.tgt_ops->handle_tmr) with type int (*)(struct qla_tgt_mgmt_cmd *, uint32_t , uint8_t , uint32_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90228: Function pointer *(ha->tgt.tgt_ops->handle_tmr) with type int (*)(struct qla_tgt_mgmt_cmd *, uint32_t , uint8_t , uint32_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 89888-89889: Function pointer *(ha->tgt.tgt_ops->handle_cmd) with type int (*)(struct scsi_qla_host *, struct qla_tgt_cmd *, unsigned char *, uint32_t , int, int, int) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90868: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 42695: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 68688: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 86166: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13650: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 68729: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 86207: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 36125-36126: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33306-33307: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33388-33389: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33904-33905: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33932-33934: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 34007-34008: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33997-33998: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 33781-33782: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 51057-51058: Function pointer *(ha->isp_ops->fabric_login) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t , uint16_t *, uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 18658-18659: Function pointer *(ha->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 43255: Function pointer *(ha->isp_ops->calc_req_entries) with type uint16_t (*)(uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 63045-63048: Function pointer *(fcport->vha->hw->isp_ops->fabric_logout) with type int (*)(struct scsi_qla_host *, uint16_t , uint8_t , uint8_t , uint8_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 87775: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90251: Function pointer *(ha->tgt.tgt_ops->find_sess_by_loop_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 91538: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90940: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 87069-87071: Function pointer *(ha->tgt.tgt_ops->check_initiator_node_acl) with type int (*)(struct scsi_qla_host *, unsigned char *, void *, uint8_t *, uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 87029-87030: Function pointer *(ha->tgt.tgt_ops->update_sess) with type void (*)(struct qla_tgt_sess *, port_id_t , uint16_t , bool ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+lines 87149-87150: Function pointer *(ha->tgt.tgt_ops->update_sess) with type void (*)(struct qla_tgt_sess *, port_id_t , uint16_t , bool ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90041: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90182: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 90149: Function pointer *(ha->tgt.tgt_ops->handle_tmr) with type int (*)(struct qla_tgt_mgmt_cmd *, uint32_t , uint8_t , uint32_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 92113: Function pointer *callback with type int (*)(struct scsi_qla_host *, void *, u64 , u64 ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 86784: Function pointer *(ha->tgt.tgt_ops->find_sess_by_loop_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint16_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 91611: Function pointer *(ha->tgt.tgt_ops->find_sess_by_s_id) with type struct qla_tgt_sess *(*)(struct scsi_qla_host *, uint8_t *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+line 22656: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___1 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22662: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___4 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22668: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___7 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22676: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___11 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22682: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___14 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22684: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___15 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22692: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___19 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22698: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___22 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22702: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___24 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22714: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___30 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22738: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___42 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22742: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___44 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22746: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___46 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22748: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___47 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22752: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___49 = ldv_init_zalloc(4UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22762: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___54 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22766: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___56 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22772: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___59 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22792: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___69 = ldv_init_zalloc(32UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22796: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___71 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22800: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___73 = ldv_init_zalloc(4UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22804: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___75 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22808: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___77 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22814: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___80 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22820: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___83 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22822: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___84 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22826: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___86 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22844: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___95 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22848: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___97 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22850: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___98 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22852: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___99 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22862: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___104 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22868: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___107 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22874: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___110 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+line 22878: Destroying the void* pointer ldv_init_zalloc::tmp produces garbage or the memory pointed by it is unused: tmp___112 = ldv_init_zalloc(1UL); (PredicateCPA:DynamicMemoryHandler.handleDeferredAllocationInFunctionExit, WARNING)
+
+Assuming external function ldv_initialize to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_85 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_85 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_79 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_79 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_75 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_open_75 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function noop_llseek to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_83 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_83 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_82 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_82 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function scsi_change_queue_depth to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_86 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_86 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_81 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_81 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_77 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_77 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_suspend_77 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_87 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_87 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_78 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_78 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_84 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_84 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_probe_80 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ldv_release_80 to be a constant function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_select_bars to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 16652: Ignoring parameters passed as varargs to function ql_dbg_pci: ql_dbg_pci(1073741824U, pdev, 7, "Mem only adapter.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 16656: Ignoring parameters passed as varargs to function ql_dbg_pci: ql_dbg_pci(1073741824U, pdev, 8, "Bars=%d.\n", bars) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 34894: Ignoring parameters passed as varargs to function ql_log: ql_log(1U, vha, 32803, "%s **** FAILED ****.\n", "qla2x00_abort_isp") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 34856: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(4194304U, vha, 32802, "%s succeeded.\n", "qla2x00_abort_isp") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 32498: Ignoring function call through function pointer *(ha->isp_ops->read_nvram): (*(ha->isp_ops->read_nvram))(vha, ptr, __CPAchecker_TMP_2, __CPAchecker_TMP_3); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 36278-36279: Ignoring function call through function pointer *(ha->isp_ops->read_optrom): (*(ha->isp_ops->read_optrom))(vha, __CPAchecker_TMP_2, (ha->flt_region_vpd) << 2, __CPAchecker_TMP_3); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 36280-36281: Ignoring function call through function pointer *(ha->isp_ops->read_optrom): (*(ha->isp_ops->read_optrom))(vha, __CPAchecker_TMP_4, (ha->flt_region_nvram) << 2, __CPAchecker_TMP_5); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 35131-35132: Ignoring function call through function pointer *(ha->isp_ops->read_nvram): (*(ha->isp_ops->read_nvram))(vha, __CPAchecker_TMP_3, (uint32_t )(__CPAchecker_TMP_4 + -128), 2048U); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 35134-35135: Ignoring function call through function pointer *(ha->isp_ops->read_nvram): (*(ha->isp_ops->read_nvram))(vha, (uint8_t *)dptr, __CPAchecker_TMP_5, __CPAchecker_TMP_6); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 32513: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073872896U, vha, 271, "Contents of NVRAM.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 36297: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073872896U, vha, 273, "Contents of NVRAM:\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 35150: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073872896U, vha, 106, "Contents of NVRAM\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 46649-46650: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, (scsi_qla_host_t *)0, 20568, "%s: NULL response queue pointer.\n", "qla2300_intr_handler") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 31208: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073741824U, vha, 123, "Testing device at %lx.\n", (unsigned long)(&(reg->flash_address))) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 49320-49321: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, (scsi_qla_host_t *)0, 20569, "%s: NULL response queue pointer.\n", "qla24xx_intr_handler") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 46507-46508: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, (scsi_qla_host_t *)0, 20573, "%s: NULL response queue pointer.\n", "qla2100_intr_handler") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 59764: Ignoring function call through function pointer *(ha->isp_ops->read_optrom): (*(ha->isp_ops->read_optrom))(vha, (uint8_t *)dcode, pcihdr, 128U); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 59774: Ignoring function call through function pointer *(ha->isp_ops->read_optrom): (*(ha->isp_ops->read_optrom))(vha, (uint8_t *)dcode, pcids, 128U); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+lines 59803-59804: Ignoring parameters passed as varargs to function ql_log: ql_log(1U, vha, 345, "Unrecognized code type %x at pcids %x.\n", (int)code_type, pcids) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 59800: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073741824U, vha, 344, "Read EFI %d.%d.\n", (int)((ha->efi_revision)[1]), (int)((ha->efi_revision)[0])) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 59794-59795: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073741824U, vha, 343, "Read FCODE %d.%d.\n", (int)((ha->fcode_revision)[1]), (int)((ha->fcode_revision)[0])) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 59788-59789: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073741824U, vha, 342, "Read BIOS %d.%d.\n", (int)((ha->bios_revision)[1]), (int)((ha->bios_revision)[0])) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 59777: Ignoring parameters passed as varargs to function ql_log: ql_log(0U, vha, 341, "PCI data struct not found pcir_adr=%x.\n", pcids) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 59767: Ignoring parameters passed as varargs to function ql_log: ql_log(0U, vha, 340, "No matching ROM signature.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_request_selected_regions to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 16103: Ignoring parameters passed as varargs to function ql_dbg_pci: ql_dbg_pci(1073741824U, ha->pdev, 20, "PIO address=%llu.\n", ha->pio_address) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 75535: Ignoring parameters passed as varargs to function ql_log: ql_log(1U, vha, 32804, "Device in failed state, exiting.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 58696: Ignoring function call through function pointer *(ha->isp_ops->beacon_blink): (*(ha->isp_ops->beacon_blink))(vha); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 20006: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(16777216U, vha, 24576, "EEH = %d, restarting timer.\n", (int)(ha->flags.eeh_busy)) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 38912: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(536903680U, vha, 4193, "Entered %s.\n", "qla24xx_login_fabric") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 85448-85449: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, (scsi_qla_host_t *)0, 45379, "%s(): NULL response queue pointer\n", "qla8044_intr_handler") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 35071: Ignoring function call through function pointer *(ha->isp_ops->disable_intrs): (*(ha->isp_ops->disable_intrs))(ha); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function scsi_block_requests to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 31982: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073741824U, vha, 253, "Registering vector 0x%x for base que.\n", __CPAchecker_TMP_8) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 32000: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(1073741824U, vha, 254, "MSIX Handshake Disable Mode turned on.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 73865-73866: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, (scsi_qla_host_t *)0, 45139, "%s: NULL response queue pointer.\n", "qla82xx_intr_handler") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 58447: Ignoring function call through function pointer *(ha->isp_ops->beacon_blink): (*(ha->isp_ops->beacon_blink))(vha); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+line 39561: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(536903680U, vha, 4236, "Entered %s.\n", "qla24xx_abort_command") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 80355-80356: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, (scsi_qla_host_t *)0, 20605, "%s: NULL response queue pointer.\n", "qlafx00_intr_handler") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_set_master to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_try_set_mwi to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 59047: Ignoring function call through function pointer *(ha->isp_ops->disable_intrs): (*(ha->isp_ops->disable_intrs))(ha); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function ioremap_nocache to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 78151-78152: Ignoring parameters passed as varargs to function ql_log_pci: ql_log_pci(2U, ha->pdev, 300, "Bars 0x%x, iobase0 0x%p, iobase2 0x%p\n", ha->bars, ha->cregbase, ha->iobase) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function pci_request_regions to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 73455: Ignoring parameters passed as varargs to function ql_log_pci: ql_log_pci(0U, ha->pdev, 13, "Region #0 not an MMIO resource, aborting.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 73449: Ignoring parameters passed as varargs to function ql_log_pci: ql_log_pci(0U, ha->pdev, 12, "Failed to reserver selected regions.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function dma_alloc_attrs to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+lines 59419-59420: Ignoring parameters passed as varargs to function ql_log: ql_log(1U, vha, 204, "Unable to allocate memory for optrom burst read (%x KB).\n", 4) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 38146: Ignoring parameters passed as varargs to function ql_dbg: ql_dbg(536903680U, vha, 4155, "Entered %s.\n", "qla2x00_abort_command") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+lines 35619-35620: Ignoring parameters passed as varargs to function ql_log: ql_log(0U, vha, 133, "Unable to verify integrity of firmware image (%Zd).\n", blob->fw->size) (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 35607: Ignoring parameters passed as varargs to function ql_log: ql_log(2U, vha, 131, "Firmware image unavailable.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+line 35639: Ignoring parameters passed as varargs to function ql_log: ql_log(0U, vha, 134, "Unable to verify integrity of firmware image.\n") (PredicateCPA:CtoFormulaConverter.makeFunctionCall, WARNING)
+
+Assuming external function vmalloc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 58303: Ignoring function call through function pointer *(ha->isp_ops->read_optrom): (*(ha->isp_ops->read_optrom))(vha, dbuf, (ha->flt_region_vpd_nvram) << 2, 65536U); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Assuming external function memcpy to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+line 58305: Ignoring function call through function pointer *(ha->isp_ops->write_optrom): (*(ha->isp_ops->write_optrom))(vha, dbuf, (ha->flt_region_vpd_nvram) << 2, 65536U); (PredicateCPA:ExpressionToFormulaVisitor.visit, WARNING)
+
+Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line. (CallstackCPA:CallstackTransferRelation.getAbstractSuccessorsForEdge, INFO)
+
+Error: line 58305: Unsupported feature (recursion): qla25xx_write_nvram_data(vha, dbuf, (ha->flt_region_vpd_nvram) << 2, 65536U); (line was originally pointer call(qla25xx_write_nvram_data) (*((ha->isp_ops)->write_optrom))(vha, dbuf, ha->flt_region_vpd_nvram << 2, 65536U);) (CallstackTransferRelation.getAbstractSuccessorsForEdge, SEVERE)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            4101 (12% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  3925 (96%)
+  Because of loop head:            176 (4%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         0 (0%)
+  Times precision was empty:       4101 (100%)
+  Times precision was {false}:     0 (0%)
+  Times result was cached:         0 (0%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      0 (0%)
+  Times result was 'false':        0 (0%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         4290
+  BDD entailment checks:           100
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       866
+Number of predicates discovered:          0
+
+Time for post operator:                 27.406s
+  Time for path formula creation:       27.327s
+Time for strengthen operator:            0.141s
+Time for prec operator:                  0.841s
+  Time for abstraction:                  0.093s (Max:     0.009s, Count: 4101)
+    Solving time:                        0.000s (Max:     0.000s)
+    Model enumeration time:              0.000s
+    Time for BDD construction:           0.000s (Max:     0.000s)
+Time for merge operator:                 1.470s
+Time for coverage check:                 0.011s
+  Time for BDD entailment checks:        0.009s
+Total time for SMT solver (w/o itp):     0.000s
+
+Number of path formula cache hits:   10424 (29%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:    24.514s
+
+Total number of created targets for pointer analysis: 60146
+   Number of created targets for uf: *unsigned_short_int is 166
+   Number of created targets for uf: *(void)* is 67
+   Number of created targets for uf: *unsigned_char is 185
+   Number of created targets for uf: *(struct_list_head)* is 23
+   Number of created targets for uf: *unsigned_long_long_int is 221
+   Number of created targets for uf: *unsigned_int is 5635
+   Number of created targets for uf: *char is 239
+
+
+Number of BDD nodes:                               202
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                           0 (count: 4202, min: 0, max: 0, avg: 0.00)
+Time for BDD node cleanup:                             0.020s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.263s
+Automaton transfers with branching:                0
+Automaton transfer successors:                        34730 (count: 34730, min: 1, max: 1, avg: 1.00) [1 x 34730]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            14611
+Max size of waitlist:            2634
+Average size of waitlist:        1272
+Number of computed successors:   19438
+Max successors for one state:    2
+Number of times merged:          2095
+Number of times stopped:         2195
+Number of times breaked:         0
+
+Total time for CPA algorithm:        33.218s (Max:    33.218s)
+  Time for choose from waitlist:      0.063s
+  Time for precision adjustment:      1.246s
+  Time for transfer relation:        29.639s
+  Time for merge operator:            1.654s
+  Time for stop operator:             0.105s
+  Time for adding to reached set:     0.168s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                0
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.127
+  Visited lines:          7503
+  Total lines:            53434
+  Line coverage:          0.140
+  Visited conditions:     2986
+  Total conditions:       22704
+  Condition coverage:     0.132
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     80604
+Number of CFA edges:             102677
+Number of relevant variables:    11700
+Number of functions:             1973
+Number of loops:                 561
+Size of reached set:             17244
+  Number of reached locations:   4885 (6%)
+    Avg states per location:     3
+    Max states per location:     265 (at node N197)
+  Number of reached functions:   250 (13%)
+  Number of partitions:          17244
+    Avg size of partitions:      1
+    Max size of partitions:      1
+  Number of target states:       0
+  Size of final wait list        2634
+
+Time for analysis setup:         30.856s
+  Time for loading CPAs:          1.721s
+  Time for loading parser:        0.626s
+  Time for CFA construction:     28.352s
+    Time for parsing file(s):     3.263s
+    Time for AST to CFA:          7.482s
+    Time for CFA sanity check:    4.497s
+    Time for post-processing:    13.381s
+      Time for var class.:        5.599s
+Time for Analysis:               33.218s
+CPU time for analysis:           33.210s
+Total time for CPAchecker:       64.078s
+Total CPU time for CPAchecker:   63.980s
+Time for statistics:              0.730s
+
+Time for Garbage Collector:       4.719s (in 52 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                981MB (   936 MiB) max;    601MB (   573 MiB) avg;   1015MB (   968 MiB) peak
+Used non-heap memory:             50MB (    47 MiB) max;     40MB (    38 MiB) avg;     50MB (    48 MiB) peak
+Allocated heap memory:          1276MB (  1217 MiB) max;    988MB (   942 MiB) avg
+Allocated non-heap memory:        52MB (    49 MiB) max;     41MB (    39 MiB) avg
+Total process virtual memory:   8086MB (  7711 MiB) max;   8071MB (  7697 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".
