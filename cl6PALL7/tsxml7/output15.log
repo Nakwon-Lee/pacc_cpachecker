@@ -1,0 +1,38 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABEl -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-32_7a-drivers--media--usb--gspca--gspca_topro.ko-ldv_main0_sequence_infinite_withcheck_stateful.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_4acpfxt3/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 26034: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Shutdown was requested but CPAchecker is still running after 10s, forcing immediate termination now. (ForceTerminationOnShutdown.run, WARNING)
+
+For your information: CPAchecker is currently hanging at
+ java.util.HashMap.hash(HashMap.java:339)
+java.util.HashMap.put(HashMap.java:612)
+java.util.HashSet.add(HashSet.java:220)
+java.util.AbstractCollection.addAll(AbstractCollection.java:344)
+org.sosy_lab.cpachecker.util.LoopStructure$Edge.add(LoopStructure.java:501)
+org.sosy_lab.cpachecker.util.LoopStructure$Edge.access$500(LoopStructure.java:497)
+org.sosy_lab.cpachecker.util.LoopStructure.moveOutgoingEdges(LoopStructure.java:804)
+org.sosy_lab.cpachecker.util.LoopStructure.identifyLoops(LoopStructure.java:736)
+org.sosy_lab.cpachecker.util.LoopStructure.findLoops(LoopStructure.java:603)
+org.sosy_lab.cpachecker.util.LoopStructure.getLoopStructure(LoopStructure.java:523)
+org.sosy_lab.cpachecker.cfa.CFACreator.addLoopStructure(CFACreator.java:786)
+org.sosy_lab.cpachecker.cfa.CFACreator.createCFA(CFACreator.java:431)
+org.sosy_lab.cpachecker.cfa.CFACreator.parseFileAndCreateCFA(CFACreator.java:378)
+org.sosy_lab.cpachecker.core.CPAchecker.parse(CPAchecker.java:441)
+org.sosy_lab.cpachecker.core.CPAchecker.run(CPAchecker.java:304)
+org.sosy_lab.cpachecker.cmdline.CPAMain.main(CPAMain.java:170) 
+ (ForceTerminationOnShutdown.run, INFO)
+
