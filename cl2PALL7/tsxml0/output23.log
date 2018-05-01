@@ -1,0 +1,3779 @@
+scripts/cpa.sh -Dy-MySearchStrategy-PredAbs-ABEl -heap 5600000000 -timelimit 30 -preprocess -stats -noout -setprop cpa.predicate.memoryAllocationsAlwaysSucceed=true -spec ../sv-benchmarks/c/ReachSafety.prp ../sv-benchmarks/c/ldv-consumption/32_7a_cilled_true-unreach-call_linux-3.8-rc1-drivers--infiniband--hw--mthca--ib_mthca.ko-main.cil.out.c
+
+
+--------------------------------------------------------------------------------
+
+
+Running CPAchecker with Java heap of size 5600000000.
+Running CPAchecker with default stack size (1024k). Specify a larger value with -stack if needed.
+Running CPAchecker with the following extra VM options:  -Djava.io.tmpdir=/tmp/BenchExec_run_r00p5l6u/tmp
+Using the following resource limits: CPU-time limit of 30s (ResourceLimitChecker.fromConfiguration, INFO)
+
+CPAchecker (unknown version) (OpenJDK 64-Bit Server VM 1.8.0_162) started (CPAchecker.run, INFO)
+
+line 5886: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6054: Dead code detected: __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6057: Dead code detected: __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6060: Dead code detected: __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  __asm__ ("movb %%gs:%P1,%0": "=q" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 2:
+  __asm__ ("movw %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 4:
+  __asm__ ("movl %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  case 8:
+  __asm__ ("movq %%gs:%P1,%0": "=r" (pfo_ret__): "p" (& current_task));
+  goto ldv_2861;
+  default:
+  __bad_percpu_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6388: Dead code detected: tmp = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6393: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6398: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    tmp = get_current();
+    __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp->state): : "memory",
+                         "cc");
+    goto ldv_27604;
+    case 2:
+    tmp___0 = get_current();
+    __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___0->state): : "memory",
+                         "cc");
+    goto ldv_27604;
+    case 4:
+    tmp___1 = get_current();
+    __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                         "cc");
+    goto ldv_27604;
+    case 8:
+    tmp___2 = get_current();
+    __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                         "cc");
+    goto ldv_27604;
+    default:
+    __xchg_wrong_size();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6590: Dead code detected: tmp___0 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6595: Dead code detected: tmp___1 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 6600: Dead code detected: tmp___2 = get_current(); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  tmp___0 = get_current();
+  __asm__ volatile ("xchgb %b0, %1\n": "+q" (__ret), "+m" (tmp___0->state): : "memory",
+                       "cc");
+  goto ldv_27652;
+  case 2:
+  tmp___1 = get_current();
+  __asm__ volatile ("xchgw %w0, %1\n": "+r" (__ret), "+m" (tmp___1->state): : "memory",
+                       "cc");
+  goto ldv_27652;
+  case 4:
+  tmp___2 = get_current();
+  __asm__ volatile ("xchgl %0, %1\n": "+r" (__ret), "+m" (tmp___2->state): : "memory",
+                       "cc");
+  goto ldv_27652;
+  case 8:
+  tmp___3 = get_current();
+  __asm__ volatile ("xchgq %q0, %1\n": "+r" (__ret), "+m" (tmp___3->state): : "memory",
+                       "cc");
+  goto ldv_27652;
+  default:
+  __xchg_wrong_size();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7266: Dead code detected: dev->fw_ver = (u64 )*((u8 *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7269: Dead code detected: tmp___2 = __be16_to_cpup((__be16 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7273: Dead code detected: tmp___3 = __be32_to_cpup((__be32 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  dev->fw_ver = (u64 )*((u8 *)__p);
+  goto ldv_27812;
+  case 2:
+  tmp___2 = __be16_to_cpup((__be16 const *)__p);
+  dev->fw_ver = (u64 )tmp___2;
+  goto ldv_27812;
+  case 4:
+  tmp___3 = __be32_to_cpup((__be32 const *)__p);
+  dev->fw_ver = (u64 )tmp___3;
+  goto ldv_27812;
+  case 8:
+  dev->fw_ver = __be64_to_cpup((__be64 const *)__p);
+  goto ldv_27812;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7290: Dead code detected: tmp___4 = __be16_to_cpup((__be16 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7294: Dead code detected: tmp___5 = __be32_to_cpup((__be32 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7298: Dead code detected: tmp___6 = __be64_to_cpup((__be64 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  lg = *((u8 *)__p___0);
+  goto ldv_27819;
+  case 2:
+  tmp___4 = __be16_to_cpup((__be16 const *)__p___0);
+  lg = (u8 )tmp___4;
+  goto ldv_27819;
+  case 4:
+  tmp___5 = __be32_to_cpup((__be32 const *)__p___0);
+  lg = (u8 )tmp___5;
+  goto ldv_27819;
+  case 8:
+  tmp___6 = __be64_to_cpup((__be64 const *)__p___0);
+  lg = (u8 )tmp___6;
+  goto ldv_27819;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7315: Dead code detected: dev->catas_err.addr = (u64 )*((u8 *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7318: Dead code detected: tmp___7 = __be16_to_cpup((__be16 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7322: Dead code detected: tmp___8 = __be32_to_cpup((__be32 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  dev->catas_err.addr = (u64 )*((u8 *)__p___1);
+  goto ldv_27826;
+  case 2:
+  tmp___7 = __be16_to_cpup((__be16 const *)__p___1);
+  dev->catas_err.addr = (u64 )tmp___7;
+  goto ldv_27826;
+  case 4:
+  tmp___8 = __be32_to_cpup((__be32 const *)__p___1);
+  dev->catas_err.addr = (u64 )tmp___8;
+  goto ldv_27826;
+  case 8:
+  dev->catas_err.addr = __be64_to_cpup((__be64 const *)__p___1);
+  goto ldv_27826;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7335: Dead code detected: dev->catas_err.size = (u32 )*((u8 *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7338: Dead code detected: tmp___9 = __be16_to_cpup((__be16 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7345: Dead code detected: tmp___10 = __be64_to_cpup((__be64 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  dev->catas_err.size = (u32 )*((u8 *)__p___2);
+  goto ldv_27833;
+  case 2:
+  tmp___9 = __be16_to_cpup((__be16 const *)__p___2);
+  dev->catas_err.size = (u32 )tmp___9;
+  goto ldv_27833;
+  case 4:
+  dev->catas_err.size = __be32_to_cpup((__be32 const *)__p___2);
+  goto ldv_27833;
+  case 8:
+  tmp___10 = __be64_to_cpup((__be64 const *)__p___2);
+  dev->catas_err.size = (u32 )tmp___10;
+  goto ldv_27833;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7361: Dead code detected: tmp = (u32 )*((u8 *)__p___3); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7364: Dead code detected: tmp___11 = __be16_to_cpup((__be16 const *)__p___3); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7371: Dead code detected: tmp___12 = __be64_to_cpup((__be64 const *)__p___3); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  tmp = (u32 )*((u8 *)__p___3);
+  goto ldv_27840;
+  case 2:
+  tmp___11 = __be16_to_cpup((__be16 const *)__p___3);
+  tmp = (u32 )tmp___11;
+  goto ldv_27840;
+  case 4:
+  tmp = __be32_to_cpup((__be32 const *)__p___3);
+  goto ldv_27840;
+  case 8:
+  tmp___12 = __be64_to_cpup((__be64 const *)__p___3);
+  tmp = (u32 )tmp___12;
+  goto ldv_27840;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7387: Dead code detected: base = (u64 )*((u8 *)__p___4); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7390: Dead code detected: tmp___13 = __be16_to_cpup((__be16 const *)__p___4); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7394: Dead code detected: tmp___14 = __be32_to_cpup((__be32 const *)__p___4); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    base = (u64 )*((u8 *)__p___4);
+    goto ldv_27847;
+    case 2:
+    tmp___13 = __be16_to_cpup((__be16 const *)__p___4);
+    base = (u64 )tmp___13;
+    goto ldv_27847;
+    case 4:
+    tmp___14 = __be32_to_cpup((__be32 const *)__p___4);
+    base = (u64 )tmp___14;
+    goto ldv_27847;
+    case 8:
+    base = __be64_to_cpup((__be64 const *)__p___4);
+    goto ldv_27847;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7410: Dead code detected: dev->cmd.dbell_offsets[i] = (u16 )*((u8 *)__p___5); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7416: Dead code detected: tmp___15 = __be32_to_cpup((__be32 const *)__p___5); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7420: Dead code detected: tmp___16 = __be64_to_cpup((__be64 const *)__p___5); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+    case 1:
+    dev->cmd.dbell_offsets[i] = (u16 )*((u8 *)__p___5);
+    goto ldv_27854;
+    case 2:
+    dev->cmd.dbell_offsets[i] = __be16_to_cpup((__be16 const *)__p___5);
+    goto ldv_27854;
+    case 4:
+    tmp___15 = __be32_to_cpup((__be32 const *)__p___5);
+    dev->cmd.dbell_offsets[i] = (u16 )tmp___15;
+    goto ldv_27854;
+    case 8:
+    tmp___16 = __be64_to_cpup((__be64 const *)__p___5);
+    dev->cmd.dbell_offsets[i] = (u16 )tmp___16;
+    goto ldv_27854;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7444: Dead code detected: dev->fw.arbel.fw_pages = (u16 )*((u8 *)__p___6); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7450: Dead code detected: tmp___17 = __be32_to_cpup((__be32 const *)__p___6); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7454: Dead code detected: tmp___18 = __be64_to_cpup((__be64 const *)__p___6); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+    case 1:
+    dev->fw.arbel.fw_pages = (u16 )*((u8 *)__p___6);
+    goto ldv_27864;
+    case 2:
+    dev->fw.arbel.fw_pages = __be16_to_cpup((__be16 const *)__p___6);
+    goto ldv_27864;
+    case 4:
+    tmp___17 = __be32_to_cpup((__be32 const *)__p___6);
+    dev->fw.arbel.fw_pages = (u16 )tmp___17;
+    goto ldv_27864;
+    case 8:
+    tmp___18 = __be64_to_cpup((__be64 const *)__p___6);
+    dev->fw.arbel.fw_pages = (u16 )tmp___18;
+    goto ldv_27864;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7464: Dead code detected: dev->fw.arbel.clr_int_base = (u64 )*((u8 *)__p___7); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7467: Dead code detected: tmp___19 = __be16_to_cpup((__be16 const *)__p___7); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7471: Dead code detected: tmp___20 = __be32_to_cpup((__be32 const *)__p___7); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    dev->fw.arbel.clr_int_base = (u64 )*((u8 *)__p___7);
+    goto ldv_27871;
+    case 2:
+    tmp___19 = __be16_to_cpup((__be16 const *)__p___7);
+    dev->fw.arbel.clr_int_base = (u64 )tmp___19;
+    goto ldv_27871;
+    case 4:
+    tmp___20 = __be32_to_cpup((__be32 const *)__p___7);
+    dev->fw.arbel.clr_int_base = (u64 )tmp___20;
+    goto ldv_27871;
+    case 8:
+    dev->fw.arbel.clr_int_base = __be64_to_cpup((__be64 const *)__p___7);
+    goto ldv_27871;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7484: Dead code detected: dev->fw.arbel.eq_arm_base = (u64 )*((u8 *)__p___8); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7487: Dead code detected: tmp___21 = __be16_to_cpup((__be16 const *)__p___8); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7491: Dead code detected: tmp___22 = __be32_to_cpup((__be32 const *)__p___8); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    dev->fw.arbel.eq_arm_base = (u64 )*((u8 *)__p___8);
+    goto ldv_27878;
+    case 2:
+    tmp___21 = __be16_to_cpup((__be16 const *)__p___8);
+    dev->fw.arbel.eq_arm_base = (u64 )tmp___21;
+    goto ldv_27878;
+    case 4:
+    tmp___22 = __be32_to_cpup((__be32 const *)__p___8);
+    dev->fw.arbel.eq_arm_base = (u64 )tmp___22;
+    goto ldv_27878;
+    case 8:
+    dev->fw.arbel.eq_arm_base = __be64_to_cpup((__be64 const *)__p___8);
+    goto ldv_27878;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7504: Dead code detected: dev->fw.arbel.eq_set_ci_base = (u64 )*((u8 *)__p___9); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7507: Dead code detected: tmp___23 = __be16_to_cpup((__be16 const *)__p___9); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7511: Dead code detected: tmp___24 = __be32_to_cpup((__be32 const *)__p___9); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    dev->fw.arbel.eq_set_ci_base = (u64 )*((u8 *)__p___9);
+    goto ldv_27885;
+    case 2:
+    tmp___23 = __be16_to_cpup((__be16 const *)__p___9);
+    dev->fw.arbel.eq_set_ci_base = (u64 )tmp___23;
+    goto ldv_27885;
+    case 4:
+    tmp___24 = __be32_to_cpup((__be32 const *)__p___9);
+    dev->fw.arbel.eq_set_ci_base = (u64 )tmp___24;
+    goto ldv_27885;
+    case 8:
+    dev->fw.arbel.eq_set_ci_base = __be64_to_cpup((__be64 const *)__p___9);
+    goto ldv_27885;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7538: Dead code detected: dev->fw.tavor.fw_start = (u64 )*((u8 *)__p___10); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7541: Dead code detected: tmp___25 = __be16_to_cpup((__be16 const *)__p___10); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7545: Dead code detected: tmp___26 = __be32_to_cpup((__be32 const *)__p___10); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    dev->fw.tavor.fw_start = (u64 )*((u8 *)__p___10);
+    goto ldv_27892;
+    case 2:
+    tmp___25 = __be16_to_cpup((__be16 const *)__p___10);
+    dev->fw.tavor.fw_start = (u64 )tmp___25;
+    goto ldv_27892;
+    case 4:
+    tmp___26 = __be32_to_cpup((__be32 const *)__p___10);
+    dev->fw.tavor.fw_start = (u64 )tmp___26;
+    goto ldv_27892;
+    case 8:
+    dev->fw.tavor.fw_start = __be64_to_cpup((__be64 const *)__p___10);
+    goto ldv_27892;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7558: Dead code detected: dev->fw.tavor.fw_end = (u64 )*((u8 *)__p___11); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7561: Dead code detected: tmp___27 = __be16_to_cpup((__be16 const *)__p___11); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7565: Dead code detected: tmp___28 = __be32_to_cpup((__be32 const *)__p___11); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    dev->fw.tavor.fw_end = (u64 )*((u8 *)__p___11);
+    goto ldv_27899;
+    case 2:
+    tmp___27 = __be16_to_cpup((__be16 const *)__p___11);
+    dev->fw.tavor.fw_end = (u64 )tmp___27;
+    goto ldv_27899;
+    case 4:
+    tmp___28 = __be32_to_cpup((__be32 const *)__p___11);
+    dev->fw.tavor.fw_end = (u64 )tmp___28;
+    goto ldv_27899;
+    case 8:
+    dev->fw.tavor.fw_end = __be64_to_cpup((__be64 const *)__p___11);
+    goto ldv_27899;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7627: Dead code detected: dev->ddr_start = (u64 )*((u8 *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7630: Dead code detected: tmp___1 = __be16_to_cpup((__be16 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7634: Dead code detected: tmp___2 = __be32_to_cpup((__be32 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  dev->ddr_start = (u64 )*((u8 *)__p);
+  goto ldv_27914;
+  case 2:
+  tmp___1 = __be16_to_cpup((__be16 const *)__p);
+  dev->ddr_start = (u64 )tmp___1;
+  goto ldv_27914;
+  case 4:
+  tmp___2 = __be32_to_cpup((__be32 const *)__p);
+  dev->ddr_start = (u64 )tmp___2;
+  goto ldv_27914;
+  case 8:
+  dev->ddr_start = __be64_to_cpup((__be64 const *)__p);
+  goto ldv_27914;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7647: Dead code detected: dev->ddr_end = (u64 )*((u8 *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7650: Dead code detected: tmp___3 = __be16_to_cpup((__be16 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7654: Dead code detected: tmp___4 = __be32_to_cpup((__be32 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  dev->ddr_end = (u64 )*((u8 *)__p___0);
+  goto ldv_27921;
+  case 2:
+  tmp___3 = __be16_to_cpup((__be16 const *)__p___0);
+  dev->ddr_end = (u64 )tmp___3;
+  goto ldv_27921;
+  case 4:
+  tmp___4 = __be32_to_cpup((__be32 const *)__p___0);
+  dev->ddr_end = (u64 )tmp___4;
+  goto ldv_27921;
+  case 8:
+  dev->ddr_end = __be64_to_cpup((__be64 const *)__p___0);
+  goto ldv_27921;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7670: Dead code detected: tmp___5 = __be16_to_cpup((__be16 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7674: Dead code detected: tmp___6 = __be32_to_cpup((__be32 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7678: Dead code detected: tmp___7 = __be64_to_cpup((__be64 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  info = *((u8 *)__p___1);
+  goto ldv_27928;
+  case 2:
+  tmp___5 = __be16_to_cpup((__be16 const *)__p___1);
+  info = (u8 )tmp___5;
+  goto ldv_27928;
+  case 4:
+  tmp___6 = __be32_to_cpup((__be32 const *)__p___1);
+  info = (u8 )tmp___6;
+  goto ldv_27928;
+  case 8:
+  tmp___7 = __be64_to_cpup((__be64 const *)__p___1);
+  info = (u8 )tmp___7;
+  goto ldv_27928;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7763: Dead code detected: dev->ddr_start = (u64 )*((u8 *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7766: Dead code detected: tmp___1 = __be16_to_cpup((__be16 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7770: Dead code detected: tmp___2 = __be32_to_cpup((__be32 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  dev->ddr_start = (u64 )*((u8 *)__p);
+  goto ldv_27946;
+  case 2:
+  tmp___1 = __be16_to_cpup((__be16 const *)__p);
+  dev->ddr_start = (u64 )tmp___1;
+  goto ldv_27946;
+  case 4:
+  tmp___2 = __be32_to_cpup((__be32 const *)__p);
+  dev->ddr_start = (u64 )tmp___2;
+  goto ldv_27946;
+  case 8:
+  dev->ddr_start = __be64_to_cpup((__be64 const *)__p);
+  goto ldv_27946;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7783: Dead code detected: dev->ddr_end = (u64 )*((u8 *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7786: Dead code detected: tmp___3 = __be16_to_cpup((__be16 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7790: Dead code detected: tmp___4 = __be32_to_cpup((__be32 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  dev->ddr_end = (u64 )*((u8 *)__p___0);
+  goto ldv_27953;
+  case 2:
+  tmp___3 = __be16_to_cpup((__be16 const *)__p___0);
+  dev->ddr_end = (u64 )tmp___3;
+  goto ldv_27953;
+  case 4:
+  tmp___4 = __be32_to_cpup((__be32 const *)__p___0);
+  dev->ddr_end = (u64 )tmp___4;
+  goto ldv_27953;
+  case 8:
+  dev->ddr_end = __be64_to_cpup((__be64 const *)__p___0);
+  goto ldv_27953;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7806: Dead code detected: tmp___5 = __be16_to_cpup((__be16 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7810: Dead code detected: tmp___6 = __be32_to_cpup((__be32 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 7814: Dead code detected: tmp___7 = __be64_to_cpup((__be64 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  info = *((u8 *)__p___1);
+  goto ldv_27960;
+  case 2:
+  tmp___5 = __be16_to_cpup((__be16 const *)__p___1);
+  info = (u8 )tmp___5;
+  goto ldv_27960;
+  case 4:
+  tmp___6 = __be32_to_cpup((__be32 const *)__p___1);
+  info = (u8 )tmp___6;
+  goto ldv_27960;
+  case 8:
+  tmp___7 = __be64_to_cpup((__be64 const *)__p___1);
+  info = (u8 )tmp___7;
+  goto ldv_27960;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8117: Dead code detected: tmp___1 = __be16_to_cpup((__be16 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8121: Dead code detected: tmp___2 = __be32_to_cpup((__be32 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8125: Dead code detected: tmp___3 = __be64_to_cpup((__be64 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p);
+  goto ldv_27978;
+  case 2:
+  tmp___1 = __be16_to_cpup((__be16 const *)__p);
+  field = (u8 )tmp___1;
+  goto ldv_27978;
+  case 4:
+  tmp___2 = __be32_to_cpup((__be32 const *)__p);
+  field = (u8 )tmp___2;
+  goto ldv_27978;
+  case 8:
+  tmp___3 = __be64_to_cpup((__be64 const *)__p);
+  field = (u8 )tmp___3;
+  goto ldv_27978;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8139: Dead code detected: tmp___4 = __be16_to_cpup((__be16 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8143: Dead code detected: tmp___5 = __be32_to_cpup((__be32 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8147: Dead code detected: tmp___6 = __be64_to_cpup((__be64 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___0);
+  goto ldv_27985;
+  case 2:
+  tmp___4 = __be16_to_cpup((__be16 const *)__p___0);
+  field = (u8 )tmp___4;
+  goto ldv_27985;
+  case 4:
+  tmp___5 = __be32_to_cpup((__be32 const *)__p___0);
+  field = (u8 )tmp___5;
+  goto ldv_27985;
+  case 8:
+  tmp___6 = __be64_to_cpup((__be64 const *)__p___0);
+  field = (u8 )tmp___6;
+  goto ldv_27985;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8161: Dead code detected: tmp___7 = __be16_to_cpup((__be16 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8165: Dead code detected: tmp___8 = __be32_to_cpup((__be32 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8169: Dead code detected: tmp___9 = __be64_to_cpup((__be64 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___1);
+  goto ldv_27992;
+  case 2:
+  tmp___7 = __be16_to_cpup((__be16 const *)__p___1);
+  field = (u8 )tmp___7;
+  goto ldv_27992;
+  case 4:
+  tmp___8 = __be32_to_cpup((__be32 const *)__p___1);
+  field = (u8 )tmp___8;
+  goto ldv_27992;
+  case 8:
+  tmp___9 = __be64_to_cpup((__be64 const *)__p___1);
+  field = (u8 )tmp___9;
+  goto ldv_27992;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8183: Dead code detected: tmp___10 = __be16_to_cpup((__be16 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8187: Dead code detected: tmp___11 = __be32_to_cpup((__be32 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8191: Dead code detected: tmp___12 = __be64_to_cpup((__be64 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___2);
+  goto ldv_27999;
+  case 2:
+  tmp___10 = __be16_to_cpup((__be16 const *)__p___2);
+  field = (u8 )tmp___10;
+  goto ldv_27999;
+  case 4:
+  tmp___11 = __be32_to_cpup((__be32 const *)__p___2);
+  field = (u8 )tmp___11;
+  goto ldv_27999;
+  case 8:
+  tmp___12 = __be64_to_cpup((__be64 const *)__p___2);
+  field = (u8 )tmp___12;
+  goto ldv_27999;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8205: Dead code detected: tmp___13 = __be16_to_cpup((__be16 const *)__p___3); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8209: Dead code detected: tmp___14 = __be32_to_cpup((__be32 const *)__p___3); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8213: Dead code detected: tmp___15 = __be64_to_cpup((__be64 const *)__p___3); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___3);
+  goto ldv_28006;
+  case 2:
+  tmp___13 = __be16_to_cpup((__be16 const *)__p___3);
+  field = (u8 )tmp___13;
+  goto ldv_28006;
+  case 4:
+  tmp___14 = __be32_to_cpup((__be32 const *)__p___3);
+  field = (u8 )tmp___14;
+  goto ldv_28006;
+  case 8:
+  tmp___15 = __be64_to_cpup((__be64 const *)__p___3);
+  field = (u8 )tmp___15;
+  goto ldv_28006;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8227: Dead code detected: tmp___16 = __be16_to_cpup((__be16 const *)__p___4); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8231: Dead code detected: tmp___17 = __be32_to_cpup((__be32 const *)__p___4); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8235: Dead code detected: tmp___18 = __be64_to_cpup((__be64 const *)__p___4); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___4);
+  goto ldv_28013;
+  case 2:
+  tmp___16 = __be16_to_cpup((__be16 const *)__p___4);
+  field = (u8 )tmp___16;
+  goto ldv_28013;
+  case 4:
+  tmp___17 = __be32_to_cpup((__be32 const *)__p___4);
+  field = (u8 )tmp___17;
+  goto ldv_28013;
+  case 8:
+  tmp___18 = __be64_to_cpup((__be64 const *)__p___4);
+  field = (u8 )tmp___18;
+  goto ldv_28013;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8249: Dead code detected: tmp___19 = __be16_to_cpup((__be16 const *)__p___5); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8253: Dead code detected: tmp___20 = __be32_to_cpup((__be32 const *)__p___5); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8257: Dead code detected: tmp___21 = __be64_to_cpup((__be64 const *)__p___5); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___5);
+  goto ldv_28020;
+  case 2:
+  tmp___19 = __be16_to_cpup((__be16 const *)__p___5);
+  field = (u8 )tmp___19;
+  goto ldv_28020;
+  case 4:
+  tmp___20 = __be32_to_cpup((__be32 const *)__p___5);
+  field = (u8 )tmp___20;
+  goto ldv_28020;
+  case 8:
+  tmp___21 = __be64_to_cpup((__be64 const *)__p___5);
+  field = (u8 )tmp___21;
+  goto ldv_28020;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8271: Dead code detected: tmp___22 = __be16_to_cpup((__be16 const *)__p___6); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8275: Dead code detected: tmp___23 = __be32_to_cpup((__be32 const *)__p___6); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8279: Dead code detected: tmp___24 = __be64_to_cpup((__be64 const *)__p___6); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___6);
+  goto ldv_28027;
+  case 2:
+  tmp___22 = __be16_to_cpup((__be16 const *)__p___6);
+  field = (u8 )tmp___22;
+  goto ldv_28027;
+  case 4:
+  tmp___23 = __be32_to_cpup((__be32 const *)__p___6);
+  field = (u8 )tmp___23;
+  goto ldv_28027;
+  case 8:
+  tmp___24 = __be64_to_cpup((__be64 const *)__p___6);
+  field = (u8 )tmp___24;
+  goto ldv_28027;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8293: Dead code detected: tmp___25 = __be16_to_cpup((__be16 const *)__p___7); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8297: Dead code detected: tmp___26 = __be32_to_cpup((__be32 const *)__p___7); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8301: Dead code detected: tmp___27 = __be64_to_cpup((__be64 const *)__p___7); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___7);
+  goto ldv_28034;
+  case 2:
+  tmp___25 = __be16_to_cpup((__be16 const *)__p___7);
+  field = (u8 )tmp___25;
+  goto ldv_28034;
+  case 4:
+  tmp___26 = __be32_to_cpup((__be32 const *)__p___7);
+  field = (u8 )tmp___26;
+  goto ldv_28034;
+  case 8:
+  tmp___27 = __be64_to_cpup((__be64 const *)__p___7);
+  field = (u8 )tmp___27;
+  goto ldv_28034;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8315: Dead code detected: tmp___28 = __be16_to_cpup((__be16 const *)__p___8); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8319: Dead code detected: tmp___29 = __be32_to_cpup((__be32 const *)__p___8); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8323: Dead code detected: tmp___30 = __be64_to_cpup((__be64 const *)__p___8); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___8);
+  goto ldv_28041;
+  case 2:
+  tmp___28 = __be16_to_cpup((__be16 const *)__p___8);
+  field = (u8 )tmp___28;
+  goto ldv_28041;
+  case 4:
+  tmp___29 = __be32_to_cpup((__be32 const *)__p___8);
+  field = (u8 )tmp___29;
+  goto ldv_28041;
+  case 8:
+  tmp___30 = __be64_to_cpup((__be64 const *)__p___8);
+  field = (u8 )tmp___30;
+  goto ldv_28041;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8337: Dead code detected: tmp___31 = __be16_to_cpup((__be16 const *)__p___9); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8341: Dead code detected: tmp___32 = __be32_to_cpup((__be32 const *)__p___9); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8345: Dead code detected: tmp___33 = __be64_to_cpup((__be64 const *)__p___9); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___9);
+  goto ldv_28048;
+  case 2:
+  tmp___31 = __be16_to_cpup((__be16 const *)__p___9);
+  field = (u8 )tmp___31;
+  goto ldv_28048;
+  case 4:
+  tmp___32 = __be32_to_cpup((__be32 const *)__p___9);
+  field = (u8 )tmp___32;
+  goto ldv_28048;
+  case 8:
+  tmp___33 = __be64_to_cpup((__be64 const *)__p___9);
+  field = (u8 )tmp___33;
+  goto ldv_28048;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8359: Dead code detected: tmp___34 = __be16_to_cpup((__be16 const *)__p___10); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8363: Dead code detected: tmp___35 = __be32_to_cpup((__be32 const *)__p___10); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8367: Dead code detected: tmp___36 = __be64_to_cpup((__be64 const *)__p___10); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___10);
+  goto ldv_28055;
+  case 2:
+  tmp___34 = __be16_to_cpup((__be16 const *)__p___10);
+  field = (u8 )tmp___34;
+  goto ldv_28055;
+  case 4:
+  tmp___35 = __be32_to_cpup((__be32 const *)__p___10);
+  field = (u8 )tmp___35;
+  goto ldv_28055;
+  case 8:
+  tmp___36 = __be64_to_cpup((__be64 const *)__p___10);
+  field = (u8 )tmp___36;
+  goto ldv_28055;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8381: Dead code detected: tmp___37 = __be16_to_cpup((__be16 const *)__p___11); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8385: Dead code detected: tmp___38 = __be32_to_cpup((__be32 const *)__p___11); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8389: Dead code detected: tmp___39 = __be64_to_cpup((__be64 const *)__p___11); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___11);
+  goto ldv_28062;
+  case 2:
+  tmp___37 = __be16_to_cpup((__be16 const *)__p___11);
+  field = (u8 )tmp___37;
+  goto ldv_28062;
+  case 4:
+  tmp___38 = __be32_to_cpup((__be32 const *)__p___11);
+  field = (u8 )tmp___38;
+  goto ldv_28062;
+  case 8:
+  tmp___39 = __be64_to_cpup((__be64 const *)__p___11);
+  field = (u8 )tmp___39;
+  goto ldv_28062;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8408: Dead code detected: tmp___41 = __be16_to_cpup((__be16 const *)__p___12); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8412: Dead code detected: tmp___42 = __be32_to_cpup((__be32 const *)__p___12); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8416: Dead code detected: tmp___43 = __be64_to_cpup((__be64 const *)__p___12); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___12);
+  goto ldv_28069;
+  case 2:
+  tmp___41 = __be16_to_cpup((__be16 const *)__p___12);
+  field = (u8 )tmp___41;
+  goto ldv_28069;
+  case 4:
+  tmp___42 = __be32_to_cpup((__be32 const *)__p___12);
+  field = (u8 )tmp___42;
+  goto ldv_28069;
+  case 8:
+  tmp___43 = __be64_to_cpup((__be64 const *)__p___12);
+  field = (u8 )tmp___43;
+  goto ldv_28069;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8430: Dead code detected: tmp___44 = __be16_to_cpup((__be16 const *)__p___13); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8434: Dead code detected: tmp___45 = __be32_to_cpup((__be32 const *)__p___13); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8438: Dead code detected: tmp___46 = __be64_to_cpup((__be64 const *)__p___13); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___13);
+  goto ldv_28076;
+  case 2:
+  tmp___44 = __be16_to_cpup((__be16 const *)__p___13);
+  field = (u8 )tmp___44;
+  goto ldv_28076;
+  case 4:
+  tmp___45 = __be32_to_cpup((__be32 const *)__p___13);
+  field = (u8 )tmp___45;
+  goto ldv_28076;
+  case 8:
+  tmp___46 = __be64_to_cpup((__be64 const *)__p___13);
+  field = (u8 )tmp___46;
+  goto ldv_28076;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8452: Dead code detected: tmp___47 = __be16_to_cpup((__be16 const *)__p___14); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8456: Dead code detected: tmp___48 = __be32_to_cpup((__be32 const *)__p___14); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8460: Dead code detected: tmp___49 = __be64_to_cpup((__be64 const *)__p___14); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___14);
+  goto ldv_28083;
+  case 2:
+  tmp___47 = __be16_to_cpup((__be16 const *)__p___14);
+  field = (u8 )tmp___47;
+  goto ldv_28083;
+  case 4:
+  tmp___48 = __be32_to_cpup((__be32 const *)__p___14);
+  field = (u8 )tmp___48;
+  goto ldv_28083;
+  case 8:
+  tmp___49 = __be64_to_cpup((__be64 const *)__p___14);
+  field = (u8 )tmp___49;
+  goto ldv_28083;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8474: Dead code detected: tmp___50 = __be16_to_cpup((__be16 const *)__p___15); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8478: Dead code detected: tmp___51 = __be32_to_cpup((__be32 const *)__p___15); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8482: Dead code detected: tmp___52 = __be64_to_cpup((__be64 const *)__p___15); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___15);
+  goto ldv_28090;
+  case 2:
+  tmp___50 = __be16_to_cpup((__be16 const *)__p___15);
+  field = (u8 )tmp___50;
+  goto ldv_28090;
+  case 4:
+  tmp___51 = __be32_to_cpup((__be32 const *)__p___15);
+  field = (u8 )tmp___51;
+  goto ldv_28090;
+  case 8:
+  tmp___52 = __be64_to_cpup((__be64 const *)__p___15);
+  field = (u8 )tmp___52;
+  goto ldv_28090;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8496: Dead code detected: tmp___53 = __be16_to_cpup((__be16 const *)__p___16); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8500: Dead code detected: tmp___54 = __be32_to_cpup((__be32 const *)__p___16); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8504: Dead code detected: tmp___55 = __be64_to_cpup((__be64 const *)__p___16); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___16);
+  goto ldv_28097;
+  case 2:
+  tmp___53 = __be16_to_cpup((__be16 const *)__p___16);
+  field = (u8 )tmp___53;
+  goto ldv_28097;
+  case 4:
+  tmp___54 = __be32_to_cpup((__be32 const *)__p___16);
+  field = (u8 )tmp___54;
+  goto ldv_28097;
+  case 8:
+  tmp___55 = __be64_to_cpup((__be64 const *)__p___16);
+  field = (u8 )tmp___55;
+  goto ldv_28097;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8518: Dead code detected: tmp___56 = __be16_to_cpup((__be16 const *)__p___17); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8522: Dead code detected: tmp___57 = __be32_to_cpup((__be32 const *)__p___17); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8526: Dead code detected: tmp___58 = __be64_to_cpup((__be64 const *)__p___17); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___17);
+  goto ldv_28104;
+  case 2:
+  tmp___56 = __be16_to_cpup((__be16 const *)__p___17);
+  field = (u8 )tmp___56;
+  goto ldv_28104;
+  case 4:
+  tmp___57 = __be32_to_cpup((__be32 const *)__p___17);
+  field = (u8 )tmp___57;
+  goto ldv_28104;
+  case 8:
+  tmp___58 = __be64_to_cpup((__be64 const *)__p___17);
+  field = (u8 )tmp___58;
+  goto ldv_28104;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8540: Dead code detected: tmp___59 = __be16_to_cpup((__be16 const *)__p___18); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8544: Dead code detected: tmp___60 = __be32_to_cpup((__be32 const *)__p___18); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8548: Dead code detected: tmp___61 = __be64_to_cpup((__be64 const *)__p___18); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___18);
+  goto ldv_28111;
+  case 2:
+  tmp___59 = __be16_to_cpup((__be16 const *)__p___18);
+  field = (u8 )tmp___59;
+  goto ldv_28111;
+  case 4:
+  tmp___60 = __be32_to_cpup((__be32 const *)__p___18);
+  field = (u8 )tmp___60;
+  goto ldv_28111;
+  case 8:
+  tmp___61 = __be64_to_cpup((__be64 const *)__p___18);
+  field = (u8 )tmp___61;
+  goto ldv_28111;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8562: Dead code detected: tmp___62 = __be16_to_cpup((__be16 const *)__p___19); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8566: Dead code detected: tmp___63 = __be32_to_cpup((__be32 const *)__p___19); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8570: Dead code detected: tmp___64 = __be64_to_cpup((__be64 const *)__p___19); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___19);
+  goto ldv_28118;
+  case 2:
+  tmp___62 = __be16_to_cpup((__be16 const *)__p___19);
+  field = (u8 )tmp___62;
+  goto ldv_28118;
+  case 4:
+  tmp___63 = __be32_to_cpup((__be32 const *)__p___19);
+  field = (u8 )tmp___63;
+  goto ldv_28118;
+  case 8:
+  tmp___64 = __be64_to_cpup((__be64 const *)__p___19);
+  field = (u8 )tmp___64;
+  goto ldv_28118;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8585: Dead code detected: tmp___65 = __be16_to_cpup((__be16 const *)__p___20); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8589: Dead code detected: tmp___66 = __be32_to_cpup((__be32 const *)__p___20); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8593: Dead code detected: tmp___67 = __be64_to_cpup((__be64 const *)__p___20); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___20);
+  goto ldv_28125;
+  case 2:
+  tmp___65 = __be16_to_cpup((__be16 const *)__p___20);
+  field = (u8 )tmp___65;
+  goto ldv_28125;
+  case 4:
+  tmp___66 = __be32_to_cpup((__be32 const *)__p___20);
+  field = (u8 )tmp___66;
+  goto ldv_28125;
+  case 8:
+  tmp___67 = __be64_to_cpup((__be64 const *)__p___20);
+  field = (u8 )tmp___67;
+  goto ldv_28125;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8608: Dead code detected: tmp___68 = __be16_to_cpup((__be16 const *)__p___21); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8612: Dead code detected: tmp___69 = __be32_to_cpup((__be32 const *)__p___21); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8616: Dead code detected: tmp___70 = __be64_to_cpup((__be64 const *)__p___21); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___21);
+  goto ldv_28132;
+  case 2:
+  tmp___68 = __be16_to_cpup((__be16 const *)__p___21);
+  field = (u8 )tmp___68;
+  goto ldv_28132;
+  case 4:
+  tmp___69 = __be32_to_cpup((__be32 const *)__p___21);
+  field = (u8 )tmp___69;
+  goto ldv_28132;
+  case 8:
+  tmp___70 = __be64_to_cpup((__be64 const *)__p___21);
+  field = (u8 )tmp___70;
+  goto ldv_28132;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8627: Dead code detected: stat_rate = (u16 )*((u8 *)__p___22); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8633: Dead code detected: tmp___71 = __be32_to_cpup((__be32 const *)__p___22); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8637: Dead code detected: tmp___72 = __be64_to_cpup((__be64 const *)__p___22); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  stat_rate = (u16 )*((u8 *)__p___22);
+  goto ldv_28139;
+  case 2:
+  stat_rate = __be16_to_cpup((__be16 const *)__p___22);
+  goto ldv_28139;
+  case 4:
+  tmp___71 = __be32_to_cpup((__be32 const *)__p___22);
+  stat_rate = (u16 )tmp___71;
+  goto ldv_28139;
+  case 8:
+  tmp___72 = __be64_to_cpup((__be64 const *)__p___22);
+  stat_rate = (u16 )tmp___72;
+  goto ldv_28139;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8651: Dead code detected: tmp___73 = __be16_to_cpup((__be16 const *)__p___23); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8655: Dead code detected: tmp___74 = __be32_to_cpup((__be32 const *)__p___23); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8659: Dead code detected: tmp___75 = __be64_to_cpup((__be64 const *)__p___23); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___23);
+  goto ldv_28146;
+  case 2:
+  tmp___73 = __be16_to_cpup((__be16 const *)__p___23);
+  field = (u8 )tmp___73;
+  goto ldv_28146;
+  case 4:
+  tmp___74 = __be32_to_cpup((__be32 const *)__p___23);
+  field = (u8 )tmp___74;
+  goto ldv_28146;
+  case 8:
+  tmp___75 = __be64_to_cpup((__be64 const *)__p___23);
+  field = (u8 )tmp___75;
+  goto ldv_28146;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8670: Dead code detected: dev_lim->flags = (u32 )*((u8 *)__p___24); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8673: Dead code detected: tmp___76 = __be16_to_cpup((__be16 const *)__p___24); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8680: Dead code detected: tmp___77 = __be64_to_cpup((__be64 const *)__p___24); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  dev_lim->flags = (u32 )*((u8 *)__p___24);
+  goto ldv_28153;
+  case 2:
+  tmp___76 = __be16_to_cpup((__be16 const *)__p___24);
+  dev_lim->flags = (u32 )tmp___76;
+  goto ldv_28153;
+  case 4:
+  dev_lim->flags = __be32_to_cpup((__be32 const *)__p___24);
+  goto ldv_28153;
+  case 8:
+  tmp___77 = __be64_to_cpup((__be64 const *)__p___24);
+  dev_lim->flags = (u32 )tmp___77;
+  goto ldv_28153;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8693: Dead code detected: tmp___78 = __be16_to_cpup((__be16 const *)__p___25); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8697: Dead code detected: tmp___79 = __be32_to_cpup((__be32 const *)__p___25); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8701: Dead code detected: tmp___80 = __be64_to_cpup((__be64 const *)__p___25); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___25);
+  goto ldv_28160;
+  case 2:
+  tmp___78 = __be16_to_cpup((__be16 const *)__p___25);
+  field = (u8 )tmp___78;
+  goto ldv_28160;
+  case 4:
+  tmp___79 = __be32_to_cpup((__be32 const *)__p___25);
+  field = (u8 )tmp___79;
+  goto ldv_28160;
+  case 8:
+  tmp___80 = __be64_to_cpup((__be64 const *)__p___25);
+  field = (u8 )tmp___80;
+  goto ldv_28160;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8715: Dead code detected: tmp___81 = __be16_to_cpup((__be16 const *)__p___26); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8719: Dead code detected: tmp___82 = __be32_to_cpup((__be32 const *)__p___26); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8723: Dead code detected: tmp___83 = __be64_to_cpup((__be64 const *)__p___26); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___26);
+  goto ldv_28167;
+  case 2:
+  tmp___81 = __be16_to_cpup((__be16 const *)__p___26);
+  field = (u8 )tmp___81;
+  goto ldv_28167;
+  case 4:
+  tmp___82 = __be32_to_cpup((__be32 const *)__p___26);
+  field = (u8 )tmp___82;
+  goto ldv_28167;
+  case 8:
+  tmp___83 = __be64_to_cpup((__be64 const *)__p___26);
+  field = (u8 )tmp___83;
+  goto ldv_28167;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8737: Dead code detected: tmp___84 = __be16_to_cpup((__be16 const *)__p___27); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8741: Dead code detected: tmp___85 = __be32_to_cpup((__be32 const *)__p___27); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8745: Dead code detected: tmp___86 = __be64_to_cpup((__be64 const *)__p___27); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___27);
+  goto ldv_28174;
+  case 2:
+  tmp___84 = __be16_to_cpup((__be16 const *)__p___27);
+  field = (u8 )tmp___84;
+  goto ldv_28174;
+  case 4:
+  tmp___85 = __be32_to_cpup((__be32 const *)__p___27);
+  field = (u8 )tmp___85;
+  goto ldv_28174;
+  case 8:
+  tmp___86 = __be64_to_cpup((__be64 const *)__p___27);
+  field = (u8 )tmp___86;
+  goto ldv_28174;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8759: Dead code detected: tmp___87 = __be16_to_cpup((__be16 const *)__p___28); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8763: Dead code detected: tmp___88 = __be32_to_cpup((__be32 const *)__p___28); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8767: Dead code detected: tmp___89 = __be64_to_cpup((__be64 const *)__p___28); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___28);
+  goto ldv_28181;
+  case 2:
+  tmp___87 = __be16_to_cpup((__be16 const *)__p___28);
+  field = (u8 )tmp___87;
+  goto ldv_28181;
+  case 4:
+  tmp___88 = __be32_to_cpup((__be32 const *)__p___28);
+  field = (u8 )tmp___88;
+  goto ldv_28181;
+  case 8:
+  tmp___89 = __be64_to_cpup((__be64 const *)__p___28);
+  field = (u8 )tmp___89;
+  goto ldv_28181;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8778: Dead code detected: size = (u16 )*((u8 *)__p___29); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8784: Dead code detected: tmp___90 = __be32_to_cpup((__be32 const *)__p___29); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8788: Dead code detected: tmp___91 = __be64_to_cpup((__be64 const *)__p___29); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___29);
+  goto ldv_28188;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___29);
+  goto ldv_28188;
+  case 4:
+  tmp___90 = __be32_to_cpup((__be32 const *)__p___29);
+  size = (u16 )tmp___90;
+  goto ldv_28188;
+  case 8:
+  tmp___91 = __be64_to_cpup((__be64 const *)__p___29);
+  size = (u16 )tmp___91;
+  goto ldv_28188;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8802: Dead code detected: tmp___92 = __be16_to_cpup((__be16 const *)__p___30); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8806: Dead code detected: tmp___93 = __be32_to_cpup((__be32 const *)__p___30); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8810: Dead code detected: tmp___94 = __be64_to_cpup((__be64 const *)__p___30); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___30);
+  goto ldv_28195;
+  case 2:
+  tmp___92 = __be16_to_cpup((__be16 const *)__p___30);
+  field = (u8 )tmp___92;
+  goto ldv_28195;
+  case 4:
+  tmp___93 = __be32_to_cpup((__be32 const *)__p___30);
+  field = (u8 )tmp___93;
+  goto ldv_28195;
+  case 8:
+  tmp___94 = __be64_to_cpup((__be64 const *)__p___30);
+  field = (u8 )tmp___94;
+  goto ldv_28195;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8824: Dead code detected: tmp___95 = __be16_to_cpup((__be16 const *)__p___31); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8828: Dead code detected: tmp___96 = __be32_to_cpup((__be32 const *)__p___31); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8832: Dead code detected: tmp___97 = __be64_to_cpup((__be64 const *)__p___31); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___31);
+  goto ldv_28202;
+  case 2:
+  tmp___95 = __be16_to_cpup((__be16 const *)__p___31);
+  field = (u8 )tmp___95;
+  goto ldv_28202;
+  case 4:
+  tmp___96 = __be32_to_cpup((__be32 const *)__p___31);
+  field = (u8 )tmp___96;
+  goto ldv_28202;
+  case 8:
+  tmp___97 = __be64_to_cpup((__be64 const *)__p___31);
+  field = (u8 )tmp___97;
+  goto ldv_28202;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8846: Dead code detected: tmp___98 = __be16_to_cpup((__be16 const *)__p___32); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8850: Dead code detected: tmp___99 = __be32_to_cpup((__be32 const *)__p___32); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8854: Dead code detected: tmp___100 = __be64_to_cpup((__be64 const *)__p___32); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___32);
+  goto ldv_28209;
+  case 2:
+  tmp___98 = __be16_to_cpup((__be16 const *)__p___32);
+  field = (u8 )tmp___98;
+  goto ldv_28209;
+  case 4:
+  tmp___99 = __be32_to_cpup((__be32 const *)__p___32);
+  field = (u8 )tmp___99;
+  goto ldv_28209;
+  case 8:
+  tmp___100 = __be64_to_cpup((__be64 const *)__p___32);
+  field = (u8 )tmp___100;
+  goto ldv_28209;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8868: Dead code detected: tmp___101 = __be16_to_cpup((__be16 const *)__p___33); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8872: Dead code detected: tmp___102 = __be32_to_cpup((__be32 const *)__p___33); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8876: Dead code detected: tmp___103 = __be64_to_cpup((__be64 const *)__p___33); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___33);
+  goto ldv_28216;
+  case 2:
+  tmp___101 = __be16_to_cpup((__be16 const *)__p___33);
+  field = (u8 )tmp___101;
+  goto ldv_28216;
+  case 4:
+  tmp___102 = __be32_to_cpup((__be32 const *)__p___33);
+  field = (u8 )tmp___102;
+  goto ldv_28216;
+  case 8:
+  tmp___103 = __be64_to_cpup((__be64 const *)__p___33);
+  field = (u8 )tmp___103;
+  goto ldv_28216;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8890: Dead code detected: tmp___104 = __be16_to_cpup((__be16 const *)__p___34); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8894: Dead code detected: tmp___105 = __be32_to_cpup((__be32 const *)__p___34); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8898: Dead code detected: tmp___106 = __be64_to_cpup((__be64 const *)__p___34); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___34);
+  goto ldv_28223;
+  case 2:
+  tmp___104 = __be16_to_cpup((__be16 const *)__p___34);
+  field = (u8 )tmp___104;
+  goto ldv_28223;
+  case 4:
+  tmp___105 = __be32_to_cpup((__be32 const *)__p___34);
+  field = (u8 )tmp___105;
+  goto ldv_28223;
+  case 8:
+  tmp___106 = __be64_to_cpup((__be64 const *)__p___34);
+  field = (u8 )tmp___106;
+  goto ldv_28223;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8912: Dead code detected: tmp___107 = __be16_to_cpup((__be16 const *)__p___35); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8916: Dead code detected: tmp___108 = __be32_to_cpup((__be32 const *)__p___35); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8920: Dead code detected: tmp___109 = __be64_to_cpup((__be64 const *)__p___35); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___35);
+  goto ldv_28230;
+  case 2:
+  tmp___107 = __be16_to_cpup((__be16 const *)__p___35);
+  field = (u8 )tmp___107;
+  goto ldv_28230;
+  case 4:
+  tmp___108 = __be32_to_cpup((__be32 const *)__p___35);
+  field = (u8 )tmp___108;
+  goto ldv_28230;
+  case 8:
+  tmp___109 = __be64_to_cpup((__be64 const *)__p___35);
+  field = (u8 )tmp___109;
+  goto ldv_28230;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8934: Dead code detected: tmp___110 = __be16_to_cpup((__be16 const *)__p___36); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8938: Dead code detected: tmp___111 = __be32_to_cpup((__be32 const *)__p___36); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8942: Dead code detected: tmp___112 = __be64_to_cpup((__be64 const *)__p___36); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  field = *((u8 *)__p___36);
+  goto ldv_28237;
+  case 2:
+  tmp___110 = __be16_to_cpup((__be16 const *)__p___36);
+  field = (u8 )tmp___110;
+  goto ldv_28237;
+  case 4:
+  tmp___111 = __be32_to_cpup((__be32 const *)__p___36);
+  field = (u8 )tmp___111;
+  goto ldv_28237;
+  case 8:
+  tmp___112 = __be64_to_cpup((__be64 const *)__p___36);
+  field = (u8 )tmp___112;
+  goto ldv_28237;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8953: Dead code detected: size = (u16 )*((u8 *)__p___37); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8959: Dead code detected: tmp___113 = __be32_to_cpup((__be32 const *)__p___37); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8963: Dead code detected: tmp___114 = __be64_to_cpup((__be64 const *)__p___37); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___37);
+  goto ldv_28244;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___37);
+  goto ldv_28244;
+  case 4:
+  tmp___113 = __be32_to_cpup((__be32 const *)__p___37);
+  size = (u16 )tmp___113;
+  goto ldv_28244;
+  case 8:
+  tmp___114 = __be64_to_cpup((__be64 const *)__p___37);
+  size = (u16 )tmp___114;
+  goto ldv_28244;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8974: Dead code detected: size = (u16 )*((u8 *)__p___38); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8980: Dead code detected: tmp___115 = __be32_to_cpup((__be32 const *)__p___38); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8984: Dead code detected: tmp___116 = __be64_to_cpup((__be64 const *)__p___38); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___38);
+  goto ldv_28251;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___38);
+  goto ldv_28251;
+  case 4:
+  tmp___115 = __be32_to_cpup((__be32 const *)__p___38);
+  size = (u16 )tmp___115;
+  goto ldv_28251;
+  case 8:
+  tmp___116 = __be64_to_cpup((__be64 const *)__p___38);
+  size = (u16 )tmp___116;
+  goto ldv_28251;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 8995: Dead code detected: size = (u16 )*((u8 *)__p___39); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9001: Dead code detected: tmp___117 = __be32_to_cpup((__be32 const *)__p___39); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9005: Dead code detected: tmp___118 = __be64_to_cpup((__be64 const *)__p___39); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___39);
+  goto ldv_28258;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___39);
+  goto ldv_28258;
+  case 4:
+  tmp___117 = __be32_to_cpup((__be32 const *)__p___39);
+  size = (u16 )tmp___117;
+  goto ldv_28258;
+  case 8:
+  tmp___118 = __be64_to_cpup((__be64 const *)__p___39);
+  size = (u16 )tmp___118;
+  goto ldv_28258;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9016: Dead code detected: size = (u16 )*((u8 *)__p___40); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9022: Dead code detected: tmp___119 = __be32_to_cpup((__be32 const *)__p___40); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9026: Dead code detected: tmp___120 = __be64_to_cpup((__be64 const *)__p___40); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___40);
+  goto ldv_28265;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___40);
+  goto ldv_28265;
+  case 4:
+  tmp___119 = __be32_to_cpup((__be32 const *)__p___40);
+  size = (u16 )tmp___119;
+  goto ldv_28265;
+  case 8:
+  tmp___120 = __be64_to_cpup((__be64 const *)__p___40);
+  size = (u16 )tmp___120;
+  goto ldv_28265;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9037: Dead code detected: size = (u16 )*((u8 *)__p___41); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9043: Dead code detected: tmp___121 = __be32_to_cpup((__be32 const *)__p___41); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9047: Dead code detected: tmp___122 = __be64_to_cpup((__be64 const *)__p___41); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___41);
+  goto ldv_28272;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___41);
+  goto ldv_28272;
+  case 4:
+  tmp___121 = __be32_to_cpup((__be32 const *)__p___41);
+  size = (u16 )tmp___121;
+  goto ldv_28272;
+  case 8:
+  tmp___122 = __be64_to_cpup((__be64 const *)__p___41);
+  size = (u16 )tmp___122;
+  goto ldv_28272;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9058: Dead code detected: size = (u16 )*((u8 *)__p___42); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9064: Dead code detected: tmp___123 = __be32_to_cpup((__be32 const *)__p___42); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9068: Dead code detected: tmp___124 = __be64_to_cpup((__be64 const *)__p___42); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___42);
+  goto ldv_28279;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___42);
+  goto ldv_28279;
+  case 4:
+  tmp___123 = __be32_to_cpup((__be32 const *)__p___42);
+  size = (u16 )tmp___123;
+  goto ldv_28279;
+  case 8:
+  tmp___124 = __be64_to_cpup((__be64 const *)__p___42);
+  size = (u16 )tmp___124;
+  goto ldv_28279;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9079: Dead code detected: size = (u16 )*((u8 *)__p___43); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9085: Dead code detected: tmp___125 = __be32_to_cpup((__be32 const *)__p___43); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9089: Dead code detected: tmp___126 = __be64_to_cpup((__be64 const *)__p___43); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___43);
+  goto ldv_28286;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___43);
+  goto ldv_28286;
+  case 4:
+  tmp___125 = __be32_to_cpup((__be32 const *)__p___43);
+  size = (u16 )tmp___125;
+  goto ldv_28286;
+  case 8:
+  tmp___126 = __be64_to_cpup((__be64 const *)__p___43);
+  size = (u16 )tmp___126;
+  goto ldv_28286;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9100: Dead code detected: size = (u16 )*((u8 *)__p___44); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9106: Dead code detected: tmp___127 = __be32_to_cpup((__be32 const *)__p___44); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9110: Dead code detected: tmp___128 = __be64_to_cpup((__be64 const *)__p___44); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  size = (u16 )*((u8 *)__p___44);
+  goto ldv_28293;
+  case 2:
+  size = __be16_to_cpup((__be16 const *)__p___44);
+  goto ldv_28293;
+  case 4:
+  tmp___127 = __be32_to_cpup((__be32 const *)__p___44);
+  size = (u16 )tmp___127;
+  goto ldv_28293;
+  case 8:
+  tmp___128 = __be64_to_cpup((__be64 const *)__p___44);
+  size = (u16 )tmp___128;
+  goto ldv_28293;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9126: Dead code detected: tmp___129 = __be16_to_cpup((__be16 const *)__p___45); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9130: Dead code detected: tmp___130 = __be32_to_cpup((__be32 const *)__p___45); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9134: Dead code detected: tmp___131 = __be64_to_cpup((__be64 const *)__p___45); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___45);
+    goto ldv_28300;
+    case 2:
+    tmp___129 = __be16_to_cpup((__be16 const *)__p___45);
+    field = (u8 )tmp___129;
+    goto ldv_28300;
+    case 4:
+    tmp___130 = __be32_to_cpup((__be32 const *)__p___45);
+    field = (u8 )tmp___130;
+    goto ldv_28300;
+    case 8:
+    tmp___131 = __be64_to_cpup((__be64 const *)__p___45);
+    field = (u8 )tmp___131;
+    goto ldv_28300;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9148: Dead code detected: tmp___132 = __be16_to_cpup((__be16 const *)__p___46); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9152: Dead code detected: tmp___133 = __be32_to_cpup((__be32 const *)__p___46); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9156: Dead code detected: tmp___134 = __be64_to_cpup((__be64 const *)__p___46); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___46);
+    goto ldv_28307;
+    case 2:
+    tmp___132 = __be16_to_cpup((__be16 const *)__p___46);
+    field = (u8 )tmp___132;
+    goto ldv_28307;
+    case 4:
+    tmp___133 = __be32_to_cpup((__be32 const *)__p___46);
+    field = (u8 )tmp___133;
+    goto ldv_28307;
+    case 8:
+    tmp___134 = __be64_to_cpup((__be64 const *)__p___46);
+    field = (u8 )tmp___134;
+    goto ldv_28307;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9170: Dead code detected: tmp___135 = __be16_to_cpup((__be16 const *)__p___47); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9174: Dead code detected: tmp___136 = __be32_to_cpup((__be32 const *)__p___47); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9178: Dead code detected: tmp___137 = __be64_to_cpup((__be64 const *)__p___47); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___47);
+    goto ldv_28314;
+    case 2:
+    tmp___135 = __be16_to_cpup((__be16 const *)__p___47);
+    field = (u8 )tmp___135;
+    goto ldv_28314;
+    case 4:
+    tmp___136 = __be32_to_cpup((__be32 const *)__p___47);
+    field = (u8 )tmp___136;
+    goto ldv_28314;
+    case 8:
+    tmp___137 = __be64_to_cpup((__be64 const *)__p___47);
+    field = (u8 )tmp___137;
+    goto ldv_28314;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9192: Dead code detected: tmp___138 = __be16_to_cpup((__be16 const *)__p___48); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9196: Dead code detected: tmp___139 = __be32_to_cpup((__be32 const *)__p___48); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9200: Dead code detected: tmp___140 = __be64_to_cpup((__be64 const *)__p___48); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___48);
+    goto ldv_28321;
+    case 2:
+    tmp___138 = __be16_to_cpup((__be16 const *)__p___48);
+    field = (u8 )tmp___138;
+    goto ldv_28321;
+    case 4:
+    tmp___139 = __be32_to_cpup((__be32 const *)__p___48);
+    field = (u8 )tmp___139;
+    goto ldv_28321;
+    case 8:
+    tmp___140 = __be64_to_cpup((__be64 const *)__p___48);
+    field = (u8 )tmp___140;
+    goto ldv_28321;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9218: Dead code detected: size = (u16 )*((u8 *)__p___49); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9224: Dead code detected: tmp___142 = __be32_to_cpup((__be32 const *)__p___49); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9228: Dead code detected: tmp___143 = __be64_to_cpup((__be64 const *)__p___49); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+    case 1:
+    size = (u16 )*((u8 *)__p___49);
+    goto ldv_28331;
+    case 2:
+    size = __be16_to_cpup((__be16 const *)__p___49);
+    goto ldv_28331;
+    case 4:
+    tmp___142 = __be32_to_cpup((__be32 const *)__p___49);
+    size = (u16 )tmp___142;
+    goto ldv_28331;
+    case 8:
+    tmp___143 = __be64_to_cpup((__be64 const *)__p___49);
+    size = (u16 )tmp___143;
+    goto ldv_28331;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9246: Dead code detected: size = (u16 )*((u8 *)__p___50); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9252: Dead code detected: tmp___145 = __be32_to_cpup((__be32 const *)__p___50); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9256: Dead code detected: tmp___146 = __be64_to_cpup((__be64 const *)__p___50); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+    case 1:
+    size = (u16 )*((u8 *)__p___50);
+    goto ldv_28341;
+    case 2:
+    size = __be16_to_cpup((__be16 const *)__p___50);
+    goto ldv_28341;
+    case 4:
+    tmp___145 = __be32_to_cpup((__be32 const *)__p___50);
+    size = (u16 )tmp___145;
+    goto ldv_28341;
+    case 8:
+    tmp___146 = __be64_to_cpup((__be64 const *)__p___50);
+    size = (u16 )tmp___146;
+    goto ldv_28341;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9270: Dead code detected: tmp___147 = __be16_to_cpup((__be16 const *)__p___51); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9274: Dead code detected: tmp___148 = __be32_to_cpup((__be32 const *)__p___51); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9278: Dead code detected: tmp___149 = __be64_to_cpup((__be64 const *)__p___51); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___51);
+    goto ldv_28348;
+    case 2:
+    tmp___147 = __be16_to_cpup((__be16 const *)__p___51);
+    field = (u8 )tmp___147;
+    goto ldv_28348;
+    case 4:
+    tmp___148 = __be32_to_cpup((__be32 const *)__p___51);
+    field = (u8 )tmp___148;
+    goto ldv_28348;
+    case 8:
+    tmp___149 = __be64_to_cpup((__be64 const *)__p___51);
+    field = (u8 )tmp___149;
+    goto ldv_28348;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9292: Dead code detected: tmp___150 = __be16_to_cpup((__be16 const *)__p___52); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9296: Dead code detected: tmp___151 = __be32_to_cpup((__be32 const *)__p___52); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9300: Dead code detected: tmp___152 = __be64_to_cpup((__be64 const *)__p___52); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    dev_lim->hca.arbel.bmme_flags = *((u8 *)__p___52);
+    goto ldv_28355;
+    case 2:
+    tmp___150 = __be16_to_cpup((__be16 const *)__p___52);
+    dev_lim->hca.arbel.bmme_flags = (u8 )tmp___150;
+    goto ldv_28355;
+    case 4:
+    tmp___151 = __be32_to_cpup((__be32 const *)__p___52);
+    dev_lim->hca.arbel.bmme_flags = (u8 )tmp___151;
+    goto ldv_28355;
+    case 8:
+    tmp___152 = __be64_to_cpup((__be64 const *)__p___52);
+    dev_lim->hca.arbel.bmme_flags = (u8 )tmp___152;
+    goto ldv_28355;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9310: Dead code detected: dev_lim->hca.arbel.reserved_lkey = (u32 )*((u8 *)__p___53); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9313: Dead code detected: tmp___153 = __be16_to_cpup((__be16 const *)__p___53); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9320: Dead code detected: tmp___154 = __be64_to_cpup((__be64 const *)__p___53); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    dev_lim->hca.arbel.reserved_lkey = (u32 )*((u8 *)__p___53);
+    goto ldv_28362;
+    case 2:
+    tmp___153 = __be16_to_cpup((__be16 const *)__p___53);
+    dev_lim->hca.arbel.reserved_lkey = (u32 )tmp___153;
+    goto ldv_28362;
+    case 4:
+    dev_lim->hca.arbel.reserved_lkey = __be32_to_cpup((__be32 const *)__p___53);
+    goto ldv_28362;
+    case 8:
+    tmp___154 = __be64_to_cpup((__be64 const *)__p___53);
+    dev_lim->hca.arbel.reserved_lkey = (u32 )tmp___154;
+    goto ldv_28362;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9333: Dead code detected: tmp___155 = __be16_to_cpup((__be16 const *)__p___54); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9337: Dead code detected: tmp___156 = __be32_to_cpup((__be32 const *)__p___54); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9341: Dead code detected: tmp___157 = __be64_to_cpup((__be64 const *)__p___54); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___54);
+    goto ldv_28369;
+    case 2:
+    tmp___155 = __be16_to_cpup((__be16 const *)__p___54);
+    field = (u8 )tmp___155;
+    goto ldv_28369;
+    case 4:
+    tmp___156 = __be32_to_cpup((__be32 const *)__p___54);
+    field = (u8 )tmp___156;
+    goto ldv_28369;
+    case 8:
+    tmp___157 = __be64_to_cpup((__be64 const *)__p___54);
+    field = (u8 )tmp___157;
+    goto ldv_28369;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9352: Dead code detected: dev_lim->hca.arbel.max_icm_sz = (u64 )*((u8 *)__p___55); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9355: Dead code detected: tmp___158 = __be16_to_cpup((__be16 const *)__p___55); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9359: Dead code detected: tmp___159 = __be32_to_cpup((__be32 const *)__p___55); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    dev_lim->hca.arbel.max_icm_sz = (u64 )*((u8 *)__p___55);
+    goto ldv_28376;
+    case 2:
+    tmp___158 = __be16_to_cpup((__be16 const *)__p___55);
+    dev_lim->hca.arbel.max_icm_sz = (u64 )tmp___158;
+    goto ldv_28376;
+    case 4:
+    tmp___159 = __be32_to_cpup((__be32 const *)__p___55);
+    dev_lim->hca.arbel.max_icm_sz = (u64 )tmp___159;
+    goto ldv_28376;
+    case 8:
+    dev_lim->hca.arbel.max_icm_sz = __be64_to_cpup((__be64 const *)__p___55);
+    goto ldv_28376;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9396: Dead code detected: tmp___160 = __be16_to_cpup((__be16 const *)__p___56); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9400: Dead code detected: tmp___161 = __be32_to_cpup((__be32 const *)__p___56); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9404: Dead code detected: tmp___162 = __be64_to_cpup((__be64 const *)__p___56); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___56);
+    goto ldv_28383;
+    case 2:
+    tmp___160 = __be16_to_cpup((__be16 const *)__p___56);
+    field = (u8 )tmp___160;
+    goto ldv_28383;
+    case 4:
+    tmp___161 = __be32_to_cpup((__be32 const *)__p___56);
+    field = (u8 )tmp___161;
+    goto ldv_28383;
+    case 8:
+    tmp___162 = __be64_to_cpup((__be64 const *)__p___56);
+    field = (u8 )tmp___162;
+    goto ldv_28383;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9418: Dead code detected: tmp___163 = __be16_to_cpup((__be16 const *)__p___57); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9422: Dead code detected: tmp___164 = __be32_to_cpup((__be32 const *)__p___57); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9426: Dead code detected: tmp___165 = __be64_to_cpup((__be64 const *)__p___57); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___57);
+    goto ldv_28390;
+    case 2:
+    tmp___163 = __be16_to_cpup((__be16 const *)__p___57);
+    field = (u8 )tmp___163;
+    goto ldv_28390;
+    case 4:
+    tmp___164 = __be32_to_cpup((__be32 const *)__p___57);
+    field = (u8 )tmp___164;
+    goto ldv_28390;
+    case 8:
+    tmp___165 = __be64_to_cpup((__be64 const *)__p___57);
+    field = (u8 )tmp___165;
+    goto ldv_28390;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9440: Dead code detected: tmp___166 = __be16_to_cpup((__be16 const *)__p___58); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9444: Dead code detected: tmp___167 = __be32_to_cpup((__be32 const *)__p___58); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9448: Dead code detected: tmp___168 = __be64_to_cpup((__be64 const *)__p___58); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    field = *((u8 *)__p___58);
+    goto ldv_28397;
+    case 2:
+    tmp___166 = __be16_to_cpup((__be16 const *)__p___58);
+    field = (u8 )tmp___166;
+    goto ldv_28397;
+    case 4:
+    tmp___167 = __be32_to_cpup((__be32 const *)__p___58);
+    field = (u8 )tmp___167;
+    goto ldv_28397;
+    case 8:
+    tmp___168 = __be64_to_cpup((__be64 const *)__p___58);
+    field = (u8 )tmp___168;
+    goto ldv_28397;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9594: Dead code detected: adapter->vendor_id = (u32 )*((u8 *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9597: Dead code detected: tmp___1 = __be16_to_cpup((__be16 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9604: Dead code detected: tmp___2 = __be64_to_cpup((__be64 const *)__p); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    adapter->vendor_id = (u32 )*((u8 *)__p);
+    goto ldv_28420;
+    case 2:
+    tmp___1 = __be16_to_cpup((__be16 const *)__p);
+    adapter->vendor_id = (u32 )tmp___1;
+    goto ldv_28420;
+    case 4:
+    adapter->vendor_id = __be32_to_cpup((__be32 const *)__p);
+    goto ldv_28420;
+    case 8:
+    tmp___2 = __be64_to_cpup((__be64 const *)__p);
+    adapter->vendor_id = (u32 )tmp___2;
+    goto ldv_28420;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9614: Dead code detected: adapter->device_id = (u32 )*((u8 *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9617: Dead code detected: tmp___3 = __be16_to_cpup((__be16 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9624: Dead code detected: tmp___4 = __be64_to_cpup((__be64 const *)__p___0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    adapter->device_id = (u32 )*((u8 *)__p___0);
+    goto ldv_28427;
+    case 2:
+    tmp___3 = __be16_to_cpup((__be16 const *)__p___0);
+    adapter->device_id = (u32 )tmp___3;
+    goto ldv_28427;
+    case 4:
+    adapter->device_id = __be32_to_cpup((__be32 const *)__p___0);
+    goto ldv_28427;
+    case 8:
+    tmp___4 = __be64_to_cpup((__be64 const *)__p___0);
+    adapter->device_id = (u32 )tmp___4;
+    goto ldv_28427;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9634: Dead code detected: adapter->revision_id = (u32 )*((u8 *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9637: Dead code detected: tmp___5 = __be16_to_cpup((__be16 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9644: Dead code detected: tmp___6 = __be64_to_cpup((__be64 const *)__p___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    adapter->revision_id = (u32 )*((u8 *)__p___1);
+    goto ldv_28434;
+    case 2:
+    tmp___5 = __be16_to_cpup((__be16 const *)__p___1);
+    adapter->revision_id = (u32 )tmp___5;
+    goto ldv_28434;
+    case 4:
+    adapter->revision_id = __be32_to_cpup((__be32 const *)__p___1);
+    goto ldv_28434;
+    case 8:
+    tmp___6 = __be64_to_cpup((__be64 const *)__p___1);
+    adapter->revision_id = (u32 )tmp___6;
+    goto ldv_28434;
+    default:
+    __buggy_use_of_MTHCA_GET();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9660: Dead code detected: tmp___8 = __be16_to_cpup((__be16 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9664: Dead code detected: tmp___9 = __be32_to_cpup((__be32 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9668: Dead code detected: tmp___10 = __be64_to_cpup((__be64 const *)__p___2); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  adapter->inta_pin = *((u8 *)__p___2);
+  goto ldv_28441;
+  case 2:
+  tmp___8 = __be16_to_cpup((__be16 const *)__p___2);
+  adapter->inta_pin = (u8 )tmp___8;
+  goto ldv_28441;
+  case 4:
+  tmp___9 = __be32_to_cpup((__be32 const *)__p___2);
+  adapter->inta_pin = (u8 )tmp___9;
+  goto ldv_28441;
+  case 8:
+  tmp___10 = __be64_to_cpup((__be64 const *)__p___2);
+  adapter->inta_pin = (u8 )tmp___10;
+  goto ldv_28441;
+  default:
+  __buggy_use_of_MTHCA_GET();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9811: Dead code detected: *((u8 *)__d) = 1U; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9814: Dead code detected: *((__be16 *)__d) = 256U; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9820: Dead code detected: *((__be64 *)__d) = 72057594037927936ULL; (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    *((u8 *)__d) = 1U;
+    goto ldv_28455;
+    case 2:
+    *((__be16 *)__d) = 256U;
+    goto ldv_28455;
+    case 4:
+    *((__be32 *)__d) = 16777216U;
+    goto ldv_28455;
+    case 8:
+    *((__be64 *)__d) = 72057594037927936ULL;
+    goto ldv_28455;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9839: Dead code detected: *((u8 *)__d___0) = (u8 )param->qpc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9842: Dead code detected: tmp___1 = __fswab16((int )((__u16 )param->qpc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9846: Dead code detected: tmp___2 = __fswab32((__u32 )param->qpc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___0) = (u8 )param->qpc_base;
+  goto ldv_28462;
+  case 2:
+  tmp___1 = __fswab16((int )((__u16 )param->qpc_base));
+  *((__be16 *)__d___0) = tmp___1;
+  goto ldv_28462;
+  case 4:
+  tmp___2 = __fswab32((__u32 )param->qpc_base);
+  *((__be32 *)__d___0) = tmp___2;
+  goto ldv_28462;
+  case 8:
+  tmp___3 = __fswab64(param->qpc_base);
+  *((__be64 *)__d___0) = tmp___3;
+  goto ldv_28462;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9863: Dead code detected: tmp___4 = __fswab16((int )param->log_num_qps); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9867: Dead code detected: tmp___5 = __fswab32((__u32 )param->log_num_qps); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9871: Dead code detected: tmp___6 = __fswab64((__u64 )param->log_num_qps); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___1) = param->log_num_qps;
+  goto ldv_28469;
+  case 2:
+  tmp___4 = __fswab16((int )param->log_num_qps);
+  *((__be16 *)__d___1) = tmp___4;
+  goto ldv_28469;
+  case 4:
+  tmp___5 = __fswab32((__u32 )param->log_num_qps);
+  *((__be32 *)__d___1) = tmp___5;
+  goto ldv_28469;
+  case 8:
+  tmp___6 = __fswab64((__u64 )param->log_num_qps);
+  *((__be64 *)__d___1) = tmp___6;
+  goto ldv_28469;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9881: Dead code detected: *((u8 *)__d___2) = (u8 )param->eec_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9884: Dead code detected: tmp___7 = __fswab16((int )((__u16 )param->eec_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9888: Dead code detected: tmp___8 = __fswab32((__u32 )param->eec_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___2) = (u8 )param->eec_base;
+  goto ldv_28476;
+  case 2:
+  tmp___7 = __fswab16((int )((__u16 )param->eec_base));
+  *((__be16 *)__d___2) = tmp___7;
+  goto ldv_28476;
+  case 4:
+  tmp___8 = __fswab32((__u32 )param->eec_base);
+  *((__be32 *)__d___2) = tmp___8;
+  goto ldv_28476;
+  case 8:
+  tmp___9 = __fswab64(param->eec_base);
+  *((__be64 *)__d___2) = tmp___9;
+  goto ldv_28476;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9905: Dead code detected: tmp___10 = __fswab16((int )param->log_num_eecs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9909: Dead code detected: tmp___11 = __fswab32((__u32 )param->log_num_eecs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9913: Dead code detected: tmp___12 = __fswab64((__u64 )param->log_num_eecs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___3) = param->log_num_eecs;
+  goto ldv_28483;
+  case 2:
+  tmp___10 = __fswab16((int )param->log_num_eecs);
+  *((__be16 *)__d___3) = tmp___10;
+  goto ldv_28483;
+  case 4:
+  tmp___11 = __fswab32((__u32 )param->log_num_eecs);
+  *((__be32 *)__d___3) = tmp___11;
+  goto ldv_28483;
+  case 8:
+  tmp___12 = __fswab64((__u64 )param->log_num_eecs);
+  *((__be64 *)__d___3) = tmp___12;
+  goto ldv_28483;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9923: Dead code detected: *((u8 *)__d___4) = (u8 )param->srqc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9926: Dead code detected: tmp___13 = __fswab16((int )((__u16 )param->srqc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9930: Dead code detected: tmp___14 = __fswab32((__u32 )param->srqc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___4) = (u8 )param->srqc_base;
+  goto ldv_28490;
+  case 2:
+  tmp___13 = __fswab16((int )((__u16 )param->srqc_base));
+  *((__be16 *)__d___4) = tmp___13;
+  goto ldv_28490;
+  case 4:
+  tmp___14 = __fswab32((__u32 )param->srqc_base);
+  *((__be32 *)__d___4) = tmp___14;
+  goto ldv_28490;
+  case 8:
+  tmp___15 = __fswab64(param->srqc_base);
+  *((__be64 *)__d___4) = tmp___15;
+  goto ldv_28490;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9947: Dead code detected: tmp___16 = __fswab16((int )param->log_num_srqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9951: Dead code detected: tmp___17 = __fswab32((__u32 )param->log_num_srqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9955: Dead code detected: tmp___18 = __fswab64((__u64 )param->log_num_srqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___5) = param->log_num_srqs;
+  goto ldv_28497;
+  case 2:
+  tmp___16 = __fswab16((int )param->log_num_srqs);
+  *((__be16 *)__d___5) = tmp___16;
+  goto ldv_28497;
+  case 4:
+  tmp___17 = __fswab32((__u32 )param->log_num_srqs);
+  *((__be32 *)__d___5) = tmp___17;
+  goto ldv_28497;
+  case 8:
+  tmp___18 = __fswab64((__u64 )param->log_num_srqs);
+  *((__be64 *)__d___5) = tmp___18;
+  goto ldv_28497;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9965: Dead code detected: *((u8 *)__d___6) = (u8 )param->cqc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9968: Dead code detected: tmp___19 = __fswab16((int )((__u16 )param->cqc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9972: Dead code detected: tmp___20 = __fswab32((__u32 )param->cqc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___6) = (u8 )param->cqc_base;
+  goto ldv_28504;
+  case 2:
+  tmp___19 = __fswab16((int )((__u16 )param->cqc_base));
+  *((__be16 *)__d___6) = tmp___19;
+  goto ldv_28504;
+  case 4:
+  tmp___20 = __fswab32((__u32 )param->cqc_base);
+  *((__be32 *)__d___6) = tmp___20;
+  goto ldv_28504;
+  case 8:
+  tmp___21 = __fswab64(param->cqc_base);
+  *((__be64 *)__d___6) = tmp___21;
+  goto ldv_28504;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9989: Dead code detected: tmp___22 = __fswab16((int )param->log_num_cqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9993: Dead code detected: tmp___23 = __fswab32((__u32 )param->log_num_cqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 9997: Dead code detected: tmp___24 = __fswab64((__u64 )param->log_num_cqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___7) = param->log_num_cqs;
+  goto ldv_28511;
+  case 2:
+  tmp___22 = __fswab16((int )param->log_num_cqs);
+  *((__be16 *)__d___7) = tmp___22;
+  goto ldv_28511;
+  case 4:
+  tmp___23 = __fswab32((__u32 )param->log_num_cqs);
+  *((__be32 *)__d___7) = tmp___23;
+  goto ldv_28511;
+  case 8:
+  tmp___24 = __fswab64((__u64 )param->log_num_cqs);
+  *((__be64 *)__d___7) = tmp___24;
+  goto ldv_28511;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10007: Dead code detected: *((u8 *)__d___8) = (u8 )param->eqpc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10010: Dead code detected: tmp___25 = __fswab16((int )((__u16 )param->eqpc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10014: Dead code detected: tmp___26 = __fswab32((__u32 )param->eqpc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___8) = (u8 )param->eqpc_base;
+  goto ldv_28518;
+  case 2:
+  tmp___25 = __fswab16((int )((__u16 )param->eqpc_base));
+  *((__be16 *)__d___8) = tmp___25;
+  goto ldv_28518;
+  case 4:
+  tmp___26 = __fswab32((__u32 )param->eqpc_base);
+  *((__be32 *)__d___8) = tmp___26;
+  goto ldv_28518;
+  case 8:
+  tmp___27 = __fswab64(param->eqpc_base);
+  *((__be64 *)__d___8) = tmp___27;
+  goto ldv_28518;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10028: Dead code detected: *((u8 *)__d___9) = (u8 )param->eeec_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10031: Dead code detected: tmp___28 = __fswab16((int )((__u16 )param->eeec_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10035: Dead code detected: tmp___29 = __fswab32((__u32 )param->eeec_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___9) = (u8 )param->eeec_base;
+  goto ldv_28525;
+  case 2:
+  tmp___28 = __fswab16((int )((__u16 )param->eeec_base));
+  *((__be16 *)__d___9) = tmp___28;
+  goto ldv_28525;
+  case 4:
+  tmp___29 = __fswab32((__u32 )param->eeec_base);
+  *((__be32 *)__d___9) = tmp___29;
+  goto ldv_28525;
+  case 8:
+  tmp___30 = __fswab64(param->eeec_base);
+  *((__be64 *)__d___9) = tmp___30;
+  goto ldv_28525;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10049: Dead code detected: *((u8 *)__d___10) = (u8 )param->eqc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10052: Dead code detected: tmp___31 = __fswab16((int )((__u16 )param->eqc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10056: Dead code detected: tmp___32 = __fswab32((__u32 )param->eqc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___10) = (u8 )param->eqc_base;
+  goto ldv_28532;
+  case 2:
+  tmp___31 = __fswab16((int )((__u16 )param->eqc_base));
+  *((__be16 *)__d___10) = tmp___31;
+  goto ldv_28532;
+  case 4:
+  tmp___32 = __fswab32((__u32 )param->eqc_base);
+  *((__be32 *)__d___10) = tmp___32;
+  goto ldv_28532;
+  case 8:
+  tmp___33 = __fswab64(param->eqc_base);
+  *((__be64 *)__d___10) = tmp___33;
+  goto ldv_28532;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10073: Dead code detected: tmp___34 = __fswab16((int )param->log_num_eqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10077: Dead code detected: tmp___35 = __fswab32((__u32 )param->log_num_eqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10081: Dead code detected: tmp___36 = __fswab64((__u64 )param->log_num_eqs); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___11) = param->log_num_eqs;
+  goto ldv_28539;
+  case 2:
+  tmp___34 = __fswab16((int )param->log_num_eqs);
+  *((__be16 *)__d___11) = tmp___34;
+  goto ldv_28539;
+  case 4:
+  tmp___35 = __fswab32((__u32 )param->log_num_eqs);
+  *((__be32 *)__d___11) = tmp___35;
+  goto ldv_28539;
+  case 8:
+  tmp___36 = __fswab64((__u64 )param->log_num_eqs);
+  *((__be64 *)__d___11) = tmp___36;
+  goto ldv_28539;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10091: Dead code detected: *((u8 *)__d___12) = (u8 )param->rdb_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10094: Dead code detected: tmp___37 = __fswab16((int )((__u16 )param->rdb_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10098: Dead code detected: tmp___38 = __fswab32((__u32 )param->rdb_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___12) = (u8 )param->rdb_base;
+  goto ldv_28546;
+  case 2:
+  tmp___37 = __fswab16((int )((__u16 )param->rdb_base));
+  *((__be16 *)__d___12) = tmp___37;
+  goto ldv_28546;
+  case 4:
+  tmp___38 = __fswab32((__u32 )param->rdb_base);
+  *((__be32 *)__d___12) = tmp___38;
+  goto ldv_28546;
+  case 8:
+  tmp___39 = __fswab64(param->rdb_base);
+  *((__be64 *)__d___12) = tmp___39;
+  goto ldv_28546;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10112: Dead code detected: *((u8 *)__d___13) = (u8 )param->mc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10115: Dead code detected: tmp___40 = __fswab16((int )((__u16 )param->mc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10119: Dead code detected: tmp___41 = __fswab32((__u32 )param->mc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___13) = (u8 )param->mc_base;
+  goto ldv_28553;
+  case 2:
+  tmp___40 = __fswab16((int )((__u16 )param->mc_base));
+  *((__be16 *)__d___13) = tmp___40;
+  goto ldv_28553;
+  case 4:
+  tmp___41 = __fswab32((__u32 )param->mc_base);
+  *((__be32 *)__d___13) = tmp___41;
+  goto ldv_28553;
+  case 8:
+  tmp___42 = __fswab64(param->mc_base);
+  *((__be64 *)__d___13) = tmp___42;
+  goto ldv_28553;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10133: Dead code detected: *((u8 *)__d___14) = (u8 )param->log_mc_entry_sz; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10140: Dead code detected: tmp___44 = __fswab32((__u32 )param->log_mc_entry_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10144: Dead code detected: tmp___45 = __fswab64((__u64 )param->log_mc_entry_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  *((u8 *)__d___14) = (u8 )param->log_mc_entry_sz;
+  goto ldv_28560;
+  case 2:
+  tmp___43 = __fswab16((int )param->log_mc_entry_sz);
+  *((__be16 *)__d___14) = tmp___43;
+  goto ldv_28560;
+  case 4:
+  tmp___44 = __fswab32((__u32 )param->log_mc_entry_sz);
+  *((__be32 *)__d___14) = tmp___44;
+  goto ldv_28560;
+  case 8:
+  tmp___45 = __fswab64((__u64 )param->log_mc_entry_sz);
+  *((__be64 *)__d___14) = tmp___45;
+  goto ldv_28560;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10154: Dead code detected: *((u8 *)__d___15) = (u8 )param->mc_hash_sz; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10161: Dead code detected: tmp___47 = __fswab32((__u32 )param->mc_hash_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10165: Dead code detected: tmp___48 = __fswab64((__u64 )param->mc_hash_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  *((u8 *)__d___15) = (u8 )param->mc_hash_sz;
+  goto ldv_28567;
+  case 2:
+  tmp___46 = __fswab16((int )param->mc_hash_sz);
+  *((__be16 *)__d___15) = tmp___46;
+  goto ldv_28567;
+  case 4:
+  tmp___47 = __fswab32((__u32 )param->mc_hash_sz);
+  *((__be32 *)__d___15) = tmp___47;
+  goto ldv_28567;
+  case 8:
+  tmp___48 = __fswab64((__u64 )param->mc_hash_sz);
+  *((__be64 *)__d___15) = tmp___48;
+  goto ldv_28567;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10178: Dead code detected: tmp___49 = __fswab16((int )param->log_mc_table_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10182: Dead code detected: tmp___50 = __fswab32((__u32 )param->log_mc_table_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10186: Dead code detected: tmp___51 = __fswab64((__u64 )param->log_mc_table_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___16) = param->log_mc_table_sz;
+  goto ldv_28574;
+  case 2:
+  tmp___49 = __fswab16((int )param->log_mc_table_sz);
+  *((__be16 *)__d___16) = tmp___49;
+  goto ldv_28574;
+  case 4:
+  tmp___50 = __fswab32((__u32 )param->log_mc_table_sz);
+  *((__be32 *)__d___16) = tmp___50;
+  goto ldv_28574;
+  case 8:
+  tmp___51 = __fswab64((__u64 )param->log_mc_table_sz);
+  *((__be64 *)__d___16) = tmp___51;
+  goto ldv_28574;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10196: Dead code detected: *((u8 *)__d___17) = (u8 )param->mpt_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10199: Dead code detected: tmp___52 = __fswab16((int )((__u16 )param->mpt_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10203: Dead code detected: tmp___53 = __fswab32((__u32 )param->mpt_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___17) = (u8 )param->mpt_base;
+  goto ldv_28581;
+  case 2:
+  tmp___52 = __fswab16((int )((__u16 )param->mpt_base));
+  *((__be16 *)__d___17) = tmp___52;
+  goto ldv_28581;
+  case 4:
+  tmp___53 = __fswab32((__u32 )param->mpt_base);
+  *((__be32 *)__d___17) = tmp___53;
+  goto ldv_28581;
+  case 8:
+  tmp___54 = __fswab64(param->mpt_base);
+  *((__be64 *)__d___17) = tmp___54;
+  goto ldv_28581;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10222: Dead code detected: tmp___55 = __fswab16((int )param->mtt_seg_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10226: Dead code detected: tmp___56 = __fswab32((__u32 )param->mtt_seg_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10230: Dead code detected: tmp___57 = __fswab64((__u64 )param->mtt_seg_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    *((u8 *)__d___18) = param->mtt_seg_sz;
+    goto ldv_28588;
+    case 2:
+    tmp___55 = __fswab16((int )param->mtt_seg_sz);
+    *((__be16 *)__d___18) = tmp___55;
+    goto ldv_28588;
+    case 4:
+    tmp___56 = __fswab32((__u32 )param->mtt_seg_sz);
+    *((__be32 *)__d___18) = tmp___56;
+    goto ldv_28588;
+    case 8:
+    tmp___57 = __fswab64((__u64 )param->mtt_seg_sz);
+    *((__be64 *)__d___18) = tmp___57;
+    goto ldv_28588;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10246: Dead code detected: tmp___59 = __fswab16((int )param->log_mpt_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10250: Dead code detected: tmp___60 = __fswab32((__u32 )param->log_mpt_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10254: Dead code detected: tmp___61 = __fswab64((__u64 )param->log_mpt_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___19) = param->log_mpt_sz;
+  goto ldv_28595;
+  case 2:
+  tmp___59 = __fswab16((int )param->log_mpt_sz);
+  *((__be16 *)__d___19) = tmp___59;
+  goto ldv_28595;
+  case 4:
+  tmp___60 = __fswab32((__u32 )param->log_mpt_sz);
+  *((__be32 *)__d___19) = tmp___60;
+  goto ldv_28595;
+  case 8:
+  tmp___61 = __fswab64((__u64 )param->log_mpt_sz);
+  *((__be64 *)__d___19) = tmp___61;
+  goto ldv_28595;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10264: Dead code detected: *((u8 *)__d___20) = (u8 )param->mtt_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10267: Dead code detected: tmp___62 = __fswab16((int )((__u16 )param->mtt_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10271: Dead code detected: tmp___63 = __fswab32((__u32 )param->mtt_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___20) = (u8 )param->mtt_base;
+  goto ldv_28602;
+  case 2:
+  tmp___62 = __fswab16((int )((__u16 )param->mtt_base));
+  *((__be16 *)__d___20) = tmp___62;
+  goto ldv_28602;
+  case 4:
+  tmp___63 = __fswab32((__u32 )param->mtt_base);
+  *((__be32 *)__d___20) = tmp___63;
+  goto ldv_28602;
+  case 8:
+  tmp___64 = __fswab64(param->mtt_base);
+  *((__be64 *)__d___20) = tmp___64;
+  goto ldv_28602;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10289: Dead code detected: tmp___65 = __fswab16((int )uar_page_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10293: Dead code detected: tmp___66 = __fswab32((__u32 )uar_page_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10297: Dead code detected: tmp___67 = __fswab64((__u64 )uar_page_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d___21) = uar_page_sz;
+  goto ldv_28610;
+  case 2:
+  tmp___65 = __fswab16((int )uar_page_sz);
+  *((__be16 *)__d___21) = tmp___65;
+  goto ldv_28610;
+  case 4:
+  tmp___66 = __fswab32((__u32 )uar_page_sz);
+  *((__be32 *)__d___21) = tmp___66;
+  goto ldv_28610;
+  case 8:
+  tmp___67 = __fswab64((__u64 )uar_page_sz);
+  *((__be64 *)__d___21) = tmp___67;
+  goto ldv_28610;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10307: Dead code detected: *((u8 *)__d___22) = (u8 )param->uar_scratch_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10310: Dead code detected: tmp___68 = __fswab16((int )((__u16 )param->uar_scratch_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10314: Dead code detected: tmp___69 = __fswab32((__u32 )param->uar_scratch_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___22) = (u8 )param->uar_scratch_base;
+  goto ldv_28617;
+  case 2:
+  tmp___68 = __fswab16((int )((__u16 )param->uar_scratch_base));
+  *((__be16 *)__d___22) = tmp___68;
+  goto ldv_28617;
+  case 4:
+  tmp___69 = __fswab32((__u32 )param->uar_scratch_base);
+  *((__be32 *)__d___22) = tmp___69;
+  goto ldv_28617;
+  case 8:
+  tmp___70 = __fswab64(param->uar_scratch_base);
+  *((__be64 *)__d___22) = tmp___70;
+  goto ldv_28617;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10333: Dead code detected: tmp___71 = __fswab16((int )param->log_uarc_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10337: Dead code detected: tmp___72 = __fswab32((__u32 )param->log_uarc_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10341: Dead code detected: tmp___73 = __fswab64((__u64 )param->log_uarc_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    *((u8 *)__d___23) = param->log_uarc_sz;
+    goto ldv_28624;
+    case 2:
+    tmp___71 = __fswab16((int )param->log_uarc_sz);
+    *((__be16 *)__d___23) = tmp___71;
+    goto ldv_28624;
+    case 4:
+    tmp___72 = __fswab32((__u32 )param->log_uarc_sz);
+    *((__be32 *)__d___23) = tmp___72;
+    goto ldv_28624;
+    case 8:
+    tmp___73 = __fswab64((__u64 )param->log_uarc_sz);
+    *((__be64 *)__d___23) = tmp___73;
+    goto ldv_28624;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10354: Dead code detected: tmp___74 = __fswab16((int )param->log_uar_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10358: Dead code detected: tmp___75 = __fswab32((__u32 )param->log_uar_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10362: Dead code detected: tmp___76 = __fswab64((__u64 )param->log_uar_sz); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    *((u8 *)__d___24) = param->log_uar_sz;
+    goto ldv_28631;
+    case 2:
+    tmp___74 = __fswab16((int )param->log_uar_sz);
+    *((__be16 *)__d___24) = tmp___74;
+    goto ldv_28631;
+    case 4:
+    tmp___75 = __fswab32((__u32 )param->log_uar_sz);
+    *((__be32 *)__d___24) = tmp___75;
+    goto ldv_28631;
+    case 8:
+    tmp___76 = __fswab64((__u64 )param->log_uar_sz);
+    *((__be64 *)__d___24) = tmp___76;
+    goto ldv_28631;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10372: Dead code detected: *((u8 *)__d___25) = (u8 )param->uarc_base; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10375: Dead code detected: tmp___77 = __fswab16((int )((__u16 )param->uarc_base)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10379: Dead code detected: tmp___78 = __fswab32((__u32 )param->uarc_base); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+    case 1:
+    *((u8 *)__d___25) = (u8 )param->uarc_base;
+    goto ldv_28638;
+    case 2:
+    tmp___77 = __fswab16((int )((__u16 )param->uarc_base));
+    *((__be16 *)__d___25) = tmp___77;
+    goto ldv_28638;
+    case 4:
+    tmp___78 = __fswab32((__u32 )param->uarc_base);
+    *((__be32 *)__d___25) = tmp___78;
+    goto ldv_28638;
+    case 8:
+    tmp___79 = __fswab64(param->uarc_base);
+    *((__be64 *)__d___25) = tmp___79;
+    goto ldv_28638;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10469: Dead code detected: *((u8 *)__d) = (u8 )flags; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10472: Dead code detected: tmp___4 = __fswab16((int )((__u16 )flags)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10480: Dead code detected: tmp___6 = __fswab64((__u64 )flags); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  *((u8 *)__d) = (u8 )flags;
+  goto ldv_28654;
+  case 2:
+  tmp___4 = __fswab16((int )((__u16 )flags));
+  *((__be16 *)__d) = tmp___4;
+  goto ldv_28654;
+  case 4:
+  tmp___5 = __fswab32(flags);
+  *((__be32 *)__d) = tmp___5;
+  goto ldv_28654;
+  case 8:
+  tmp___6 = __fswab64((__u64 )flags);
+  *((__be64 *)__d) = tmp___6;
+  goto ldv_28654;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10490: Dead code detected: *((u8 *)__d___0) = (u8 )param->gid_cap; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10497: Dead code detected: tmp___8 = __fswab32((__u32 )param->gid_cap); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10501: Dead code detected: tmp___9 = __fswab64((__u64 )param->gid_cap); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  *((u8 *)__d___0) = (u8 )param->gid_cap;
+  goto ldv_28661;
+  case 2:
+  tmp___7 = __fswab16((int )param->gid_cap);
+  *((__be16 *)__d___0) = tmp___7;
+  goto ldv_28661;
+  case 4:
+  tmp___8 = __fswab32((__u32 )param->gid_cap);
+  *((__be32 *)__d___0) = tmp___8;
+  goto ldv_28661;
+  case 8:
+  tmp___9 = __fswab64((__u64 )param->gid_cap);
+  *((__be64 *)__d___0) = tmp___9;
+  goto ldv_28661;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10511: Dead code detected: *((u8 *)__d___1) = (u8 )param->pkey_cap; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10518: Dead code detected: tmp___11 = __fswab32((__u32 )param->pkey_cap); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10522: Dead code detected: tmp___12 = __fswab64((__u64 )param->pkey_cap); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+  case 1:
+  *((u8 *)__d___1) = (u8 )param->pkey_cap;
+  goto ldv_28668;
+  case 2:
+  tmp___10 = __fswab16((int )param->pkey_cap);
+  *((__be16 *)__d___1) = tmp___10;
+  goto ldv_28668;
+  case 4:
+  tmp___11 = __fswab32((__u32 )param->pkey_cap);
+  *((__be32 *)__d___1) = tmp___11;
+  goto ldv_28668;
+  case 8:
+  tmp___12 = __fswab64((__u64 )param->pkey_cap);
+  *((__be64 *)__d___1) = tmp___12;
+  goto ldv_28668;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10532: Dead code detected: *((u8 *)__d___2) = (u8 )param->guid0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10535: Dead code detected: tmp___13 = __fswab16((int )((__u16 )param->guid0)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10539: Dead code detected: tmp___14 = __fswab32((__u32 )param->guid0); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___2) = (u8 )param->guid0;
+  goto ldv_28675;
+  case 2:
+  tmp___13 = __fswab16((int )((__u16 )param->guid0));
+  *((__be16 *)__d___2) = tmp___13;
+  goto ldv_28675;
+  case 4:
+  tmp___14 = __fswab32((__u32 )param->guid0);
+  *((__be32 *)__d___2) = tmp___14;
+  goto ldv_28675;
+  case 8:
+  tmp___15 = __fswab64(param->guid0);
+  *((__be64 *)__d___2) = tmp___15;
+  goto ldv_28675;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10553: Dead code detected: *((u8 *)__d___3) = (u8 )param->node_guid; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10556: Dead code detected: tmp___16 = __fswab16((int )((__u16 )param->node_guid)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10560: Dead code detected: tmp___17 = __fswab32((__u32 )param->node_guid); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___3) = (u8 )param->node_guid;
+  goto ldv_28682;
+  case 2:
+  tmp___16 = __fswab16((int )((__u16 )param->node_guid));
+  *((__be16 *)__d___3) = tmp___16;
+  goto ldv_28682;
+  case 4:
+  tmp___17 = __fswab32((__u32 )param->node_guid);
+  *((__be32 *)__d___3) = tmp___17;
+  goto ldv_28682;
+  case 8:
+  tmp___18 = __fswab64(param->node_guid);
+  *((__be64 *)__d___3) = tmp___18;
+  goto ldv_28682;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10574: Dead code detected: *((u8 *)__d___4) = (u8 )param->si_guid; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10577: Dead code detected: tmp___19 = __fswab16((int )((__u16 )param->si_guid)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10581: Dead code detected: tmp___20 = __fswab32((__u32 )param->si_guid); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___4) = (u8 )param->si_guid;
+  goto ldv_28689;
+  case 2:
+  tmp___19 = __fswab16((int )((__u16 )param->si_guid));
+  *((__be16 *)__d___4) = tmp___19;
+  goto ldv_28689;
+  case 4:
+  tmp___20 = __fswab32((__u32 )param->si_guid);
+  *((__be32 *)__d___4) = tmp___20;
+  goto ldv_28689;
+  case 8:
+  tmp___21 = __fswab64(param->si_guid);
+  *((__be64 *)__d___4) = tmp___21;
+  goto ldv_28689;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10662: Dead code detected: *((u8 *)__d) = (u8 )flags; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10665: Dead code detected: tmp___3 = __fswab16((int )((__u16 )flags)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10673: Dead code detected: tmp___5 = __fswab64((__u64 )flags); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  *((u8 *)__d) = (u8 )flags;
+  goto ldv_28713;
+  case 2:
+  tmp___3 = __fswab16((int )((__u16 )flags));
+  *((__be16 *)__d) = tmp___3;
+  goto ldv_28713;
+  case 4:
+  tmp___4 = __fswab32(flags);
+  *((__be32 *)__d) = tmp___4;
+  goto ldv_28713;
+  case 8:
+  tmp___5 = __fswab64((__u64 )flags);
+  *((__be64 *)__d) = tmp___5;
+  goto ldv_28713;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10683: Dead code detected: *((u8 *)__d___0) = (u8 )param->cap_mask; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10686: Dead code detected: tmp___6 = __fswab16((int )((__u16 )param->cap_mask)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10694: Dead code detected: tmp___8 = __fswab64((__u64 )param->cap_mask); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  *((u8 *)__d___0) = (u8 )param->cap_mask;
+  goto ldv_28720;
+  case 2:
+  tmp___6 = __fswab16((int )((__u16 )param->cap_mask));
+  *((__be16 *)__d___0) = tmp___6;
+  goto ldv_28720;
+  case 4:
+  tmp___7 = __fswab32(param->cap_mask);
+  *((__be32 *)__d___0) = tmp___7;
+  goto ldv_28720;
+  case 8:
+  tmp___8 = __fswab64((__u64 )param->cap_mask);
+  *((__be64 *)__d___0) = tmp___8;
+  goto ldv_28720;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10704: Dead code detected: *((u8 *)__d___1) = (u8 )param->si_guid; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10707: Dead code detected: tmp___9 = __fswab16((int )((__u16 )param->si_guid)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10711: Dead code detected: tmp___10 = __fswab32((__u32 )param->si_guid); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (8UL) {
+  case 1:
+  *((u8 *)__d___1) = (u8 )param->si_guid;
+  goto ldv_28727;
+  case 2:
+  tmp___9 = __fswab16((int )((__u16 )param->si_guid));
+  *((__be16 *)__d___1) = tmp___9;
+  goto ldv_28727;
+  case 4:
+  tmp___10 = __fswab32((__u32 )param->si_guid);
+  *((__be32 *)__d___1) = tmp___10;
+  goto ldv_28727;
+  case 8:
+  tmp___11 = __fswab64(param->si_guid);
+  *((__be64 *)__d___1) = tmp___11;
+  goto ldv_28727;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10942: Dead code detected: tmp___1 = __fswab16((int )log_size); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10946: Dead code detected: tmp___2 = __fswab32((__u32 )log_size); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10950: Dead code detected: tmp___3 = __fswab64((__u64 )log_size); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+  case 1:
+  *((u8 *)__d) = log_size;
+  goto ldv_28818;
+  case 2:
+  tmp___1 = __fswab16((int )log_size);
+  *((__be16 *)__d) = tmp___1;
+  goto ldv_28818;
+  case 4:
+  tmp___2 = __fswab32((__u32 )log_size);
+  *((__be32 *)__d) = tmp___2;
+  goto ldv_28818;
+  case 8:
+  tmp___3 = __fswab64((__u64 )log_size);
+  *((__be64 *)__d) = tmp___3;
+  goto ldv_28818;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10960: Dead code detected: *((u8 *)__d___0) = (u8 )lkey; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10963: Dead code detected: tmp___4 = __fswab16((int )((__u16 )lkey)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 10971: Dead code detected: tmp___6 = __fswab64((__u64 )lkey); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+  case 1:
+  *((u8 *)__d___0) = (u8 )lkey;
+  goto ldv_28825;
+  case 2:
+  tmp___4 = __fswab16((int )((__u16 )lkey));
+  *((__be16 *)__d___0) = tmp___4;
+  goto ldv_28825;
+  case 4:
+  tmp___5 = __fswab32(lkey);
+  *((__be32 *)__d___0) = tmp___5;
+  goto ldv_28825;
+  case 8:
+  tmp___6 = __fswab64((__u64 )lkey);
+  *((__be64 *)__d___0) = tmp___6;
+  goto ldv_28825;
+  default:
+  __buggy_use_of_MTHCA_PUT();
+  } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11111: Dead code detected: [mthca_debug_level != 0] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11111: Dead code detected: [!(mthca_debug_level != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11112: Dead code detected: dev_printk("\017", (struct device const *)(& (dev->pdev)->dev), "Dumping QP context:\n"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11116: Dead code detected: tmp___2 = __be32_to_cpup((__be32 const *)mailbox->buf); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11151: Dead code detected: [mthca_debug_level != 0] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11151: Dead code detected: [!(mthca_debug_level != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11152: Dead code detected: dev_printk("\017", (struct device const *)(& (dev->pdev)->dev), "Dumping QP context:\n"); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11156: Dead code detected: tmp___4 = __be32_to_cpup((__be32 const *)mailbox->buf); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11322: Dead code detected: *((u8 *)__d) = (u8 )(in_wc->qp)->qp_num; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11325: Dead code detected: tmp___3 = __fswab16((int )((__u16 )(in_wc->qp)->qp_num)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11333: Dead code detected: tmp___5 = __fswab64((__u64 )(in_wc->qp)->qp_num); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    *((u8 *)__d) = (u8 )(in_wc->qp)->qp_num;
+    goto ldv_28911;
+    case 2:
+    tmp___3 = __fswab16((int )((__u16 )(in_wc->qp)->qp_num));
+    *((__be16 *)__d) = tmp___3;
+    goto ldv_28911;
+    case 4:
+    tmp___4 = __fswab32((in_wc->qp)->qp_num);
+    *((__be32 *)__d) = tmp___4;
+    goto ldv_28911;
+    case 8:
+    tmp___5 = __fswab64((__u64 )(in_wc->qp)->qp_num);
+    *((__be64 *)__d) = tmp___5;
+    goto ldv_28911;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11343: Dead code detected: *((u8 *)__d___0) = (u8 )in_wc->src_qp; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11346: Dead code detected: tmp___6 = __fswab16((int )((__u16 )in_wc->src_qp)); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11354: Dead code detected: tmp___8 = __fswab64((__u64 )in_wc->src_qp); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (4UL) {
+    case 1:
+    *((u8 *)__d___0) = (u8 )in_wc->src_qp;
+    goto ldv_28918;
+    case 2:
+    tmp___6 = __fswab16((int )((__u16 )in_wc->src_qp));
+    *((__be16 *)__d___0) = tmp___6;
+    goto ldv_28918;
+    case 4:
+    tmp___7 = __fswab32(in_wc->src_qp);
+    *((__be32 *)__d___0) = tmp___7;
+    goto ldv_28918;
+    case 8:
+    tmp___8 = __fswab64((__u64 )in_wc->src_qp);
+    *((__be64 *)__d___0) = tmp___8;
+    goto ldv_28918;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11368: Dead code detected: tmp___9 = __fswab16((int )val); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11372: Dead code detected: tmp___10 = __fswab32((__u32 )val); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11376: Dead code detected: tmp___11 = __fswab64((__u64 )val); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    *((u8 *)__d___1) = val;
+    goto ldv_28925;
+    case 2:
+    tmp___9 = __fswab16((int )val);
+    *((__be16 *)__d___1) = tmp___9;
+    goto ldv_28925;
+    case 4:
+    tmp___10 = __fswab32((__u32 )val);
+    *((__be32 *)__d___1) = tmp___10;
+    goto ldv_28925;
+    case 8:
+    tmp___11 = __fswab64((__u64 )val);
+    *((__be64 *)__d___1) = tmp___11;
+    goto ldv_28925;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11395: Dead code detected: tmp___13 = __fswab16((int )val); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11399: Dead code detected: tmp___14 = __fswab32((__u32 )val); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11403: Dead code detected: tmp___15 = __fswab64((__u64 )val); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (1UL) {
+    case 1:
+    *((u8 *)__d___2) = val;
+    goto ldv_28932;
+    case 2:
+    tmp___13 = __fswab16((int )val);
+    *((__be16 *)__d___2) = tmp___13;
+    goto ldv_28932;
+    case 4:
+    tmp___14 = __fswab32((__u32 )val);
+    *((__be32 *)__d___2) = tmp___14;
+    goto ldv_28932;
+    case 8:
+    tmp___15 = __fswab64((__u64 )val);
+    *((__be64 *)__d___2) = tmp___15;
+    goto ldv_28932;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11413: Dead code detected: *((u8 *)__d___3) = (u8 )in_wc->slid; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11420: Dead code detected: tmp___17 = __fswab32((__u32 )in_wc->slid); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11424: Dead code detected: tmp___18 = __fswab64((__u64 )in_wc->slid); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+    case 1:
+    *((u8 *)__d___3) = (u8 )in_wc->slid;
+    goto ldv_28939;
+    case 2:
+    tmp___16 = __fswab16((int )in_wc->slid);
+    *((__be16 *)__d___3) = tmp___16;
+    goto ldv_28939;
+    case 4:
+    tmp___17 = __fswab32((__u32 )in_wc->slid);
+    *((__be32 *)__d___3) = tmp___17;
+    goto ldv_28939;
+    case 8:
+    tmp___18 = __fswab64((__u64 )in_wc->slid);
+    *((__be64 *)__d___3) = tmp___18;
+    goto ldv_28939;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11434: Dead code detected: *((u8 *)__d___4) = (u8 )in_wc->pkey_index; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11441: Dead code detected: tmp___20 = __fswab32((__u32 )in_wc->pkey_index); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11445: Dead code detected: tmp___21 = __fswab64((__u64 )in_wc->pkey_index); (CFACreationUtils.addEdgeToCFA, INFO)
+
+none: Dead code detected: switch (2UL) {
+    case 1:
+    *((u8 *)__d___4) = (u8 )in_wc->pkey_index;
+    goto ldv_28946;
+    case 2:
+    tmp___19 = __fswab16((int )in_wc->pkey_index);
+    *((__be16 *)__d___4) = tmp___19;
+    goto ldv_28946;
+    case 4:
+    tmp___20 = __fswab32((__u32 )in_wc->pkey_index);
+    *((__be32 *)__d___4) = tmp___20;
+    goto ldv_28946;
+    case 8:
+    tmp___21 = __fswab64((__u64 )in_wc->pkey_index);
+    *((__be64 *)__d___4) = tmp___21;
+    goto ldv_28946;
+    default:
+    __buggy_use_of_MTHCA_PUT();
+    } (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11558: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 11955: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 12381: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13066: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13882: Dead code detected: [mthca_debug_level != 0] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13882: Dead code detected: [!(mthca_debug_level != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 13883-13884: Dead code detected: dev_printk("\017", (struct device const *)(& (dev->pdev)->dev), "Dumping EQ context %02x:\n",
+                 eq->eqn); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 13888: Dead code detected: i = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14350: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 14469: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15628: Dead code detected: ctx = (__be32 *)mailbox->buf; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15629: Dead code detected: [!((cq->is_kernel) != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15630: Dead code detected: tmp___0 = next_cqe_sw(cq); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15631: Dead code detected: [!(((unsigned long)tmp___0) != ((unsigned long)((struct mthca_cqe *)0)))] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15632: Dead code detected: tmp___1 = 1; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15634: Dead code detected: tmp___1 = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15637: Dead code detected: tmp___1 = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 15639-15640: Dead code detected: printk("\vcontext for CQN %x (cons index %x, next sw %d)\n", cq->cqn, cq->cons_index,
+           tmp___1); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 15797: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16618: Dead code detected: [mthca_debug_level != 0] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16618: Dead code detected: [!(mthca_debug_level != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 16619-16620: Dead code detected: dev_printk("\017", (struct device const *)(& (dev->pdev)->dev), "Dumping MPT entry %08x:\n",
+                 mr->ibmr.lkey); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16624: Dead code detected: i = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16866: Dead code detected: [mthca_debug_level != 0] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16866: Dead code detected: [!(mthca_debug_level != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 16867-16868: Dead code detected: dev_printk("\017", (struct device const *)(& (dev->pdev)->dev), "Dumping MPT entry %08x:\n",
+                 mr->ibmr.lkey); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16872: Dead code detected: i = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 16951: Dead code detected: i = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 17356: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 20375: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 20672: Dead code detected: [mthca_debug_level != 0] (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 20672: Dead code detected: [!(mthca_debug_level != 0)] (CFACreationUtils.addEdgeToCFA, INFO)
+
+lines 20673-20674: Dead code detected: dev_printk("\017", (struct device const *)(& (dev->pdev)->dev), "Created UDAV at %p/%08lx:\n",
+                 av, (unsigned long )ah->avdma); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 20678: Dead code detected: j = 0; (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 20932: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 21446: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 22003: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 24407: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 24447: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 24469: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 25876: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 26108: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 27040: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+line 27403: Dead code detected: return (ldv_func_res); (CFACreationUtils.addEdgeToCFA, INFO)
+
+Inline assembler ignored, analysis is probably unsound! (CFABuilder.createCFA, WARNING)
+
+line 12584: Function pointer *(ops->alloc) with type void *(*)(struct device *, size_t , dma_addr_t *, gfp_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 12616: Function pointer *(ops->free) with type void (*)(struct device *, size_t , void *, dma_addr_t , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13165: Function pointer *(ops->map_page) with type dma_addr_t (*)(struct device *, struct page *, unsigned long, size_t , enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 24707: Function pointer *(ops->map_sg) with type int (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13213: Function pointer *(ops->mapping_error) with type int (*)(struct device *, dma_addr_t ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15899: Function pointer *(ops->sync_single_for_cpu) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 15931: Function pointer *(ops->sync_single_for_device) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction ) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 13194: Function pointer *(ops->unmap_page) with type void (*)(struct device *, dma_addr_t , size_t , enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 24738: Function pointer *(ops->unmap_sg) with type void (*)(struct device *, struct scatterlist *, int, enum dma_data_direction , struct dma_attrs *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14684: Function pointer *(cq->ibcq.comp_handler) with type void (*)(struct ib_cq *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 14715: Function pointer *(cq->ibcq.event_handler) with type void (*)(struct ib_event *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 17576: Function pointer *(qp->ibqp.event_handler) with type void (*)(struct ib_event *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+line 26671: Function pointer *(srq->ibsrq.event_handler) with type void (*)(struct ib_event *, void *) is called, but no possible target functions were found. (CFunctionPointerResolver.replaceFunctionPointerCall, WARNING)
+
+MathSAT5 is available for research and evaluation purposes only. It can not be used in a commercial environment, particularly as part of a commercial product, without written permission. MathSAT5 is provided as is, without any warranty. Please write to mathsat@fbk.eu for additional questions regarding licensing MathSAT5 or obtaining more up-to-date versions. (PredicateCPA:JavaSMT:Mathsat5SolverContext.<init>, WARNING)
+
+Using predicate analysis with MathSAT5 version 5.3.14 (0b98b661254c) (Nov 17 2016 10:59:45, gmp 5.1.3, gcc 4.8.5, 64-bit) and JFactory 1.21. (PredicateCPA:PredicateCPA.<init>, INFO)
+
+Using refinement for predicate analysis with PredicateAbstractionRefinementStrategy strategy. (PredicateCPA:PredicateCPARefiner.<init>, INFO)
+
+Starting analysis ... (CPAchecker.runAlgorithm, INFO)
+
+Assuming external function mutex_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_get_drvdata to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function mutex_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_enable_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_request_regions to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_set_master to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_set_mask to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_warn to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_supported to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ib_alloc_device to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_err to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_dev_put to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __mutex_init to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function lockdep_init_map to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function ioremap_nocache to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_pool_create to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function iounmap to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pci_find_capability to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pcix_get_max_mmrbc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pcix_set_mmrbc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _dev_info to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function pcie_set_readrq to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function down to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_lock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function _raw_spin_unlock to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function __init_waitqueue_head to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function wait_for_completion_timeout to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dev_printk to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function up to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_pool_alloc to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function dma_pool_free to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Assuming external function memset to be a pure function. (PredicateCPA:ExpressionToFormulaVisitor.visit, INFO)
+
+Shutdown requested (The CPU-time limit of 30s has elapsed.), waiting for termination. (ForceTerminationOnShutdown$1.shutdownRequested, WARNING)
+
+Warning: Analysis interrupted (The CPU-time limit of 30s has elapsed.) (ShutdownNotifier.shutdownIfNecessary, WARNING)
+
+PredicateCPA statistics
+-----------------------
+Number of abstractions:            50 (1% of all post computations)
+  Times abstraction was reused:    0
+  Because of function entry/exit:  0 (0%)
+  Because of loop head:            26 (52%)
+  Because of join nodes:           0 (0%)
+  Because of threshold:            0 (0%)
+  Because of target state:         24 (48%)
+  Times precision was empty:       26 (52%)
+  Times precision was {false}:     23 (46%)
+  Times result was cached:         0 (0%)
+  Times cartesian abs was used:    0 (0%)
+  Times boolean abs was used:      1 (2%)
+  Times result was 'false':        22 (44%)
+Number of strengthen sat checks:   0
+Number of coverage checks:         414
+  BDD entailment checks:           0
+Number of SMT sat checks:          0
+  trivial:                         0
+  cached:                          0
+
+Max ABE block size:                       2198
+Number of predicates discovered:          2
+Number of abstraction locations:          2
+Max number of predicates per location:    1
+Avg number of predicates per location:    1
+Total predicates per abstraction:         24
+Max number of predicates per abstraction: 1
+Avg number of predicates per abstraction: 1.00
+Number of irrelevant predicates:          23 (96%)
+Number of preds handled by boolean abs:   1 (4%)
+  Total number of models for allsat:      1
+  Max number of models for allsat:        1
+  Avg number of models for allsat:        1.00
+
+Time for post operator:                  4.937s
+  Time for path formula creation:        4.884s
+Time for strengthen operator:            0.079s
+Time for prec operator:                  9.957s
+  Time for abstraction:                  9.892s (Max:     1.484s, Count: 50)
+    Boolean abstraction:                 0.051s
+    Solving time:                        7.753s (Max:     1.266s)
+    Model enumeration time:              0.001s
+    Time for BDD construction:           0.017s (Max:     0.017s)
+Time for merge operator:                 0.414s
+Time for coverage check:                 0.000s
+Total time for SMT solver (w/o itp):     7.754s
+
+Number of path formula cache hits:   74 (1%)
+
+Inside post operator:                  
+  Inside path formula creation:        
+    Time for path formula computation:     4.683s
+
+Total number of created targets for pointer analysis: 69452
+   Number of created targets for uf: *unsigned_short_int is 2
+   Number of created targets for uf: *(void)* is 11
+   Number of created targets for uf: *signed_int is 214
+   Number of created targets for uf: *unsigned_char is 35
+   Number of created targets for uf: *(struct_list_head)* is 11
+   Number of created targets for uf: *unsigned_long_long_int is 27
+   Number of created targets for uf: *unsigned_int is 7
+   Number of created targets for uf: *unsigned_long_int is 12
+
+
+Number of BDD nodes:                               202
+Size of BDD node table:                            270749
+Size of BDD cache:                                 27073
+Size of BDD node cleanup queue:                           5 (count: 170, min: 0, max: 5, avg: 0.03)
+Time for BDD node cleanup:                             0.001s
+Time for BDD garbage collection:                       0.000s (in 0 runs)
+
+PrecisionBootstrap statistics
+-----------------------------
+Init. function predicates:                         0
+Init. global predicates:                           0
+Init. location predicates:                         0
+
+Invariant Generation statistics
+-------------------------------
+
+AutomatonAnalysis (SVCOMP) statistics
+-------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.110s
+Automaton transfers with branching:                0
+Automaton transfer successors:                         8982 (count: 8982, min: 1, max: 1, avg: 1.00) [1 x 8982]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            4580
+Max size of waitlist:            58
+Average size of waitlist:        40
+Number of computed successors:   4873
+Max successors for one state:    2
+Number of times merged:          207
+Number of times stopped:         207
+Number of times breaked:         1
+
+Total time for CPA algorithm:        16.796s (Max:    15.905s)
+  Time for choose from waitlist:      0.045s
+  Time for precision adjustment:     10.126s
+  Time for transfer relation:         5.828s
+  Time for merge operator:            0.476s
+  Time for stop operator:             0.075s
+  Time for adding to reached set:     0.071s
+
+Predicate-Abstraction Refiner statistics
+----------------------------------------
+Number of predicate refinements:                   1
+Avg. length of target path (in blocks):                   2 (count: 1, min: 2, max: 2, avg: 2.00)
+Number of infeasible sliced prefixes:                     0 (count: 0, min: 0, max: 0, avg: 0.00)
+
+Time for refinement:                                   0.068s
+  Counterexample analysis:                             0.024s (Max:     0.024s, Calls: 1)
+    Refinement sat check:                              0.018s
+    Interpolant computation:                           0.000s
+  Path-formulas extraction:                            0.000s
+  Error path post-processing:                          0.000s
+  Predicate creation:                                  0.015s
+  Precision update:                                    0.002s
+  ARG update:                                          0.010s
+
+Length of refined path (in blocks):                       2 (count: 1, min: 2, max: 2, avg: 2.00)
+Number of affected states:                                1 (count: 1, min: 1, max: 1, avg: 1.00)
+Length (states) of path with itp 'true':                  0 (count: 1, min: 0, max: 0, avg: 0.00)
+Length (states) of path with itp non-trivial itp:         1 (count: 1, min: 1, max: 1, avg: 1.00)
+Length (states) of path with itp 'false':                 0 (count: 1, min: 0, max: 0, avg: 0.00)
+Different non-trivial interpolants along paths:           0 (count: 1, min: 0, max: 0, avg: 0.00)
+Equal non-trivial interpolants along paths:               0 (count: 1, min: 0, max: 0, avg: 0.00)
+Number of refs with location-based cutoff:                0
+
+CEGAR algorithm statistics
+--------------------------
+Number of refinements:                1
+Number of successful refinements:     1
+Number of failed refinements:         0
+Max. size of reached set before ref.: 49
+Max. size of reached set after ref.:  8
+Avg. size of reached set before ref.: 49.00
+Avg. size of reached set after ref.:  8.00
+
+Total time for CEGAR algorithm:      16.892s
+Time for refinements:                 0.096s
+Average time for refinement:          0.096s
+Max time for refinement:              0.096s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.108
+  Visited lines:          2672
+  Total lines:            14238
+  Line coverage:          0.188
+  Visited conditions:     292
+  Total conditions:       3598
+  Condition coverage:     0.081
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     19183
+Number of CFA edges:             22585
+Number of relevant variables:    3581
+Number of functions:             723
+Number of loops:                 156
+Size of reached set:             4603
+  Number of reached locations:   1179 (6%)
+    Avg states per location:     3
+    Max states per location:     150 (at node N1484)
+  Number of reached functions:   78 (11%)
+  Number of partitions:          4603
+    Avg size of partitions:      1
+    Max size of partitions:      1
+  Number of target states:       0
+  Size of final wait list        54
+
+Time for analysis setup:         13.403s
+  Time for loading CPAs:          1.357s
+  Time for loading parser:        0.781s
+  Time for CFA construction:     11.112s
+    Time for parsing file(s):     1.767s
+    Time for AST to CFA:          4.814s
+    Time for CFA sanity check:    1.086s
+    Time for post-processing:     3.287s
+      Time for var class.:        1.713s
+Time for Analysis:               16.892s
+CPU time for analysis:           16.890s
+Total time for CPAchecker:       30.302s
+Total CPU time for CPAchecker:   30.280s
+Time for statistics:              0.254s
+
+Time for Garbage Collector:       0.875s (in 46 runs)
+Garbage Collector(s) used:    Copy, MarkSweepCompact
+Used heap memory:                103MB (    98 MiB) max;     63MB (    60 MiB) avg;    110MB (   105 MiB) peak
+Used non-heap memory:             38MB (    37 MiB) max;     33MB (    31 MiB) avg;     39MB (    37 MiB) peak
+Allocated heap memory:           127MB (   121 MiB) max;    127MB (   121 MiB) avg
+Allocated non-heap memory:        40MB (    38 MiB) max;     34MB (    33 MiB) avg
+Total process virtual memory:   8202MB (  7822 MiB) max;   8124MB (  7748 MiB) avg
+
+Verification result: UNKNOWN, incomplete analysis.
+More details about the verification run can be found in the directory "./output".
