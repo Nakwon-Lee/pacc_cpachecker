@@ -12,7 +12,7 @@ python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/for-heap-$
 
 python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/ldv-com-te-$1.csv cl$1PALLCont6.csv cl$1PALLCont6/ -PredAbs-ABEl bestts_control.xml
 
-python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/ldv-consum-29to113-$1.csv cl$1PALLCont7.csv cl$1PALLCont7/ -PredAbs-ABEl bestts_control.xml
+python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/ldv-consum-113-$1.csv cl$1PALLCont7.csv cl$1PALLCont7/ -PredAbs-ABEl bestts_control.xml
 
 python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/ldv-li-3.0-$1.csv cl$1PALLCont8.csv cl$1PALLCont8/ -PredAbs-ABEl bestts_control.xml
 
@@ -40,7 +40,7 @@ python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/rers-P03-$
 
 python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/rers-P04-$1.csv cl$1PALLCont20.csv cl$1PALLCont20/ -PredAbs-ABEl bestts_control.xml
 
-python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/seq-mth-15to65-$1.csv cl$1PALLCont21.csv cl$1PALLCont21/ -PredAbs-ABEl bestts_control.xml
+python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/seq-mth-65-$1.csv cl$1PALLCont21.csv cl$1PALLCont21/ -PredAbs-ABEl bestts_control.xml
 
 python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/seq-pth-$1.csv cl$1PALLCont22.csv cl$1PALLCont22/ -PredAbs-ABEl bestts_control.xml
 
@@ -51,5 +51,9 @@ python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/ssh-sim-$1
 python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/systemc-$1.csv cl$1PALLCont25.csv cl$1PALLCont25/ -PredAbs-ABEl bestts_control.xml
 
 python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/ldv-li-3.4-sim-1126-$1.csv cl$1PALLCont26.csv cl$1PALLCont26/ -PredAbs-ABEl bestts_control.xml
+
+python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/PL-elve-$1.csv cl$1PALLCont27.csv cl$1PALLCont27/ -PredAbs-ABEl bestts_control.xml
+
+python3 scripts/TSExecutorFull.py GIVEN2 filelistcsvs/needtoexec/real/PL-email-$1.csv cl$1PALLCont28.csv cl$1PALLCont28/ -PredAbs-ABEl bestts_control.xml
 
 
