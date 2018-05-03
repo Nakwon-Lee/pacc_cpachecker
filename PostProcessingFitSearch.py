@@ -48,6 +48,20 @@ def destiveCalc(dic, target, headers, fitval):
 		else:
 			assert True, 'head have to be existed!'
 
+def staticCatcher(pfile):
+	lines = pfile.readlines()
+	nlines = None
+	nconds = None
+	for aline in lines:
+		if aline.find('Total lines:') is not -1:
+			tokens = aline.split()
+			nlines = int(tokens[len(tokens)-1])
+		if aline.find('Total conditions:') is not -1:
+			tokens = aline.split()
+			nconds = int(tokens[len(tokens)-1])
+
+	return nlines, nconds
+
 def main():
 	dirname = sys.argv[1]
 	fileprefix = 'fitvalues'
@@ -63,6 +77,10 @@ def main():
 	for afitval in fitvalsheaderex:
 		for adestiv in destivs:
 			destivefilelistheader.append(afitval + adestiv)
+
+	destivefilelistheader.append('Size')
+	destivefilelistheader.append('Lines')
+	destivefilelistheader.append('Conds')
 
 	utestlist = ('NoAffS','VL','VC')
 	unqthreshold = 5
@@ -117,6 +135,23 @@ def main():
 		number = int(row['No.'])
 		fitcsvfilename = dirpath + fileprefix + str(number) + filesuffix
 		fullfilename = dirpath + fullfileprefix + str(number) + filesuffix
+
+		nlines = None
+		nconds = None
+		for i in range(30):
+			staticfilename = dirpath + 'tsxml' + str(number) + '/output'+ str(i) + '.log'
+			staticf = open(staticfilename,'r')
+			nlines, nconds = staticCatcher(staticf)
+			staticf.close()
+			if nlines != None and nconds != None:
+				break
+
+		if nlines == None or nconds == None:
+			print(row['file name'])
+		destivdic['Lines'] = nlines
+		destivdic['Conds'] = nconds
+
+		destivdic['Size'] = os.path.getsize(row['file name'])
 
 		valdiclist = []
 

@@ -13,6 +13,10 @@ def main():
 		for adestiv in destivs:
 			destivefilelistheader.append(afitval + adestiv)
 
+	destivefilelistheader.append('Size')
+	destivefilelistheader.append('Lines')
+	destivefilelistheader.append('Conds')
+
 	summaryfileprefix = 'ssummary'
 	descriptiveprefix = 'dessummary'
 
