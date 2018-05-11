@@ -6,8 +6,8 @@ def main():
 	filesuffix = '.csv'
 	targetfilelistcsvheaderex = ('No.','file name','valid')
 	destivefilelistheader = ['No.','file name']
-	fitvalsheaderex = ('NoAffS','VL','VC','Time','Result','FNoAffS','FVL','FVC','FTime','FResult')
-	destivs = ('Nums', 'Sum', 'Avg', 'Std', 'Unq')
+	fitvalsheaderex = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs','FNoAffS','FVL','FVC','FTime','FResult','FAFC','FSFC','FNoR','FNoIter','FNoStop','FAvgLenTP','FDNonTItp','FNoAbs')
+	destivs = ('Nums', 'Sum', 'Avg', 'Min', 'Max', 'Mid', 'Std', 'Unq')
 
 	for afitval in fitvalsheaderex:
 		for adestiv in destivs:

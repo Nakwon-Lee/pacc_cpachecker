@@ -9,7 +9,13 @@ def copyValtoDic(fdic, tdic, fkey, tkey):
 		tdic[tkey] = 'NaN'
 		ret = 0
 	else:
-		tdic[tkey] = float(fdic[fkey])
+		if fkey == 'Time':
+			if fdic['Result'] == '1':
+				tdic[tkey] = float(fdic[fkey])
+			else:
+				tdic[tkey] = 900
+		else:
+			tdic[tkey] = float(fdic[fkey])
 		ret = 1
 
 	return ret
@@ -45,6 +51,23 @@ def destiveCalc(dic, target, headers, fitval):
 				target[fitval+ahead] = checkUniqueness(dic[fitval])
 			else:
 				target[fitval+ahead] = 0
+		elif ahead == 'Min':
+			if len(dic[fitval]) != 0:
+				#target[fitval+ahead] = min(dic[fitval])
+				target[fitval+ahead] = np.percentile(dic[fitval],25)
+			else:
+				target[fitval+ahead] = 'NaN'
+		elif ahead == 'Max':
+			if len(dic[fitval]) != 0:
+				#target[fitval+ahead] = max(dic[fitval])
+				target[fitval+ahead] = np.percentile(dic[fitval],75)
+			else:
+				target[fitval+ahead] = 'NaN'
+		elif ahead == 'Mid':
+			if len(dic[fitval]) != 0:
+				target[fitval+ahead] = np.median(dic[fitval])
+			else:
+				target[fitval+ahead] = 'NaN'
 		else:
 			assert True, 'head have to be existed!'
 
@@ -68,11 +91,11 @@ def main():
 	fullfileprefix = 'fitvaluesFull'
 	filesuffix = '.csv'
 	targetfilelistcsvheader = ('No.','file name')
-	targetfilelistcsvheaderex = ('No.','file name','valid')
+	targetfilelistcsvheaderex = ('No.','file name')
 	destivefilelistheader = ['No.','file name']
-	fitvalsheader = ('NoAffS','VL','VC','Time','Result')
-	fitvalsheaderex = ('NoAffS','VL','VC','Time','Result','FNoAffS','FVL','FVC','FTime','FResult')
-	destivs = ('Nums', 'Sum', 'Avg', 'Std', 'Unq')
+	fitvalsheader = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs')
+	fitvalsheaderex = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs','FNoAffS','FVL','FVC','FTime','FResult','FAFC','FSFC','FNoR','FNoIter','FNoStop','FAvgLenTP','FDNonTItp','FNoAbs')
+	destivs = ('Nums', 'Sum', 'Avg', 'Min', 'Max', 'Mid', 'Std', 'Unq')
 
 	for afitval in fitvalsheaderex:
 		for adestiv in destivs:
@@ -140,14 +163,17 @@ def main():
 		nconds = None
 		for i in range(30):
 			staticfilename = dirpath + 'tsxml' + str(number) + '/output'+ str(i) + '.log'
-			staticf = open(staticfilename,'r')
-			nlines, nconds = staticCatcher(staticf)
-			staticf.close()
+			isexist = os.path.exists(staticfilename)
+			if isexist:
+				staticf = open(staticfilename,'r')
+				nlines, nconds = staticCatcher(staticf)
+				staticf.close()
 			if nlines != None and nconds != None:
 				break
 
 		if nlines == None or nconds == None:
-			print(row['file name'])
+			pass
+			#print(row['file name'])
 		destivdic['Lines'] = nlines
 		destivdic['Conds'] = nconds
 
@@ -155,10 +181,18 @@ def main():
 
 		valdiclist = []
 
-		fitcsvfile = open(fitcsvfilename)
-		fitcsvreader = csv.DictReader(fitcsvfile,fieldnames=fitvalsheader)
-		fullcsvfile = open(fullfilename)
-		fullcsvreader = csv.DictReader(fullcsvfile,fieldnames=fitvalsheader)
+		fitcsvfile = None
+		fitcsvreader = None
+		fcsvexi = os.path.exists(fitcsvfilename)
+		if fcsvexi:
+			fitcsvfile = open(fitcsvfilename)
+			fitcsvreader = csv.DictReader(fitcsvfile,fieldnames=fitvalsheader)
+		fullcsvfile = None
+		fullcsvreader = None
+		fulcsvexi = os.path.exists(fullfilename)
+		if fulcsvexi:
+			fullcsvfile = open(fullfilename)
+			fullcsvreader = csv.DictReader(fullcsvfile,fieldnames=fitvalsheader)
 
 		resultsum = 0
 		fullresultsum = 0
@@ -174,57 +208,56 @@ def main():
 			valdiclist.append(newdic)
 
 		i = 0
-		fitcsvreader.__next__()
-		for fitlow in fitcsvreader:
-			for afitval in fitvalsheader:
-				copyValtoDic(fitlow, valdiclist[i], afitval, afitval)
-				if valdiclist[i][afitval] != 'NaN':
-					destivediclist[afitval].append(valdiclist[i][afitval])
-			i = i + 1
+		if fitcsvreader != None: 
+			fitcsvreader.__next__()
+			for fitlow in fitcsvreader:
+				for afitval in fitvalsheader:
+					copyValtoDic(fitlow, valdiclist[i], afitval, afitval)
+					if valdiclist[i][afitval] != 'NaN':
+						destivediclist[afitval].append(valdiclist[i][afitval])
+				i = i + 1
 
 		i = 0
-		fullcsvreader.__next__()
-		for fulllow in fullcsvreader:
-			for afitval in fitvalsheader:
-				copyValtoDic(fulllow, valdiclist[i], afitval, 'F'+afitval)
-				if valdiclist[i]['F'+afitval] != 'NaN':
-					destivediclist['F'+afitval].append(valdiclist[i]['F'+afitval])
-			i = i + 1
+		if fullcsvreader != None:
+			fullcsvreader.__next__()
+			for fulllow in fullcsvreader:
+				for afitval in fitvalsheader:
+					copyValtoDic(fulllow, valdiclist[i], afitval, 'F'+afitval)
+					if valdiclist[i]['F'+afitval] != 'NaN':
+						destivediclist['F'+afitval].append(valdiclist[i]['F'+afitval])
+				i = i + 1
 
 		for afit in fitvalsheaderex:
 			destiveCalc(destivediclist, destivdic, destivs, afit)
 
 		destivwriter.writerow(destivdic)
 
-		if destivdic['ResultSum'] == 0 and destivdic['FResultSum'] > 24:
-			tempdic = {}
-			tempdic['No.'] = idx
-			tempdic['file name'] = row['file name']
+		if destivdic['FResultSum'] > 0 and destivdic['FTimeAvg'] > 10:
+			quat1 = destivdic['FTimeMin']
+			quat3 = destivdic['FTimeMax']
+			qcd = (quat3-quat1)/(quat3+quat1)
+			if qcd > 0.5:
+				tempdic = {}
+				tempdic['No.'] = idx
+				tempdic['file name'] = row['file name']
+				summarywriter.writerow(tempdic)
 
-			uvaild = False
-			if destivdic['VLUnq'] > unqthreshold and destivdic['VCUnq'] > unqthreshold and destivdic['NoAffSUnq'] > unqthreshold:
-				uvaild = True
+				sumfilename = sumfilenamepre + str(idx) + filesuffix
+				sumfile = open(sumfilename,'w')
+				sumwriter = csv.DictWriter(sumfile,fieldnames=fitvalsheaderex)
+				sumwriter.writeheader()
 
-			if destivdic['FTimeStd'] > 10 and uvaild:
-				tempdic['valid'] = 1
-			else:
-				tempdic['valid'] = 0
-			summarywriter.writerow(tempdic)
+				for elem in valdiclist:
+					sumwriter.writerow(elem)
 
-			sumfilename = sumfilenamepre + str(idx) + filesuffix
-			sumfile = open(sumfilename,'w')
-			sumwriter = csv.DictWriter(sumfile,fieldnames=fitvalsheaderex)
-			sumwriter.writeheader()
+				sumfile.close()
 
-			for elem in valdiclist:
-				sumwriter.writerow(elem)
+				idx = idx + 1
 
-			sumfile.close()
-
-			idx = idx + 1
-
-		fitcsvfile.close()
-		fullcsvfile.close()
+		if fitcsvreader != None:
+			fitcsvfile.close()
+		if fullcsvfile != None:
+			fullcsvfile.close()
 		destiveidx = destiveidx + 1
 
 	destivfile.close()

@@ -5,7 +5,7 @@ def main():
 
 	destivefilelistheader = ['No.','file name']
 	fitvalsheaderex = ('NoAffS','VL','VC','Time','Result','FNoAffS','FVL','FVC','FTime','FResult')
-	destivs = ('Nums', 'Sum', 'Avg', 'Std', 'Unq')
+	destivs = ('Nums', 'Sum', 'Avg', 'Min', 'Max', 'Mid', 'Std', 'Unq')
 
 	for afitval in fitvalsheaderex:
 		for adestiv in destivs:
