@@ -133,12 +133,14 @@ public final class CEnumType implements CComplexType {
     private static final long serialVersionUID = -2526725372840523651L;
 
     private final @Nullable Long  value;
-    private CEnumType             enumType;
+    private @Nullable CEnumType enumType;
     private final String         qualifiedName;
 
-    public CEnumerator(final FileLocation pFileLocation,
-                          final String pName, final String pQualifiedName,
-        final Long pValue) {
+    public CEnumerator(
+        final FileLocation pFileLocation,
+        final String pName,
+        final String pQualifiedName,
+        final @Nullable Long pValue) {
       super(pFileLocation, CNumericTypes.SIGNED_INT, pName);
 
       checkNotNull(pName);
@@ -175,13 +177,7 @@ public final class CEnumType implements CComplexType {
 
     @Override
     public int hashCode() {
-      final int prime = 31;
-      int result = 7;
-      result = prime * result + Objects.hashCode(value);
-      result = prime * result + Objects.hashCode(enumType);
-      result = prime * result + Objects.hashCode(qualifiedName);
-      result = prime * result + super.hashCode();
-      return result ;
+      return Objects.hash(value, enumType, qualifiedName) * 31 + super.hashCode();
     }
 
     /**
@@ -213,7 +209,7 @@ public final class CEnumType implements CComplexType {
 
     @Override
     public String toASTString() {
-      return getName()
+      return getQualifiedName().replace("::", "__")
           + (hasValue() ? " = " + String.valueOf(value) : "");
     }
 
@@ -236,12 +232,7 @@ public final class CEnumType implements CComplexType {
   @Override
   public int hashCode() {
     if (hashCache == 0) {
-      final int prime = 31;
-      int result = 7;
-      result = prime * result + Objects.hashCode(isConst);
-      result = prime * result + Objects.hashCode(isVolatile);
-      result = prime * result + Objects.hashCode(name);
-      hashCache = result;
+      hashCache = Objects.hash(isConst, isVolatile, name);
     }
     return hashCache;
   }

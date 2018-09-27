@@ -29,13 +29,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
+import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAddressOfLabelExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
@@ -81,10 +82,10 @@ import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.composite.CompositeState;
 import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisState;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
-
 
 public class ProofSlicer {
   private int numNotCovered;
@@ -96,7 +97,7 @@ public class ProofSlicer {
         && AbstractStates.extractStateByType(first, CallstackState.class) != null
         && ((ARGState) first).getWrappedState() instanceof CompositeState) {
       numNotCovered=0;
-      HashMap<ARGState, Set<String>> varMap =
+      Map<ARGState, Set<String>> varMap =
           Maps.newHashMapWithExpectedSize(pReached.size());
 
       computeRelevantVariablesPerState((ARGState) first, varMap);
@@ -109,8 +110,8 @@ public class ProofSlicer {
     return pReached;
   }
 
-  private void computeRelevantVariablesPerState(final ARGState root,
-      final HashMap<ARGState, Set<String>> varMap) {
+  private void computeRelevantVariablesPerState(
+      final ARGState root, final Map<ARGState, Set<String>> varMap) {
     Deque<ARGState> waitlist = new ArrayDeque<>();
 
     initializeStates(root, varMap, waitlist);
@@ -155,9 +156,11 @@ public class ProofSlicer {
     return result;
   }
 
-  private boolean computeTransferTo(final ARGState pred, final ARGState succ,
+  private boolean computeTransferTo(
+      final ARGState pred,
+      final ARGState succ,
       final Set<String> succVars,
-      final HashMap<ARGState, Set<String>> varMap) {
+      final Map<ARGState, Set<String>> varMap) {
     assert (varMap.containsKey(pred));
     Set<String> updatedVars = new HashSet<>(varMap.get(pred));
 
@@ -183,9 +186,11 @@ public class ProofSlicer {
     return false;
   }
 
-  private boolean computeTransferTo(final ARGState pred, final CFAEdge edge,
+  private boolean computeTransferTo(
+      final ARGState pred,
+      final CFAEdge edge,
       final Set<String> succVars,
-      final HashMap<ARGState, Set<String>> varMap) {
+      final Map<ARGState, Set<String>> varMap) {
     assert (varMap.containsKey(pred));
     Set<String> updatedPredVars = new HashSet<>(varMap.get(pred));
 
@@ -313,8 +318,7 @@ public class ProofSlicer {
         }
         return;
       case CallToReturnEdge:
-        assert (false);
-        return;
+        throw new AssertionError();
       case AssumeEdge:
         Set<String> assumeVars =
             CFAUtils.getVariableNamesOfExpression(((CAssumeEdge) edge).getExpression()).toSet();
@@ -329,8 +333,7 @@ public class ProofSlicer {
         updatedVars.addAll(succVars);
         return;
       default:
-        assert (false);
-        break;
+        throw new AssertionError();
     }
   }
 
@@ -360,8 +363,10 @@ public class ProofSlicer {
     }
   }
 
-  private void initializeStates(final ARGState root,
-      final HashMap<ARGState, Set<String>> varMap, final Collection<ARGState> pWaitlist) {
+  private void initializeStates(
+      final ARGState root,
+      final Map<ARGState, Set<String>> varMap,
+      final Collection<ARGState> pWaitlist) {
     Deque<ARGState> waitlist = new ArrayDeque<>();
     Set<ARGState> visited = new HashSet<>();
 
@@ -412,7 +417,7 @@ public class ProofSlicer {
   }
 
   private void updateCoveredNodes(ARGState pCovering, Set<String> varSet,
-      HashMap<ARGState, Set<String>> pVarMap) {
+      Map<ARGState, Set<String>> pVarMap) {
     Deque<ARGState> waitlist = new ArrayDeque<>(pCovering.getCoveredByThis());
 
     ARGState covered;
@@ -425,9 +430,9 @@ public class ProofSlicer {
     }
   }
 
-  private UnmodifiableReachedSet buildSlicedARG(final HashMap<ARGState, Set<String>> pVarMap,
-      final UnmodifiableReachedSet pReached) {
-    HashMap<ARGState, ARGState> oldToSliced = Maps.newHashMapWithExpectedSize(pVarMap.size());
+  private UnmodifiableReachedSet buildSlicedARG(
+      final Map<ARGState, Set<String>> pVarMap, final UnmodifiableReachedSet pReached) {
+    Map<ARGState, ARGState> oldToSliced = Maps.newHashMapWithExpectedSize(pVarMap.size());
     ARGState root = (ARGState) pReached.getFirstState();
     assert (pVarMap.containsKey(root));
 
@@ -446,7 +451,10 @@ public class ProofSlicer {
 
     ReachedSet returnReached;
     try {
-      returnReached = new ReachedSetFactory(Configuration.defaultConfiguration()).create();
+      returnReached =
+          new ReachedSetFactory(
+                  Configuration.defaultConfiguration(), LogManager.createNullLogManager())
+              .create();
       // add root
       returnReached.add(oldToSliced.get(root), pReached.getPrecision(root));
       // add remaining elements
@@ -479,7 +487,7 @@ public class ProofSlicer {
       final Collection<String> necessaryVars) {
     ValueAnalysisState returnState = ValueAnalysisState.copyOf(vState);
 
-    for (MemoryLocation ml : vState.getConstantsMapView().keySet()) {
+    for (MemoryLocation ml : vState.getTrackedMemoryLocations()) {
       if (!necessaryVars.contains(getVarName(ml))) {
         returnState.forget(ml);
       }
@@ -493,7 +501,7 @@ public class ProofSlicer {
     return prefix +  pMl.getIdentifier();
   }
 
-  private static class VarNameRetriever implements CExpressionVisitor<String, RuntimeException> {
+  private static class VarNameRetriever implements CExpressionVisitor<String, NoException> {
 
     private static VarNameRetriever retriever = new VarNameRetriever();
 
@@ -502,92 +510,78 @@ public class ProofSlicer {
     }
 
     @Override
-    public String visit(CArraySubscriptExpression pIastArraySubscriptExpression)
-        throws RuntimeException {
+    public String visit(CArraySubscriptExpression pIastArraySubscriptExpression) {
       return pIastArraySubscriptExpression.getArrayExpression().accept(this);
     }
 
     @Override
-    public String visit(CFieldReference pIastFieldReference) throws RuntimeException {
+    public String visit(CFieldReference pIastFieldReference) {
       return pIastFieldReference.getFieldOwner().accept(this);
     }
 
     @Override
-    public String visit(CIdExpression pIastIdExpression) throws RuntimeException {
+    public String visit(CIdExpression pIastIdExpression) {
       return pIastIdExpression.getDeclaration().getQualifiedName();
     }
 
     @Override
-    public String visit(CPointerExpression pPointerExpression) throws RuntimeException {
+    public String visit(CPointerExpression pPointerExpression) {
       return pPointerExpression.getOperand().accept(this);
     }
 
     @Override
-    public String visit(CComplexCastExpression pComplexCastExpression) throws RuntimeException {
+    public String visit(CComplexCastExpression pComplexCastExpression) {
       return pComplexCastExpression.getOperand().accept(this);
     }
 
     @Override
-    public String visit(CBinaryExpression pIastBinaryExpression) throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CBinaryExpression pIastBinaryExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CCastExpression pIastCastExpression) throws RuntimeException {
+    public String visit(CCastExpression pIastCastExpression) {
       return pIastCastExpression.getOperand().accept(this);
     }
 
     @Override
-    public String visit(CCharLiteralExpression pIastCharLiteralExpression) throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CCharLiteralExpression pIastCharLiteralExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CFloatLiteralExpression pIastFloatLiteralExpression)
-        throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CFloatLiteralExpression pIastFloatLiteralExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CIntegerLiteralExpression pIastIntegerLiteralExpression)
-        throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CIntegerLiteralExpression pIastIntegerLiteralExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CStringLiteralExpression pIastStringLiteralExpression)
-        throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CStringLiteralExpression pIastStringLiteralExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CTypeIdExpression pIastTypeIdExpression) throws RuntimeException {
-      assert (false); // TODO assumption correct?
-      return "";
+    public String visit(CTypeIdExpression pIastTypeIdExpression) {
+      throw new AssertionError(); // TODO assumption correct?
     }
 
     @Override
-    public String visit(CUnaryExpression pIastUnaryExpression) throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CUnaryExpression pIastUnaryExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CImaginaryLiteralExpression PIastLiteralExpression) throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CImaginaryLiteralExpression PIastLiteralExpression) {
+      throw new AssertionError();
     }
 
     @Override
-    public String visit(CAddressOfLabelExpression pAddressOfLabelExpression)
-        throws RuntimeException {
-      assert (false);
-      return "";
+    public String visit(CAddressOfLabelExpression pAddressOfLabelExpression) {
+      throw new AssertionError();
     }
   }
 

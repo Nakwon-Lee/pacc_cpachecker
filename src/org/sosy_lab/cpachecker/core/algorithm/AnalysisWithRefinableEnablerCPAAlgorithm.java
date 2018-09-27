@@ -24,7 +24,6 @@
 package org.sosy_lab.cpachecker.core.algorithm;
 
 import static com.google.common.collect.FluentIterable.from;
-import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -67,9 +66,9 @@ import org.sosy_lab.cpachecker.cpa.apron.ApronCPA;
 import org.sosy_lab.cpachecker.cpa.apron.ApronState;
 import org.sosy_lab.cpachecker.cpa.arg.ARGCPA;
 import org.sosy_lab.cpachecker.cpa.arg.ARGMergeJoinCPAEnabledAnalysis;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.arg.ARGUtils;
+import org.sosy_lab.cpachecker.cpa.arg.path.ARGPath;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonState;
 import org.sosy_lab.cpachecker.cpa.composite.CompositeCPA;
 import org.sosy_lab.cpachecker.cpa.composite.CompositeMergeAgreeCPAEnabledAnalysisOperator;
@@ -138,7 +137,8 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
     private final Class<? extends AbstractState> stateClass;
     private final Class<? extends ConfigurableProgramAnalysis> cpaClass;
 
-    private Enabler(Class<? extends AbstractState> pStateClassOfEnabler,
+    Enabler(
+        Class<? extends AbstractState> pStateClassOfEnabler,
         Class<? extends ConfigurableProgramAnalysis> pCPAClassOfEnabler) {
       stateClass = pStateClassOfEnabler;
       cpaClass = pCPAClassOfEnabler;
@@ -204,7 +204,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
     if (!allowLazyRefinement) {
       restartFromScratchAfterRefinement(pReachedSet);
     } else {
-      if(from(pReachedSet).anyMatch(IS_TARGET_STATE)) {
+      if (pReachedSet.hasViolatedProperties()) {
         throw new RefinementFailedException(Reason.InterpolationFailed, null);
       }
     }
@@ -446,9 +446,8 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
       // use first element as one possible reason for failure path
       return nextFakeStateResult.iterator().next();
     default:
-      assert (false); // case should never happen
+        throw new AssertionError("case should never happen");
     }
-    return pFakeEnablerState;
   }
 
   private CFANode createFakeEdge(final CExpression pAssumeExpr, final CFANode pPredecessor) {
@@ -561,8 +560,8 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
     // check if global precision changed
     if (isMorePrecise(oldPrecision.getGlobalPredicates(), newPrecision.getGlobalPredicates())) { return false; }
     // get CFA nodes and function names on failure path
-    HashSet<String> funNames = new HashSet<>();
-    HashSet<CFANode> nodesOnPath = new HashSet<>();
+    Set<String> funNames = new HashSet<>();
+    Set<CFANode> nodesOnPath = new HashSet<>();
 
     for (CFAEdge edge : pathToFailure.getInnerEdges()) {
       CFANode current = edge.getSuccessor();
@@ -606,7 +605,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
       BooleanFormula fLess = bfmgr.and(list);
 
       list.clear();
-      for (AbstractionPredicate abs : lessPrecise) {
+      for (AbstractionPredicate abs : morePrecise) {
         list.add(abs.getSymbolicAtom());
       }
       BooleanFormula fMore = bfmgr.and(list);
@@ -614,7 +613,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
       fMore = bfmgr.and(fLess, fMore);
 
       // check if conjunction of less precise does not imply conjunction of more precise
-      return solver.isUnsat(fMore);
+      return !solver.isUnsat(fMore);
     }
 
     return lessPrecise == null && morePrecise != null;

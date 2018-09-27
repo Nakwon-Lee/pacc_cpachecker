@@ -27,9 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.sosy_lab.cpachecker.cpa.constraints.constraint.Constraint;
-import org.sosy_lab.cpachecker.cpa.constraints.constraint.IdentifierAssignment;
 import org.sosy_lab.cpachecker.cpa.constraints.domain.ConstraintsState;
 import org.sosy_lab.cpachecker.cpa.constraints.util.ConstraintsInformation;
 import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisInformation;
@@ -62,8 +60,7 @@ public class SymbolicInterpolant implements Interpolant<ForgettingCompositeState
   ) {
     checkNotNull(pValueInfo);
     checkNotNull(pConstraints);
-    valueInterpolant = new ValueAnalysisInterpolant(pValueInfo.getAssignments(),
-                                                    pValueInfo.getLocationTypes());
+    valueInterpolant = new ValueAnalysisInterpolant(pValueInfo.getAssignments());
     constraintsInformation = pConstraints;
   }
 
@@ -79,8 +76,7 @@ public class SymbolicInterpolant implements Interpolant<ForgettingCompositeState
   public ForgettingCompositeState reconstructState() {
     final ValueAnalysisState values = valueInterpolant.reconstructState();
 
-    ConstraintsState constraints = new ConstraintsState(constraintsInformation.getConstraints(),
-                                                        constraintsInformation.getAssignments());
+    ConstraintsState constraints = new ConstraintsState(constraintsInformation.getConstraints());
 
     return new ForgettingCompositeState(values, constraints);
   }
@@ -154,13 +150,7 @@ public class SymbolicInterpolant implements Interpolant<ForgettingCompositeState
     Set<Constraint> allConstraints = new HashSet<>(constraintsInformation.getConstraints());
     allConstraints.addAll(pOtherConstraintsInfo.getConstraints());
 
-    IdentifierAssignment allAssignments =
-        new IdentifierAssignment(constraintsInformation.getAssignments());
-
-    allAssignments.putAll(pOtherConstraintsInfo.getAssignments());
-
-    return new ConstraintsInformation(allConstraints,
-                                      allAssignments);
+    return new ConstraintsInformation(allConstraints);
   }
 
   @Override

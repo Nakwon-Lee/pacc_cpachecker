@@ -24,6 +24,7 @@
 package org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
 import static org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.CtoFormulaTypeUtils.areEqualWithMatchingPointerArray;
 import static org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.CtoFormulaTypeUtils.getRealFieldOwner;
 
@@ -38,8 +39,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
@@ -96,12 +99,10 @@ import org.sosy_lab.cpachecker.core.AnalysisDirection;
 import org.sosy_lab.cpachecker.cpa.value.AbstractExpressionValueVisitor;
 import org.sosy_lab.cpachecker.cpa.value.type.NumericValue;
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
-import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCFAEdgeException;
-import org.sosy_lab.cpachecker.exceptions.UnsupportedCCodeException;
+import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
+import org.sosy_lab.cpachecker.exceptions.UnsupportedCodeException;
 import org.sosy_lab.cpachecker.util.Triple;
-import org.sosy_lab.cpachecker.util.VariableClassification;
-import org.sosy_lab.cpachecker.util.VariableClassificationBuilder;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ErrorConditions;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
@@ -115,11 +116,16 @@ import org.sosy_lab.cpachecker.util.predicates.smt.BooleanFormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.FunctionFormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.IntegerFormulaManagerView;
+import org.sosy_lab.cpachecker.util.variableclassification.VariableClassification;
+import org.sosy_lab.cpachecker.util.variableclassification.VariableClassificationBuilder;
 import org.sosy_lab.java_smt.api.BitvectorFormula;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.FloatingPointFormula;
+import org.sosy_lab.java_smt.api.FloatingPointRoundingMode;
 import org.sosy_lab.java_smt.api.Formula;
 import org.sosy_lab.java_smt.api.FormulaType;
+import org.sosy_lab.java_smt.api.FormulaType.BitvectorType;
+import org.sosy_lab.java_smt.api.FormulaType.FloatingPointType;
 import org.sosy_lab.java_smt.api.FunctionDeclaration;
 
 /**
@@ -193,7 +199,7 @@ public class CtoFormulaConverter {
 
   private final FunctionDeclaration<?> stringUfDecl;
 
-  protected final HashSet<CVariableDeclaration> globalDeclarations = new HashSet<>();
+  protected final Set<CVariableDeclaration> globalDeclarations = new HashSet<>();
 
   public CtoFormulaConverter(FormulaEncodingOptions pOptions, FormulaManagerView fmgr,
       MachineModel pMachineModel, Optional<VariableClassification> pVariableClassification,
@@ -235,7 +241,7 @@ public class CtoFormulaConverter {
    * @param pType the type to calculate the size of.
    * @return the size in bits of the given type.
    */
-  public int getBitSizeof(CType pType) {
+  protected int getBitSizeof(CType pType) {
     return typeHandler.getBitSizeof(pType);
   }
 
@@ -250,17 +256,25 @@ public class CtoFormulaConverter {
     return typeHandler.getSizeof(pType);
   }
 
-  protected boolean isRelevantField(final CCompositeType compositeType,
-                          final String fieldName) {
-    return !variableClassification.isPresent() ||
-           !options.ignoreIrrelevantVariables() ||
-           !options.ignoreIrrelevantFields() ||
-           variableClassification.get().getRelevantFields().containsEntry(compositeType, fieldName);
+  protected boolean isRelevantField(final CCompositeType pCompositeType, final String fieldName) {
+    if (!variableClassification.isPresent()
+        || !options.ignoreIrrelevantVariables()
+        || !options.ignoreIrrelevantFields()) {
+      return true;
+    }
+    CCompositeType compositeType = CTypes.withoutVolatile(CTypes.withoutConst(pCompositeType));
+    return variableClassification.get().getRelevantFields().containsEntry(compositeType, fieldName);
   }
 
   protected boolean isRelevantLeftHandSide(final CLeftHandSide lhs) {
     if (!options.trackFunctionPointers() && CTypes.isFunctionPointer(lhs.getExpressionType())) {
       return false;
+    }
+
+    if (options.useHavocAbstraction()) {
+      if (!lhs.accept(new IsRelevantWithHavocAbstractionVisitor(this))) {
+        return false;
+      }
     }
 
     if (options.ignoreIrrelevantVariables() && variableClassification.isPresent()) {
@@ -271,15 +285,45 @@ public class CtoFormulaConverter {
   }
 
   protected final boolean isRelevantVariable(final CSimpleDeclaration var) {
+    if (options.useHavocAbstraction()) {
+      if (var instanceof CVariableDeclaration) {
+        CVariableDeclaration vDecl = (CVariableDeclaration) var;
+        if (vDecl.isGlobal()) {
+          return false;
+        } else if (vDecl.getType() instanceof CPointerType) {
+          return false;
+        }
+      }
+    }
     if (options.ignoreIrrelevantVariables() && variableClassification.isPresent()) {
-      return var.getName().equals(RETURN_VARIABLE_NAME) ||
-           variableClassification.get().getRelevantVariables().contains(var.getQualifiedName());
+      boolean isRelevantVariable = var.getName().equals(RETURN_VARIABLE_NAME) ||
+          variableClassification.get().getRelevantVariables().contains(var.getQualifiedName());
+      if (options.overflowVariablesAreRelevant()) {
+        isRelevantVariable |=
+            variableClassification.get().getIntOverflowVars().contains(var.getQualifiedName());
+      }
+      return isRelevantVariable;
     }
     return true;
   }
 
-  public FormulaType<?> getFormulaTypeFromCType(CType type) {
-    return typeHandler.getFormulaTypeFromCType(type);
+  public final FormulaType<?> getFormulaTypeFromCType(CType type) {
+    type = type.getCanonicalType();
+    if (type instanceof CSimpleType) {
+      CSimpleType simpleType = (CSimpleType) type;
+      switch (simpleType.getType()) {
+        case FLOAT:
+          return FormulaType.getSinglePrecisionFloatingPointType();
+        case DOUBLE:
+          return FormulaType.getDoublePrecisionFloatingPointType();
+        default:
+          break;
+      }
+    }
+
+    int bitSize = typeHandler.getBitSizeof(type);
+
+    return FormulaType.getBitvectorTypeWithSize(bitSize);
   }
 
   /**
@@ -307,11 +351,8 @@ public class CtoFormulaConverter {
     return (function + "::" + exprToVarNameUnscoped(e)).intern().intern();
   }
 
-  /**
-   * Produces a fresh new SSA index for an assignment
-   * and updates the SSA map.
-   */
-  public int makeFreshIndex(String name, CType type, SSAMapBuilder ssa) {
+  /** Produces a fresh new SSA index for an assignment and updates the SSA map. */
+  protected int makeFreshIndex(String name, CType type, SSAMapBuilder ssa) {
     int idx = getFreshIndex(name, type, ssa);
     ssa.setIndex(name, type, idx);
     return idx;
@@ -415,7 +456,7 @@ public class CtoFormulaConverter {
    * This method does not handle scoping!
    */
   protected Formula makeConstant(String name, CType type) {
-    return fmgr.makeVariable(getFormulaTypeFromCType(type), name);
+    return fmgr.makeVariableWithoutSSAIndex(getFormulaTypeFromCType(type), name);
   }
 
   /**
@@ -485,6 +526,15 @@ public class CtoFormulaConverter {
     return result;
   }
 
+  protected Formula makeNondet(
+      final String name, final CType type, final SSAMapBuilder ssa, final Constraints constraints) {
+    Formula newVariable = makeFreshVariable(name, type, ssa);
+    if (options.addRangeConstraintsForNondet()) {
+      addRangeConstraint(newVariable, type, constraints);
+    }
+    return newVariable;
+  }
+
   Formula makeStringLiteral(String literal) {
     Formula result = stringLitToFormula.get(literal);
 
@@ -500,6 +550,66 @@ public class CtoFormulaConverter {
   }
 
   /**
+   * Create a formula that reinterprets the raw bit values as a different type Returns {@code null}
+   * if this is not implemented for the given types. Both types need to have the same size
+   */
+  protected @Nullable Formula makeValueReinterpretation(
+      final CType pFromType, final CType pToType, Formula formula) {
+    CType fromType = handlePointerAndEnumAsInt(pFromType);
+    CType toType = handlePointerAndEnumAsInt(pToType);
+
+    FormulaType<?> fromFormulaType = getFormulaTypeFromCType(fromType);
+    FormulaType<?> toFormulaType = getFormulaTypeFromCType(toType);
+
+    if (fromFormulaType.isBitvectorType() && toFormulaType.isFloatingPointType()) {
+      int sourceSize = ((BitvectorType) fromFormulaType).getSize();
+      int targetSize = ((FloatingPointType) toFormulaType).getTotalSize();
+
+      if (sourceSize > targetSize) {
+        formula =
+            fmgr.getBitvectorFormulaManager()
+                .extract((BitvectorFormula) formula, targetSize - 1, 0, false);
+      } else if (sourceSize < targetSize) {
+        return null; // TODO extend with nondet bits
+      }
+
+      verify(
+          fmgr.getFormulaType(formula).equals(FormulaType.getBitvectorTypeWithSize(targetSize)),
+          "Unexpected result type for %s",
+          formula);
+
+      return fmgr.getFloatingPointFormulaManager()
+          .fromIeeeBitvector((BitvectorFormula) formula, (FloatingPointType) toFormulaType);
+
+    } else if (fromFormulaType.isFloatingPointType() && toFormulaType.isBitvectorType()) {
+      int sourceSize = ((FloatingPointType) fromFormulaType).getTotalSize();
+      int targetSize = ((BitvectorType) toFormulaType).getSize();
+
+      formula =
+          fmgr.getFloatingPointFormulaManager().toIeeeBitvector((FloatingPointFormula) formula);
+
+      if (sourceSize > targetSize) {
+        formula =
+            fmgr.getBitvectorFormulaManager()
+                .extract((BitvectorFormula) formula, targetSize - 1, 0, false);
+      } else if (sourceSize < targetSize) {
+        return null; // TODO extend with nondet bits
+      }
+
+      verify(
+          fmgr.getFormulaType(formula).equals(toFormulaType),
+          "Unexpected result type %s for %s",
+          fmgr.getFormulaType(formula),
+          formula);
+
+      return formula;
+
+    } else {
+      return null; // TODO use UF
+    }
+  }
+
+  /**
    * Used for implicit and explicit type casts between CTypes.
    * Optionally, overflows can be replaced with UFs.
    * @param pFromType the origin Type of the expression.
@@ -508,7 +618,7 @@ public class CtoFormulaConverter {
    * @return the new formula after the cast.
    */
   protected Formula makeCast(final CType pFromType, final CType pToType,
-      Formula formula, Constraints constraints, CFAEdge edge) throws UnrecognizedCCodeException {
+      Formula formula, Constraints constraints, CFAEdge edge) throws UnrecognizedCodeException {
     Formula result = makeCast0(pFromType, pToType, formula, edge);
 
     if (options.encodeOverflowsWithUFs()) {
@@ -575,7 +685,7 @@ public class CtoFormulaConverter {
    *  This method should only be used for a previously declared variable,
    *  otherwise the SSA-index is invalid.
    *  Example:  MIN_INT <= X <= MAX_INT  */
-  protected void addRangeConstraint(final Formula variable, CType type, Constraints constraints) {
+  private void addRangeConstraint(final Formula variable, CType type, Constraints constraints) {
     type = type.getCanonicalType();
     if (type instanceof CSimpleType && ((CSimpleType)type).getType().isIntegerType()) {
       final CSimpleType sType = (CSimpleType)type;
@@ -597,7 +707,7 @@ public class CtoFormulaConverter {
    * @return the new formula after the cast.
    */
   private Formula makeCast0(final CType pFromType, final CType pToType,
-      Formula formula, CFAEdge edge) throws UnrecognizedCCodeException {
+      Formula formula, CFAEdge edge) throws UnrecognizedCodeException {
     // UNDEFINED: Casting a numeric value into a value that can't be represented by the target type (either directly or via static_cast)
 
     CType fromType = pFromType.getCanonicalType();
@@ -632,7 +742,8 @@ public class CtoFormulaConverter {
       logger.logfOnce(Level.WARNING, "Ignoring cast from %s to %s.", fromType, toType);
       return formula;
     } else {
-      throw new UnrecognizedCCodeException("Cast from " + pFromType + " to " + pToType + " not supported!", edge);
+      throw new UnrecognizedCodeException(
+          "Cast from " + pFromType + " to " + pToType + " not supported!", edge);
     }
   }
 
@@ -697,29 +808,45 @@ public class CtoFormulaConverter {
       throw new AssertionError("Not a simple type: " + t);
     };
 
-    final FormulaType<?> fromType = typeHandler.getFormulaTypeFromCType(pFromCType);
-    final FormulaType<?> toType = typeHandler.getFormulaTypeFromCType(pToCType);
+    final FormulaType<?> fromType = getFormulaTypeFromCType(pFromCType);
+    final FormulaType<?> toType = getFormulaTypeFromCType(pToCType);
 
     final Formula ret;
     if (fromType.equals(toType)) {
       ret = pFormula;
 
     } else if (fromType.isBitvectorType() && toType.isBitvectorType()) {
-      int fromSize = ((FormulaType.BitvectorType)fromType).getSize();
       int toSize = ((FormulaType.BitvectorType)toType).getSize();
-      if (fromSize > toSize) {
-        ret = fmgr.makeExtract(pFormula, toSize-1, 0, isSigned.test(pFromCType));
+      int fromSize = ((FormulaType.BitvectorType) fromType).getSize();
 
-      } else if (fromSize < toSize) {
-        ret = fmgr.makeExtend(pFormula, (toSize - fromSize), isSigned.test(pFromCType));
+      // Cf. C-Standard 6.3.1.2 (1)
+      if (pToCType.getCanonicalType().equals(CNumericTypes.BOOL)) {
+        Formula zeroFromSize = efmgr.makeBitvector(fromSize, 0l);
+        Formula zeroToSize = efmgr.makeBitvector(toSize, 0l);
+        Formula oneToSize = efmgr.makeBitvector(toSize, 1l);
 
+        ret = bfmgr.ifThenElse(fmgr.makeEqual(zeroFromSize, pFormula), zeroToSize, oneToSize);
       } else {
-        ret = pFormula;
-      }
+        if (fromSize > toSize) {
+          ret = fmgr.makeExtract(pFormula, toSize - 1, 0, isSigned.test(pFromCType));
 
+        } else if (fromSize < toSize) {
+          ret = fmgr.makeExtend(pFormula, (toSize - fromSize), isSigned.test(pFromCType));
+
+        } else {
+          ret = pFormula;
+        }
+      }
     } else if (fromType.isFloatingPointType()) {
-      ret = fmgr.getFloatingPointFormulaManager().castTo(
-          (FloatingPointFormula)pFormula, toType);
+      if (toType.isFloatingPointType()) {
+        ret = fmgr.getFloatingPointFormulaManager().castTo((FloatingPointFormula) pFormula, toType);
+      } else {
+      // Cf. C-Standard 6.3.1.4 (1).
+      ret =
+          fmgr.getFloatingPointFormulaManager()
+              .castTo(
+                  (FloatingPointFormula) pFormula, toType, FloatingPointRoundingMode.TOWARD_ZERO);
+      }
 
     } else if (toType.isFloatingPointType()) {
       ret = fmgr.getFloatingPointFormulaManager().castFrom(pFormula,
@@ -759,7 +886,8 @@ public class CtoFormulaConverter {
    * convert the literal into a floating-point literal.
    * Otherwise return the expression unchanged.
    */
-  public CExpression convertLiteralToFloatIfNecessary(final CExpression pExp, final CType targetType) {
+  protected CExpression convertLiteralToFloatIfNecessary(
+      final CExpression pExp, final CType targetType) {
     if (!isFloatingPointType(targetType)) {
       return pExp;
     }
@@ -783,6 +911,7 @@ public class CtoFormulaConverter {
       return new CFloatLiteralExpression(e.getFileLocation(), targetType,
           floatValue.asNumericValue().bigDecimalValue());
     }
+
     return pExp;
   }
 
@@ -793,11 +922,9 @@ public class CtoFormulaConverter {
     return false;
   }
 
-
-//  @Override
-  public PathFormula makeAnd(PathFormula oldFormula,
-      CFAEdge edge, ErrorConditions errorConditions)
-      throws UnrecognizedCCodeException, UnrecognizedCFAEdgeException, InterruptedException {
+  //  @Override
+  public PathFormula makeAnd(PathFormula oldFormula, CFAEdge edge, ErrorConditions errorConditions)
+      throws UnrecognizedCodeException, UnrecognizedCFAEdgeException, InterruptedException {
 
     String function = (edge.getPredecessor() != null)
                           ? edge.getPredecessor().getFunctionName() : null;
@@ -857,7 +984,9 @@ public class CtoFormulaConverter {
       final CFunctionEntryNode entryNode, final SSAMapBuilder ssa, final Constraints constraints) {
     for (CParameterDeclaration param : entryNode.getFunctionDefinition().getParameters()) {
       // has side-effect of adding to SSAMap!
-      final Formula var = makeFreshVariable(param.getQualifiedName(), param.getType(), ssa);
+      final Formula var =
+          makeFreshVariable(
+              param.getQualifiedName(), CTypes.adjustFunctionOrArrayType(param.getType()), ssa);
 
       if (options.addRangeConstraintsForNondet()) {
         addRangeConstraint(var, param.getType(), constraints);
@@ -875,7 +1004,7 @@ public class CtoFormulaConverter {
                                        final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
                                        final Constraints constraints, final ErrorConditions errorConditions,
                                        final CFunctionEntryNode entryNode)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     if (options.useParameterVariables()) {
       for (CParameterDeclaration formalParam : entryNode.getFunctionParameters()) {
@@ -905,7 +1034,7 @@ public class CtoFormulaConverter {
                                               final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
                                               final Constraints constraints, final ErrorConditions errorConditions,
                                               final String tmpNamePart, final boolean tmpAsLHS)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     if (options.useParameterVariablesForGlobals()) {
 
@@ -944,7 +1073,7 @@ public class CtoFormulaConverter {
       final CFAEdge edge, final String function,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, UnrecognizedCFAEdgeException, InterruptedException {
+          throws UnrecognizedCodeException, UnrecognizedCFAEdgeException, InterruptedException {
     switch (edge.getEdgeType()) {
     case StatementEdge: {
       return makeStatement((CStatementEdge) edge, function,
@@ -983,16 +1112,21 @@ public class CtoFormulaConverter {
           ssa, pts, constraints, errorConditions);
     }
 
+    case CallToReturnEdge:
+      CFunctionSummaryEdge ce = (CFunctionSummaryEdge)edge;
+      return makeExitFunction(ce, function,
+          ssa, pts, constraints, errorConditions);
+
     default:
       throw new UnrecognizedCFAEdgeException(edge);
     }
   }
 
-  protected BooleanFormula makeStatement(
+  private BooleanFormula makeStatement(
       final CStatementEdge statement, final String function,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     CStatement stmt = statement.getStatement();
     if (stmt instanceof CAssignment) {
@@ -1002,13 +1136,13 @@ public class CtoFormulaConverter {
 
     } else {
       if (stmt instanceof CFunctionCallStatement) {
-        CRightHandSideVisitor<Formula, UnrecognizedCCodeException> ev = createCRightHandSideVisitor(
+        CRightHandSideVisitor<Formula, UnrecognizedCodeException> ev = createCRightHandSideVisitor(
             statement, function, ssa, pts, constraints, errorConditions);
         CFunctionCallStatement callStmt = (CFunctionCallStatement)stmt;
         callStmt.getFunctionCallExpression().accept(ev);
 
       } else if (!(stmt instanceof CExpressionStatement)) {
-        throw new UnrecognizedCCodeException("Unknown statement", statement, stmt);
+        throw new UnrecognizedCodeException("Unknown statement", statement, stmt);
       }
 
       // side-effect free statement, ignore
@@ -1020,7 +1154,7 @@ public class CtoFormulaConverter {
       final CDeclarationEdge edge, final String function,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     if (!(edge.getDeclaration() instanceof CVariableDeclaration)) {
       // struct prototype, function declaration, typedef etc.
@@ -1102,7 +1236,7 @@ public class CtoFormulaConverter {
    * returning a wrong answer.
    */
   protected void checkForLargeArray(final CDeclarationEdge declarationEdge, CType declarationType)
-      throws UnsupportedCCodeException {
+      throws UnsupportedCodeException {
     if (!options.shouldAbortOnLargeArrays() || !(declarationType instanceof CArrayType)) {
       return;
     }
@@ -1112,14 +1246,14 @@ public class CtoFormulaConverter {
     if (elementType instanceof CSimpleType
         && ((CSimpleType) elementType).getType().isFloatingPointType()) {
       if (arrayType.getLengthAsInt().orElse(0) > 100) {
-        throw new UnsupportedCCodeException("large floating-point array", declarationEdge);
+        throw new UnsupportedCodeException("large floating-point array", declarationEdge);
       }
     }
 
     if (elementType instanceof CSimpleType
         && ((CSimpleType) elementType).getType() == CBasicType.INT) {
       if (arrayType.getLengthAsInt().orElse(0) >= 10000) {
-        throw new UnsupportedCCodeException("large integer array", declarationEdge);
+        throw new UnsupportedCodeException("large integer array", declarationEdge);
       }
     }
   }
@@ -1128,7 +1262,7 @@ public class CtoFormulaConverter {
       final CFunctionSummaryEdge ce, final String calledFunction,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     addGlobalAssignmentConstraints(ce, calledFunction, ssa, pts, constraints, errorConditions, RETURN_VARIABLE_NAME, false);
 
@@ -1145,18 +1279,19 @@ public class CtoFormulaConverter {
       final com.google.common.base.Optional<CVariableDeclaration> returnVariableDeclaration =
           ce.getFunctionEntry().getReturnVariable();
       if (!returnVariableDeclaration.isPresent()) {
-        throw new UnrecognizedCCodeException("Void function used in assignment", ce, retExp);
+        throw new UnrecognizedCodeException("Void function used in assignment", ce, retExp);
       }
       final CIdExpression rhs = new CIdExpression(funcCallExp.getFileLocation(),
           returnVariableDeclaration.get());
 
       return makeAssignment(exp.getLeftHandSide(), rhs, ce, callerFunction, ssa, pts, constraints, errorConditions);
     } else {
-      throw new UnrecognizedCCodeException("Unknown function exit expression", ce, retExp);
+      throw new UnrecognizedCodeException("Unknown function exit expression", ce, retExp);
     }
   }
 
-  protected CType getReturnType(CFunctionCallExpression funcCallExp, CFAEdge edge) throws UnrecognizedCCodeException {
+  protected CType getReturnType(CFunctionCallExpression funcCallExp, CFAEdge edge)
+      throws UnrecognizedCodeException {
     // NOTE: When funCallExp.getExpressionType() does always return the return type of the function we don't
     // need this function. However I'm not sure because there can be implicit casts. Just to be safe.
     CType retType;
@@ -1172,7 +1307,7 @@ public class CtoFormulaConverter {
         CFunctionType funcPtrType = (CFunctionType) ((CPointerType) expressionType).getType().getCanonicalType();
         retType = funcPtrType.getReturnType();
       } else {
-        throw new UnrecognizedCCodeException("Cannot handle function pointer call with unknown type " + expressionType, edge, funcCallExp);
+        throw new UnrecognizedCodeException("Cannot handle function pointer call with unknown type " + expressionType, edge, funcCallExp);
       }
       assert retType != null;
     } else {
@@ -1195,7 +1330,7 @@ public class CtoFormulaConverter {
       final CFunctionCallEdge edge, final String callerFunction,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     List<CExpression> actualParams = edge.getArguments();
 
@@ -1204,8 +1339,8 @@ public class CtoFormulaConverter {
 
     if (fn.getFunctionDefinition().getType().takesVarArgs()) {
       if (formalParams.size() > actualParams.size()) {
-        throw new UnrecognizedCCodeException("Number of parameters on function call does " +
-            "not match function definition", edge);
+        throw new UnrecognizedCodeException(
+            "Number of parameters on function call does " + "not match function definition", edge);
       }
 
       if (!SAFE_VAR_ARG_FUNCTIONS.contains(fn.getFunctionName())) {
@@ -1216,8 +1351,8 @@ public class CtoFormulaConverter {
 
     } else {
       if (formalParams.size() != actualParams.size()) {
-        throw new UnrecognizedCCodeException("Number of parameters on function call does " +
-            "not match function definition", edge);
+        throw new UnrecognizedCodeException(
+            "Number of parameters on function call does " + "not match function definition", edge);
       }
     }
 
@@ -1250,7 +1385,7 @@ public class CtoFormulaConverter {
       final CReturnStatementEdge edge, final String function,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
     if (!assignment.isPresent()) {
       // this is a return from a void function, do nothing
       return bfmgr.makeTrue();
@@ -1272,7 +1407,7 @@ public class CtoFormulaConverter {
       final CFAEdge edge, final String function,
       final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
       final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
     // lhs is used twice, also as lhsForChecking!
     return makeAssignment(lhs, lhs, rhs, edge, function, ssa, pts, constraints, errorConditions);
   }
@@ -1292,7 +1427,7 @@ public class CtoFormulaConverter {
           final CFAEdge edge, final String function,
           final SSAMapBuilder ssa, final PointerTargetSetBuilder pts,
           final Constraints constraints, final ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException, InterruptedException {
+          throws UnrecognizedCodeException, InterruptedException {
 
     if (!isRelevantLeftHandSide(lhsForChecking)) {
       // Optimization for unused variables and fields
@@ -1339,9 +1474,8 @@ public class CtoFormulaConverter {
    * @param edge Reference edge, used for log messages only.
    * @return Created formula.
    */
-  public Formula buildTermFromPathFormula(PathFormula pFormula,
-      CIdExpression expr,
-      CFAEdge edge) throws UnrecognizedCCodeException {
+  public final Formula buildTermFromPathFormula(
+      PathFormula pFormula, CIdExpression expr, CFAEdge edge) throws UnrecognizedCodeException {
 
     String functionName = edge.getPredecessor().getFunctionName();
     Constraints constraints = new Constraints(bfmgr);
@@ -1356,17 +1490,27 @@ public class CtoFormulaConverter {
     );
   }
 
-  protected Formula buildTerm(CRightHandSide exp, CFAEdge edge, String function,
-      SSAMapBuilder ssa, PointerTargetSetBuilder pts,
-      Constraints constraints, ErrorConditions errorConditions)
-          throws UnrecognizedCCodeException {
+  protected Formula buildTerm(
+      CRightHandSide exp,
+      CFAEdge edge,
+      String function,
+      SSAMapBuilder ssa,
+      PointerTargetSetBuilder pts,
+      Constraints constraints,
+      ErrorConditions errorConditions)
+      throws UnrecognizedCodeException {
     return exp.accept(createCRightHandSideVisitor(edge, function, ssa, pts, constraints, errorConditions));
   }
 
-  protected Formula buildLvalueTerm(CLeftHandSide exp,
-      CFAEdge edge, String function,
-      SSAMapBuilder ssa, PointerTargetSetBuilder pts,
-      Constraints constraints, ErrorConditions errorConditions) throws UnrecognizedCCodeException {
+  protected Formula buildLvalueTerm(
+      CLeftHandSide exp,
+      CFAEdge edge,
+      String function,
+      SSAMapBuilder ssa,
+      PointerTargetSetBuilder pts,
+      Constraints constraints,
+      ErrorConditions errorConditions)
+      throws UnrecognizedCodeException {
     return exp.accept(new LvalueVisitor(this, edge, function, ssa, pts, constraints, errorConditions));
   }
 
@@ -1397,11 +1541,17 @@ public class CtoFormulaConverter {
     return bfmgr.not(fmgr.makeEqual(pF, zero));
   }
 
-  /**
-   * @throws InterruptedException may be thrown in subclasses
-   */
-  protected BooleanFormula makePredicate(CExpression exp, boolean isTrue, CFAEdge edge,
-      String function, SSAMapBuilder ssa, PointerTargetSetBuilder pts, Constraints constraints, ErrorConditions errorConditions) throws UnrecognizedCCodeException, InterruptedException {
+  /** @throws InterruptedException may be thrown in subclasses */
+  protected BooleanFormula makePredicate(
+      CExpression exp,
+      boolean isTrue,
+      CFAEdge edge,
+      String function,
+      SSAMapBuilder ssa,
+      PointerTargetSetBuilder pts,
+      Constraints constraints,
+      ErrorConditions errorConditions)
+      throws UnrecognizedCodeException, InterruptedException {
 
     Formula f = exp.accept(createCRightHandSideVisitor(edge, function, ssa, pts, constraints, errorConditions));
     BooleanFormula result = toBooleanFormula(f);
@@ -1412,7 +1562,9 @@ public class CtoFormulaConverter {
     return result;
   }
 
-  public BooleanFormula makePredicate(CExpression exp, CFAEdge edge, String function, SSAMapBuilder ssa) throws UnrecognizedCCodeException, InterruptedException {
+  public final BooleanFormula makePredicate(
+      CExpression exp, CFAEdge edge, String function, SSAMapBuilder ssa)
+      throws UnrecognizedCodeException, InterruptedException {
     PointerTargetSetBuilder pts = createPointerTargetSetBuilder(PointerTargetSet.emptyPointerTargetSet());
     Constraints constraints = new Constraints(bfmgr);
     ErrorConditions errorConditions = ErrorConditions.dummyInstance(bfmgr);
@@ -1430,13 +1582,15 @@ public class CtoFormulaConverter {
 
   /**
    * Parameters not used in {@link CtoFormulaConverter}, may be in subclasses they are.
+   *
    * @param pts1 the first PointerTargetset
    * @param pts2 the second PointerTargetset
-   * @param resultSSA the SSAMapBuilder to use
+   * @param ssa the SSAMap to use
    * @throws InterruptedException may be thrown in subclasses
    */
-  public MergeResult<PointerTargetSet> mergePointerTargetSets(final PointerTargetSet pts1,
-      final PointerTargetSet pts2, final SSAMapBuilder resultSSA) throws InterruptedException {
+  public MergeResult<PointerTargetSet> mergePointerTargetSets(
+      final PointerTargetSet pts1, final PointerTargetSet pts2, final SSAMap ssa)
+      throws InterruptedException {
     return MergeResult.trivial(pts1, bfmgr);
   }
 
@@ -1449,7 +1603,7 @@ public class CtoFormulaConverter {
    * @param constraints the constraints needed during visiting
    * @param errorConditions the error conditions
    */
-  protected CRightHandSideVisitor<Formula, UnrecognizedCCodeException> createCRightHandSideVisitor(
+  protected CRightHandSideVisitor<Formula, UnrecognizedCodeException> createCRightHandSideVisitor(
       CFAEdge pEdge, String pFunction,
       SSAMapBuilder ssa, PointerTargetSetBuilder pts,
       Constraints constraints, ErrorConditions errorConditions) {
@@ -1466,7 +1620,7 @@ public class CtoFormulaConverter {
   /**
    * Creates a Formula which accesses the given Field
    */
-  BitvectorFormula accessField(CFieldReference fExp, Formula f) throws UnrecognizedCCodeException {
+  BitvectorFormula accessField(CFieldReference fExp, Formula f) throws UnrecognizedCodeException {
     assert options.handleFieldAccess() : "Fieldaccess if only allowed with handleFieldAccess";
     assert f instanceof BitvectorFormula : "Fields need to be represented with bitvectors";
     // Get the underlaying structure
@@ -1483,7 +1637,8 @@ public class CtoFormulaConverter {
    * @return If pRightVariable is present, a formula of the same size as pLVar, but with some bits replaced.
    * If pRightVariable is not present, a formula that is smaller then pLVar (with the field bits missing).
    */
-  Formula replaceField(CFieldReference fExp, Formula pLVar, Optional<Formula> pRightVariable) throws UnrecognizedCCodeException {
+  Formula replaceField(CFieldReference fExp, Formula pLVar, Optional<Formula> pRightVariable)
+      throws UnrecognizedCodeException {
     assert options.handleFieldAccess() : "Fieldaccess if only allowed with handleFieldAccess";
 
     Triple<Integer, Integer, Boolean> msb_Lsb = getFieldOffsetMsbLsb(fExp);
@@ -1521,7 +1676,7 @@ public class CtoFormulaConverter {
   /**
    * Returns the offset of the given CFieldReference within the structure in bits.
    */
-  private Triple<Integer, Integer, Boolean> getFieldOffsetMsbLsb(CFieldReference fExp) throws UnrecognizedCCodeException {
+  private Triple<Integer, Integer, Boolean> getFieldOffsetMsbLsb(CFieldReference fExp) throws UnrecognizedCodeException {
     CExpression fieldRef = getRealFieldOwner(fExp);
     CCompositeType structType = (CCompositeType)fieldRef.getExpressionType().getCanonicalType();
 
@@ -1536,7 +1691,7 @@ public class CtoFormulaConverter {
       offset = getFieldOffset(structType, fExp.getFieldName());
       break;
     default:
-      throw new UnrecognizedCCodeException("Unexpected field access", fExp);
+        throw new UnrecognizedCodeException("Unexpected field access", fExp);
     }
 
     CType type = fExp.getExpressionType();

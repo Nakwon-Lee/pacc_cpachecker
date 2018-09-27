@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.cpa.automaton;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,12 @@ public class AutomatonInternalState {
 
   /** State representing BOTTOM */
   static final AutomatonInternalState BOTTOM =
-      new AutomatonInternalState("_predefinedState_BOTTOM", Collections.emptyList());
+      new AutomatonInternalState("_predefinedState_BOTTOM", Collections.emptyList()) {
+        @Override
+        public String toString() {
+          return "STOP";
+        }
+      };
 
   /** Error State */
   static final AutomatonInternalState ERROR =
@@ -53,7 +59,13 @@ public class AutomatonInternalState {
                   BOTTOM,
                   new StringExpression(""))),
           true,
-          false);
+          false,
+          false) {
+        @Override
+        public String toString() {
+          return "ERROR";
+        }
+      };
 
   /** Break state, used to halt the analysis without being a target state */
   static final AutomatonInternalState BREAK =
@@ -68,12 +80,14 @@ public class AutomatonInternalState {
                   BOTTOM,
                   null)),
           false,
+          false,
           false);
 
   /** Name of this State.  */
   private final String name;
-  /** Outgoing transitions of this state.  */
-  private final List<AutomatonTransition> transitions;
+
+  /** Outgoing transitions of this state. */
+  private final ImmutableList<AutomatonTransition> transitions;
 
   private final boolean mIsTarget;
 
@@ -82,19 +96,39 @@ public class AutomatonInternalState {
    */
   private final boolean mAllTransitions;
 
-  public AutomatonInternalState(String pName, List<AutomatonTransition> pTransitions, boolean pIsTarget, boolean pAllTransitions) {
+  private final boolean isCycleStart;
+
+  public AutomatonInternalState(
+      String pName,
+      List<AutomatonTransition> pTransitions,
+      boolean pIsTarget,
+      boolean pAllTransitions,
+      boolean pIsCycleStart) {
     this.name = pName;
-    this.transitions = pTransitions;
+    this.transitions = ImmutableList.copyOf(pTransitions);
     this.mIsTarget = pIsTarget;
     this.mAllTransitions = pAllTransitions;
+    this.isCycleStart = pIsCycleStart;
+  }
+
+  public AutomatonInternalState(
+      String pName,
+      List<AutomatonTransition> pTransitions,
+      boolean pIsTarget,
+      boolean pAllTransitions) {
+    this(pName, pTransitions, pIsTarget, pAllTransitions, false);
   }
 
   public AutomatonInternalState(String pName, List<AutomatonTransition> pTransitions) {
-    this(pName, pTransitions, false, false);
+    this(pName, pTransitions, false, false, false);
   }
 
   public boolean isNonDetState() {
     return mAllTransitions;
+  }
+
+  public boolean isNontrivialCycleStart() {
+    return isCycleStart;
   }
 
   /** Lets all outgoing transitions of this state resolve their "sink" states.
@@ -138,7 +172,7 @@ public class AutomatonInternalState {
     return mAllTransitions;
   }
 
-  public List<AutomatonTransition> getTransitions() {
+  public ImmutableList<AutomatonTransition> getTransitions() {
     return transitions;
   }
 

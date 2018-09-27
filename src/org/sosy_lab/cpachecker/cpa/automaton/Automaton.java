@@ -28,11 +28,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
+import org.sosy_lab.cpachecker.cfa.ast.AExpression;
+import org.sosy_lab.cpachecker.util.expressions.ExpressionTree;
+import org.sosy_lab.cpachecker.util.expressions.ExpressionTrees;
 
 @SuppressFBWarnings(value = "VA_FORMAT_STRING_USES_NEWLINE",
     justification = "consistent Unix-style line endings")
@@ -87,9 +92,10 @@ public class Automaton {
 
   /**
    * Prints the contents of a DOT file representing this automaton to the PrintStream.
+   *
    * @param pOut the appendable to write to
    */
-  void writeDotFile(Appendable pOut) throws IOException {
+  public void writeDotFile(Appendable pOut) throws IOException {
     pOut.append("digraph " + name + "{\n");
 
     boolean errorState = false;
@@ -133,6 +139,23 @@ public class Automaton {
     return initVars;
   }
 
+  public Collection<ExpressionTree<AExpression>> getAllCandidateInvariants() {
+    Collection<ExpressionTree<AExpression>> invariants = new ArrayList<>(states.size());
+    ExpressionTree<AExpression> invariant;
+
+    for (AutomatonInternalState state : states) {
+      for (AutomatonTransition trans : state.getTransitions()) {
+        invariant = trans.getCandidateInvariants();
+        if (invariant == ExpressionTrees.<AExpression>getTrue()
+            || invariant == ExpressionTrees.<AExpression>getFalse()) {
+          continue;
+        }
+        invariants.add(invariant);
+      }
+    }
+    return invariants;
+  }
+
   /**
    * Assert this automaton fulfills the requirements of an ObserverAutomaton.
    * This means the Automaton does not modify other CPAs (Keyword MODIFY) and does not use the BOTTOM element (Keyword STOP).
@@ -140,14 +163,15 @@ public class Automaton {
    */
   public void assertObserverAutomaton() throws InvalidConfigurationException {
     for (AutomatonInternalState s : this.states) {
-        for (AutomatonTransition t : s.getTransitions()) {
-          if (!t.meetsObserverRequirements()) {
-            throw new InvalidConfigurationException("The transition " + t
-                + " in state \"" + s + "\" is not valid for an ObserverAutomaton.");
-          }
+      for (AutomatonTransition t : s.getTransitions()) {
+        if (!t.meetsObserverRequirements()) {
+          throw new InvalidConfigurationException(
+              "The transition \"" + t + "\" in state \"" + s
+                  + "\" is not valid for an ObserverAutomaton.");
         }
       }
     }
+  }
 
   @Override
   public String toString() {
@@ -163,14 +187,13 @@ public class Automaton {
 
     for (AutomatonInternalState s : states) {
       str.append("STATE ").append(s.getName()).append(":\n");
-      for (AutomatonTransition transition : s.getTransitions()) {
-
-        // remove ugly symbol '"' before and after the transitionStr.
-        // TODO fix AutomatonTransition#toString() ?
-        String transitionStr = transition.toString();
-        transitionStr = transitionStr.substring(1, transitionStr.length() - 1);
-
-        str.append("    ").append(transitionStr).append("\n");
+      for (AutomatonTransition t : s.getTransitions()) {
+        str.append("    ").append(t);
+        if (t.getFollowState() != AutomatonInternalState.BOTTOM
+            && t.getFollowState() != AutomatonInternalState.ERROR) {
+          str.append("GOTO ");
+        }
+        str.append(t.getFollowState()).append(";\n");
       }
       str.append("\n");
     }

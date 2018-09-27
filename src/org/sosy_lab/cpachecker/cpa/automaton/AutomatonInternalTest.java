@@ -30,11 +30,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.io.MoreFiles;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
-import com.google.common.truth.SubjectFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.Reader;
@@ -48,16 +50,19 @@ import java.util.logging.Level;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.Symbol;
 import org.junit.Test;
-import org.sosy_lab.common.io.MoreFiles;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CParser;
 import org.sosy_lab.cpachecker.cfa.CParser.ParserOptions;
 import org.sosy_lab.cpachecker.cfa.CProgramScope;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAstNode;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
+import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonASTComparator.ASTMatcher;
+import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariable.AutomatonIntVariable;
+import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariable.AutomatonSetVariable;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
+import org.sosy_lab.cpachecker.util.test.TestDataTools;
 
 /**
  * This class contains Tests for the AutomatonAnalysis
@@ -201,8 +206,8 @@ public class AutomatonInternalTest {
   public void transitionVariableReplacement() {
     LogManager mockLogger = mock(LogManager.class);
     AutomatonExpressionArguments args = new AutomatonExpressionArguments(null, null, null, null, mockLogger);
-    args.putTransitionVariable(1, "hi");
-    args.putTransitionVariable(2, "hello");
+    args.putTransitionVariable(1, TestDataTools.makeVariable("hi", CNumericTypes.INT));
+    args.putTransitionVariable(2, TestDataTools.makeVariable("hello", CNumericTypes.INT));
     // actual test
     String result = args.replaceVariables("$1 == $2");
     assertThat(result).isEqualTo("hi == hello");
@@ -211,6 +216,64 @@ public class AutomatonInternalTest {
 
     result = args.replaceVariables("$1 == $5");
     assertThat(result).isNull(); // $5 has not been found
+    // this test should issue a log message!
+    verify(mockLogger).log(eq(Level.WARNING), (Object[]) any());
+  }
+
+  @Test
+  public void automataVariableReplacement() {
+    LogManager mockLogger = mock(LogManager.class);
+    Map<String, AutomatonVariable> automatonVariables = Maps.newHashMap();
+    AutomatonVariable intVar1 = AutomatonVariable.createAutomatonVariable("int", "intVar1");
+    AutomatonVariable intVar2 = AutomatonVariable.createAutomatonVariable("Integer", "intVar2");
+    ((AutomatonIntVariable) intVar2).setValue(10);
+    AutomatonVariable setVar1 = AutomatonVariable.createAutomatonVariable("Set", "setVar1", "int");
+    AutomatonVariable setVar2 =
+        AutomatonVariable.createAutomatonVariable("SET", "setVar2", "string", "elem1, elem2");
+
+    automatonVariables.putAll(
+        ImmutableMap.of(
+            intVar1.getName(),
+            intVar1,
+            intVar2.getName(),
+            intVar2,
+            setVar1.getName(),
+            setVar1,
+            setVar2.getName(),
+            setVar2));
+
+    AutomatonExpressionArguments args =
+        new AutomatonExpressionArguments(null, automatonVariables, null, null, mockLogger);
+    args.putTransitionVariable(1, TestDataTools.makeVariable("programVar", CNumericTypes.INT));
+
+    // actual test
+    String result = args.replaceVariables("$1 == $$intVar1");
+    assertThat(result).isEqualTo("programVar == 0");
+
+    result = args.replaceVariables("$$intVar2 == 0");
+    assertThat(result).isEqualTo("10 == 0");
+
+    ((AutomatonIntVariable) intVar1).setValue(5);
+    result = args.replaceVariables("$1 + $$intVar1");
+    assertThat(result).isEqualTo("programVar + 5");
+
+    result = args.replaceVariables("$$setVar1");
+    assertThat(result).isEqualTo("0");
+
+    result = args.replaceVariables("$$setVar2");
+    assertThat(result).isEqualTo("1");
+
+    ((AutomatonSetVariable<?>) setVar1).add(1);
+    result = args.replaceVariables("$$setVar1");
+    assertThat(result).isEqualTo("1");
+
+    ((AutomatonSetVariable<?>) setVar2).remove("elem1");
+    ((AutomatonSetVariable<?>) setVar2).remove("elem2");
+    result = args.replaceVariables("$$setVar2");
+    assertThat(result).isEqualTo("0");
+
+    result = args.replaceVariables("$1 == $$intVar3");
+    assertThat(result).isNull(); // automaton variable intVar3 does not exist
     // this test should issue a log message!
     verify(mockLogger).log(eq(Level.WARNING), (Object[]) any());
   }
@@ -282,11 +345,11 @@ public class AutomatonInternalTest {
     assert_().about(astMatcher).that("$? = $1($?);").doesNotMatch("f();");
   }
 
-  private final SubjectFactory<ASTMatcherSubject, String> astMatcher =
-      new SubjectFactory<ASTMatcherSubject, String>() {
+  private final Subject.Factory<ASTMatcherSubject, String> astMatcher =
+      new Subject.Factory<ASTMatcherSubject, String>() {
         @Override
-        public ASTMatcherSubject getSubject(FailureStrategy pFs, String pThat) {
-          return new ASTMatcherSubject(pFs, pThat).named("AST matcher pattern");
+        public ASTMatcherSubject createSubject(FailureMetadata pMd, String pThat) {
+          return new ASTMatcherSubject(pMd, pThat).named("AST matcher pattern");
         }
       };
 
@@ -299,8 +362,8 @@ public class AutomatonInternalTest {
 
     private final AutomatonExpressionArguments args = new AutomatonExpressionArguments(null, null, null, null, null);
 
-    public ASTMatcherSubject(FailureStrategy pFailureStrategy, String pPattern) {
-      super(pFailureStrategy, pPattern);
+    public ASTMatcherSubject(FailureMetadata pMetadata, String pPattern) {
+      super(pMetadata, pPattern);
     }
 
     private boolean matches0(String src) throws InvalidAutomatonException {
@@ -317,7 +380,7 @@ public class AutomatonInternalTest {
       try {
         matches = matches0(src);
       } catch (InvalidAutomatonException e) {
-        failureStrategy.fail("Cannot parse source or pattern", e);
+        failWithRawMessageAndCause("Cannot parse source or pattern", e);
         return new Matches() {
               @Override
               public void withVariableValue(int pVar, String pValue) {
@@ -336,20 +399,22 @@ public class AutomatonInternalTest {
           };
       }
       return new Matches() {
-            @Override
-            public void withVariableValue(int pVar, String pExpectedValue) {
-              if (!args.getTransitionVariables().containsKey(pVar)) {
-                ASTMatcherSubject.this.failWithBadResults(
-                    "has variable", pVar, "has variables", args.getTransitionVariables().keySet());
-              }
-              final String actualValue = args.getTransitionVariable(pVar);
-              if (!actualValue.equals(pExpectedValue)) {
-                ASTMatcherSubject.this.failWithBadResults(
-                    "matches <" + src + "> with value of variable $" + pVar + " being",
-                    pExpectedValue, "has value", actualValue);
-              }
-            }
-          };
+        @Override
+        public void withVariableValue(int pVar, String pExpectedValue) {
+          if (!args.getTransitionVariables().containsKey(pVar)) {
+            ASTMatcherSubject.this.failWithBadResults(
+                "has variable", pVar, "has variables", args.getTransitionVariables().keySet());
+          }
+          final String actualValue = args.getTransitionVariable(pVar).toASTString();
+          if (!actualValue.equals(pExpectedValue)) {
+            ASTMatcherSubject.this.failWithBadResults(
+                "matches <" + src + "> with value of variable $" + pVar + " being",
+                pExpectedValue,
+                "has value",
+                actualValue);
+          }
+        }
+      };
     }
 
     public void doesNotMatch(String src) {
@@ -358,7 +423,7 @@ public class AutomatonInternalTest {
           fail("does not match", src);
         }
       } catch (InvalidAutomatonException e) {
-        failureStrategy.fail("Cannot parse source or pattern", e);
+        failWithRawMessageAndCause("Cannot parse source or pattern", e);
       }
     }
   }

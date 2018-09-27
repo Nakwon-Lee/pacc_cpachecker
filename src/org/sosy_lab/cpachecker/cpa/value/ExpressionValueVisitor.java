@@ -23,7 +23,7 @@
  */
 package org.sosy_lab.cpachecker.cpa.value;
 
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
 import org.sosy_lab.cpachecker.cfa.ast.AIdExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
@@ -44,10 +44,10 @@ import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cfa.types.c.CProblemType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.core.defaults.ForwardingTransferRelation;
+import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisState.ValueAndType;
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
-import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
+import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
-
 
 /**
  * This Visitor returns the value from an expression.
@@ -115,7 +115,7 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     }
   }
 
-  private Value evaluateLValue(CLeftHandSide pLValue) throws UnrecognizedCCodeException {
+  private Value evaluateLValue(CLeftHandSide pLValue) throws UnrecognizedCodeException {
 
     MemoryLocation varLoc = evaluateMemoryLocation(pLValue);
 
@@ -123,26 +123,28 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
       return Value.UnknownValue.getInstance();
     }
 
-    if (getState().contains(varLoc)) {
-
-      Type actualType = readableState.getTypeForMemoryLocation(varLoc);
+    if (readableState.contains(varLoc)) {
+      ValueAndType valueAndType = readableState.getValueAndTypeFor(varLoc);
+      Type actualType = valueAndType.getType();
       CType readType = pLValue.getExpressionType();
       MachineModel machineModel = getMachineModel();
       if (!(actualType instanceof CType)
           || machineModel.getSizeof(readType) == machineModel.getSizeof((CType) actualType)) {
-        return readableState.getValueFor(varLoc);
+        return valueAndType.getValue();
       }
     }
     return Value.UnknownValue.getInstance();
   }
 
   @Override
-  protected Value evaluateCFieldReference(CFieldReference pLValue) throws UnrecognizedCCodeException {
+  protected Value evaluateCFieldReference(CFieldReference pLValue)
+      throws UnrecognizedCodeException {
     return evaluateLValue(pLValue);
   }
 
   @Override
-  protected Value evaluateCArraySubscriptExpression(CArraySubscriptExpression pLValue) throws UnrecognizedCCodeException {
+  protected Value evaluateCArraySubscriptExpression(CArraySubscriptExpression pLValue)
+      throws UnrecognizedCodeException {
     return evaluateLValue(pLValue);
   }
 
@@ -152,11 +154,12 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     return Value.UnknownValue.getInstance();
   }
 
-  public boolean canBeEvaluated(CExpression lValue) throws UnrecognizedCCodeException {
+  public boolean canBeEvaluated(CExpression lValue) throws UnrecognizedCodeException {
     return evaluateMemoryLocation(lValue) != null;
   }
 
-  public MemoryLocation evaluateMemoryLocation(CExpression lValue) throws UnrecognizedCCodeException {
+  public MemoryLocation evaluateMemoryLocation(CExpression lValue)
+      throws UnrecognizedCodeException {
     return lValue.accept(new MemoryLocationEvaluator(this));
   }
 
@@ -169,8 +172,9 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
    * @param pStructType the type of the struct
    * @return the memory location of the struct member
    */
-  public MemoryLocation evaluateRelativeMemLocForStructMember(MemoryLocation pStartLocation,
-      String pMemberName, CCompositeType pStructType) throws UnrecognizedCCodeException {
+  public MemoryLocation evaluateRelativeMemLocForStructMember(
+      MemoryLocation pStartLocation, String pMemberName, CCompositeType pStructType)
+      throws UnrecognizedCodeException {
 
     MemoryLocationEvaluator locationEvaluator = new MemoryLocationEvaluator(this);
 
@@ -187,7 +191,8 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     return locationEvaluator.getArraySlotLocationFromArrayStart(pArrayStartLocation, pSlotNumber, pArrayType);
   }
 
-  private static class MemoryLocationEvaluator extends DefaultCExpressionVisitor<MemoryLocation, UnrecognizedCCodeException> {
+  protected static class MemoryLocationEvaluator
+      extends DefaultCExpressionVisitor<MemoryLocation, UnrecognizedCodeException> {
 
     private final ExpressionValueVisitor evv;
 
@@ -196,13 +201,13 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     }
 
     @Override
-    protected MemoryLocation visitDefault(CExpression pExp) throws UnrecognizedCCodeException {
+    protected MemoryLocation visitDefault(CExpression pExp) throws UnrecognizedCodeException {
       return null;
     }
 
     @Override
     public MemoryLocation visit(CArraySubscriptExpression pIastArraySubscriptExpression)
-        throws UnrecognizedCCodeException {
+        throws UnrecognizedCodeException {
 
       CExpression arrayExpression = pIastArraySubscriptExpression.getArrayExpression();
 
@@ -231,7 +236,7 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
         return null;
       }
 
-      long typeSize = evv.getBitSizeof(elementType);
+      long typeSize = evv.getMachineModel().getSizeofInBits(elementType);
 
       long subscriptOffset = subscriptValue.asNumericValue().longValue() * typeSize;
 
@@ -248,7 +253,8 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     }
 
     @Override
-    public MemoryLocation visit(CFieldReference pIastFieldReference) throws UnrecognizedCCodeException {
+    public MemoryLocation visit(CFieldReference pIastFieldReference)
+        throws UnrecognizedCodeException {
 
       if (pIastFieldReference.isPointerDereference()) {
         evv.missingPointer = true;
@@ -267,12 +273,13 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
           fieldOwner.getExpressionType());
     }
 
-    protected MemoryLocation getStructureFieldLocationFromRelativePoint(MemoryLocation pStartLocation,
-        String pFieldName, CType pOwnerType) throws UnrecognizedCCodeException {
+    protected MemoryLocation getStructureFieldLocationFromRelativePoint(
+        MemoryLocation pStartLocation, String pFieldName, CType pOwnerType)
+        throws UnrecognizedCodeException {
 
       CType canonicalOwnerType = pOwnerType.getCanonicalType();
 
-      OptionalInt offset = getFieldOffsetInBits(canonicalOwnerType, pFieldName);
+      OptionalLong offset = getFieldOffsetInBits(canonicalOwnerType, pFieldName);
 
       if (!offset.isPresent()) {
         return null;
@@ -283,23 +290,24 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
       if (pStartLocation.isOnFunctionStack()) {
 
         return MemoryLocation.valueOf(
-            pStartLocation.getFunctionName(), pStartLocation.getIdentifier(), baseOffset + offset.getAsInt());
+            pStartLocation.getFunctionName(), pStartLocation.getIdentifier(), baseOffset + offset.getAsLong());
       } else {
 
-        return MemoryLocation.valueOf(pStartLocation.getIdentifier(), baseOffset + offset.getAsInt());
+        return MemoryLocation.valueOf(pStartLocation.getIdentifier(), baseOffset + offset.getAsLong());
       }
     }
 
-    private OptionalInt getFieldOffsetInBits(CType ownerType, String fieldName)
-        throws UnrecognizedCCodeException {
+    private OptionalLong getFieldOffsetInBits(CType ownerType, String fieldName)
+        throws UnrecognizedCodeException {
 
       if (ownerType instanceof CElaboratedType) {
         return getFieldOffsetInBits(((CElaboratedType) ownerType).getRealType(), fieldName);
       } else if (ownerType instanceof CCompositeType) {
-        return evv.getMachineModel().getFieldOffsetInBits((CCompositeType) ownerType, fieldName);
+        return OptionalLong.of(
+            evv.getMachineModel().getFieldOffsetInBits((CCompositeType) ownerType, fieldName));
       } else if (ownerType instanceof CPointerType) {
         evv.missingPointer = true;
-        return OptionalInt.empty();
+        return OptionalLong.empty();
       } else if (ownerType instanceof CProblemType) {
          /*
           * At this point CProblemType should not occur
@@ -310,7 +318,7 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
           * This is unfortunate but not as critical as
           * letting CPAchecker crash here.
           */
-         return OptionalInt.empty();
+         return OptionalLong.empty();
       }
 
       throw new AssertionError();
@@ -321,7 +329,7 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
         final int pSlotNumber,
         final CArrayType pArrayType) {
 
-      long typeSize = evv.getBitSizeof(pArrayType.getType());
+      long typeSize = evv.getMachineModel().getSizeofInBits(pArrayType.getType());
       long offset = typeSize * pSlotNumber;
       long baseOffset = pArrayStartLocation.isReference() ? pArrayStartLocation.getOffset() : 0;
 
@@ -337,7 +345,7 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     }
 
     @Override
-    public MemoryLocation visit(CIdExpression idExp) throws UnrecognizedCCodeException {
+    public MemoryLocation visit(CIdExpression idExp) throws UnrecognizedCodeException {
 
       if (idExp.getDeclaration() != null) {
         return MemoryLocation.valueOf(idExp.getDeclaration().getQualifiedName());
@@ -353,13 +361,14 @@ public class ExpressionValueVisitor extends AbstractExpressionValueVisitor {
     }
 
     @Override
-    public MemoryLocation visit(CPointerExpression pPointerExpression) throws UnrecognizedCCodeException {
+    public MemoryLocation visit(CPointerExpression pPointerExpression)
+        throws UnrecognizedCodeException {
       evv.missingPointer = true;
       return null;
     }
 
     @Override
-    public MemoryLocation visit(CCastExpression pE) throws UnrecognizedCCodeException {
+    public MemoryLocation visit(CCastExpression pE) throws UnrecognizedCodeException {
       // TODO reinterpretations for ValueAnalysis
       return pE.getOperand().accept(this);
     }

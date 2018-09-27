@@ -27,7 +27,7 @@ if [ $result -ne 0 ]; then
   exit 1
 fi
 java_version="`echo "$java_version" | grep -e "^\(java\|openjdk\) version" | cut -f2 -d\\\" | sed 's/\.//g' | cut -b1-2`"
-if [ -z "$java_version" ] || [ "$java_version" -lt 18 ] ; then
+if [ -z "$java_version" ] || [ "$java_version" -lt 18 -a "$java_version" -gt 13 ] ; then
   echo "Your Java version is too old, please install Java 1.8 or newer." 1>&2
   echo "For Ubuntu: sudo apt-get install openjdk-8-jre" 1>&2
   echo "If you have installed Java 8, but it is not in your PATH," 1>&2
@@ -61,10 +61,14 @@ export CLASSPATH="$CLASSPATH:$PATH_TO_CPACHECKER/bin:$PATH_TO_CPACHECKER/cpachec
 # loop over all input parameters and parse them
 declare -a OPTIONS
 JAVA_ASSERTIONS=-ea
-EXEC=exec
 while [ $# -gt 0 ]; do
 
   case $1 in
+   "-benchmark")
+       JAVA_ASSERTIONS=-da
+       unset DEFAULT_HEAP_SIZE  # no default heap size in benchmark mode
+       OPTIONS+=("$1")          # pass param to CPAchecker, too
+       ;;
    "-heap")
        shift
        JAVA_HEAP_SIZE=$1
@@ -80,8 +84,10 @@ while [ $# -gt 0 ]; do
        JAVA_ASSERTIONS=-da
        ;;
    "-generateReport")
-       EXEC=
-       POST_PROCESSING=scripts/report-generator.py
+       echo "Option -generateReport is not necessary anymore. Please open the HTML files produced by CPAchecker in the output directory."
+       ;;
+   -X*) # params starting with "-X" are used for JVM
+       JAVA_VM_ARGUMENTS="$JAVA_VM_ARGUMENTS $1"
        ;;
    *) # other params are only for CPAchecker
        OPTIONS+=("$1")
@@ -103,6 +109,11 @@ if [ -n "$JAVA_HEAP_SIZE" ]; then
   echo "Running CPAchecker with Java heap of size ${JAVA_HEAP_SIZE}."
 else
   JAVA_HEAP_SIZE="$DEFAULT_HEAP_SIZE"
+  if [ -z "$JAVA_HEAP_SIZE" ]; then
+    echo "A heap size needs to be specified with -heap if -benchmark is given." 1>&2
+    echo "Please see doc/Benchmark.md for further information." 1>&2
+    exit 1
+  fi
   echo "Running CPAchecker with default heap size (${JAVA_HEAP_SIZE}). Specify a larger value with -heap if you have more RAM."
 fi
 
@@ -131,18 +142,18 @@ esac
 # Order of arguments for JVM:
 # - options hard-coded in this script (to allow overriding them)
 # - options specified in environment variable
-# - options specified on command-line to this script
+# - options specified on command-line via "-X..." (except stack/head/tmpdir)
+# - options specified on command-line to this script via direct token (stack/heap) and tmpdir
 # - CPAchecker class and options
 # Stack size is set because on some systems it is too small for recursive algorithms and very large programs.
 # PerfDisableSharedMem avoids hsperfdata in /tmp (disable it to connect easily with VisualConsole and Co.).
-$EXEC "$JAVA" \
-	-Xss${JAVA_STACK_SIZE} \
-	-XX:+PerfDisableSharedMem \
-	$JAVA_VM_ARGUMENTS \
-	-Xmx${JAVA_HEAP_SIZE} \
-	$JAVA_ASSERTIONS \
-	org.sosy_lab.cpachecker.cmdline.CPAMain \
-	"${OPTIONS[@]}" \
-	$CPACHECKER_ARGUMENTS
-
-$POST_PROCESSING
+exec "$JAVA" \
+    -XX:+PerfDisableSharedMem \
+    -Djava.awt.headless=true \
+    $JAVA_VM_ARGUMENTS \
+    -Xss${JAVA_STACK_SIZE} \
+    -Xmx${JAVA_HEAP_SIZE} \
+    $JAVA_ASSERTIONS \
+    org.sosy_lab.cpachecker.cmdline.CPAMain \
+    "${OPTIONS[@]}" \
+    $CPACHECKER_ARGUMENTS

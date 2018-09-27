@@ -2,7 +2,7 @@ package org.sosy_lab.cpachecker.cpa.automaton;
 
 import java_cup.runtime.*;
 import java_cup.runtime.ComplexSymbolFactory.Location;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,7 +53,7 @@ import java.util.logging.Level;
       return null;
     }
 
-    MoreFiles.checkReadableFile(file);
+    IO.checkReadableFile(file);
     scannedFiles.add(file);
     filesStack.push(file);
     return file;
@@ -130,6 +130,8 @@ DecIntegerLiteral = 0 | [1-9][0-9]*
 <YYINITIAL> ":"                 { return symbol(":", AutomatonSym.COLON); }
 <YYINITIAL> "("                 { return symbol("(", AutomatonSym.OPEN_BRACKETS); }
 <YYINITIAL> ")"                 { return symbol(")", AutomatonSym.CLOSE_BRACKETS); }
+<YYINITIAL> "<"                 { return symbol("<", AutomatonSym.OPEN_ANGLE_BRACKETS); }
+<YYINITIAL> ">"                 { return symbol(">", AutomatonSym.CLOSE_ANGLE_BRACKETS); }
 <YYINITIAL> "->"                { return symbol("->", AutomatonSym.ARROW); }
 <YYINITIAL> "AUTOMATON"         { return symbol("AUTOMATON", AutomatonSym.AUTOMATON); }
 <YYINITIAL> "END"               { return symbol("LABEL", AutomatonSym.END); }
@@ -157,11 +159,13 @@ DecIntegerLiteral = 0 | [1-9][0-9]*
 <YYINITIAL> "TRUE"              { return symbol("TRUE", AutomatonSym.TRUE); }
 <YYINITIAL> "FALSE"             { return symbol("FALSE", AutomatonSym.FALSE); }
 <YYINITIAL> "PRINT"             { return symbol("PRINT", AutomatonSym.PRINT); }
+<YYINITIAL> "PRINTONCE"         { return symbol("PRINTONCE", AutomatonSym.PRINTONCE); }
 <YYINITIAL> "USEFIRST"          { return symbol("USEFIRST", AutomatonSym.USEFIRST); }
 <YYINITIAL> "USEALL"            { return symbol("USEALL", AutomatonSym.USEALL); }
 <YYINITIAL> "TARGET"            { return symbol("TARGET", AutomatonSym.TARGET); }
 <YYINITIAL> "IS_TARGET_STATE"   { return symbol("IS_TARGET_STATE", AutomatonSym.IS_TARGET_STATE); }
 <YYINITIAL> ","                 { return symbol("COMMA", AutomatonSym.COMMA); }
+<YYINITIAL> "COVERS_LINES"       { return symbol("COVERS_LINES", AutomatonSym.COVERS_LINES); }
 
 <YYINITIAL> {
   /* identifiers */ 

@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.cfa.parser.eclipse.c;
 
+import javax.annotation.Nullable;
 import org.sosy_lab.cpachecker.cfa.types.c.CArrayType;
 import org.sosy_lab.cpachecker.cfa.types.c.CBitFieldType;
 import org.sosy_lab.cpachecker.cfa.types.c.CComplexType;
@@ -35,12 +36,13 @@ import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CTypedefType;
 import org.sosy_lab.cpachecker.cfa.types.c.DefaultCTypeVisitor;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 
 /**
  * Visitor that fills in missing bindings of CElaboratedTypes with a given
  * target type (if name and kind match, of course).
  */
-class FillInBindingVisitor extends DefaultCTypeVisitor<Void, RuntimeException> {
+class FillInBindingVisitor extends DefaultCTypeVisitor<Void, NoException> {
 
   private final ComplexTypeKind kind;
   private final String name;
@@ -53,18 +55,18 @@ class FillInBindingVisitor extends DefaultCTypeVisitor<Void, RuntimeException> {
   }
 
   @Override
-  public Void visitDefault(CType pT) {
+  public @Nullable Void visitDefault(CType pT) {
     return null;
   }
 
   @Override
-  public Void visit(CArrayType pArrayType) {
+  public @Nullable Void visit(CArrayType pArrayType) {
     pArrayType.getType().accept(this);
     return null;
   }
 
   @Override
-  public Void visit(CCompositeType pCompositeType) {
+  public @Nullable Void visit(CCompositeType pCompositeType) {
     for (CCompositeTypeMemberDeclaration member : pCompositeType.getMembers()) {
       member.getType().accept(this);
     }
@@ -72,7 +74,7 @@ class FillInBindingVisitor extends DefaultCTypeVisitor<Void, RuntimeException> {
   }
 
   @Override
-  public Void visit(CElaboratedType pElaboratedType) {
+  public @Nullable Void visit(CElaboratedType pElaboratedType) {
     if (pElaboratedType.getRealType() == null
         && pElaboratedType.getKind() == kind
         && pElaboratedType.getName().equals(name)) {
@@ -83,7 +85,7 @@ class FillInBindingVisitor extends DefaultCTypeVisitor<Void, RuntimeException> {
   }
 
   @Override
-  public Void visit(CFunctionType pFunctionType) {
+  public @Nullable Void visit(CFunctionType pFunctionType) {
     pFunctionType.getReturnType().accept(this);
     for (CType parameter : pFunctionType.getParameters()) {
       parameter.accept(this);
@@ -92,19 +94,19 @@ class FillInBindingVisitor extends DefaultCTypeVisitor<Void, RuntimeException> {
   }
 
   @Override
-  public Void visit(CPointerType pPointerType) {
+  public @Nullable Void visit(CPointerType pPointerType) {
     pPointerType.getType().accept(this);
     return null;
   }
 
   @Override
-  public Void visit(CTypedefType pTypedefType) {
+  public @Nullable Void visit(CTypedefType pTypedefType) {
     pTypedefType.getRealType().accept(this);
     return null;
   }
 
   @Override
-  public Void visit(CBitFieldType pCBitFieldType) throws RuntimeException {
+  public @Nullable Void visit(CBitFieldType pCBitFieldType) {
     pCBitFieldType.getType().accept(this);
     return null;
   }

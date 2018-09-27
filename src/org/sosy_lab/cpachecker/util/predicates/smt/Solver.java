@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.util.predicates.smt;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.sosy_lab.java_smt.api.SolverContext.ProverOptions.GENERATE_UNSAT_CORE;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -30,9 +31,13 @@ import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -56,14 +61,6 @@ import org.sosy_lab.java_smt.api.SolverContext;
 import org.sosy_lab.java_smt.api.SolverContext.ProverOptions;
 import org.sosy_lab.java_smt.api.SolverException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
 /**
  * Encapsulation of an SMT solver.
  * This class is the central entry point to everything related to an SMT solver:
@@ -78,12 +75,14 @@ import javax.annotation.Nullable;
 @Options(deprecatedPrefix="cpa.predicate.solver", prefix="solver")
 public final class Solver implements AutoCloseable {
 
+  private static final String SOLVER_OPTION_NON_LINEAR_ARITHMETIC = "solver.nonLinearArithmetic";
+
   @Option(secure=true, name="checkUFs",
       description="improve sat-checks with additional constraints for UFs")
   private boolean checkUFs = false;
 
   @Option(secure = true, description = "Which SMT solver to use.")
-  private Solvers solver = Solvers.SMTINTERPOL;
+  private Solvers solver = Solvers.MATHSAT5;
 
   @Option(
       secure = true,
@@ -128,16 +127,8 @@ public final class Solver implements AutoCloseable {
   public int trivialSatChecks = 0;
   public int cachedSatChecks = 0;
 
-  /**
-   * Please use {@link #create(Configuration, LogManager, ShutdownNotifier)} in normal code.
-   * This constructor is primarily for test code.
-   *
-   * Please note that calling {@link #close()} on the returned instance
-   * will also close the formula managers created by the passed {@link SolverContextFactory}.
-   */
-  @VisibleForTesting
-  public Solver(SolverContextFactory pSolverFactory,
-      Configuration config, LogManager pLogger) throws InvalidConfigurationException {
+  private Solver(SolverContextFactory pSolverFactory, Configuration config, LogManager pLogger)
+      throws InvalidConfigurationException {
     config.inject(this);
 
     if (solver.equals(interpolationSolver)) {
@@ -171,12 +162,71 @@ public final class Solver implements AutoCloseable {
   }
 
   /**
-   * Load and instantiate an SMT solver.
-   * The returned instance should be closed by calling {@link #close}
-   * when it is not used anymore.
+   * Please use {@link #create(Configuration, LogManager, ShutdownNotifier)} in normal code. This
+   * constructor is only for test code.
+   *
+   * <p>Please note that calling {@link #close()} on the returned instance will also close the
+   * formula managers created by the passed {@link SolverContextFactory}.
    */
-  public static Solver create(Configuration config, LogManager logger,
-      ShutdownNotifier shutdownNotifier) throws InvalidConfigurationException {
+  @VisibleForTesting
+  Solver(
+      SolverContextFactory pSolverFactory,
+      Solvers pSolver,
+      SolverContext pContext,
+      Configuration pConfig,
+      LogManager pLogger)
+      throws InvalidConfigurationException {
+    pConfig.inject(this);
+
+    if (solver.equals(interpolationSolver)) {
+      // If interpolationSolver is not null, we use SeparateInterpolatingProverEnvironment
+      // which copies formula from and to the main solver using string serialization.
+      // We don't need this if the solvers are the same anyway.
+      interpolationSolver = null;
+    }
+
+    checkArgument(solver.equals(pSolver), "mismatching configuration");
+    solvingContext = pContext;
+
+    // Instantiate another SMT solver for interpolation if requested.
+    if (interpolationSolver != null) {
+      interpolatingContext = pSolverFactory.generateContext(interpolationSolver);
+    } else {
+      interpolatingContext = solvingContext;
+    }
+
+    fmgr = new FormulaManagerView(pContext.getFormulaManager(), pConfig, pLogger);
+    bfmgr = fmgr.getBooleanFormulaManager();
+    logger = pLogger;
+
+    if (checkUFs) {
+      ufCheckingProverOptions = new UFCheckingProverOptions(pConfig);
+    } else {
+      ufCheckingProverOptions = null;
+    }
+  }
+
+  /**
+   * Load and instantiate an SMT solver. The returned instance should be closed by calling {@link
+   * #close} when it is not used anymore.
+   */
+  @SuppressWarnings("deprecation")
+  public static Solver create(
+      Configuration config, LogManager logger, ShutdownNotifier shutdownNotifier)
+      throws InvalidConfigurationException {
+    if (!config.hasProperty(SOLVER_OPTION_NON_LINEAR_ARITHMETIC)) {
+      // Set a default for solver.nonLinearArithmetic, because with JavaSMT's default CPAchecker
+      // would crash with UnsupportedOperationExceptions depending on which solver is used.
+      // We could use APPROXIMATE_FALLBACK as default, but this would make comparisons between
+      // solvers unfair, and at least small experiments showed no benefit in practice
+      // (if non-linear arithmetic is useful, it would be better to use bitvectors than linear
+      // approximation anyway).
+      config =
+          Configuration.builder()
+              .copyFrom(config)
+              .setOption(SOLVER_OPTION_NON_LINEAR_ARITHMETIC, "APPROXIMATE_ALWAYS")
+              .build();
+    }
     SolverContextFactory factory = new SolverContextFactory(config, logger, shutdownNotifier);
     return new Solver(factory, config, logger);
   }
@@ -219,8 +269,10 @@ public final class Solver implements AutoCloseable {
    * This environment needs to be closed after it is used by calling {@link InterpolatingProverEnvironment#close()}.
    * It is recommended to use the try-with-resources syntax.
    */
-  public InterpolatingProverEnvironment<?> newProverEnvironmentWithInterpolation() {
-    InterpolatingProverEnvironment<?> ipe = interpolatingContext.newProverEnvironmentWithInterpolation();
+  public InterpolatingProverEnvironment<?> newProverEnvironmentWithInterpolation(
+      ProverOptions... options) {
+    InterpolatingProverEnvironment<?> ipe =
+        interpolatingContext.newProverEnvironmentWithInterpolation(options);
 
     if (solvingContext != interpolatingContext) {
       // If interpolatingContext is not the normal solver,
@@ -250,7 +302,8 @@ public final class Solver implements AutoCloseable {
    * It is recommended to use the try-with-resources syntax.
    */
   public OptimizationProverEnvironment newOptEnvironment() {
-    OptimizationProverEnvironment environment = solvingContext.newOptimizationProverEnvironment();
+    OptimizationProverEnvironment environment =
+        solvingContext.newOptimizationProverEnvironment(ProverOptions.GENERATE_MODELS);
     environment = new OptimizationProverEnvironmentView(environment, fmgr);
     return environment;
   }
@@ -384,8 +437,14 @@ public final class Solver implements AutoCloseable {
   public List<BooleanFormula> unsatCore(BooleanFormula constraints)
       throws SolverException, InterruptedException {
 
+    return unsatCore(bfmgr.toConjunctionArgs(constraints, true));
+  }
+
+  public List<BooleanFormula> unsatCore(Set<BooleanFormula> constraints)
+      throws SolverException, InterruptedException {
+
     try (ProverEnvironment prover = newProverEnvironment(GENERATE_UNSAT_CORE)) {
-      for (BooleanFormula constraint : bfmgr.toConjunctionArgs(constraints, true)) {
+      for (BooleanFormula constraint : constraints) {
         prover.addConstraint(constraint);
       }
       Verify.verify(prover.isUnsat());

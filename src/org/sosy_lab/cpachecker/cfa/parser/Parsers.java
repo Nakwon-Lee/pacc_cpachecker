@@ -41,7 +41,6 @@ import org.sosy_lab.cpachecker.cfa.CParser.ParserOptions;
 import org.sosy_lab.cpachecker.cfa.Parser;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 
-
 /**
  * We load the parser in its own class loader, so both all Eclipse objects
  * and all Eclipse classes can be garbage collected when they are not needed anymore.
@@ -68,12 +67,6 @@ public class Parsers {
 
     @Option(
       secure = true,
-      description = "Allow then/else branches to be swapped in order to obtain simpler conditions."
-    )
-    private boolean allowBranchSwapping = true;
-
-    @Option(
-      secure = true,
       description =
           "simplify pointer expressions like s->f to (*s).f with this option "
               + "the cfa is simplified until at maximum one pointer is allowed for left- and rightHandSide"
@@ -91,10 +84,6 @@ public class Parsers {
       return showDeadCode;
     }
 
-    public boolean allowBranchSwapping() {
-      return allowBranchSwapping;
-    }
-
     public boolean simplifyPointerExpressions() {
       return simplifyPointerExpressions;
     }
@@ -106,7 +95,8 @@ public class Parsers {
 
   private Parsers() { }
 
-  private static final Pattern OUR_CLASSES = Pattern.compile("^(org\\.eclipse|org\\.sosy_lab\\.cpachecker\\.cfa\\.parser\\.eclipse\\..*\\.*)\\..*");
+  private static final Pattern OUR_CLASSES =
+      Pattern.compile("^(org\\.eclipse|org\\.sosy_lab\\.cpachecker\\.cfa\\.parser\\.(eclipse\\..*|llvm)\\.*)\\..*");
 
   private static final String C_PARSER_CLASS    = "org.sosy_lab.cpachecker.cfa.parser.eclipse.c.EclipseCParser";
   private static final String JAVA_PARSER_CLASS = "org.sosy_lab.cpachecker.cfa.parser.eclipse.java.EclipseJavaParser";
@@ -158,7 +148,7 @@ public class Parsers {
         Class<? extends CParser> parserClass = (Class<? extends CParser>) classLoader.loadClass(C_PARSER_CLASS);
         parserConstructor =
             parserClass.getConstructor(
-                new Class<?>[] {LogManager.class, EclipseCParserOptions.class, MachineModel.class});
+                LogManager.class, EclipseCParserOptions.class, MachineModel.class);
         parserConstructor.setAccessible(true);
         loadedCParser = new WeakReference<>(parserConstructor);
       }
@@ -179,7 +169,7 @@ public class Parsers {
 
         @SuppressWarnings("unchecked")
         Class<? extends CParser> parserClass = (Class<? extends CParser>) classLoader.loadClass(JAVA_PARSER_CLASS);
-        parserConstructor = parserClass.getConstructor(new Class<?>[]{ LogManager.class, Configuration.class });
+        parserConstructor = parserClass.getConstructor(LogManager.class, Configuration.class);
         parserConstructor.setAccessible(true);
         loadedJavaParser = new WeakReference<>(parserConstructor);
       }
@@ -210,8 +200,7 @@ public class Parsers {
         @SuppressWarnings("unchecked")
         Class<? extends Parser> parserClass = (Class<? extends Parser>)
             classLoader.loadClass(LLVM_PARSER_CLASS);
-        parserConstructor = parserClass.getConstructor(new Class<?>[]{ LogManager.class,
-            MachineModel.class });
+        parserConstructor = parserClass.getConstructor(LogManager.class, MachineModel.class);
         parserConstructor.setAccessible(true);
         loadedLlvmParser = new WeakReference<>(parserConstructor);
       }

@@ -101,8 +101,8 @@ import org.sosy_lab.cpachecker.core.defaults.ForwardingTransferRelation;
 import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
 import org.sosy_lab.cpachecker.cpa.apron.ApronState.Type;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
-import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
-import org.sosy_lab.cpachecker.exceptions.UnsupportedCCodeException;
+import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
+import org.sosy_lab.cpachecker.exceptions.UnsupportedCodeException;
 import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
@@ -452,7 +452,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
 
           break;
         default:
-          throw new UnrecognizedCCodeException("unknown binary operator", edge, binExp);
+            throw new UnrecognizedCodeException("unknown binary operator", edge, binExp);
         }
       }
     }
@@ -522,9 +522,10 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
    * @param truthAssumption indicates if we are in the then or the else branch of an assumption
    * @return an OctState or null
    */
-  private Set<ApronState> handleLiteralBooleanExpression(long value, boolean truthAssumption, ApronState state) {
+  private Set<ApronState> handleLiteralBooleanExpression(
+      long value, boolean truthAssumption, ApronState pState) {
     if ((value != 0) == truthAssumption) {
-      return Collections.singleton(state);
+      return Collections.singleton(pState);
     } else {
       return Collections.emptySet();
     }
@@ -664,7 +665,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     } else if (exprOnSummary instanceof CFunctionCallStatement) {
 
     } else {
-      throw new UnrecognizedCCodeException("on function return", cfaEdge, exprOnSummary);
+      throw new UnrecognizedCodeException("on function return", cfaEdge, exprOnSummary);
     }
 
     return Collections.singleton(state.removeLocalVars(calledFunctionName));
@@ -758,7 +759,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
       if (fn instanceof CIdExpression) {
         String func = ((CIdExpression)fn).getName();
         if (UNSUPPORTED_FUNCTIONS.containsKey(func)) {
-          throw new UnsupportedCCodeException(UNSUPPORTED_FUNCTIONS.get(func), cfaEdge, fn);
+          throw new UnsupportedCodeException(UNSUPPORTED_FUNCTIONS.get(func), cfaEdge, fn);
         }
       }
     }
@@ -780,6 +781,9 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
         Set<Texpr0Node> coeffsList = right.accept(new CApronExpressionVisitor());
 
         if (coeffsList.isEmpty()) {
+          if (right instanceof CFunctionCallExpression) {
+            return Collections.singleton(state.forget(variableName));
+          }
           return Collections.singleton(state);
         }
 
@@ -802,10 +806,10 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
 
     }
 
-    throw new UnrecognizedCCodeException("unknown statement", cfaEdge, statement);
+    throw new UnrecognizedCodeException("unknown statement", cfaEdge, statement);
   }
 
-  private MemoryLocation buildVarName(CLeftHandSide left, String functionName) {
+  private MemoryLocation buildVarName(CLeftHandSide left, String pFunctionName) {
     String variableName = null;
     if (left instanceof CArraySubscriptExpression) {
       variableName = ((CArraySubscriptExpression) left).getArrayExpression().toASTString();
@@ -818,7 +822,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     }
 
     if (!isGlobal(left)) {
-      return MemoryLocation.valueOf(functionName, variableName);
+      return MemoryLocation.valueOf(pFunctionName, variableName);
     } else {
       return MemoryLocation.valueOf(variableName);
     }
@@ -1072,23 +1076,29 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     @Override
     public Set<Texpr0Node> visit(CFunctionCallExpression e) throws CPATransferException {
       if (e.getFunctionNameExpression() instanceof CIdExpression) {
-        String functionName = ((CIdExpression)e.getFunctionNameExpression()).getName();
-        if (functionName.equals("__VERIFIER_nondet_int")) {
+        switch (((CIdExpression) e.getFunctionNameExpression()).getName()) {
+          case "__VERIFIER_nondet_int":
+            {
           Scalar sup = Scalar.create();
           sup.setInfty(1);
           Scalar inf = Scalar.create();
           inf.setInfty(-1);
           Interval interval = new Interval(inf, sup);
           return Collections.singleton((Texpr0Node)new Texpr0CstNode(interval));
-        } else if (functionName.equals("__VERIFIER_nondet_uint")) {
+            }
+          case "__VERIFIER_nondet_uint":
+            {
           Interval interval = new Interval();
           Scalar sup = Scalar.create();
           sup.setInfty(1);
           interval.setSup(sup);
           return Collections.singleton((Texpr0Node)new Texpr0CstNode(interval));
-        } else if (functionName.equals("__VERIFIER_nondet_bool")) {
+            }
+          case "__VERIFIER_nondet_bool":
+            {
           Interval interval = new Interval(0, 1);
           return Collections.singleton((Texpr0Node)new Texpr0CstNode(interval));
+            }
         }
       }
       return Collections.emptySet();

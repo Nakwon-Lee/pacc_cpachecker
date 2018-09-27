@@ -30,7 +30,9 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -71,12 +73,8 @@ import org.sosy_lab.cpachecker.cfa.model.c.CReturnStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.exceptions.CParserException;
-import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-
+import org.sosy_lab.cpachecker.exceptions.NoException;
+import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
 
 /******************************************************************+
  * NullPointerDetection
@@ -179,7 +177,7 @@ public class NullPointerChecks {
             // left-hand side can be ignored (it is the currently declared variable
             assignment.getRightHandSide().accept(visitor);
           }
-        } catch (UnrecognizedCCodeException e) {
+        } catch (UnrecognizedCodeException e) {
           throw new CParserException(e);
         }
       }
@@ -234,9 +232,15 @@ public class NullPointerChecks {
   private static CFAEdge createOldEdgeWithNewNodes(CFANode predecessor, CFANode successor, CFAEdge edge) {
     switch (edge.getEdgeType()) {
     case AssumeEdge:
-      return new CAssumeEdge(edge.getRawStatement(), edge.getFileLocation(),
-                             predecessor, successor, ((CAssumeEdge)edge).getExpression(),
-                             ((CAssumeEdge)edge).getTruthAssumption());
+        return new CAssumeEdge(
+            edge.getRawStatement(),
+            edge.getFileLocation(),
+            predecessor,
+            successor,
+            ((CAssumeEdge) edge).getExpression(),
+            ((CAssumeEdge) edge).getTruthAssumption(),
+            ((CAssumeEdge) edge).isSwapped(),
+            ((CAssumeEdge) edge).isArtificialIntermediate());
     case ReturnStatementEdge:
       return new CReturnStatementEdge(edge.getRawStatement(),
                                       ((CReturnStatementEdge)edge).getRawAST().get(),
@@ -260,8 +264,8 @@ public class NullPointerChecks {
   /**
    * This visitor returns all Expressions where a Pointer is included
    */
-  static class ContainsPointerVisitor extends DefaultCExpressionVisitor<Void, RuntimeException>
-                                      implements CRightHandSideVisitor<Void, RuntimeException> {
+  static class ContainsPointerVisitor extends DefaultCExpressionVisitor<Void, NoException>
+                                      implements CRightHandSideVisitor<Void, NoException> {
 
     private final List<CExpression> dereferencedExpressions = new ArrayList<>();
 

@@ -25,6 +25,8 @@ package org.sosy_lab.cpachecker.cfa.parser.eclipse.java;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.MoreFiles;
+import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -52,7 +54,7 @@ import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.ParseResult;
@@ -171,7 +173,7 @@ class EclipseJavaParser implements Parser {
 
     // write CFA to file
     if (exportTypeHierarchy && exportTypeHierarchyFile != null) {
-      try (Writer w = MoreFiles.openOutputFile(exportTypeHierarchyFile, StandardCharsets.UTF_8)) {
+      try (Writer w = IO.openOutputFile(exportTypeHierarchyFile, StandardCharsets.UTF_8)) {
         THDotBuilder.generateDOT(w, pScope);
       } catch (IOException e) {
         logger.logUserException(Level.WARNING, e,
@@ -205,6 +207,8 @@ class EclipseJavaParser implements Parser {
     return astsOfFoundFiles;
   }
 
+  @MustBeClosed
+  @SuppressWarnings("StreamResourceLeak") // https://github.com/google/error-prone/issues/893
   private Stream<Path> getJavaFilesInPath(Path mainDirectory) throws IOException {
     return Files.walk(mainDirectory, FileVisitOption.FOLLOW_LINKS)
         .filter(Files::isRegularFile)
@@ -244,12 +248,10 @@ class EclipseJavaParser implements Parser {
     parser.setCompilerOptions(options);
 
     parseTimer.start();
-    String source;
 
     try {
-      source = MoreFiles.toString(file, encoding);
       parser.setUnitName(file.normalize().toString());
-      parser.setSource(source.toCharArray());
+      parser.setSource(IO.toCharArray(MoreFiles.asCharSource(file, encoding)));
       parser.setIgnoreMethodBodies(ignoreMethodBody);
       return (CompilationUnit) parser.createAST(null);
     } finally {

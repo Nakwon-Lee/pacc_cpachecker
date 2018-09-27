@@ -2,7 +2,7 @@
  *  CPAchecker is a tool for configurable software verification.
  *  This file is part of CPAchecker.
  *
- *  Copyright (C) 2007-2014  Dirk Beyer
+ *  Copyright (C) 2007-2018  Dirk Beyer
  *  All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAssignment;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
@@ -38,7 +45,6 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CFieldReference;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CLeftHandSide;
 import org.sosy_lab.cpachecker.cfa.ast.c.CPointerExpression;
-import org.sosy_lab.cpachecker.cfa.ast.c.CRightHandSide;
 import org.sosy_lab.cpachecker.cfa.ast.c.CStatement;
 import org.sosy_lab.cpachecker.cfa.ast.c.CUnaryExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CVariableDeclaration;
@@ -58,33 +64,22 @@ import org.sosy_lab.cpachecker.core.counterexample.ConcreteStatePath.SingleConcr
 import org.sosy_lab.cpachecker.core.counterexample.IDExpression;
 import org.sosy_lab.cpachecker.core.counterexample.LeftHandSide;
 import org.sosy_lab.cpachecker.core.counterexample.Memory;
-import org.sosy_lab.cpachecker.core.counterexample.MemoryName;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath.PathIterator;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGObject;
+import org.sosy_lab.cpachecker.cpa.arg.path.ARGPath;
+import org.sosy_lab.cpachecker.cpa.arg.path.PathIterator;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGObject;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGKnownSymbolicValue;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.Pair;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class SMGConcreteErrorPathAllocator {
 
   private final AssumptionToEdgeAllocator assumptionToEdgeAllocator;
 
-  private MemoryName memoryName = new MemoryName() {
-
-    @Override
-    public String getMemoryName(CRightHandSide pExp, Address pAddress) {
-      return "SMG_Analysis_Heap";
-    }
-  };
+  // this analysis puts every object in the same heap
+  private static final String MEMORY_NAME = "SMG_Analysis_Heap";
 
   public SMGConcreteErrorPathAllocator(AssumptionToEdgeAllocator pAssumptionToEdgeAllocator) {
     assumptionToEdgeAllocator = pAssumptionToEdgeAllocator;
@@ -161,10 +156,10 @@ public class SMGConcreteErrorPathAllocator {
             new SingleConcreteState(
                 Iterables.getOnlyElement(edges),
                 new ConcreteState(
-                    ImmutableMap.<LeftHandSide, Object>of(),
+                    ImmutableMap.of(),
                     allocateAddresses(pSMGState, variableAddresses),
                     variableAddresses.getAddressMap(),
-                    memoryName)));
+                    exp -> MEMORY_NAME)));
       }
     }
 
@@ -183,10 +178,10 @@ public class SMGConcreteErrorPathAllocator {
     if (allValuesForLeftHandSideKnown(innerEdge, alreadyAssigned)) {
       state =
           new ConcreteState(
-              ImmutableMap.<LeftHandSide, Object>of(),
+              ImmutableMap.of(),
               allocateAddresses(pSMGState, variableAddresses),
               variableAddresses.getAddressMap(),
-              memoryName);
+              exp -> MEMORY_NAME);
     } else {
       state = ConcreteState.empty();
     }
@@ -240,7 +235,7 @@ public class SMGConcreteErrorPathAllocator {
    * assigned, may not be part of the Left Hand Side we want to know the value of.
    *
    */
-  private static class ValueKnownVisitor extends DefaultCExpressionVisitor<Boolean, RuntimeException> {
+  private static class ValueKnownVisitor extends DefaultCExpressionVisitor<Boolean, NoException> {
 
     private final Set<CLeftHandSide> alreadyAssigned;
 
@@ -310,32 +305,25 @@ public class SMGConcreteErrorPathAllocator {
 
     Map<Address, Object> values = createHeapValues(pSMGState, pAdresses);
 
-    // memory name of smg analysis does not need to know expression or address
-    Memory heap = new Memory(memoryName.getMemoryName(null, null), values);
-
-    Map<String, Memory> result = new HashMap<>();
-
-    result.put(heap.getName(), heap);
-
-    return result;
+    return ImmutableMap.of(MEMORY_NAME, new Memory(MEMORY_NAME, values));
   }
 
   private Map<Address, Object> createHeapValues(SMGState pSMGState,
       SMGObjectAddressMap pAdresses) {
 
-    Set<SMGEdgeHasValue> symbolicValues = pSMGState.getHVEdges();
+    Set<SMGEdgeHasValue> symbolicValues = pSMGState.getHeap().getHVEdges();
 
     Map<Address, Object> result = new HashMap<>();
 
     for (SMGEdgeHasValue hvEdge : ImmutableSet.copyOf(symbolicValues)) {
 
-      int symbolicValue = hvEdge.getValue();
+      SMGKnownSymbolicValue symbolicValue = (SMGKnownSymbolicValue) hvEdge.getValue();
       BigInteger value = null;
 
-      if (symbolicValue == 0) {
+      if (symbolicValue.isZero()) {
         value = BigInteger.ZERO;
-      } else if (pSMGState.isPointer(symbolicValue)) {
-        SMGEdgePointsTo pointer = pSMGState.getPointsToEdge(symbolicValue);
+      } else if (pSMGState.getHeap().isPointer(symbolicValue)) {
+        SMGEdgePointsTo pointer = pSMGState.getHeap().getPointer(symbolicValue);
 
         //TODO ugly, use common representation
         value = pAdresses.calculateAddress(pointer.getObject(), pointer.getOffset(), pSMGState).getAddressValue();
@@ -354,17 +342,17 @@ public class SMGConcreteErrorPathAllocator {
 
   private static class SMGObjectAddressMap {
 
-    private Map<SMGObject, Address> objectAddressMap = new HashMap<>();
+    private final Map<SMGObject, Address> objectAddressMap = new HashMap<>();
     private Address nextAlloc = Address.valueOf(BigInteger.valueOf(100));
-    private Map<LeftHandSide, Address> variableAddressMap = new HashMap<>();
+    private final Map<LeftHandSide, Address> variableAddressMap = new HashMap<>();
 
-    public Address calculateAddress(SMGObject pObject, int pOffset,
+    public Address calculateAddress(SMGObject pObject, long pOffset,
         SMGState pSMGState) {
 
       // Create a new base address for the object if necessary
       if (!objectAddressMap.containsKey(pObject)) {
         objectAddressMap.put(pObject, nextAlloc);
-        IDExpression lhs = pSMGState.createIDExpression(pObject);
+        IDExpression lhs = pSMGState.getHeap().createIDExpression(pObject);
         if (lhs != null) {
           variableAddressMap.put(lhs, nextAlloc);
         }

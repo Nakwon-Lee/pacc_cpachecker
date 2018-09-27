@@ -2,7 +2,7 @@
  *  CPAchecker is a tool for configurable software verification.
  *  This file is part of CPAchecker.
  *
- *  Copyright (C) 2007-2014  Dirk Beyer
+ *  Copyright (C) 2007-2018  Dirk Beyer
  *  All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,19 +24,24 @@
 package org.sosy_lab.cpachecker.cpa.smg;
 
 import com.google.common.collect.Iterables;
-
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.sosy_lab.common.configuration.Configuration;
+import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.CLangSMG;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGObject;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGRegion;
-
-import java.util.Set;
-
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValueFilter;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGObject;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGRegion;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGKnownSymValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGZeroValue;
 
 public class SMGAbstractionManagerTest {
   private CLangSMG smg;
@@ -52,19 +57,19 @@ public class SMGAbstractionManagerTest {
       SMGEdgeHasValue hv;
       smg.addHeapObject(node);
       if (next != null) {
-        int address = SMGValueFactory.getNewValue();
+        SMGValue address = SMGKnownSymValue.of();
         SMGEdgePointsTo pt = new SMGEdgePointsTo(address, next, 0);
         hv = new SMGEdgeHasValue(CPointerType.POINTER_TO_VOID, 64, node, address);
         smg.addValue(address);
         smg.addPointsToEdge(pt);
       } else {
-        hv = new SMGEdgeHasValue(128, 0, node, 0);
+        hv = new SMGEdgeHasValue(128, 0, node, SMGZeroValue.INSTANCE);
       }
       smg.addHasValueEdge(hv);
       next = node;
     }
 
-    int address = SMGValueFactory.getNewValue();
+    SMGValue address = SMGKnownSymValue.of();
     SMGEdgeHasValue hv = new SMGEdgeHasValue(CPointerType.POINTER_TO_VOID, 64, globalVar, address);
     SMGEdgePointsTo pt = new SMGEdgePointsTo(address, next, 0);
     smg.addGlobalObject(globalVar);
@@ -74,8 +79,8 @@ public class SMGAbstractionManagerTest {
   }
 
   @Test
-  public void testExecute() throws SMGInconsistentException {
-    SMGState dummyState = new SMGState(LogManager.createTestLogManager(), MachineModel.LINUX32, false, false, null, 32, false, false);
+  public void testExecute() throws SMGInconsistentException, InvalidConfigurationException {
+    SMGState dummyState = new SMGState(LogManager.createTestLogManager(), MachineModel.LINUX32, new SMGOptions(Configuration.defaultConfiguration()));
     SMGAbstractionManager manager = new SMGAbstractionManager(LogManager.createTestLogManager(), smg, dummyState);
     manager.execute();
 

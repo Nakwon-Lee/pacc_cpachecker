@@ -23,8 +23,9 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm.pdr.ctigar;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Sets;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.log.LogManager;
@@ -73,7 +73,7 @@ import org.sosy_lab.java_smt.api.SolverException;
  */
 public class PDRSmt {
 
-  private static enum ReductionMode {
+  private enum ReductionMode {
     CONSECUTION,
     LIFTING
   }
@@ -96,8 +96,8 @@ public class PDRSmt {
    *
    * @param pFrameSet The frames relative to which the induction queries are formed.
    * @param pSolver The solver that is used in all queries.
-   * @param pFmgr The formula manager used for instantiating formulas.
-   * @param pPfmgr The path formula manager used for creating variables.
+   * @param pFormulaManager The formula manager used for instantiating formulas.
+   * @param pPathFormulaManager The path formula manager used for creating variables.
    * @param pAbstractionManager The component that handles predicate abstraction.
    * @param pTransition The transition system that defines the transition formula.
    * @param pCompStats The statistics delegator that this class should be registered at. It takes
@@ -110,8 +110,8 @@ public class PDRSmt {
   public PDRSmt(
       FrameSet pFrameSet,
       Solver pSolver,
-      FormulaManagerView pFmgr,
-      PathFormulaManager pPfmgr,
+      FormulaManagerView pFormulaManager,
+      PathFormulaManager pPathFormulaManager,
       PredicatePrecisionManager pAbstractionManager,
       TransitionSystem pTransition,
       StatisticsDelegator pCompStats,
@@ -124,9 +124,9 @@ public class PDRSmt {
 
     this.frameSet = Objects.requireNonNull(pFrameSet);
     this.solver = Objects.requireNonNull(pSolver);
-    this.fmgr = Objects.requireNonNull(pFmgr);
+    this.fmgr = Objects.requireNonNull(pFormulaManager);
     this.bfmgr = fmgr.getBooleanFormulaManager();
-    this.pfmgr = Objects.requireNonNull(pPfmgr);
+    this.pfmgr = Objects.requireNonNull(pPathFormulaManager);
     this.abstractionManager = Objects.requireNonNull(pAbstractionManager);
     this.transition = Objects.requireNonNull(pTransition);
     this.logger = Objects.requireNonNull(pLogger);
@@ -393,7 +393,7 @@ public class PDRSmt {
             .stream()
             .filter(entry -> unsatCore.get().contains(entry.getKey()))
             .map(entry -> entry.getValue())
-            .collect(Collectors.toSet());
+            .collect(toImmutableSet());
 
     BooleanFormula reduced = bfmgr.and(relevantConjuncts);
 
@@ -468,10 +468,14 @@ public class PDRSmt {
       BooleanFormula current = conjIterator.next();
 
       // Remove conjunct from formula
-      Set<BooleanFormula> conjunctsWithoutCurrent =
-          Sets.filter(remainingConjuncts, bf -> !bf.equals(current));
       BooleanFormula formulaWithoutCurrent =
-          PDRUtils.asUnprimed(bfmgr.and(conjunctsWithoutCurrent), fmgr, transition);
+          PDRUtils.asUnprimed(
+              remainingConjuncts
+                  .stream()
+                  .filter(bf -> !bf.equals(current))
+                  .collect(bfmgr.toConjunction()),
+              fmgr,
+              transition);
 
       // If removal makes states initial, continue with next conjunct.
       if (isInitial(formulaWithoutCurrent)) {
@@ -563,13 +567,12 @@ public class PDRSmt {
     pConcrProver.pop();
 
     Set<Formula> nondetVars = nondetVarsOfConnectingBlock(pPredLoc, pSuccLoc);
-    List<Formula> nondetsAsPrimed =
-        fmgr.instantiate(nondetVars, transition.getPrimedContext().getSsa());
     Set<String> nondetNames =
-        nondetsAsPrimed
+        nondetVars
             .stream()
+            .map(f -> fmgr.instantiate(f, transition.getPrimedContext().getSsa()))
             .flatMap(f -> fmgr.extractVariableNames(f).stream())
-            .collect(Collectors.toSet());
+            .collect(toImmutableSet());
 
     BooleanFormula succWithoutNondet =
         fmgr.filterLiterals(pSucc, lit -> !nondetNames.containsAll(fmgr.extractVariableNames(lit)));

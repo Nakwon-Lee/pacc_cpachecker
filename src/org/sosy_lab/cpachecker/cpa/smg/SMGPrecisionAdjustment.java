@@ -41,7 +41,7 @@ import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.location.LocationState;
-import org.sosy_lab.cpachecker.cpa.smg.SMGCPA.SMGExportLevel;
+import org.sosy_lab.cpachecker.cpa.smg.SMGOptions.SMGExportLevel;
 import org.sosy_lab.cpachecker.cpa.smg.refiner.SMGMemoryPath;
 import org.sosy_lab.cpachecker.cpa.smg.refiner.SMGPrecision;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
@@ -50,7 +50,6 @@ import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 import org.sosy_lab.cpachecker.util.statistics.StatCounter;
 import org.sosy_lab.cpachecker.util.statistics.StatTimer;
 import org.sosy_lab.cpachecker.util.statistics.StatisticsWriter;
-
 
 public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsProvider {
 
@@ -85,19 +84,20 @@ public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsPr
 
   }
 
-
-
   @Override
   public Optional<PrecisionAdjustmentResult> prec(AbstractState pState, Precision pPrecision,
       UnmodifiableReachedSet pStates, Function<AbstractState, AbstractState> pStateProjection, AbstractState pFullState)
           throws CPAException, InterruptedException {
 
-    return prec((SMGState) pState, (SMGPrecision) pPrecision,
+    return prec(
+        (UnmodifiableSMGState) pState,
+        (SMGPrecision) pPrecision,
         AbstractStates.extractStateByType(pFullState, LocationState.class));
   }
 
-  private Optional<PrecisionAdjustmentResult> prec(SMGState pState, SMGPrecision pPrecision,
-      LocationState location) throws CPAException {
+  private Optional<PrecisionAdjustmentResult> prec(
+      UnmodifiableSMGState pState, SMGPrecision pPrecision, LocationState location)
+      throws CPAException {
 
     boolean allowsFieldAbstraction = pPrecision.allowsFieldAbstraction();
     boolean allowsHeapAbstraction =
@@ -110,8 +110,8 @@ public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsPr
 
     totalAbstraction.start();
 
-    SMGState result = pState;
-    SMGState newState = new SMGState(pState);
+    UnmodifiableSMGState result = pState;
+    SMGState newState = pState.copyOf();
     CFANode node = location.getLocationNode();
 
     if (allowsStackAbstraction) {
@@ -149,7 +149,7 @@ public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsPr
 
     if (allowsHeapAbstraction) {
 
-      boolean refineablePrecision = pPrecision.usesHeapInterpoaltion();
+      boolean refineablePrecision = pPrecision.usesHeapInterpolation();
       boolean heapAbstractionChange =
           newState.executeHeapAbstraction(pPrecision.getAbstractionBlocks(node), refineablePrecision);
 

@@ -27,11 +27,11 @@ import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -45,6 +45,7 @@ import org.sosy_lab.cpachecker.cfa.parser.Scope;
 import org.sosy_lab.cpachecker.cpa.automaton.Automaton;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonGraphmlParser;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonParser;
+import org.sosy_lab.cpachecker.util.Property;
 import org.sosy_lab.cpachecker.util.SpecificationProperty;
 
 /**
@@ -71,12 +72,12 @@ public final class Specification {
 
   public static Specification fromFiles(
       Set<SpecificationProperty> pProperties,
-      Collection<Path> specFiles,
+      Iterable<Path> specFiles,
       CFA cfa,
       Configuration config,
       LogManager logger)
       throws InvalidConfigurationException {
-    if (specFiles.isEmpty()) {
+    if (Iterables.isEmpty(specFiles)) {
       return Specification.alwaysSatisfied();
     }
 
@@ -89,6 +90,9 @@ public final class Specification {
         scope = DummyScope.getInstance();
         break;
     }
+
+    Set<Property> properties =
+        pProperties.stream().map(p -> p.getProperty()).collect(ImmutableSet.toImmutableSet());
 
     List<Automaton> allAutomata = new ArrayList<>();
 
@@ -107,7 +111,7 @@ public final class Specification {
       if (AutomatonGraphmlParser.isGraphmlAutomatonFromConfiguration(specFile)) {
         AutomatonGraphmlParser graphmlParser =
             new AutomatonGraphmlParser(config, logger, cfa, scope);
-        automata = graphmlParser.parseAutomatonFile(specFile);
+        automata = graphmlParser.parseAutomatonFile(specFile, properties);
 
       } else {
         automata =
@@ -138,7 +142,7 @@ public final class Specification {
 
   private Specification(
       Set<SpecificationProperty> pProperties,
-      Collection<Path> pSpecFiles,
+      Iterable<Path> pSpecFiles,
       Iterable<Automaton> pSpecificationAutomata) {
     properties = ImmutableSet.copyOf(pProperties);
     specFiles = ImmutableSet.copyOf(pSpecFiles);

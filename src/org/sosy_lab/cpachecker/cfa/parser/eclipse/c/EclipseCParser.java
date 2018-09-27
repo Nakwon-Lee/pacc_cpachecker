@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.MoreFiles;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -63,7 +64,6 @@ import org.eclipse.cdt.internal.core.parser.InternalParserUtil;
 import org.eclipse.cdt.internal.core.parser.scanner.InternalFileContent;
 import org.eclipse.cdt.internal.core.parser.scanner.InternalFileContentProvider;
 import org.eclipse.core.runtime.CoreException;
-import org.sosy_lab.common.io.MoreFiles;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
 import org.sosy_lab.common.time.Timer;
@@ -72,8 +72,8 @@ import org.sosy_lab.cpachecker.cfa.CProgramScope;
 import org.sosy_lab.cpachecker.cfa.CSourceOriginMapping;
 import org.sosy_lab.cpachecker.cfa.ParseResult;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAstNode;
-import org.sosy_lab.cpachecker.cfa.parser.Scope;
 import org.sosy_lab.cpachecker.cfa.parser.Parsers.EclipseCParserOptions;
+import org.sosy_lab.cpachecker.cfa.parser.Scope;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.exceptions.CParserException;
 
@@ -130,12 +130,12 @@ class EclipseCParser implements CParser {
   }
 
   private FileContent wrapFile(String pFileName) throws IOException {
-    String code = MoreFiles.toString(Paths.get(pFileName), Charset.defaultCharset());
+    String code = MoreFiles.asCharSource(Paths.get(pFileName), Charset.defaultCharset()).read();
     return wrapCode(pFileName, code);
   }
 
-  private static interface FileParseWrapper {
-    public FileContent wrap(String pFileName, FileToParse pContent) throws IOException;
+  private interface FileParseWrapper {
+    FileContent wrap(String pFileName, FileToParse pContent) throws IOException;
   }
 
   private ParseResult parseSomething(
@@ -174,7 +174,7 @@ class EclipseCParser implements CParser {
   }
 
   @Override
-  public ParseResult parseFile(List<String> pFilenames) throws CParserException, IOException {
+  public ParseResult parseFile(List<String> pFilenames) throws CParserException {
 
     return parseSomething(
         Lists.transform(pFilenames, FileToParse::new),
@@ -269,7 +269,11 @@ class EclipseCParser implements CParser {
       throw new CParserException("Not exactly one statement in function body: " + pCode);
     }
 
-    return converter.convert(statements[0]);
+    try {
+      return converter.convert(statements[0]);
+    } catch (CFAGenerationRuntimeException e) {
+      throw new CParserException(e);
+    }
   }
 
   @Override
@@ -282,7 +286,11 @@ class EclipseCParser implements CParser {
 
     for (IASTStatement statement : statements) {
       if (statement != null) {
-        nodeList.add(converter.convert(statement));
+        try {
+          nodeList.add(converter.convert(statement));
+        } catch (CFAGenerationRuntimeException e) {
+          throw new CParserException(e);
+        }
       }
     }
 
@@ -293,10 +301,8 @@ class EclipseCParser implements CParser {
     return nodeList;
   }
 
-  protected static final int PARSER_OPTIONS =
-            ILanguage.OPTION_IS_SOURCE_UNIT     // our code files are always source files, not header files
-          | ILanguage.OPTION_NO_IMAGE_LOCATIONS // we don't use IASTName#getImageLocation(), so the parse doesn't need to create them
-          ;
+  // we don't use IASTName#getImageLocation(), so the parser doesn't need to create them
+  protected static final int PARSER_OPTIONS = ILanguage.OPTION_NO_IMAGE_LOCATIONS;
 
   private IASTTranslationUnit parse(FileContent codeReader, ParseContext parseContext)
       throws CParserException {

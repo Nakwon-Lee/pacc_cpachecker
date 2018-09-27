@@ -23,9 +23,17 @@
  */
 package org.sosy_lab.cpachecker.cpa.smg.refiner;
 
+import static org.sosy_lab.cpachecker.util.Precisions.extractPrecisionByType;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.c.CDeclaration;
@@ -35,25 +43,20 @@ import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.c.CDeclarationEdge;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath.PathIterator;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath.PathPosition;
 import org.sosy_lab.cpachecker.cpa.arg.ARGReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.cpa.arg.path.ARGPath;
+import org.sosy_lab.cpachecker.cpa.arg.path.PathIterator;
+import org.sosy_lab.cpachecker.cpa.arg.path.PathPosition;
 import org.sosy_lab.cpachecker.cpa.smg.SMGAbstractionBlock;
-import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValue;
 import org.sosy_lab.cpachecker.cpa.smg.SMGState;
 import org.sosy_lab.cpachecker.cpa.smg.SMGStateInformation;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGRegion;
+import org.sosy_lab.cpachecker.cpa.smg.UnmodifiableSMGState;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGRegion;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.predicates.BlockOperator;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 
 public class SMGEdgeInterpolator {
 
@@ -97,20 +100,21 @@ public class SMGEdgeInterpolator {
     postOperator = pStrongestPostOperator;
     interpolantManager = pInterpolantManager;
 
-    strongPrecision = SMGPrecision.createStaticPrecision(false, pLogger, pBlockOperator);
+    strongPrecision = SMGPrecision.createStaticPrecision(false, pBlockOperator);
     shutdownNotifier = pShutdownNotifier;
     heapAbstractionInterpolator =
         new SMGEdgeHeapAbstractionInterpolator(pLogger, pFeasibilityChecker);
   }
 
   public List<SMGInterpolant> deriveInterpolant(CFAEdge pCurrentEdge,
-      PathPosition pOffset, SMGInterpolant pInputInterpolant, boolean pAllTargets, ARGReachedSet pReached, ARGState pSuccessorARGstate) throws CPAException, InterruptedException {
+      PathPosition pOffset, SMGInterpolant pInputInterpolant, boolean pAllTargets,
+      ARGReachedSet pReached, ARGState pSuccessorARGstate) throws CPAException, InterruptedException {
     numberOfInterpolationQueries = 0;
 
     // create initial state, based on input interpolant, and create initial successor by consuming
     // the next edge
     CFAEdge currentEdge = pCurrentEdge;
-    List<SMGState> initialStates = pInputInterpolant.reconstructStates();
+    Set<SMGState> initialStates = pInputInterpolant.reconstructStates();
 
     if (currentEdge == null) {
       PathIterator it = pOffset.fullPathIterator();
@@ -119,75 +123,53 @@ public class SMGEdgeInterpolator {
       while(intermediate.isEmpty() || !it.isPositionWithState()) {
 
         Collection<SMGState> newIntermediate = new ArrayList<>();
-
         for (SMGState state : intermediate) {
-          Collection<SMGState> result =
-              getInitialSuccessor(state, it.getOutgoingEdge());
-          newIntermediate.addAll(result);
+          newIntermediate.addAll(getInitialSuccessor(state, it.getOutgoingEdge()));
         }
 
         intermediate = newIntermediate;
         it.advance();
       }
-      initialStates = new ArrayList<>(intermediate);
+      initialStates = new HashSet<>(intermediate);
       currentEdge = it.getOutgoingEdge();
 
       if (initialStates.isEmpty()) {
-        List<SMGInterpolant> resultingInterpolants = new ArrayList<>(1);
-        resultingInterpolants.add(interpolantManager.getFalseInterpolant());
-        return resultingInterpolants;
+        return Collections.singletonList(interpolantManager.getFalseInterpolant());
       }
     }
 
-    List<SMGState> successors;
-    Set<SMGAbstractionBlock> abstractionBlocks;
-
-    successors = new ArrayList<>();
-    abstractionBlocks = ImmutableSet.of();
-
+    Set<SMGState> successors = new HashSet<>();
     for (SMGState state : initialStates) {
       successors.addAll(getInitialSuccessor(state, currentEdge));
     }
 
-    List<SMGInterpolant> resultingInterpolants;
-
     if (successors.isEmpty()) {
-      resultingInterpolants = new ArrayList<>(1);
-      resultingInterpolants.add(interpolantManager.getFalseInterpolant());
-      return resultingInterpolants;
-    } else {
-      resultingInterpolants = new ArrayList<>(successors.size());
+      return Collections.singletonList(interpolantManager.getFalseInterpolant());
     }
-
-    boolean onlySuccessor = successors.size() == 1;
 
     // if initial state and successor are equal, return the input interpolant
     // in general, this returned interpolant might be stronger than needed, but only in very rare
     // cases, the weaker interpolant would be different from the input interpolant, so we spare the
     // effort
-
-    boolean noChange = isEqualStates(initialStates, successors) ||
-        isFunctionOrTypeDeclaration(currentEdge);
-
-    SMGPrecision currentPrecision = SMGCEGARUtils.extractSMGPrecision(pReached, pSuccessorARGstate);
-
+    // Implementation detail: we compare 'Sets' for equality!
+    boolean noChange = initialStates.equals(successors) || isFunctionOrTypeDeclaration(currentEdge);
+    SMGPrecision currentPrecision = extractPrecisionByType(
+            pReached.asReachedSet().getPrecision(pSuccessorARGstate), SMGPrecision.class);
     if (noChange
         && !currentPrecision.allowsHeapAbstractionOnNode(currentEdge.getPredecessor())) {
-      resultingInterpolants.add(pInputInterpolant);
-      return resultingInterpolants;
+      return Collections.singletonList(pInputInterpolant);
     }
 
     // if the current edge just changes the names of variables
     // (e.g. function arguments, returned variables)
     // then return the input interpolant with those renamings
+    boolean onlySuccessor = successors.size() == 1;
     if (onlySuccessor && isOnlyVariableRenamingEdge(pCurrentEdge)
         && !currentPrecision.allowsHeapAbstractionOnNode(currentEdge.getPredecessor())) {
-      SMGInterpolant interpolant =
-          interpolantManager.createInterpolant(Iterables.getOnlyElement(successors));
-      resultingInterpolants.add(interpolant);
-      return resultingInterpolants;
+      return Collections.singletonList(interpolantManager.createInterpolant(Iterables.getOnlyElement(successors)));
     }
 
+    List<SMGInterpolant> resultingInterpolants = new ArrayList<>(successors.size());
     ARGPath remainingErrorPath = pOffset.iterator().getSuffixExclusive();
 
     for (SMGState state : successors) {
@@ -200,8 +182,9 @@ public class SMGEdgeInterpolator {
         interpolateFields(state, remainingErrorPath, currentEdge, pAllTargets);
       }
 
+      Set<SMGAbstractionBlock> abstractionBlocks = ImmutableSet.of();
       if (currentPrecision.allowsHeapAbstraction()) {
-        SMGState originalState = new SMGState(state);
+        SMGState originalState = state.copyOf();
         SMGHeapAbstractionInterpoaltionResult heapInterpoaltionResult =
             interpolateHeapAbstraction(state, remainingErrorPath,
                 currentEdge.getPredecessor(), currentEdge, pAllTargets, currentPrecision);
@@ -219,27 +202,6 @@ public class SMGEdgeInterpolator {
     return resultingInterpolants;
   }
 
-  private boolean isEqualStates(List<SMGState> pInitialStates, List<SMGState> pSuccessors) {
-
-    boolean stateIsEqual = false;
-
-    for (SMGState initialState : pInitialStates) {
-      for (SMGState succ : pSuccessors) {
-        stateIsEqual = succ.equals(initialState);
-
-        if (stateIsEqual) {
-          break;
-        }
-      }
-
-      if (!stateIsEqual) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   private boolean isFunctionOrTypeDeclaration(CFAEdge pCurrentEdge) {
 
     if (pCurrentEdge.getEdgeType() == CFAEdgeType.DeclarationEdge) {
@@ -251,7 +213,8 @@ public class SMGEdgeInterpolator {
     return false;
   }
 
-  private SMGState interpolateStackVariables(SMGState pState, ARGPath pRemainingErrorPath, CFAEdge currentEdge, boolean pAllTargets)
+  private UnmodifiableSMGState interpolateStackVariables(
+      SMGState pState, ARGPath pRemainingErrorPath, CFAEdge currentEdge, boolean pAllTargets)
       throws CPAException, InterruptedException {
 
     SMGState state = pState;
@@ -273,13 +236,13 @@ public class SMGEdgeInterpolator {
     return state;
   }
 
-  private SMGState interpolateFields(SMGState pState, ARGPath pRemainingErrorPath,
-      CFAEdge currentEdge, boolean pAllTargets)
+  private UnmodifiableSMGState interpolateFields(
+      SMGState pState, ARGPath pRemainingErrorPath, CFAEdge currentEdge, boolean pAllTargets)
       throws CPAException, InterruptedException {
 
     SMGState state = pState;
 
-    for (SMGEdgeHasValue currentHveEdge : state.getHVEdges()) {
+    for (SMGEdgeHasValue currentHveEdge : state.getHeap().getHVEdges()) {
       shutdownNotifier.shutdownIfNecessary();
 
       //TODO Robust heap abstracion?
@@ -309,7 +272,7 @@ public class SMGEdgeInterpolator {
   }
 
   private Collection<SMGState> getInitialSuccessor(SMGState pState, CFAEdge pCurrentEdge)
-      throws CPAException, InterruptedException {
+      throws CPAException {
     return getInitialSuccessor(pState, pCurrentEdge, strongPrecision);
   }
 
@@ -321,10 +284,8 @@ public class SMGEdgeInterpolator {
    * @return the initial successor
    */
   private Collection<SMGState> getInitialSuccessor(
-      final SMGState pInitialState,
-      final CFAEdge pInitialEdge,
-      final SMGPrecision precision
-  ) throws CPAException, InterruptedException {
+      final SMGState pInitialState, final CFAEdge pInitialEdge, final SMGPrecision precision)
+      throws CPAException {
 
     SMGState oldState = pInitialState;
 
@@ -353,12 +314,18 @@ public class SMGEdgeInterpolator {
    *
    * @param remainingErrorPath the error path to check feasibility on
    * @param state the (pseudo) initial state
-   * @param pCurrentEdge if the remaining error path has only 1 state and no edges,
-   *  the edge leading to the state is necessary to check if it is a target of an automaton, and therefore feasible.
-   * @param pAllTargets should we check for all possible errors, or only the error specified in the Target State
+   * @param pCurrentEdge if the remaining error path has only 1 state and no edges, the edge leading
+   *     to the state is necessary to check if it is a target of an automaton, and therefore
+   *     feasible.
+   * @param pAllTargets should we check for all possible errors, or only the error specified in the
+   *     Target State
    * @return true, it the path is feasible, else false
    */
-  public boolean isRemainingPathFeasible(ARGPath remainingErrorPath, SMGState state, CFAEdge pCurrentEdge, boolean pAllTargets)
+  public boolean isRemainingPathFeasible(
+      ARGPath remainingErrorPath,
+      UnmodifiableSMGState state,
+      CFAEdge pCurrentEdge,
+      boolean pAllTargets)
       throws CPAException, InterruptedException {
     numberOfInterpolationQueries++;
     return checker.isRemainingPathFeasible(remainingErrorPath, state, pCurrentEdge, pAllTargets);

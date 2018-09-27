@@ -91,6 +91,7 @@ import org.sosy_lab.cpachecker.util.LoopStructure.Loop;
 import org.sosy_lab.cpachecker.util.resources.ResourceLimit;
 import org.sosy_lab.cpachecker.util.resources.ResourceLimitChecker;
 import org.sosy_lab.cpachecker.util.resources.WalltimeLimit;
+import org.sosy_lab.cpachecker.util.variableclassification.VariableClassification;
 
 public class LiveVariables {
 
@@ -163,7 +164,7 @@ public class LiveVariables {
    */
   private static class AllVariablesAsLiveVariables extends LiveVariables {
 
-    private FluentIterable<ASimpleDeclaration> allVariables;
+    private final ImmutableSet<ASimpleDeclaration> allVariables;
 
     private AllVariablesAsLiveVariables(CFA cfa, List<Pair<ADeclaration, String>> globalsList) {
       super();
@@ -189,7 +190,10 @@ public class LiveVariables {
       // when asked about the variables for a certain node, we return the whole
       // set of all variables of the analysed program
       allVariables =
-          edges.<ASimpleDeclaration>transform(ADeclarationEdge::getDeclaration).append(globalVars);
+          edges
+              .<ASimpleDeclaration>transform(ADeclarationEdge::getDeclaration)
+              .append(globalVars)
+              .toSet();
     }
 
     @Override
@@ -203,12 +207,12 @@ public class LiveVariables {
     }
 
     @Override
-    public FluentIterable<ASimpleDeclaration> getLiveVariablesForNode(CFANode pNode) {
+    public Set<ASimpleDeclaration> getLiveVariablesForNode(CFANode pNode) {
       return allVariables;
     }
 
     @Override
-    public FluentIterable<ASimpleDeclaration> getAllLiveVariables() {
+    public Set<ASimpleDeclaration> getAllLiveVariables() {
       return allVariables;
     }
   }
@@ -298,21 +302,22 @@ public class LiveVariables {
   }
 
   /**
-   * Return an iterable of all live variables at a given CFANode
-   * without duplicates and with deterministic iteration order.
+   * Return an iterable of all live variables at a given CFANode without duplicates and with
+   * deterministic iteration order.
    */
-  public FluentIterable<ASimpleDeclaration> getLiveVariablesForNode(CFANode pNode) {
-    return from(liveVariables.get(pNode)).append(globalVariables).transform(
-        FROM_EQUIV_WRAPPER);
+  public Set<ASimpleDeclaration> getLiveVariablesForNode(CFANode pNode) {
+    return from(liveVariables.get(pNode))
+        .append(globalVariables)
+        .transform(FROM_EQUIV_WRAPPER)
+        .toSet();
   }
 
-  /**
-   * @return iterable of all variables which are alive at at least one node.
-   */
-  public FluentIterable<ASimpleDeclaration> getAllLiveVariables() {
-    return from(ImmutableSet.copyOf(liveVariables.values())).append(globalVariables)
-        .transform(FROM_EQUIV_WRAPPER);
-
+  /** @return iterable of all variables which are alive at at least one node. */
+  public Set<ASimpleDeclaration> getAllLiveVariables() {
+    return from(liveVariables.values())
+        .append(globalVariables)
+        .transform(FROM_EQUIV_WRAPPER)
+        .toSet();
   }
 
   public static Optional<LiveVariables> createWithAllVariablesAsLive(
@@ -345,7 +350,7 @@ public class LiveVariables {
     }
 
     // we need a cfa with variableClassification, thus we create one now
-    CFA cfa = pCFA.makeImmutableCFA(variableClassification);
+    CFA cfa = pCFA.makeImmutableCFA(variableClassification, Optional.empty());
 
     // create configuration object, so that we know which analysis strategy should
     // be chosen later on
@@ -565,7 +570,7 @@ public class LiveVariables {
 
       Configuration config =
           Configuration.builder().loadFromResource(LiveVariables.class, configFile).build();
-      ReachedSetFactory reachedFactory = new ReachedSetFactory(config);
+      ReachedSetFactory reachedFactory = new ReachedSetFactory(config, logger);
       ConfigurableProgramAnalysis cpa =
           new CPABuilder(config, logger, shutdownNotifier, reachedFactory)
               .buildCPAs(cfa, Specification.alwaysSatisfied(), new AggregatedReachedSets());

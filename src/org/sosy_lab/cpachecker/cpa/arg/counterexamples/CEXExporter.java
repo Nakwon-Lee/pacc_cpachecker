@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.cpa.arg.counterexamples;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Joiner;
@@ -30,35 +31,40 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.Appender;
 import org.sosy_lab.common.Appenders;
 import org.sosy_lab.common.configuration.ClassOption;
 import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.io.PathTemplate;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
-import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
-import org.sosy_lab.cpachecker.core.Specification;
+import org.sosy_lab.cpachecker.core.counterexample.CFAEdgeWithAssumptions;
+import org.sosy_lab.cpachecker.core.counterexample.CFAPathWithAssumptions;
 import org.sosy_lab.cpachecker.core.counterexample.CounterexampleInfo;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPathExporter;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.arg.ARGToDotWriter;
 import org.sosy_lab.cpachecker.cpa.arg.ARGUtils;
 import org.sosy_lab.cpachecker.cpa.arg.ErrorPathShrinker;
+import org.sosy_lab.cpachecker.cpa.arg.path.ARGPath;
+import org.sosy_lab.cpachecker.cpa.arg.witnessexport.ExtendedWitnessExporter;
+import org.sosy_lab.cpachecker.cpa.arg.witnessexport.WitnessExporter;
 import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.coverage.CoverageCollector;
+import org.sosy_lab.cpachecker.util.coverage.CoverageReportGcov;
 import org.sosy_lab.cpachecker.util.cwriter.PathToCTranslator;
 import org.sosy_lab.cpachecker.util.cwriter.PathToConcreteProgramTranslator;
 import org.sosy_lab.cpachecker.util.harness.HarnessExporter;
@@ -70,55 +76,6 @@ public class CEXExporter {
     CBMC, CONCRETE_EXECUTION;
   }
 
-  @Option(secure=true, name="enabled", deprecatedName="export",
-      description="export counterexample to file, if one is found")
-  private boolean exportErrorPath = true;
-
-  @Option(secure=true, name="file",
-      description="export counterexample as text file")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate errorPathFile = PathTemplate.ofFormatString("Counterexample.%d.txt");
-
-  @Option(secure=true, name="core",
-      description="export counterexample core as text file")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate errorPathCoreFile = PathTemplate.ofFormatString("Counterexample.%d.core.txt");
-
-  @Option(secure=true, name="source",
-      description="export counterexample as source file")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate errorPathSourceFile = PathTemplate.ofFormatString("Counterexample.%d.c");
-
-  @Option(secure=true, name="exportAsSource",
-      description="export counterexample as source file")
-  private boolean exportSource = true;
-
-  @Option(secure=true, name="graph",
-      description="export counterexample as graph")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate errorPathGraphFile = PathTemplate.ofFormatString("Counterexample.%d.dot");
-
-  @Option(secure=true, name="automaton",
-      description="export counterexample as automaton")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate errorPathAutomatonFile = PathTemplate.ofFormatString("Counterexample.%d.spc");
-
-  @Option(secure=true, name="exportWitness",
-      description="export counterexample as witness/graphml file")
-  private boolean exportWitness = true;
-
-  @Option(secure=true, name="graphml",
-      description="export counterexample to file as GraphML automaton")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate errorPathAutomatonGraphmlFile = PathTemplate.ofFormatString("Counterexample.%d.graphml");
-
-  @Option(secure = true, name = "exportHarness", description = "export test harness")
-  private boolean exportHarness = false;
-
-  @Option(secure = true, name = "harness", description = "export test harness to file as code")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate testHarnessFile = PathTemplate.ofFormatString("Counterexample.%d.harness.c");
-
   @Option(
     secure = true,
     name = "compressWitness",
@@ -129,13 +86,6 @@ public class CEXExporter {
   @Option(secure=true, name="codeStyle",
           description="exports either CMBC format or a concrete path program")
   private CounterexampleExportType codeStyle = CounterexampleExportType.CBMC;
-
-  @Option(
-    secure = true,
-    name = "exportImmediately",
-    description = "export error paths to files immediately after they were found"
-  )
-  private boolean dumpErrorPathImmediately = false;
 
   @Option(
     secure = true,
@@ -151,47 +101,45 @@ public class CEXExporter {
 
   private final CounterexampleFilter cexFilter;
 
+  private final CEXExportOptions options;
   private final LogManager logger;
-  private final ARGPathExporter witnessExporter;
+  private final WitnessExporter witnessExporter;
+  private final ExtendedWitnessExporter extendedWitnessExporter;
   private final HarnessExporter harnessExporter;
 
   public CEXExporter(
       Configuration config,
-      LogManager logger,
+      CEXExportOptions pOptions,
+      LogManager pLogger,
       CFA cfa,
-      Specification pSpecification,
-      ConfigurableProgramAnalysis cpa)
+      ConfigurableProgramAnalysis cpa,
+      WitnessExporter pWitnessExporter,
+      ExtendedWitnessExporter pExtendedWitnessExporter)
       throws InvalidConfigurationException {
     config.inject(this);
-    this.logger = logger;
+    options = pOptions;
+    logger = pLogger;
+    witnessExporter = checkNotNull(pWitnessExporter);
+    extendedWitnessExporter = checkNotNull(pExtendedWitnessExporter);
 
-    cexFilter =
-        CounterexampleFilter.createCounterexampleFilter(config, logger, cpa, cexFilterClasses);
-    witnessExporter = new ARGPathExporter(config, logger, pSpecification, cfa);
-    harnessExporter = new HarnessExporter(config, logger, cfa);
-
-    if (!exportSource) {
-      errorPathSourceFile = null;
+    if (!options.disabledCompletely()) {
+      cexFilter =
+          CounterexampleFilter.createCounterexampleFilter(config, pLogger, cpa, cexFilterClasses);
+      harnessExporter = new HarnessExporter(config, pLogger, cfa);
+    } else {
+      cexFilter = null;
+      harnessExporter = null;
     }
-    if (!exportWitness) {
-      errorPathAutomatonGraphmlFile = null;
-    }
-    if (errorPathCoreFile == null && errorPathFile == null
-        && errorPathGraphFile == null && errorPathSourceFile == null
-        && errorPathAutomatonFile == null && errorPathAutomatonGraphmlFile == null) {
-      exportErrorPath = false;
-    }
-  }
-
-  /** export error paths to files immediately after they were found, or after the whole analysis. */
-  public boolean dumpErrorPathImmediately() {
-    return dumpErrorPathImmediately;
   }
 
   /** @see #exportCounterexample(ARGState, CounterexampleInfo) */
   public void exportCounterexampleIfRelevant(
       final ARGState pTargetState, final CounterexampleInfo pCounterexampleInfo)
       throws InterruptedException {
+    if (options.disabledCompletely()) {
+      return;
+    }
+
     if (cexFilter.isRelevant(pCounterexampleInfo)) {
       exportCounterexample(pTargetState, pCounterexampleInfo);
     } else {
@@ -204,23 +152,19 @@ public class CEXExporter {
   /**
    * Export an Error Trace in different formats, for example as C-file, dot-file or automaton.
    *
-   * @param pTargetState state of an ARG, used as fallback, if pCounterexampleInfo contains no targetPath.
-   * @param pCounterexampleInfo contains further information and the (optional) targetPath.
-   *                            If the targetPath is available, it will be used for the output.
-   *                            Otherwise we use backwards reachable states from pTargetState.
+   * @param targetState state of an ARG, used as fallback, if pCounterexampleInfo contains no
+   *     targetPath.
+   * @param counterexample contains further information and the (optional) targetPath. If the
+   *     targetPath is available, it will be used for the output. Otherwise we use backwards
+   *     reachable states from pTargetState.
    */
-  public void exportCounterexample(final ARGState pTargetState,
-      final CounterexampleInfo pCounterexampleInfo) {
-    checkNotNull(pTargetState);
-    checkNotNull(pCounterexampleInfo);
-
-    if (exportErrorPath) {
-      exportCounterexample0(pTargetState, pCounterexampleInfo);
+  public void exportCounterexample(
+      final ARGState targetState, final CounterexampleInfo counterexample) {
+    checkNotNull(targetState);
+    checkNotNull(counterexample);
+    if (options.disabledCompletely()) {
+      return;
     }
-  }
-
-  private void exportCounterexample0(final ARGState lastState,
-                                    final CounterexampleInfo counterexample) {
 
     final ARGPath targetPath = counterexample.getTargetPath();
     final Predicate<Pair<ARGState, ARGState>> isTargetPathEdge = Predicates.in(
@@ -228,16 +172,32 @@ public class CEXExporter {
     final ARGState rootState = targetPath.getFirstState();
     final int uniqueId = counterexample.getUniqueId();
 
-    writeErrorPathFile(errorPathFile, uniqueId, counterexample);
+    if (options.getCoveragePrefix() != null) {
+      Path outputPath = options.getCoveragePrefix().getPath(counterexample.getUniqueId());
+      try (Writer gcovFile = IO.openOutputFile(outputPath, Charset.defaultCharset())) {
+        CoverageReportGcov.write(CoverageCollector.fromCounterexample(targetPath), gcovFile);
+      } catch (IOException e) {
+        logger.logUserException(
+            Level.WARNING, e, "Could not write coverage information for counterexample to file");
+      }
+    }
 
-    if (errorPathCoreFile != null) {
+    writeErrorPathFile(options.getErrorPathFile(), uniqueId, counterexample);
+
+    if (options.getCoreFile() != null) {
       // the shrinked errorPath only includes the nodes,
       // that are important for the error, it is not a complete path,
       // only some nodes of the targetPath are part of it
       ErrorPathShrinker pathShrinker = new ErrorPathShrinker();
-      List<CFAEdge> shrinkedErrorPath = pathShrinker.shrinkErrorPath(targetPath);
-      writeErrorPathFile(errorPathCoreFile,
-          uniqueId, Appenders.forIterable(Joiner.on('\n'), shrinkedErrorPath));
+      CFAPathWithAssumptions targetPAssum = null;
+      if (counterexample.isPreciseCounterExample()) {
+        targetPAssum = counterexample.getCFAPathWithAssignments();
+      }
+      List<CFAEdgeWithAssumptions> shrinkedErrorPath = pathShrinker.shrinkErrorPath(targetPath, targetPAssum);
+      writeErrorPathFile(
+          options.getCoreFile(),
+          uniqueId,
+          Appenders.forIterable(Joiner.on('\n'), shrinkedErrorPath));
     }
 
     final Set<ARGState> pathElements;
@@ -245,7 +205,7 @@ public class CEXExporter {
     if (counterexample.isPreciseCounterExample()) {
       pathElements = targetPath.getStateSet();
 
-      if (errorPathSourceFile != null) {
+      if (options.getSourceFile() != null) {
         switch(codeStyle) {
         case CONCRETE_EXECUTION:
           pathProgram = PathToConcreteProgramTranslator.translateSinglePath(targetPath, counterexample.getCFAPathWithAssignments());
@@ -263,15 +223,20 @@ public class CEXExporter {
       // For the text export, we have no other chance,
       // but for the C code and graph export we use all existing paths
       // to avoid this problem.
-      pathElements = ARGUtils.getAllStatesOnPathsTo(lastState);
+      pathElements = ARGUtils.getAllStatesOnPathsTo(targetState);
 
-      if (errorPathSourceFile != null) {
+      if (options.getSourceFile() != null) {
         switch(codeStyle) {
         case CONCRETE_EXECUTION:
           logger.log(Level.WARNING, "Cannot export imprecise counterexample to C code for concrete execution.");
           break;
         case CBMC:
-          pathProgram = PathToCTranslator.translatePaths(rootState, pathElements);
+          // "translatePaths" does not work if the ARG branches without assume edge
+          if (ARGUtils.hasAmbiguousBranching(rootState, pathElements)) {
+            pathProgram = PathToCTranslator.translateSinglePath(targetPath);
+          } else {
+            pathProgram = PathToCTranslator.translatePaths(rootState, pathElements);
+          }
           break;
         default:
           throw new AssertionError("Unhandled case statement: " + codeStyle);
@@ -280,11 +245,11 @@ public class CEXExporter {
     }
 
     if (pathProgram != null) {
-      writeErrorPathFile(errorPathSourceFile, uniqueId, pathProgram);
+      writeErrorPathFile(options.getSourceFile(), uniqueId, pathProgram);
     }
 
     writeErrorPathFile(
-        errorPathGraphFile,
+        options.getGraphFile(),
         uniqueId,
         (Appender)
             pAppendable ->
@@ -296,7 +261,7 @@ public class CEXExporter {
                     isTargetPathEdge));
 
     writeErrorPathFile(
-        errorPathAutomatonFile,
+        options.getAutomatonFile(),
         uniqueId,
         (Appender)
             pAppendable ->
@@ -310,7 +275,7 @@ public class CEXExporter {
     }
 
     writeErrorPathFile(
-        errorPathAutomatonGraphmlFile,
+        options.getWitnessFile(),
         uniqueId,
         (Appender)
             pAppendable ->
@@ -322,37 +287,58 @@ public class CEXExporter {
                     counterexample),
         compressWitness);
 
-    if (exportHarness) {
-      writeErrorPathFile(
-          testHarnessFile,
-          uniqueId,
-          (Appender)
-              pAppendable ->
-                  harnessExporter.writeHarness(
-                      pAppendable,
-                      rootState,
-                      Predicates.in(pathElements),
-                      isTargetPathEdge,
-                      counterexample));
+    writeErrorPathFile(
+        options.getExtendedWitnessFile(),
+        uniqueId,
+        (Appender)
+            pAppendable ->
+                extendedWitnessExporter.writeErrorWitness(
+                    pAppendable,
+                    rootState,
+                    Predicates.in(pathElements),
+                    isTargetPathEdge,
+                    counterexample),
+        compressWitness);
+
+    writeErrorPathFile(
+        options.getTestHarnessFile(),
+        uniqueId,
+        (Appender)
+            pAppendable ->
+                harnessExporter.writeHarness(
+                    pAppendable,
+                    rootState,
+                    Predicates.in(pathElements),
+                    isTargetPathEdge,
+                    counterexample));
+  }
+
+  // Copied from org.sosy_lab.cpachecker.util.coverage.FileCoverageInformation.addVisitedLine(int)
+  public void addVisitedLine(Map<Integer,Integer> visitedLines, int pLine) {
+    checkArgument(pLine > 0);
+    if (visitedLines.containsKey(pLine)) {
+      visitedLines.put(pLine, visitedLines.get(pLine) + 1);
+    } else {
+      visitedLines.put(pLine, 1);
     }
   }
 
-  private void writeErrorPathFile(PathTemplate template, int uniqueId, Object content) {
+  private void writeErrorPathFile(@Nullable PathTemplate template, int uniqueId, Object content) {
     writeErrorPathFile(template, uniqueId, content, false);
   }
 
   private void writeErrorPathFile(
-      PathTemplate template, int uniqueId, Object content, boolean pCompress) {
+      @Nullable PathTemplate template, int uniqueId, Object content, boolean pCompress) {
     if (template != null) {
       // fill in index in file name
       Path file = template.getPath(uniqueId);
 
       try {
         if (!pCompress) {
-          MoreFiles.writeFile(file, Charset.defaultCharset(), content);
+          IO.writeFile(file, Charset.defaultCharset(), content);
         } else {
           file = file.resolveSibling(file.getFileName() + ".gz");
-          MoreFiles.writeGZIPFile(file, Charset.defaultCharset(), content);
+          IO.writeGZIPFile(file, Charset.defaultCharset(), content);
         }
       } catch (IOException e) {
         logger.logUserException(Level.WARNING, e,

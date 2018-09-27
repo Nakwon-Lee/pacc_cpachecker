@@ -1,8 +1,14 @@
 package org.sosy_lab.cpachecker.cpa.congruence;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
+import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -34,22 +40,13 @@ import org.sosy_lab.cpachecker.util.templates.Template;
 import org.sosy_lab.cpachecker.util.templates.Template.Kind;
 import org.sosy_lab.cpachecker.util.templates.TemplatePrecision;
 import org.sosy_lab.cpachecker.util.templates.TemplateToFormulaConversionManager;
-import org.sosy_lab.java_smt.api.SolverException;
 import org.sosy_lab.java_smt.api.BitvectorFormula;
 import org.sosy_lab.java_smt.api.BitvectorFormulaManager;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.BooleanFormulaManager;
 import org.sosy_lab.java_smt.api.Formula;
 import org.sosy_lab.java_smt.api.ProverEnvironment;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.sosy_lab.java_smt.api.SolverException;
 
 @Options(prefix="cpa.congruence")
 public class CongruenceManager implements
@@ -77,9 +74,9 @@ public class CongruenceManager implements
       Configuration config,
       Solver pSolver,
       TemplateToFormulaConversionManager pTemplateToFormulaConversionManager,
-      FormulaManagerView pFmgr,
+      FormulaManagerView pFormulaManager,
       CongruenceStatistics pStatistics,
-      PathFormulaManager pPfmgr,
+      PathFormulaManager pPathFormulaManager,
       LogManager logger,
       CFA pCFA,
       ShutdownNotifier pShutdownNotifier)
@@ -90,11 +87,11 @@ public class CongruenceManager implements
     logManager = logger;
     configuration = config;
     solver = pSolver;
-    fmgr = pFmgr;
+    fmgr = pFormulaManager;
     bfmgr = fmgr.getBooleanFormulaManager();
     statistics = pStatistics;
     bvfmgr = fmgr.getBitvectorFormulaManager();
-    pfmgr = pPfmgr;
+    pfmgr = pPathFormulaManager;
     precision = new TemplatePrecision(logger, config, cfa,
         pTemplateToFormulaConversionManager);
     shutdownNotifier = pShutdownNotifier;
@@ -104,11 +101,8 @@ public class CongruenceManager implements
       CongruenceState a,
       CongruenceState b
   ) {
-    Map<Template, Congruence> abstraction = Sets.intersection(
-          a.getAbstraction().keySet(), b.getAbstraction().keySet())
-        .stream()
-        .filter(t -> a.getAbstraction().get(t).equals(b.getAbstraction().get(t)))
-        .collect(Collectors.toMap(t -> t, t -> a.getAbstraction().get(t)));
+    Map<Template, Congruence> abstraction =
+        Maps.difference(a.getAbstraction(), b.getAbstraction()).entriesInCommon();
     return new CongruenceState(
         abstraction,
         this,
@@ -122,21 +116,23 @@ public class CongruenceManager implements
   @Override
   public PrecisionAdjustmentResult performAbstraction(
       ABEIntermediateState<CongruenceState> pIntermediateState,
-      TemplatePrecision precision,
+      TemplatePrecision pPrecision,
       UnmodifiableReachedSet states,
       AbstractState fullState)
       throws CPATransferException, InterruptedException {
-    return PrecisionAdjustmentResult.create(performAbstraction(
-        pIntermediateState.getNode(),
-        pIntermediateState.getPathFormula(),
-        pIntermediateState.getBackpointerState().instantiate(),
-        precision,
-        pIntermediateState.getPathFormula().getPointerTargetSet(),
-        pIntermediateState.getPathFormula().getSsa(),
-        pIntermediateState,
-        states,
-        fullState
-    ), precision, Action.CONTINUE);
+    return PrecisionAdjustmentResult.create(
+        performAbstraction(
+            pIntermediateState.getNode(),
+            pIntermediateState.getPathFormula(),
+            pIntermediateState.getBackpointerState().instantiate(),
+            pPrecision,
+            pIntermediateState.getPathFormula().getPointerTargetSet(),
+            pIntermediateState.getPathFormula().getSsa(),
+            pIntermediateState,
+            states,
+            fullState),
+        pPrecision,
+        Action.CONTINUE);
   }
 
   public CongruenceState performAbstraction(
@@ -167,7 +163,9 @@ public class CongruenceManager implements
 
         // Test odd <=> isEven is UNSAT.
         try {
-          env.push(fmgr.makeModularCongruence(formula, makeBv(bvfmgr, formula, 0), 2));
+          env.push(
+              fmgr.makeModularCongruence(
+                  formula, makeBv(bvfmgr, formula, 0), 2, !template.isUnsigned()));
           if (env.isUnsat()) {
             abstraction.put(template, Congruence.ODD);
             continue;
@@ -179,7 +177,8 @@ public class CongruenceManager implements
         // Test even <=> isOdd is UNSAT.
         try {
           env.push(
-              fmgr.makeModularCongruence(formula, makeBv(bvfmgr, formula, 1), 2));
+              fmgr.makeModularCongruence(
+                  formula, makeBv(bvfmgr, formula, 1), 2, !template.isUnsigned()));
           if (env.isUnsat()) {
             abstraction.put(template, Congruence.EVEN);
           }
@@ -213,41 +212,36 @@ public class CongruenceManager implements
   }
 
   public BooleanFormula toFormulaUninstantiated(
-      CongruenceState state,
-      FormulaManagerView fmgr
-      ) {
+      CongruenceState state, FormulaManagerView pFormulaManager) {
     PathFormulaManager pfmgrv;
     try {
-      pfmgrv = new PathFormulaManagerImpl(
-          fmgr,
-          configuration,
-          logManager,
-          shutdownNotifier,
-          cfa,
-          AnalysisDirection.FORWARD
-      );
+      pfmgrv =
+          new PathFormulaManagerImpl(
+              pFormulaManager,
+              configuration,
+              logManager,
+              shutdownNotifier,
+              cfa,
+              AnalysisDirection.FORWARD);
     } catch (InvalidConfigurationException pE) {
       throw new UnsupportedOperationException("Could not construct path "
           + "formula manager", pE);
     }
-    return fmgr.uninstantiate(
+    return pFormulaManager.uninstantiate(
         toFormula(
             pfmgrv,
-            fmgr,
+            pFormulaManager,
             state,
             new PathFormula(
-                fmgr.getBooleanFormulaManager().makeTrue(),
+                pFormulaManager.getBooleanFormulaManager().makeTrue(),
                 state.getSSAMap(),
                 state.getPointerTargetSet(),
-                1
-            )
-        )
-    );
+                1)));
   }
 
   public BooleanFormula toFormula(
-      PathFormulaManager pfmgr,
-      FormulaManagerView fmgr,
+      PathFormulaManager pPathFormulaManager,
+      FormulaManagerView pFormulaManager,
       CongruenceState state,
       PathFormula ref) {
     Map<Template, Congruence> abstraction = state.getAbstraction();
@@ -258,22 +252,25 @@ public class CongruenceManager implements
       Template template = entry.getKey();
       Congruence congruence = entry.getValue();
 
-      Formula formula = templateToFormulaConversionManager.toFormula(pfmgr, fmgr, template, ref);
+      Formula formula =
+          templateToFormulaConversionManager.toFormula(
+              pPathFormulaManager, pFormulaManager, template, ref);
       Formula remainder;
       switch (congruence) {
         case ODD:
-          remainder = makeBv(fmgr.getBitvectorFormulaManager(), formula, 1);
+          remainder = makeBv(pFormulaManager.getBitvectorFormulaManager(), formula, 1);
           break;
         case EVEN:
-          remainder = makeBv(fmgr.getBitvectorFormulaManager(), formula, 0);
+          remainder = makeBv(pFormulaManager.getBitvectorFormulaManager(), formula, 0);
           break;
         default:
           throw new AssertionError("Unexpected case");
       }
 
-      constraints.add(fmgr.makeModularCongruence(formula, remainder, 2));
+      constraints.add(
+          pFormulaManager.makeModularCongruence(formula, remainder, 2, !template.isUnsigned()));
     }
-    return fmgr.getBooleanFormulaManager().and(constraints);
+    return pFormulaManager.getBooleanFormulaManager().and(constraints);
   }
 
   private boolean shouldUseTemplate(Template template) {
@@ -283,10 +280,8 @@ public class CongruenceManager implements
     );
   }
 
-  private Formula makeBv(BitvectorFormulaManager bvfmgr, Formula other, int value) {
-    return bvfmgr.makeBitvector(
-        bvfmgr.getLength((BitvectorFormula) other),
-        value);
+  private Formula makeBv(BitvectorFormulaManager pBvfmgr, Formula other, int value) {
+    return pBvfmgr.makeBitvector(pBvfmgr.getLength((BitvectorFormula) other), value);
   }
 
   @Override

@@ -23,6 +23,10 @@
  */
 package org.sosy_lab.cpachecker.cfa.postprocessing.function;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.MutableCFA;
 import org.sosy_lab.cpachecker.cfa.ast.AVariableDeclaration;
@@ -46,12 +50,6 @@ import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
 import org.sosy_lab.cpachecker.util.CFATraversal;
 import org.sosy_lab.cpachecker.util.CFATraversal.DefaultCFAVisitor;
 import org.sosy_lab.cpachecker.util.CFATraversal.TraversalProcess;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-
 
 /**
  * This class moves the declarations inside of each function to the beginning of
@@ -139,48 +137,60 @@ public class CFADeclarationMover {
     succ.removeEnteringEdge(edge);
     switch (edge.getEdgeType()) {
     case AssumeEdge:
-      edge = new CAssumeEdge(((CAssumeEdge)edge).getRawStatement(),
-                             edge.getFileLocation(),
-                             pred,
-                             edge.getSuccessor(),
-                             ((CAssumeEdge)edge).getExpression(),
-                             ((CAssumeEdge)edge).getTruthAssumption());
+        edge =
+            new CAssumeEdge(
+                edge.getRawStatement(),
+                edge.getFileLocation(),
+                pred,
+                edge.getSuccessor(),
+                ((CAssumeEdge) edge).getExpression(),
+                ((CAssumeEdge) edge).getTruthAssumption(),
+                ((CAssumeEdge) edge).isSwapped(),
+                ((CAssumeEdge) edge).isArtificialIntermediate());
       pred.addLeavingEdge(edge);
       succ.addEnteringEdge(edge);
       return edge;
     case BlankEdge:
-      edge = new BlankEdge(((BlankEdge)edge).getRawStatement(),
-                            edge.getFileLocation(),
-                            pred,
-                            edge.getSuccessor(),
-                            ((BlankEdge)edge).getDescription());
+        edge =
+            new BlankEdge(
+                edge.getRawStatement(),
+                edge.getFileLocation(),
+                pred,
+                edge.getSuccessor(),
+                edge.getDescription());
       pred.addLeavingEdge(edge);
       succ.addEnteringEdge(edge);
       return edge;
     case DeclarationEdge:
-      edge = new CDeclarationEdge(((CDeclarationEdge)edge).getRawStatement(),
-                                  edge.getFileLocation(),
-                                  pred,
-                                  edge.getSuccessor() ,
-                                  ((CDeclarationEdge)edge).getDeclaration());
+        edge =
+            new CDeclarationEdge(
+                edge.getRawStatement(),
+                edge.getFileLocation(),
+                pred,
+                edge.getSuccessor(),
+                ((CDeclarationEdge) edge).getDeclaration());
       pred.addLeavingEdge(edge);
       succ.addEnteringEdge(edge);
       return edge;
     case ReturnStatementEdge:
-      edge = new CReturnStatementEdge(((CReturnStatementEdge)edge).getRawStatement(),
-                                      ((CReturnStatementEdge)edge).getRawAST().orNull(),
-                                      edge.getFileLocation(),
-                                      pred ,
-                                      (FunctionExitNode) edge.getSuccessor());
+        edge =
+            new CReturnStatementEdge(
+                edge.getRawStatement(),
+                ((CReturnStatementEdge) edge).getRawAST().orNull(),
+                edge.getFileLocation(),
+                pred,
+                (FunctionExitNode) edge.getSuccessor());
       pred.addLeavingEdge(edge);
       succ.addEnteringEdge(edge);
       return edge;
     case StatementEdge:
-      edge = new CStatementEdge(((CStatementEdge)edge).getRawStatement(),
-                                ((CStatementEdge)edge).getStatement(),
-                                edge.getFileLocation(),
-                                pred,
-                                edge.getSuccessor());
+        edge =
+            new CStatementEdge(
+                edge.getRawStatement(),
+                ((CStatementEdge) edge).getStatement(),
+                edge.getFileLocation(),
+                pred,
+                edge.getSuccessor());
       pred.addLeavingEdge(edge);
       succ.addEnteringEdge(edge);
       return edge;

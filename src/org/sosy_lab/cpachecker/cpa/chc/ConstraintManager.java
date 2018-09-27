@@ -62,7 +62,7 @@ import org.sosy_lab.cpachecker.cfa.model.AReturnStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.AssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.FunctionReturnEdge;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
-import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
+import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
 import org.sosy_lab.cpachecker.util.Pair;
 
 public class ConstraintManager {
@@ -82,7 +82,7 @@ public class ConstraintManager {
     return init;
   }
 
-  public static Constraint simplify(ArrayList<Term> cn, HashMap<String,Term> vars) {
+  public static Constraint simplify(ArrayList<Term> cn, Map<String, Term> vars) {
 
     // Constraint to be solved
     Term constraint = Util.termArrayToList(cn.toArray(new Term[0]));
@@ -92,10 +92,10 @@ public class ConstraintManager {
     Term args[] = {constraint, varList, new Variable("S")};
     Query q = new Query("solve", args);
 
-    logger.log(Level.FINEST, "\n * solve (w.r.t. " + varList.toString() + ")");
+    logger.log(Level.FINEST, "\n * solve (w.r.t. " + varList + ")");
 
     @SuppressWarnings("unchecked")
-    Hashtable<String,Term> sol = q.oneSolution();
+    Hashtable<String, Term> sol = q.oneSolution();
 
     return ConstraintManager.normalize("S", sol);
   }
@@ -111,8 +111,7 @@ public class ConstraintManager {
 
     Query q = new Query("entails", args);
 
-    logger.log(Level.FINEST, "\n * " + cn1.toString() +
-        "\n * entails" + "\n * " + cn2.toString() + ")");
+    logger.log(Level.FINEST, "\n * " + cn1 + "\n * entails" + "\n * " + cn2 + ")");
 
     boolean res = q.hasSolution();
 
@@ -133,8 +132,7 @@ public class ConstraintManager {
 
     Query q = new Query("generalize", args);
 
-    logger.log(Level.FINEST, "\n * definition: " + cn1.toString() +
-        "\n * ancestor :  " + cn1.toString());
+    logger.log(Level.FINEST, "\n * definition: " + cn1 + "\n * ancestor :  " + cn1);
 
     return normalize("G",q.oneSolution());
   }
@@ -144,27 +142,27 @@ public class ConstraintManager {
     ArrayList<Term> andCn = new ArrayList<>(cn1.getConstraint());
     andCn.addAll(cn2.getConstraint());
 
-    logger.log(Level.FINEST, "\n * " + cn1.toString() + "\n * and \n * " + cn2.toString());
+    logger.log(Level.FINEST, "\n * " + cn1 + "\n * and \n * " + cn2);
 
     /*
      * create a list of variable to solve the constraint
      * Remove all non primed variables which occur in
      * the set of primed variables
      */
-    HashMap<String,Term> newVars = ConstraintManager.selectVariables(
+    Map<String,Term> newVars = ConstraintManager.selectVariables(
         cn1.getVars(), cn2.getVars());
 
     Constraint andConstraint = ConstraintManager.simplify(andCn, newVars);
 
-    logger.log(Level.FINEST, "\n * " + andConstraint.toString());
+    logger.log(Level.FINEST, "\n * " + andConstraint);
 
     return andConstraint;
   }
 
-  private static HashMap<String,Term> selectVariables(
-    HashMap<String,Term> vars,  HashMap<String,Term> pVars) {
+  private static Map<String, Term> selectVariables(
+      Map<String, Term> vars, Map<String, Term> pVars) {
 
-    HashMap<String,Term> newVars = new HashMap<>(pVars);
+    Map<String,Term> newVars = new HashMap<>(pVars);
 
     for (Map.Entry<String, Term> me : vars.entrySet()) {
       if (! pVars.containsKey(me.getKey())) {
@@ -188,8 +186,7 @@ public class ConstraintManager {
       return nres.setFalse();
     }
 
-
-    Hashtable<String,Term> varSolMap = new Hashtable<>(varMap);
+    Map<String, Term> varSolMap = new HashMap<>(varMap);
 
     varSolMap.remove(sol);
 
@@ -209,7 +206,7 @@ public class ConstraintManager {
     nres.setConstraint(new ArrayList<>(
       Arrays.asList(Util.listToTermArray(Util.textToTerm(newConstraint)))));
 
-    logger.log(Level.FINEST, "\n * result: " + nres.toString());
+    logger.log(Level.FINEST, "\n * result: " + nres);
 
     return nres;
   }
@@ -267,7 +264,7 @@ public class ConstraintManager {
         c.setConstraint(list);
       }
     } else {
-      throw new AssertionError("unhandled assignment " + ca.toString());
+      throw new AssertionError("unhandled assignment " + ca);
     }
     return c;
   }
@@ -344,9 +341,8 @@ public class ConstraintManager {
     return ac;
   }
 
-
   public static Constraint getConstraint(FunctionReturnEdge fretEdge)
-    throws UnrecognizedCCodeException {
+      throws UnrecognizedCodeException {
 
     FunctionSummaryEdge summaryEdge = fretEdge.getSummaryEdge();
     AFunctionCall exprOnSummary  = summaryEdge.getExpression();
@@ -372,7 +368,7 @@ public class ConstraintManager {
       else if (op1 instanceof CArraySubscriptExpression) {
         return new Constraint();
       } else {
-        throw new UnrecognizedCCodeException("on function return", summaryEdge, null);
+        throw new UnrecognizedCodeException("on function return", summaryEdge, null);
       }
     }
     return new Constraint();
@@ -497,7 +493,7 @@ public class ConstraintManager {
       vars.add(CVar2PrologVar(ce.toString()));
       return Collections.singleton(Pair.of((Term)CVar2PrologVar(ce.toString()), vars));
     } else if (ce instanceof CIntegerLiteralExpression) {
-      return Collections.singleton(Pair.of(Util.textToTerm("rdiv(" + ce.toString() + ",1)"), vars));
+      return Collections.singleton(Pair.of(Util.textToTerm("rdiv(" + ce + ",1)"), vars));
     } else if (ce instanceof CBinaryExpression ) {
       CBinaryExpression bexp = (CBinaryExpression)ce;
       Collection<Pair<Term,ArrayList<Term>>> operand1 = expressionToCLP(bexp.getOperand1());
@@ -550,7 +546,7 @@ public class ConstraintManager {
       Term paramAexpTerm = new Compound("=:=", new Term[] {paramVariable, expTerm});
       return Collections.singleton(Pair.of(Util.termArrayToList(new Term[] {paramAexpTerm}), vars));
     } else if (ce instanceof CIntegerLiteralExpression) {
-      expTerm = Util.textToTerm("rdiv(" + ce.toString() + ",1)");
+      expTerm = Util.textToTerm("rdiv(" + ce + ",1)");
       Term paramAexpTerm = new Compound("=:=", new Term[] {paramVariable, expTerm});
       return Collections.singleton(Pair.of(Util.termArrayToList(new Term[] {paramAexpTerm}), vars));
     } else if (ce instanceof CBinaryExpression ) {
@@ -683,5 +679,4 @@ public class ConstraintManager {
 
   private ConstraintManager() {
   }
-
 }

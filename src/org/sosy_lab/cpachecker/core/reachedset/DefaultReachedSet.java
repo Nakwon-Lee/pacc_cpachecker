@@ -24,35 +24,42 @@
 package org.sosy_lab.cpachecker.core.reachedset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.FluentIterable.from;
+import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
-
-import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.Precision;
-import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
-import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
-import org.sosy_lab.cpachecker.util.Pair;
-
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-
 import javax.annotation.Nullable;
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.core.interfaces.Precision;
+import org.sosy_lab.cpachecker.core.interfaces.Property;
+import org.sosy_lab.cpachecker.core.interfaces.Targetable;
+import org.sosy_lab.cpachecker.core.waitlist.AbstractSortedWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
+import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
+import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.statistics.AbstractStatValue;
 
-/**
- * Basic implementation of ReachedSet.
- * It does not group states by location or any other key.
- */
-class DefaultReachedSet implements ReachedSet {
+/** Basic implementation of ReachedSet. It does not group states by location or any other key. */
+class DefaultReachedSet implements ReachedSet, Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private final LinkedHashMap<AbstractState, Precision> reached;
-  private final Set<AbstractState> unmodifiableReached;
+  private transient Set<AbstractState> unmodifiableReached;
   private @Nullable AbstractState lastState = null;
   private @Nullable AbstractState firstState = null;
   private final Waitlist waitlist;
@@ -190,11 +197,13 @@ class DefaultReachedSet implements ReachedSet {
 
   @Override
   public Collection<AbstractState> getReached(AbstractState state) {
+    checkNotNull(state);
     return asCollection();
   }
 
   @Override
   public Collection<AbstractState> getReached(CFANode location) {
+    checkNotNull(location);
     return asCollection();
   }
 
@@ -285,5 +294,33 @@ class DefaultReachedSet implements ReachedSet {
   @Override
   public String toString() {
     return reached.keySet().toString();
+  }
+
+  public Map<String, ? extends AbstractStatValue> getStatistics() {
+    if (waitlist instanceof AbstractSortedWaitlist) {
+      return ((AbstractSortedWaitlist<?>) waitlist).getDelegationCounts();
+
+    } else {
+      return ImmutableMap.of();
+    }
+  }
+
+  @Override
+  public boolean hasViolatedProperties() {
+    return from(unmodifiableReached).anyMatch(IS_TARGET_STATE);
+  }
+
+  @Override
+  public Collection<Property> getViolatedProperties() {
+    return from(unmodifiableReached)
+        .filter(IS_TARGET_STATE)
+        .filter(Targetable.class)
+        .transformAndConcat(Targetable::getViolatedProperties)
+        .toSet();
+  }
+
+  private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+    s.defaultReadObject();
+    unmodifiableReached = Collections.unmodifiableSet(reached.keySet());
   }
 }

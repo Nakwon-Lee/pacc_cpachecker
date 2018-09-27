@@ -41,7 +41,7 @@ import org.sosy_lab.common.configuration.FileOption.Type;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.exceptions.CParserException;
 
@@ -85,7 +85,7 @@ public class CPreprocessor {
       final Path dumpFile = dumpDirectory.resolve(file).normalize();
       if (dumpFile.startsWith(dumpDirectory)) {
         try {
-          MoreFiles.writeFile(dumpFile, Charset.defaultCharset(), result);
+          IO.writeFile(dumpFile, Charset.defaultCharset(), result);
         } catch (IOException e) {
           logger.logUserException(Level.WARNING, e, "Cannot write result of preprocessing to file");
         }
@@ -162,7 +162,8 @@ public class CPreprocessor {
     }
 
     @Override
-    protected void handleOutput(String pLine) throws IOException {
+    @SuppressWarnings("JdkObsolete") // buffer is accessed from several threads
+    protected void handleOutput(String pLine) {
       if (buffer == null) {
         buffer = new StringBuffer();
       }
@@ -171,6 +172,6 @@ public class CPreprocessor {
     }
 
     @Override
-    protected void handleExitCode(int pCode) throws IOException { }
+    protected void handleExitCode(int pCode) {}
   }
 }

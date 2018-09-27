@@ -4,7 +4,7 @@ Style & Coding Guide
 The style guide of this project is the [Google Java Style](https://google.github.io/styleguide/javaguide.html).
 
 Further guidelines that are worth reading:
-- Bloch: [Effective Java, 2nd Edition](http://www.amazon.com/Effective-Java-Edition-Joshua-Bloch/dp/0321356683/)
+- Bloch: [Effective Java, 3rd Edition](https://www.amazon.com/Effective-Java-3rd-Joshua-Bloch/dp/0134685997)
 - [Guava User Guide](https://github.com/google/guava/wiki)
 
 Some additional information can be found in other files
@@ -20,8 +20,13 @@ according to the style guide.
 For git users: You need to stage your changes first (with `git add`),
 then run `ant format-diff` and then stage the changes again.
 This allows you to view exactly what the reformatter changed after running it.
-Please do not use the Eclipse code formatter,
-it destroys a lot of meaningful manual formatting.
+
+IMPORTANT for Eclipse users:
+The automatic code formatter is enabled in our project whenever you save a file,
+so no need to run it manually.
+However, you must [install the google-java-format plugin](Developing.md#develop-cpachecker-from-within-eclipse)!
+Otherwise Eclipse will produce ugly code formatting.
+
 
 Additional rules and hints:
 

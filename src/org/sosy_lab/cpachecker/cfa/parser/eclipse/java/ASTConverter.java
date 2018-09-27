@@ -29,14 +29,16 @@ import static org.sosy_lab.common.collect.Collections3.transformedImmutableListC
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -148,7 +150,6 @@ import org.sosy_lab.cpachecker.cfa.types.java.JMethodType;
 import org.sosy_lab.cpachecker.cfa.types.java.JSimpleType;
 import org.sosy_lab.cpachecker.cfa.types.java.JType;
 
-
 class ASTConverter {
 
   private static final boolean NOT_FINAL = false;
@@ -161,9 +162,9 @@ class ASTConverter {
 
   private final ASTTypeConverter typeConverter;
 
-  private LinkedList<JDeclaration> forInitDeclarations = new LinkedList<>();
-  private LinkedList<JAstNode> preSideAssignments = new LinkedList<>();
-  private LinkedList<JAstNode> postSideAssignments = new LinkedList<>();
+  private List<JDeclaration> forInitDeclarations = new ArrayList<>();
+  private Deque<JAstNode> preSideAssignments = new ArrayDeque<>();
+  private Deque<JAstNode> postSideAssignments = new ArrayDeque<>();
 
   private ConditionalExpression conditionalExpression = null;
   private JIdExpression conditionalTemporaryVariable = null;
@@ -427,8 +428,8 @@ class ASTConverter {
 
     // update initializer (can't be constructed while generating the Declaration)
     if (preSideAssignments.size() != 0 || postSideAssignments.size() != 0) {
-      logger.log(Level.WARNING, "Sideeffects of initializer of field "
-          + fieldName + "will be ignored");
+      logger.log(
+          Level.WARNING, "Sideeffects of initializer of field " + fieldName + " will be ignored");
       preSideAssignments.clear();
       postSideAssignments.clear();
     }
@@ -716,15 +717,7 @@ class ASTConverter {
 
     @SuppressWarnings("unchecked")
     List<Expression> p = sCI.arguments();
-
-    List<JExpression> params;
-
-    if (p.size() > 0) {
-      params = convert(p);
-
-    } else {
-      params = Collections.emptyList();
-    }
+    List<JExpression> params = convert(p);
 
     String name;
     String simpleName;
@@ -1292,24 +1285,26 @@ class ASTConverter {
     if (constructorBinding != null) {
       final ModifierBean mb = ModifierBean.getModifiers(constructorBinding);
 
-      return new JConstructorDeclaration(getFileLocation(pCIC),
-                                         convertConstructorType(constructorBinding),
-                                         fullName,
-                                         simpleName,
-                                         Collections.<JParameterDeclaration>emptyList(),
-                                         mb.getVisibility(),
-                                         mb.isStrictFp(),
-                                         getDeclaringClassType(constructorBinding));
+      return new JConstructorDeclaration(
+          getFileLocation(pCIC),
+          convertConstructorType(constructorBinding),
+          fullName,
+          simpleName,
+          Collections.emptyList(),
+          mb.getVisibility(),
+          mb.isStrictFp(),
+          getDeclaringClassType(constructorBinding));
 
     } else {
-      return new JConstructorDeclaration(getFileLocation(pCIC),
-                                         JConstructorType.createUnresolvableConstructorType(),
-                                         fullName,
-                                         simpleName,
-                                         Collections.<JParameterDeclaration>emptyList(),
-                                         VisibilityModifier.NONE,
-                                         false,
-                                         JClassType.createUnresolvableType());
+      return new JConstructorDeclaration(
+          getFileLocation(pCIC),
+          JConstructorType.createUnresolvableConstructorType(),
+          fullName,
+          simpleName,
+          Collections.emptyList(),
+          VisibilityModifier.NONE,
+          false,
+          JClassType.createUnresolvableType());
     }
   }
 
@@ -1443,17 +1438,7 @@ class ASTConverter {
   private List<JExpression> getParameterExpressions(ClassInstanceCreation pCIC) {
     @SuppressWarnings("unchecked")
     List<Expression> p = pCIC.arguments();
-
-    List<JExpression> params;
-
-    if (p.size() > 0) {
-      params = convert(p);
-
-    } else {
-      params = Collections.emptyList();
-    }
-
-    return params;
+    return convert(p);
   }
 
 
@@ -1754,7 +1739,6 @@ class ASTConverter {
   }
 
   private List<JExpression> convert(List<Expression> el) {
-
     List<JExpression> result = new ArrayList<>(el.size());
     for (Expression expression : el) {
       result.add(convertExpressionWithoutSideEffects(expression));
@@ -2060,8 +2044,7 @@ class ASTConverter {
     } else if (op.equals(PrefixExpression.Operator.MINUS)) {
       return UnaryOperator.MINUS;
     } else {
-      throw new CFAGenerationRuntimeException(
-          "Could not proccess Operator:"  + op.toString() + ".");
+      throw new CFAGenerationRuntimeException("Could not proccess Operator:" + op + ".");
     }
   }
 
@@ -2292,16 +2275,14 @@ class ASTConverter {
     JExpression iterable = convertExpressionWithoutSideEffects(pExpr);
 
     if (!(iterable instanceof JIdExpression)) {
-      throw new CFAGenerationRuntimeException(pExpr.toString() + "was not correctly processed.",
-          pExpr);
+      throw new CFAGenerationRuntimeException(pExpr + " was not correctly processed.", pExpr);
     }
 
     FileLocation fileLoc = getFileLocation(pExpr);
 
-    //TODO correct JMethodExpression when standard Library will be
-    //              supported
+    // TODO correct JMethodExpression when standard Library will be supported
 
-    List<JExpression> parameters = new LinkedList<>();
+    List<JExpression> parameters = ImmutableList.of();
 
     JInterfaceType iteratorTyp = JInterfaceType.createUnresolvableType();
 
@@ -2351,7 +2332,7 @@ class ASTConverter {
 
     JExpression name = new JIdExpression(fileloc, type, "hasNext", null);
 
-    List<JExpression> parameters = new LinkedList<>();
+    List<JExpression> parameters = ImmutableList.of();
 
     JReferencedMethodInvocationExpression mi =
         new JReferencedMethodInvocationExpression(
@@ -2381,10 +2362,9 @@ class ASTConverter {
                                             param.getName(),
                                             param);
 
-    //TODO correct JMethodExpression when standard Library will be
-    //              supported
+    // TODO correct JMethodExpression when standard Library will be supported
 
-    List<JExpression> parameters = new LinkedList<>();
+    List<JExpression> parameters = ImmutableList.of();
 
     JIdExpression name = new JIdExpression(fileLoc, param.getType(), "next", null);
 
@@ -2522,8 +2502,8 @@ class ASTConverter {
    */
   public JMethodDeclaration createDefaultConstructor(ITypeBinding classBinding) {
 
-    List<JType> paramTypes = new LinkedList<>();
-    List<JParameterDeclaration> param = new LinkedList<>();
+    List<JType> paramTypes = ImmutableList.of();
+    List<JParameterDeclaration> param = ImmutableList.of();
 
     JConstructorType type = new JConstructorType((JClassType)
         convert(classBinding), paramTypes, false);

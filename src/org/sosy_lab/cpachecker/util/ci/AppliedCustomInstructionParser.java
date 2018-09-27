@@ -47,7 +47,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.logging.Level;
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArrayDesignator;
@@ -92,6 +92,7 @@ import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CLabelNode;
 import org.sosy_lab.cpachecker.cfa.model.c.CReturnStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CStatementEdge;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.globalinfo.CFAInfo;
@@ -141,7 +142,7 @@ public class AppliedCustomInstructionParser {
 
   private void writeCustomInstructionSpecification(final CustomInstruction ci,
       final Path signatureFile) throws IOException {
-    try (Writer br = MoreFiles.openOutputFile(signatureFile, Charset.defaultCharset())) {
+    try (Writer br = IO.openOutputFile(signatureFile, Charset.defaultCharset())) {
       br.write(ci.getSignature() + "\n");
       String ciString = ci.getFakeSMTDescription().getSecond();
       br.write(ciString.substring(ciString.indexOf("a")-1,ciString.length()-1) + ";");
@@ -437,7 +438,7 @@ public class AppliedCustomInstructionParser {
     }
 
     pOutputVariables.addAll(edgeOutputVariables);
-    HashSet<String> returnRes = new HashSet<>(pPredOutputVars);
+    Set<String> returnRes = new HashSet<>(pPredOutputVars);
     returnRes.addAll(edgeOutputVariables);
 
     return returnRes;
@@ -539,11 +540,11 @@ public class AppliedCustomInstructionParser {
     return false;
   }
 
-  private static class GlobalVarCheckVisitor extends DefaultCExpressionVisitor<Boolean, RuntimeException> implements
-      CInitializerVisitor<Boolean, RuntimeException>, CDesignatorVisitor<Boolean, RuntimeException> {
+  private static class GlobalVarCheckVisitor extends DefaultCExpressionVisitor<Boolean, NoException> implements
+      CInitializerVisitor<Boolean, NoException>, CDesignatorVisitor<Boolean, RuntimeException> {
 
     @Override
-    public Boolean visit(final CArraySubscriptExpression pIastArraySubscriptExpression) throws RuntimeException {
+    public Boolean visit(final CArraySubscriptExpression pIastArraySubscriptExpression) {
       if (!pIastArraySubscriptExpression.getArrayExpression().accept(this)) {
         return pIastArraySubscriptExpression.getSubscriptExpression().accept(this);
       }
@@ -551,12 +552,12 @@ public class AppliedCustomInstructionParser {
     }
 
     @Override
-    public Boolean visit(final CFieldReference pIastFieldReference) throws RuntimeException {
+    public Boolean visit(final CFieldReference pIastFieldReference) {
       return pIastFieldReference.getFieldOwner().accept(this);
     }
 
     @Override
-    public Boolean visit(final CIdExpression pIastIdExpression) throws RuntimeException {
+    public Boolean visit(final CIdExpression pIastIdExpression) {
       // test if global variable
       if (pIastIdExpression
           .getDeclaration()
@@ -568,17 +569,17 @@ public class AppliedCustomInstructionParser {
     }
 
     @Override
-    public Boolean visit(final CPointerExpression pPointerExpression) throws RuntimeException {
+    public Boolean visit(final CPointerExpression pPointerExpression) {
       return pPointerExpression.getOperand().accept(this);
     }
 
     @Override
-    public Boolean visit(final CComplexCastExpression pComplexCastExpression) throws RuntimeException {
+    public Boolean visit(final CComplexCastExpression pComplexCastExpression) {
       return pComplexCastExpression.getOperand().accept(this);
     }
 
     @Override
-    public Boolean visit(final CBinaryExpression pIastBinaryExpression) throws RuntimeException {
+    public Boolean visit(final CBinaryExpression pIastBinaryExpression) {
       if (!pIastBinaryExpression.getOperand1().accept(this)) {
         return pIastBinaryExpression.getOperand2().accept(this);
       }
@@ -586,27 +587,27 @@ public class AppliedCustomInstructionParser {
     }
 
     @Override
-    public Boolean visit(final CCastExpression pIastCastExpression) throws RuntimeException {
+    public Boolean visit(final CCastExpression pIastCastExpression) {
       return pIastCastExpression.getOperand().accept(this);
     }
 
     @Override
-    public Boolean visit(final CUnaryExpression pIastUnaryExpression) throws RuntimeException {
+    public Boolean visit(final CUnaryExpression pIastUnaryExpression) {
       return pIastUnaryExpression.getOperand().accept(this);
     }
 
     @Override
-    protected Boolean visitDefault(final CExpression pExp) throws RuntimeException {
+    protected Boolean visitDefault(final CExpression pExp) {
       return Boolean.FALSE;
     }
 
     @Override
-    public Boolean visit(final CInitializerExpression pInitializerExpression) throws RuntimeException {
+    public Boolean visit(final CInitializerExpression pInitializerExpression) {
       return pInitializerExpression.getExpression().accept(this);
     }
 
     @Override
-    public Boolean visit(final CInitializerList pInitializerList) throws RuntimeException {
+    public Boolean visit(final CInitializerList pInitializerList) {
       for(CInitializer init : pInitializerList.getInitializers()) {
         if(init.accept(this)) {
           return Boolean.TRUE;
@@ -616,7 +617,7 @@ public class AppliedCustomInstructionParser {
     }
 
     @Override
-    public Boolean visit(final CDesignatedInitializer pCStructInitializerPart) throws RuntimeException {
+    public Boolean visit(final CDesignatedInitializer pCStructInitializerPart) {
       for(CDesignator des : pCStructInitializerPart.getDesignators()) {
         if(des.accept(this)) {
           return Boolean.TRUE;
@@ -629,12 +630,12 @@ public class AppliedCustomInstructionParser {
     }
 
     @Override
-    public Boolean visit(final CArrayDesignator pArrayDesignator) throws RuntimeException {
+    public Boolean visit(final CArrayDesignator pArrayDesignator) {
       return pArrayDesignator.getSubscriptExpression().accept(this);
     }
 
     @Override
-    public Boolean visit(final CArrayRangeDesignator pArrayRangeDesignator) throws RuntimeException {
+    public Boolean visit(final CArrayRangeDesignator pArrayRangeDesignator) {
       if(pArrayRangeDesignator.getCeilExpression().accept(this)) {
         return Boolean.TRUE;
       }
@@ -642,7 +643,7 @@ public class AppliedCustomInstructionParser {
     }
 
     @Override
-    public Boolean visit(final CFieldDesignator pFieldDesignator) throws RuntimeException {
+    public Boolean visit(final CFieldDesignator pFieldDesignator) {
       return Boolean.FALSE;
     }
 

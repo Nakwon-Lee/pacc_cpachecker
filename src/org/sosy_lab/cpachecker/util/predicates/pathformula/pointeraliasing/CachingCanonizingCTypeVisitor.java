@@ -43,14 +43,17 @@ import org.sosy_lab.cpachecker.cfa.types.c.CTypeVisitor;
 import org.sosy_lab.cpachecker.cfa.types.c.CTypedefType;
 import org.sosy_lab.cpachecker.cfa.types.c.CVoidType;
 import org.sosy_lab.cpachecker.cfa.types.c.DefaultCTypeVisitor;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 
-class CachingCanonizingCTypeVisitor extends DefaultCTypeVisitor<CType, RuntimeException> {
+class CachingCanonizingCTypeVisitor extends DefaultCTypeVisitor<CType, NoException> {
 
-  private class CTypeTransformerVisitor implements CTypeVisitor<CType, RuntimeException> {
+  private class CTypeTransformerVisitor implements CTypeVisitor<CType, NoException> {
 
-    private CTypeTransformerVisitor(final boolean ignoreConst, final boolean ignoreVolatile) {
+    private CTypeTransformerVisitor(
+        final boolean ignoreConst, final boolean ignoreVolatile, final boolean ignoreSignedness) {
       this.ignoreConst = ignoreConst;
       this.ignoreVolatile = ignoreVolatile;
+      this.ignoreSignedness = ignoreSignedness;
     }
 
     @Override
@@ -126,17 +129,14 @@ class CachingCanonizingCTypeVisitor extends DefaultCTypeVisitor<CType, RuntimeEx
 
 
       final CFunctionType result;
-      if (returnType == oldReturnType &&
-          parameterTypes == null &&
-          (!ignoreConst || !t.isConst()) &&
-          (!ignoreVolatile || !t.isVolatile())) {
+      if (returnType == oldReturnType && parameterTypes == null) {
         result = t;
       } else {
-        result = new CFunctionType(!ignoreConst && t.isConst(),
-                                   !ignoreVolatile && t.isVolatile(),
-                                   returnType,
-                                   parameterTypes != null ? parameterTypes : t.getParameters(),
-                                   t.takesVarArgs());
+        result =
+            new CFunctionType(
+                returnType,
+                parameterTypes != null ? parameterTypes : t.getParameters(),
+                t.takesVarArgs());
         if (t.getName() != null) {
           result.setName(t.getName());
         }
@@ -164,7 +164,10 @@ class CachingCanonizingCTypeVisitor extends DefaultCTypeVisitor<CType, RuntimeEx
 
     @Override
     public CSimpleType visit(final CSimpleType t) {
-      return (!ignoreConst || !t.isConst()) && (!ignoreVolatile || !t.isVolatile())
+      return (!ignoreConst || !t.isConst())
+              && (!ignoreVolatile || !t.isVolatile())
+              && (!ignoreSignedness || !t.isSigned())
+              && (!ignoreSignedness || !t.isUnsigned())
           ? t
           : new CSimpleType(
               !ignoreConst && t.isConst(),
@@ -172,15 +175,15 @@ class CachingCanonizingCTypeVisitor extends DefaultCTypeVisitor<CType, RuntimeEx
               t.getType(),
               t.isLong(),
               t.isShort(),
-              t.isSigned(),
-              t.isUnsigned(),
+              !ignoreSignedness && t.isSigned(),
+              !ignoreSignedness && t.isUnsigned(),
               t.isComplex(),
               t.isImaginary(),
               t.isLongLong());
     }
 
     @Override
-    public CType visit(CBitFieldType pCBitFieldType) throws RuntimeException {
+    public CType visit(CBitFieldType pCBitFieldType) {
       CType type = pCBitFieldType.getType().accept(this);
       if (type != pCBitFieldType.getType()) {
         return new CBitFieldType(type, pCBitFieldType.getBitFieldSize());
@@ -196,10 +199,12 @@ class CachingCanonizingCTypeVisitor extends DefaultCTypeVisitor<CType, RuntimeEx
 
     private final boolean ignoreConst;
     private final boolean ignoreVolatile;
+    private final boolean ignoreSignedness;
   }
 
-  CachingCanonizingCTypeVisitor(final boolean ignoreConst, final boolean ignoreVolatile) {
-    typeVisitor = new CTypeTransformerVisitor(ignoreConst, ignoreVolatile);
+  CachingCanonizingCTypeVisitor(
+      final boolean ignoreConst, final boolean ignoreVolatile, final boolean ignoreSignedness) {
+    typeVisitor = new CTypeTransformerVisitor(ignoreConst, ignoreVolatile, ignoreSignedness);
   }
 
   @Override

@@ -32,6 +32,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.sosy_lab.cpachecker.cfa.CFACreationUtils;
 import org.sosy_lab.cpachecker.cfa.ast.AAstNode;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
@@ -94,6 +95,7 @@ import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CTypedefType;
 import org.sosy_lab.cpachecker.cfa.types.c.DefaultCTypeVisitor;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 import org.sosy_lab.cpachecker.util.CFATraversal;
 import org.sosy_lab.cpachecker.util.CFATraversal.CFAVisitor;
 import org.sosy_lab.cpachecker.util.CFATraversal.TraversalProcess;
@@ -121,14 +123,17 @@ class FunctionCloner implements CFAVisitor {
   private final CExpressionCloner expCloner = new CExpressionCloner();
   private final CTypeCloner typeCloner = new CTypeCloner();
 
-  private final String oldFunctionname;
-  private final String newFunctionname;
+  private final String oldFunctionName;
+  private final String newFunctionName;
   private final boolean replaceFunctionOnly; // needed to replace functioncalls, where args stay equal, but functionname changes
 
   /** FunctionCloner clones a function of the cfa and uses a new functionName. */
-  public FunctionCloner(final String oldFunctionname, final String newFunctionname, final boolean replaceFunctionOnly) {
-    this.oldFunctionname = oldFunctionname;
-    this.newFunctionname = newFunctionname;
+  public FunctionCloner(
+      final String oldFunctionName,
+      final String newFunctionName,
+      final boolean replaceFunctionOnly) {
+    this.oldFunctionName = oldFunctionName;
+    this.newFunctionName = newFunctionName;
     this.replaceFunctionOnly = replaceFunctionOnly;
   }
 
@@ -191,7 +196,16 @@ class FunctionCloner implements CFAVisitor {
       case AssumeEdge: {
         if (edge instanceof CAssumeEdge) {
           final CAssumeEdge e = (CAssumeEdge) edge;
-          newEdge = new CAssumeEdge(rawStatement, loc, start, end, cloneAst(e.getExpression()), e.getTruthAssumption());
+            newEdge =
+                new CAssumeEdge(
+                    rawStatement,
+                    loc,
+                    start,
+                    end,
+                    cloneAst(e.getExpression()),
+                    e.getTruthAssumption(),
+                    e.isSwapped(),
+                    e.isArtificialIntermediate());
         } else {
           throw new AssertionError(ONLY_C_SUPPORTED);
         }
@@ -285,13 +299,13 @@ class FunctionCloner implements CFAVisitor {
     // clone correct type of node
     final CFANode newNode;
     if (node instanceof CLabelNode) {
-      newNode = new CLabelNode(newFunctionname, ((CLabelNode) node).getLabel());
+      newNode = new CLabelNode(newFunctionName, ((CLabelNode) node).getLabel());
 
     } else if (node instanceof CFATerminationNode) {
-      newNode = new CFATerminationNode(newFunctionname);
+      newNode = new CFATerminationNode(newFunctionName);
 
     } else if (node instanceof FunctionExitNode) {
-      newNode = new FunctionExitNode(newFunctionname);
+      newNode = new FunctionExitNode(newFunctionName);
 
     } else if (node instanceof CFunctionEntryNode) {
       final CFunctionEntryNode n = (CFunctionEntryNode) node;
@@ -316,7 +330,7 @@ class FunctionCloner implements CFAVisitor {
 
     } else {
       assert node.getClass() == CFANode.class : "unhandled subclass for CFANode: " + node.getClass();
-      newNode = new CFANode(newFunctionname);
+      newNode = new CFANode(newFunctionName);
     }
 
     // copy information from original node
@@ -333,7 +347,7 @@ class FunctionCloner implements CFAVisitor {
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends AAstNode> T cloneAst(final T ast) {
+  private @Nullable <T extends AAstNode> T cloneAst(final T ast) {
 
     if (ast == null) {
       return null;
@@ -479,7 +493,7 @@ class FunctionCloner implements CFAVisitor {
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends Type> T cloneType(T type) {
+  private @Nullable <T extends Type> T cloneType(T type) {
 
     if (type == null) {
       return null;
@@ -506,7 +520,7 @@ class FunctionCloner implements CFAVisitor {
 
   /** clones CExpressions and calls cloneAst on non-expression-content.
    * Note: caching sub-expressions is useless because of the location, that is different for each expression. */
-  private class CExpressionCloner extends DefaultCExpressionVisitor<CExpression, RuntimeException> {
+  private class CExpressionCloner extends DefaultCExpressionVisitor<CExpression, NoException> {
 
     @Override
     protected CExpression visitDefault(CExpression exp) {
@@ -565,7 +579,7 @@ class FunctionCloner implements CFAVisitor {
     }
   }
 
-  private class CTypeCloner extends DefaultCTypeVisitor<CType, RuntimeException> {
+  private class CTypeCloner extends DefaultCTypeVisitor<CType, NoException> {
 
     @Override
     public CType visitDefault(CType t) {
@@ -625,14 +639,14 @@ class FunctionCloner implements CFAVisitor {
         for (CParameterDeclaration param : ((CFunctionTypeWithNames)type).getParameterDeclarations()) {
           l.add(cloneAst(param));
         }
-        funcType = new CFunctionTypeWithNames(type.isConst(), type.isVolatile(), type.getReturnType(), l, type.takesVarArgs());
+        funcType = new CFunctionTypeWithNames(type.getReturnType(), l, type.takesVarArgs());
       } else {
         assert type.getClass() == CFunctionType.class;
         List<CType> l = new ArrayList<>(type.getParameters().size());
         for (CType param : type.getParameters()) {
           l.add(cloneType(param));
         }
-        funcType = new CFunctionType(type.isConst(), type.isVolatile(), type.getReturnType(), l, type.takesVarArgs());
+        funcType = new CFunctionType(type.getReturnType(), l, type.takesVarArgs());
       }
       if (type.getName() != null) {
         funcType.setName(changeName(type.getName()));
@@ -651,7 +665,7 @@ class FunctionCloner implements CFAVisitor {
     }
 
     @Override
-    public CType visit(CBitFieldType pCBitFieldType) throws RuntimeException {
+    public CType visit(CBitFieldType pCBitFieldType) {
       return new CBitFieldType(
           pCBitFieldType.getType().accept(this), pCBitFieldType.getBitFieldSize());
     }
@@ -659,13 +673,13 @@ class FunctionCloner implements CFAVisitor {
 
   /** replace old functionname with new one. */
   private String changeName(final String name) {
-    return oldFunctionname.equals(name) ? newFunctionname : name;
+    return oldFunctionName.equals(name) ? newFunctionName : name;
   }
 
   /** if qualifiedName ist in current scope, replace old functionname with new one. */
   private String changeQualifiedName(final String qualifiedName) {
-    if (!replaceFunctionOnly && qualifiedName.startsWith(oldFunctionname + "::")) {
-      return newFunctionname + qualifiedName.substring(oldFunctionname.length());
+    if (!replaceFunctionOnly && qualifiedName.startsWith(oldFunctionName + "::")) {
+      return newFunctionName + qualifiedName.substring(oldFunctionName.length());
     }
     return qualifiedName;
   }

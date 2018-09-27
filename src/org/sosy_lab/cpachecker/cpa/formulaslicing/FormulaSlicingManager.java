@@ -25,6 +25,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustmentResult;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustmentResult.Action;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
+import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.loopbound.LoopBoundState;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
@@ -46,7 +47,7 @@ import org.sosy_lab.java_smt.api.BooleanFormulaManager;
 import org.sosy_lab.java_smt.api.SolverException;
 
 @Options(prefix="cpa.slicing")
-public class FormulaSlicingManager implements IFormulaSlicingManager {
+public class FormulaSlicingManager implements StatisticsProvider {
   @Option(secure=true, description="Check target states reachability")
   private boolean checkTargetStates = true;
 
@@ -68,8 +69,8 @@ public class FormulaSlicingManager implements IFormulaSlicingManager {
 
   FormulaSlicingManager(
       Configuration config,
-      CachingPathFormulaManager pPfmgr,
-      FormulaManagerView pFmgr,
+      CachingPathFormulaManager pPathFormulaManager,
+      FormulaManagerView pFormulaManager,
       CFA pCfa,
       InductiveWeakeningManager pInductiveWeakeningManager,
       RCNFManager pRcnfManager,
@@ -78,20 +79,19 @@ public class FormulaSlicingManager implements IFormulaSlicingManager {
       throws InvalidConfigurationException {
     logger = pLogger;
     config.inject(this);
-    fmgr = pFmgr;
-    pfmgr = pPfmgr;
+    fmgr = pFormulaManager;
+    pfmgr = pPathFormulaManager;
     inductiveWeakeningManager = pInductiveWeakeningManager;
     solver = pSolver;
-    bfmgr = pFmgr.getBooleanFormulaManager();
+    bfmgr = pFormulaManager.getBooleanFormulaManager();
     rcnfManager = pRcnfManager;
-    statistics = new FormulaSlicingStatistics(pPfmgr, pSolver);
+    statistics = new FormulaSlicingStatistics(pPathFormulaManager, pSolver);
     Preconditions.checkState(pCfa.getLiveVariables().isPresent() &&
       pCfa.getLoopStructure().isPresent());
     liveVariables = pCfa.getLiveVariables().get();
     loopStructure = pCfa.getLoopStructure().get();
   }
 
-  @Override
   public Collection<? extends SlicingState> getAbstractSuccessors(
       SlicingState oldState, CFAEdge edge)
       throws CPATransferException, InterruptedException {
@@ -116,7 +116,6 @@ public class FormulaSlicingManager implements IFormulaSlicingManager {
     return Collections.singleton(out);
   }
 
-  @Override
   public Optional<PrecisionAdjustmentResult> prec(
       SlicingState pState,
       UnmodifiableReachedSet pStates, AbstractState pFullState)
@@ -205,21 +204,23 @@ public class FormulaSlicingManager implements IFormulaSlicingManager {
 
     Set<BooleanFormula> finalLemmas = new HashSet<>();
     for (BooleanFormula lemma : lemmas) {
-      if (filterByLiveness
-          && Sets.intersection(
-                  ImmutableSet.copyOf(
-                      liveVariables
-                          .getLiveVariablesForNode(node)
-                          .transform(ASimpleDeclaration::getQualifiedName)
-                          .filter(s -> s != null)),
-                  fmgr.extractFunctionNames(fmgr.uninstantiate(lemma)))
-              .isEmpty()) {
-
+      if (filterByLiveness && !containsLiveVariables(lemma, node)) {
         continue;
       }
       finalLemmas.add(fmgr.uninstantiate(lemma));
     }
     return finalLemmas;
+  }
+
+  private boolean containsLiveVariables(BooleanFormula lemma, CFANode node) {
+    Set<String> functionNames = fmgr.extractFunctionNames(fmgr.uninstantiate(lemma));
+    for (ASimpleDeclaration variable : liveVariables.getLiveVariablesForNode(node)) {
+      String name = variable.getQualifiedName();
+      if (name != null && functionNames.contains(name)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private final Map<Pair<SlicingIntermediateState, SlicingAbstractedState>,
@@ -362,12 +363,10 @@ public class FormulaSlicingManager implements IFormulaSlicingManager {
     }
   }
 
-  @Override
   public SlicingState getInitialState(CFANode node) {
     return SlicingAbstractedState.empty(fmgr, node);
   }
 
-  @Override
   public boolean isLessOrEqual(SlicingState pState1, SlicingState pState2) {
     Preconditions.checkState(pState1.isAbstracted() == pState2.isAbstracted());
 
@@ -448,7 +447,6 @@ public class FormulaSlicingManager implements IFormulaSlicingManager {
         (loopState == null || loopState.isLoopCounterAbstracted());
   }
 
-  @Override
   public SlicingState merge(SlicingState pState1, SlicingState pState2) throws InterruptedException {
     Preconditions.checkState(pState1.isAbstracted() == pState2.isAbstracted());
 

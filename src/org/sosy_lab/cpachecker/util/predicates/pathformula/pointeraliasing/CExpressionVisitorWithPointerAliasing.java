@@ -23,14 +23,16 @@
  */
 package org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
+import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.ast.c.AdaptingCExpressionVisitor;
 import org.sosy_lab.cpachecker.cfa.ast.c.CArraySubscriptExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
@@ -41,6 +43,8 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CFieldReference;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CIntegerLiteralExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CLeftHandSide;
 import org.sosy_lab.cpachecker.cfa.ast.c.CParameterDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CPointerExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CRightHandSide;
@@ -51,11 +55,14 @@ import org.sosy_lab.cpachecker.cfa.ast.c.DefaultCExpressionVisitor;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.types.c.CArrayType;
 import org.sosy_lab.cpachecker.cfa.types.c.CCompositeType;
+import org.sosy_lab.cpachecker.cfa.types.c.CFunctionType;
+import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CTypes;
-import org.sosy_lab.cpachecker.exceptions.UnrecognizedCCodeException;
-import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
+import org.sosy_lab.cpachecker.util.BuiltinFloatFunctions;
+import org.sosy_lab.cpachecker.util.BuiltinFunctions;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ErrorConditions;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap.SSAMapBuilder;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.Constraints;
@@ -65,19 +72,20 @@ import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.Expre
 import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.Expression.Location.AliasedLocation;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.Expression.Location.UnaliasedLocation;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.Expression.Value;
+import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.Formula;
 
 /**
  * A visitor the handle C expressions with the support for pointer aliasing.
  */
-class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Expression, UnrecognizedCCodeException>
-                                       implements CRightHandSideVisitor<Expression, UnrecognizedCCodeException> {
+class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Expression, UnrecognizedCodeException>
+                                       implements CRightHandSideVisitor<Expression, UnrecognizedCodeException> {
 
   /**
    * A simple expression to formula visitor.
    */
-  private static class AdaptingExpressionToFormulaVisitor extends AdaptingCExpressionVisitor<Formula, Expression, UnrecognizedCCodeException>
-                                                             implements CRightHandSideVisitor<Formula, UnrecognizedCCodeException> {
+  private static class AdaptingExpressionToFormulaVisitor extends AdaptingCExpressionVisitor<Formula, Expression, UnrecognizedCodeException>
+                                                             implements CRightHandSideVisitor<Formula, UnrecognizedCodeException> {
 
     /**
      * Creates a new expression to formula visitor.
@@ -94,10 +102,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
      * @param value The expression value.
      * @param rhs The right hand side.
      * @return A formula for the expression value.
-     * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+     * @throws UnrecognizedCodeException If the C code was unrecognizable.
      */
     @Override
-    protected Formula convert(Expression value, CExpression rhs) throws UnrecognizedCCodeException {
+    protected Formula convert(Expression value, CExpression rhs) throws UnrecognizedCodeException {
       return convert0(value, rhs);
     }
 
@@ -119,10 +127,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
      *
      * @param e The function call expression.
      * @return A formula for the function call expression.
-     * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+     * @throws UnrecognizedCodeException If the C code was unrecognizable.
      */
     @Override
-    public Formula visit(CFunctionCallExpression e) throws UnrecognizedCCodeException {
+    public Formula visit(CFunctionCallExpression e) throws UnrecognizedCodeException {
       return convert0(((CExpressionVisitorWithPointerAliasing)delegate).visit(e), e);
     }
   }
@@ -156,7 +164,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
             ssa,
             constraints) {
           @Override
-          protected Formula toFormula(CExpression e) throws UnrecognizedCCodeException {
+          protected Formula toFormula(CExpression e) throws UnrecognizedCodeException {
             // recursive application of pointer-aliasing.
             return asValueFormula(
                 e.accept(CExpressionVisitorWithPointerAliasing.this),
@@ -172,7 +180,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
     this.errorConditions = errorConditions;
     this.pts = pts;
     this.regionMgr = regionMgr;
-    this.baseVisitor = new BaseVisitor(cfaEdge, pts, typeHandler);
+    this.function = function;
   }
 
   /**
@@ -180,7 +188,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @return A formula visitor for right hand side expressions.
    */
-  CRightHandSideVisitor<Formula, UnrecognizedCCodeException> asFormulaVisitor() {
+  CRightHandSideVisitor<Formula, UnrecognizedCodeException> asFormulaVisitor() {
     return new AdaptingExpressionToFormulaVisitor(this);
   }
 
@@ -280,11 +288,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The array expression.
    * @return The location of the array expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public AliasedLocation visit(final CArraySubscriptExpression e)
-      throws UnrecognizedCCodeException {
+  public AliasedLocation visit(final CArraySubscriptExpression e) throws UnrecognizedCodeException {
     // There are two distinct kinds of arrays in C:
     // -- fixed-length arrays for which the aliased location of the first element is returned here
     // -- pointers implicitly converted to arrays for which either the aliased or unaliased location of the *pointer*
@@ -317,12 +324,13 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The reference to a field.
    * @return The location of the reference.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public Location visit(CFieldReference e) throws UnrecognizedCCodeException {
+  public Location visit(CFieldReference e) throws UnrecognizedCodeException {
     e = e.withExplicitPointerDereference();
 
+    BaseVisitor baseVisitor = new BaseVisitor(edge, pts, typeHandler);
     final Variable variable = e.accept(baseVisitor);
     if (variable != null) {
       final String variableName = variable.getName();
@@ -333,7 +341,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
         final AliasedLocation base = e.getFieldOwner().accept(this).asAliasedLocation();
 
         final String fieldName = e.getFieldName();
-        usedFields.add(Pair.of((CCompositeType) fieldOwnerType, fieldName));
+        usedFields.add(CompositeField.of((CCompositeType) fieldOwnerType, fieldName));
         final Formula offset = conv.fmgr.makeNumber(conv.voidPointerFormulaType,
                                                     typeHandler.getBitOffset((CCompositeType) fieldOwnerType, fieldName));
 
@@ -343,7 +351,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
         final MemoryRegion region = regionMgr.makeMemoryRegion(fieldOwnerType, fieldType, fieldName);
         return AliasedLocation.ofAddressWithRegion(address, region);
       } else {
-        throw new UnrecognizedCCodeException("Field owner of a non-composite type", edge, e);
+        throw new UnrecognizedCodeException("Field owner of a non-composite type", edge, e);
       }
     }
   }
@@ -359,8 +367,8 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
            !type.equals(CPointerType.POINTER_TO_VOID);
   }
 
-  public PointerApproximatingVisitor getPointerApproximatingVisitor() {
-    return pointerApproximatingVisitorInstance;
+  private PointerApproximatingVisitor getPointerApproximatingVisitor() {
+    return new PointerApproximatingVisitor(typeHandler, edge);
   }
 
   /**
@@ -368,10 +376,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The C cast expression.
    * @return The expression representing the cast.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public Expression visit(final CCastExpression e) throws UnrecognizedCCodeException {
+  public Expression visit(final CCastExpression e) throws UnrecognizedCodeException {
     final CType resultType = typeHandler.getSimplifiedType(e);
     final CExpression operand = conv.makeCastFromArrayToPointerIfNecessary(e.getOperand(), resultType);
 
@@ -391,7 +399,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
       // Change of const modifier is ignored, too.
       return result;
     } else {
-      throw new UnrecognizedCCodeException("Conversion to non-scalar type requested", edge, e);
+      throw new UnrecognizedCodeException("Conversion to non-scalar type requested", edge, e);
     }
 // TODO: The following heuristic should be implemented in more generally in the assignment to p
 //    if (operand instanceof CPointerExpression
@@ -407,24 +415,22 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The C id expression.
    * @return The expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public Expression visit(final CIdExpression e) throws UnrecognizedCCodeException {
+  public Expression visit(final CIdExpression e) throws UnrecognizedCodeException {
     final CType resultType = typeHandler.getSimplifiedType(e);
 
-    if (!pts.isActualBase(e.getDeclaration().getQualifiedName())
+    final String variableName = e.getDeclaration().getQualifiedName();
+    if (!pts.isActualBase(variableName)
         && !CTypeUtils.containsArray(resultType, e.getDeclaration())) {
-      Variable variable = Variable.create(e.getDeclaration().getQualifiedName(), resultType);
       if (!(e.getDeclaration() instanceof CFunctionDeclaration)) {
-        final String variableName = variable.getName();
         return UnaliasedLocation.ofVariableName(variableName);
       } else {
-        return Value.ofValue(conv.makeConstant(variable.getName(), variable.getType()));
+        return Value.ofValue(conv.makeConstant(variableName, resultType));
       }
     } else {
-      final Formula address = conv.makeConstant(PointerTargetSet.getBaseName(e.getDeclaration().getQualifiedName()),
-                                                CTypeUtils.getBaseType(resultType));
+      final Formula address = conv.makeBaseAddress(variableName, resultType);
       return AliasedLocation.ofAddress(address);
     }
   }
@@ -434,13 +440,14 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The C expression.
    * @return The value of the expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public Value visit(final CUnaryExpression e) throws UnrecognizedCCodeException {
+  public Value visit(final CUnaryExpression e) throws UnrecognizedCodeException {
     if (e.getOperator() == UnaryOperator.AMPER) {
       final CExpression operand = e.getOperand();
 
+      BaseVisitor baseVisitor = new BaseVisitor(edge, pts, typeHandler);
       final Variable baseVariable = operand.accept(baseVisitor);
       // Whether the addressed location was previously aliased (tracked with UFs)
       // If it was, there was no base variable/prefix used to hold its value and we simply return the
@@ -469,7 +476,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
         // the fields f1 and f2 along with the field s{1,2}.ss1 should be tracked from the first line onwards, because
         // it's too hard to determine (without the help of some alias analysis)
         // whether f1 assigned in the second line is an outer or inner structure field.
-        final List<Pair<CCompositeType, String>> alreadyUsedFields = ImmutableList.copyOf(usedFields);
+        final List<CompositeField> alreadyUsedFields = ImmutableList.copyOf(usedFields);
         usedFields.clear();
 
         if (errorConditions.isEnabled() && operand instanceof CFieldReference) {
@@ -490,7 +497,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
             final String fieldName = field.getFieldName();
             final CCompositeType compositeType =
                 (CCompositeType) CTypeUtils.checkIsSimplified(pointerType.getType());
-            usedFields.add(Pair.of(compositeType, fieldName));
+            usedFields.add(CompositeField.of(compositeType, fieldName));
             final Formula offset = conv.fmgr.makeNumber(conv.voidPointerFormulaType,
                                                         typeHandler.getBitOffset(compositeType, fieldName));
             addressExpression = AliasedLocation.ofAddress(conv.fmgr.makePlus(base, offset));
@@ -512,24 +519,26 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
         return Value.ofValue(dereference(operand, operand.accept(this)).getAddress());
       } else {
         final Variable base = baseVisitor.getLastBase();
-        final Formula baseAddress = conv.makeConstant(PointerTargetSet.getBaseName(base.getName()),
-                                                      CTypeUtils.getBaseType(base.getType()));
-        conv.addValueImportConstraints(edge,
-                                       baseAddress,
-                                       base,
-                                       initializedFields,
-                                       ssa,
-                                       constraints,
-                                       null);
+        final Formula baseAddress = conv.makeBaseAddress(base.getName(), base.getType());
+        conv.addValueImportConstraints(
+            baseAddress,
+            base.getName(),
+            base.getType(),
+            initializedFields,
+            ssa,
+            constraints,
+            null);
         if (conv.hasIndex(base.getName(), base.getType(), ssa)) {
           ssa.deleteVariable(base.getName());
         }
-        conv.addPreFilledBase(base.getName(),
-                              base.getType(),
-                              pts.isPreparedBase(base.getName()),
-                              false,
-                              constraints,
-                              pts);
+        if (pts.isPreparedBase(base.getName())) {
+          pts.shareBase(base.getName(), base.getType());
+        } else {
+          Formula size =
+              conv.fmgr.makeNumber(
+                  conv.voidPointerFormulaType, typeHandler.getSizeof(base.getType()));
+          pts.addBase(base.getName(), base.getType(), size, constraints);
+        }
         return visit(e);
       }
     } else {
@@ -542,10 +551,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The C pointer expression.
    * @return The aliased location of the expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public AliasedLocation visit(final CPointerExpression e) throws UnrecognizedCCodeException {
+  public AliasedLocation visit(final CPointerExpression e) throws UnrecognizedCodeException {
     // Dereferencing a stand-alone array leaves the result of visiting the operand unchanged
     // Other cases should trigger additional dereference, so we use
     // #dereference() to resolve the ambiguity
@@ -558,10 +567,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param exp The C expression.
    * @return The value of the expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public Value visit(final CBinaryExpression exp) throws UnrecognizedCCodeException {
+  public Value visit(final CBinaryExpression exp) throws UnrecognizedCodeException {
     final CType returnType = exp.getExpressionType();
     final CType calculationType = exp.getCalculationType();
     final Formula f1 = delegate.processOperand(exp.getOperand1(), calculationType, returnType);
@@ -610,10 +619,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The C expression.
    * @return The value of the expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  protected Value visitDefault(final CExpression e) throws UnrecognizedCCodeException {
+  protected Value visitDefault(final CExpression e) throws UnrecognizedCodeException {
     return Value.ofValue(e.accept(delegate));
   }
 
@@ -622,10 +631,10 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @param e The function call expression.
    * @return The value of the expression.
-   * @throws UnrecognizedCCodeException If the C code was unrecognizable.
+   * @throws UnrecognizedCodeException If the C code was unrecognizable.
    */
   @Override
-  public Value visit(final CFunctionCallExpression e) throws UnrecognizedCCodeException {
+  public Value visit(final CFunctionCallExpression e) throws UnrecognizedCodeException {
     final CExpression functionNameExpression = e.getFunctionNameExpression();
 
     // First let's handle special cases such as allocations
@@ -640,6 +649,66 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
           throw CtoFormulaConverter.propagateInterruptedException(exc);
         }
       }
+
+      // modf, modff, and modfl raise a side-effect by writing
+      // the integral part of their first parameter into the
+      // pointer-address given as the second parameter,
+      // which is handled here
+      if (BuiltinFloatFunctions.matchesModf(functionName)) {
+        final CType returnType = BuiltinFloatFunctions.getTypeOfBuiltinFloatFunction(functionName);
+        final List<CExpression> parameters = e.getParameterExpressions();
+
+        final String trunc = BuiltinFloatFunctions.getAppropriateTruncName(returnType);
+        final FileLocation dummy = FileLocation.DUMMY;
+
+        CLeftHandSide lhs = new CPointerExpression(dummy, returnType, parameters.get(1));
+
+        CFunctionDeclaration functionDecl =
+            new CFunctionDeclaration(
+                dummy,
+                CFunctionType.functionTypeWithReturnType(returnType),
+                trunc,
+                Collections.singletonList(
+                    new CParameterDeclaration(dummy, returnType, "irrelevant_parameter_name")));
+
+        CRightHandSide rhs =
+            new CFunctionCallExpression(
+                dummy,
+                returnType,
+                new CIdExpression(dummy, functionDecl),
+                Collections.singletonList(parameters.get(0)),
+                functionDecl);
+
+        BooleanFormula form = null;
+        try {
+          form =
+              conv.makeAssignment(
+                  lhs, lhs, rhs, edge, function, ssa, pts, constraints, errorConditions);
+        } catch (InterruptedException e1) {
+          CtoFormulaConverter.propagateInterruptedException(e1);
+        }
+
+        constraints.addConstraint(checkNotNull(form));
+      }
+
+      // check strlen up to specific index maxIndex and return nondet otherwise
+      if (BuiltinFunctions.matchesStrlen(functionName)) {
+        // This is not an off-by-one error, we can set maxIndex to the maximal size because of the
+        // terminating 0 of a string.
+        final int maxIndex = conv.options.maxPreciseStrlenSize();
+        List<CExpression> parameters = e.getParameterExpressions();
+        assert parameters.size() == 1;
+        CExpression parameter = parameters.get(0);
+        final CType returnType = e.getExpressionType();
+
+        Formula f = conv.makeNondet(functionName, returnType, ssa, constraints);
+        // for maxIndex=1, after the loop f has the form
+        // parameter[0]==0?0:(parameter[1]==0?1:nondet())
+        for (long i = maxIndex; i >= 0; i--) {
+          f = stringEndsAtIndexOrOtherwise(parameter, i, f, returnType);
+        }
+        return Value.ofValue(f);
+      }
     }
 
     // Pure functions returning composites are unsupported, return a nondet value
@@ -651,8 +720,38 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
       return Value.nondetValue();
     }
 
+
     // Delegate
     return Value.ofValue(delegate.visit(e));
+  }
+
+  /**
+   * This method is used to approximate the built-in function strlen.
+   *
+   * @param parameter the string to be checked
+   * @param index the index to be checked
+   * @param otherwise a formula returned in case of a negative match
+   * @param returnType the type of the index returned on positive match (strlen return type)
+   * @return the formula parameter[index]==0?index:otherwise
+   */
+  private Formula stringEndsAtIndexOrOtherwise(
+      CExpression parameter, Long index, Formula otherwise, CType returnType)
+      throws UnrecognizedCodeException {
+    AliasedLocation parameterAtIndex =
+        this.visit(
+            new CArraySubscriptExpression(
+                FileLocation.DUMMY,
+                CNumericTypes.CHAR,
+                parameter,
+                CIntegerLiteralExpression.createDummyLiteral(index, CNumericTypes.UNSIGNED_INT)));
+    Formula nullTerminator =
+        delegate.visit(CIntegerLiteralExpression.createDummyLiteral(0, CNumericTypes.CHAR));
+    BooleanFormula condition =
+        conv.fmgr.makeEqual(asValueFormula(parameterAtIndex, CNumericTypes.CHAR), nullTerminator);
+    return conv.bfmgr.ifThenElse(
+        condition,
+        conv.fmgr.makeNumber(conv.getFormulaTypeFromCType(returnType), index),
+        otherwise);
   }
 
   /**
@@ -660,7 +759,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @return A list of the used fields.
    */
-  List<Pair<CCompositeType, String>> getUsedFields() {
+  List<CompositeField> getUsedFields() {
     return Collections.unmodifiableList(usedFields);
   }
 
@@ -669,7 +768,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @return A list of the initialized fields.
    */
-  List<Pair<CCompositeType, String>> getInitializedFields() {
+  List<CompositeField> getInitializedFields() {
     return Collections.unmodifiableList(initializedFields);
   }
 
@@ -678,7 +777,7 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
    *
    * @return A list of the addressed fields.
    */
-  List<Pair<CCompositeType, String>> getAddressedFields() {
+  List<CompositeField> getAddressedFields() {
     return Collections.unmodifiableList(addressedFields);
   }
 
@@ -691,70 +790,6 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
     return Collections.unmodifiableMap(learnedPointerTypes);
   }
 
-  class PointerApproximatingVisitor
-      extends DefaultCExpressionVisitor<Optional<String>, UnrecognizedCCodeException>
-      implements CRightHandSideVisitor<Optional<String>, UnrecognizedCCodeException> {
-
-    private PointerApproximatingVisitor() {}
-
-    @Override
-    public Optional<String> visit(CArraySubscriptExpression e) throws UnrecognizedCCodeException {
-      return e.getArrayExpression().accept(this);
-    }
-
-    @Override
-    public Optional<String> visit(CBinaryExpression e) throws UnrecognizedCCodeException {
-      final CType t = typeHandler.getSimplifiedType(e);
-      if (t instanceof CPointerType || t instanceof CArrayType) {
-        return e.getOperand1().accept(this);
-      }
-      return Optional.empty();
-    }
-
-    @Override
-    public Optional<String> visit(CCastExpression e) throws UnrecognizedCCodeException {
-      return e.getOperand().accept(this);
-    }
-
-    @Override
-    public Optional<String> visit(final CFieldReference e) throws UnrecognizedCCodeException {
-      CType t = typeHandler.getSimplifiedType(e.withExplicitPointerDereference().getFieldOwner());
-      if (t instanceof CCompositeType) {
-        return Optional.of(
-            ((CCompositeType) t).getQualifiedName()
-                + CToFormulaConverterWithPointerAliasing.FIELD_NAME_SEPARATOR
-                + e.getFieldName());
-      } else {
-        throw new UnrecognizedCCodeException("Field owner of a non-composite type", edge, e);
-      }
-    }
-
-    @Override
-    public Optional<String> visit(CIdExpression e) throws UnrecognizedCCodeException {
-      return Optional.of(e.getDeclaration().getQualifiedName());
-    }
-
-    @Override
-    public Optional<String> visit(CPointerExpression e) throws UnrecognizedCCodeException {
-      return e.getOperand().accept(this);
-    }
-
-    @Override
-    public Optional<String> visit(CUnaryExpression e) throws UnrecognizedCCodeException {
-      return e.getOperand().accept(this);
-    }
-
-    @Override
-    protected Optional<String> visitDefault(CExpression pExp) throws RuntimeException {
-      return Optional.empty();
-    }
-
-    @Override
-    public Optional<String> visit(CFunctionCallExpression call) throws UnrecognizedCCodeException {
-      return Optional.empty();
-    }
-  }
-
   private final CToFormulaConverterWithPointerAliasing conv;
   private final TypeHandlerWithPointerAliasing typeHandler;
   private final CFAEdge edge;
@@ -763,15 +798,12 @@ class CExpressionVisitorWithPointerAliasing extends DefaultCExpressionVisitor<Ex
   private final ErrorConditions errorConditions;
   private final PointerTargetSetBuilder pts;
   private final MemoryRegionManager regionMgr;
+  private String function;
 
-  private final BaseVisitor baseVisitor;
   private final ExpressionToFormulaVisitor delegate;
 
-  private final PointerApproximatingVisitor pointerApproximatingVisitorInstance =
-      new PointerApproximatingVisitor();
-
-  private final List<Pair<CCompositeType, String>> usedFields = new ArrayList<>(1);
-  private final List<Pair<CCompositeType, String>> initializedFields = new ArrayList<>();
-  private final List<Pair<CCompositeType, String>> addressedFields = new ArrayList<>();
+  private final List<CompositeField> usedFields = new ArrayList<>(1);
+  private final List<CompositeField> initializedFields = new ArrayList<>();
+  private final List<CompositeField> addressedFields = new ArrayList<>();
   private final Map<String, CType> learnedPointerTypes = Maps.newHashMapWithExpectedSize(1);
 }

@@ -23,9 +23,6 @@
  */
 package org.sosy_lab.cpachecker.core.algorithm;
 
-import static com.google.common.collect.FluentIterable.from;
-import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
-
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +87,7 @@ public class RestartWithConditionsAlgorithm implements Algorithm {
       // run the inner algorithm to fill the reached set
       status = status.update(innerAlgorithm.run(pReached));
 
-      if (from(pReached).anyMatch(IS_TARGET_STATE) && status.isPrecise()) {
+      if (pReached.hasViolatedProperties() && status.isPrecise()) {
         return status;
       }
 
@@ -149,7 +146,8 @@ public class RestartWithConditionsAlgorithm implements Algorithm {
     return retList;
   }
 
-  private void adjustThresholds(List<AbstractState> pStatesWithAssumptions, ReachedSet pReached) {
+  private void adjustThresholds(List<AbstractState> pStatesWithAssumptions, ReachedSet pReached)
+      throws InterruptedException {
 
     ARGReachedSet reached = new ARGReachedSet(pReached, cpa);
     for (AbstractState s: pStatesWithAssumptions) {

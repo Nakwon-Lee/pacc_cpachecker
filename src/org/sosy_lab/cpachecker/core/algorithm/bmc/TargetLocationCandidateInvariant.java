@@ -25,46 +25,39 @@ package org.sosy_lab.cpachecker.core.algorithm.bmc;
 
 import static com.google.common.collect.FluentIterable.from;
 
+import com.google.common.collect.FluentIterable;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
-import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormula;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.PathFormulaManager;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
-import java.util.Set;
+public enum TargetLocationCandidateInvariant implements CandidateInvariant {
 
-public class TargetLocationCandidateInvariant extends AbstractLocationFormulaInvariant {
-
-  public TargetLocationCandidateInvariant(Set<CFANode> pLocations) {
-    super(pLocations);
-  }
+  INSTANCE;
 
   @Override
   public BooleanFormula getFormula(
-      FormulaManagerView pFMGR, PathFormulaManager pPFMGR, PathFormula pContext)
-      throws CPATransferException, InterruptedException {
+      FormulaManagerView pFMGR, PathFormulaManager pPFMGR, PathFormula pContext) {
     return pFMGR.getBooleanFormulaManager().makeFalse();
   }
 
   @Override
   public BooleanFormula getAssertion(
-      Iterable<AbstractState> pReachedSet,
-      FormulaManagerView pFMGR,
-      PathFormulaManager pPFMGR,
-      int pDefaultIndex) {
-    Iterable<AbstractState> targetStates = from(pReachedSet).filter(AbstractStates.IS_TARGET_STATE);
+      Iterable<AbstractState> pReachedSet, FormulaManagerView pFMGR, PathFormulaManager pPFMGR)
+      throws InterruptedException {
+    Iterable<AbstractState> targetStates = filterApplicable(pReachedSet);
     return pFMGR.getBooleanFormulaManager().not(
         BMCHelper.createFormulaFor(targetStates, pFMGR.getBooleanFormulaManager()));
   }
 
   @Override
   public void assumeTruth(ReachedSet pReachedSet) {
-    Iterable<AbstractState> targetStates = from(pReachedSet).filter(AbstractStates.IS_TARGET_STATE).toList();
+    Iterable<AbstractState> targetStates = filterApplicable(pReachedSet).toList();
     pReachedSet.removeAll(targetStates);
     for (ARGState s : from(targetStates).filter(ARGState.class)) {
       s.removeFromARG();
@@ -73,23 +66,16 @@ public class TargetLocationCandidateInvariant extends AbstractLocationFormulaInv
 
   @Override
   public String toString() {
-    return "No target locations reachable from: " + getLocations();
+    return "No target locations reachable";
   }
 
   @Override
-  public int hashCode() {
-    return getLocations().hashCode();
+  public boolean appliesTo(CFANode pLocation) {
+    return true;
   }
 
   @Override
-  public boolean equals(Object pObj) {
-    if (this == pObj) {
-      return true;
-    }
-    if (pObj instanceof TargetLocationCandidateInvariant) {
-      return getLocations().equals(((TargetLocationCandidateInvariant) pObj).getLocations());
-    }
-    return false;
+  public FluentIterable<AbstractState> filterApplicable(Iterable<AbstractState> pStates) {
+    return from(pStates).filter(AbstractStates.IS_TARGET_STATE);
   }
-
 }

@@ -23,6 +23,7 @@
  */
 package org.sosy_lab.cpachecker.cpa.value;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -68,10 +69,14 @@ import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.interfaces.StopOperator;
 import org.sosy_lab.cpachecker.core.interfaces.pcc.ProofChecker.ProofCheckerCPA;
-import org.sosy_lab.cpachecker.cpa.arg.ARGPath;
+import org.sosy_lab.cpachecker.cpa.arg.path.ARGPath;
+import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisPrecisionAdjustment.PrecAdjustmentOptions;
+import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisPrecisionAdjustment.PrecAdjustmentStatistics;
 import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisTransferRelation.ValueTransferOptions;
 import org.sosy_lab.cpachecker.cpa.value.refiner.ValueAnalysisConcreteErrorPathAllocator;
 import org.sosy_lab.cpachecker.cpa.value.symbolic.ConstraintsStrengthenOperator;
+import org.sosy_lab.cpachecker.cpa.value.symbolic.SymbolicValueAnalysisPrecisionAdjustment;
+import org.sosy_lab.cpachecker.cpa.value.symbolic.SymbolicValueAnalysisPrecisionAdjustment.SymbolicStatistics;
 import org.sosy_lab.cpachecker.cpa.value.symbolic.SymbolicValueAssigner;
 import org.sosy_lab.cpachecker.util.StateToFormulaWriter;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
@@ -94,6 +99,13 @@ public class ValueAnalysisCPA
   @FileOption(FileOption.Type.OPTIONAL_INPUT_FILE)
   private Path initialPrecisionFile = null;
 
+  @Option(secure=true,
+      name="symbolic.useSymbolicValues",
+      description="Use symbolic values. This allows tracking of non-deterministic values."
+          + " Symbolic values should always be used in conjunction with ConstraintsCPA."
+          + " Otherwise, symbolic values will be created, but not evaluated.")
+  private boolean useSymbolicValues = false;
+
   public static CPAFactory factory() {
     return AutomaticCPAFactory.forType(ValueAnalysisCPA.class);
   }
@@ -101,7 +113,6 @@ public class ValueAnalysisCPA
   private final AbstractDomain abstractDomain =
       DelegateAbstractDomain.<ValueAnalysisState>getInstance();
   private VariableTrackingPrecision precision;
-  private ValueAnalysisPrecisionAdjustment precisionAdjustment;
   private final ValueAnalysisCPAStatistics statistics;
   private final StateToFormulaWriter writer;
 
@@ -116,6 +127,9 @@ public class ValueAnalysisCPA
   private MemoryLocationValueHandler unknownValueHandler;
   private final ConstraintsStrengthenOperator constraintsStrengthenOperator;
   private final ValueTransferOptions transferOptions;
+  private final PrecAdjustmentOptions precisionAdjustmentOptions;
+  private final PrecAdjustmentStatistics precisionAdjustmentStatistics;
+  private final SymbolicStatistics symbolicStats;
 
   private ValueAnalysisCPA(Configuration config, LogManager logger,
       ShutdownNotifier pShutdownNotifier, CFA cfa) throws InvalidConfigurationException {
@@ -128,29 +142,42 @@ public class ValueAnalysisCPA
 
     precision           = initializePrecision(config, cfa);
     statistics          = new ValueAnalysisCPAStatistics(this, config);
-    precisionAdjustment = new ValueAnalysisPrecisionAdjustment(config, statistics, cfa);
     writer = new StateToFormulaWriter(config, logger, shutdownNotifier, cfa);
     errorPathAllocator = new ValueAnalysisConcreteErrorPathAllocator(config, logger, cfa.getMachineModel());
-    unknownValueHandler = new SymbolicValueAssigner(config);
-    constraintsStrengthenOperator = new ConstraintsStrengthenOperator(config);
+
+    if (useSymbolicValues) {
+      unknownValueHandler = new SymbolicValueAssigner(config);
+      symbolicStats = new SymbolicStatistics();
+    } else {
+      unknownValueHandler = new UnknownValueAssigner();
+      symbolicStats = null;
+    }
+
+    constraintsStrengthenOperator =
+        new ConstraintsStrengthenOperator(config, logger);
     transferOptions = new ValueTransferOptions(config);
+    precisionAdjustmentOptions = new PrecAdjustmentOptions(config, cfa);
+    precisionAdjustmentStatistics = new PrecAdjustmentStatistics();
   }
 
-  private VariableTrackingPrecision initializePrecision(Configuration config, CFA cfa) throws InvalidConfigurationException {
+  private VariableTrackingPrecision initializePrecision(Configuration pConfig, CFA pCfa) throws InvalidConfigurationException {
 
     if (initialPrecisionFile == null) {
-      return VariableTrackingPrecision.createStaticPrecision(config, cfa.getVarClassification(), getClass());
+      return VariableTrackingPrecision.createStaticPrecision(pConfig, pCfa.getVarClassification(), getClass());
 
     } else {
       // create precision with empty, refinable component precision
-      VariableTrackingPrecision precision = VariableTrackingPrecision.createRefineablePrecision(config,
-                      VariableTrackingPrecision.createStaticPrecision(config, cfa.getVarClassification(), getClass()));
+      VariableTrackingPrecision initialPrecision =
+          VariableTrackingPrecision.createRefineablePrecision(
+              pConfig,
+              VariableTrackingPrecision.createStaticPrecision(
+                  pConfig, pCfa.getVarClassification(), getClass()));
       // refine the refinable component precision with increment from file
-      return precision.withIncrement(restoreMappingFromFile(cfa));
+      return initialPrecision.withIncrement(restoreMappingFromFile(pCfa));
     }
   }
 
-  private Multimap<CFANode, MemoryLocation> restoreMappingFromFile(CFA cfa) {
+  private Multimap<CFANode, MemoryLocation> restoreMappingFromFile(CFA pCfa) {
     Multimap<CFANode, MemoryLocation> mapping = HashMultimap.create();
 
     List<String> contents = null;
@@ -161,7 +188,7 @@ public class ValueAnalysisCPA
       return mapping;
     }
 
-    Map<Integer, CFANode> idToCfaNode = createMappingForCFANodes(cfa);
+    Map<Integer, CFANode> idToCfaNode = createMappingForCFANodes(pCfa);
     final Pattern CFA_NODE_PATTERN = Pattern.compile("N([0-9][0-9]*)");
 
     CFANode location = getDefaultLocation(idToCfaNode);
@@ -188,9 +215,9 @@ public class ValueAnalysisCPA
     return idToCfaNode.values().iterator().next();
   }
 
-  private Map<Integer, CFANode> createMappingForCFANodes(CFA cfa) {
+  private Map<Integer, CFANode> createMappingForCFANodes(CFA pCfa) {
     Map<Integer, CFANode> idToNodeMap = Maps.newHashMap();
-    for (CFANode n : cfa.getAllNodes()) {
+    for (CFANode n : pCfa.getAllNodes()) {
       idToNodeMap.put(n.getNodeNumber(), n);
     }
     return idToNodeMap;
@@ -268,7 +295,17 @@ public class ValueAnalysisCPA
 
   @Override
   public PrecisionAdjustment getPrecisionAdjustment() {
-    return precisionAdjustment;
+    if (useSymbolicValues) {
+      return new SymbolicValueAnalysisPrecisionAdjustment(
+          statistics,
+          cfa,
+          precisionAdjustmentOptions,
+          precisionAdjustmentStatistics,
+          Preconditions.checkNotNull(symbolicStats));
+    } else {
+      return new ValueAnalysisPrecisionAdjustment(
+          statistics, cfa, precisionAdjustmentOptions, precisionAdjustmentStatistics);
+    }
   }
 
   public Configuration getConfiguration() {
@@ -295,8 +332,12 @@ public class ValueAnalysisCPA
   @Override
   public void collectStatistics(Collection<Statistics> pStatsCollection) {
     pStatsCollection.add(statistics);
+    pStatsCollection.add(precisionAdjustmentStatistics);
+    if (symbolicStats != null) {
+      pStatsCollection.add(symbolicStats);
+    }
+    pStatsCollection.add(constraintsStrengthenOperator);
     writer.collectStatistics(pStatsCollection);
-    precisionAdjustment.collectStatistics(pStatsCollection);
   }
 
   @Override

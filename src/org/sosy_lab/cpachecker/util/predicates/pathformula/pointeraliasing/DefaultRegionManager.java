@@ -27,7 +27,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 
-
 class DefaultRegionManager extends AbstractMemoryRegionManager implements MemoryRegionManager {
 
   private static class DefaultMemoryRegion implements MemoryRegion {
@@ -44,8 +43,8 @@ class DefaultRegionManager extends AbstractMemoryRegionManager implements Memory
     }
 
     @Override
-    public String getName() {
-      return CToFormulaConverterWithPointerAliasing.getPointerAccessNameForType(type);
+    public String getName(TypeHandlerWithPointerAliasing typeHandler) {
+      return typeHandler.getPointerAccessNameForType(type);
     }
 
     @Override
@@ -77,10 +76,8 @@ class DefaultRegionManager extends AbstractMemoryRegionManager implements Memory
     }
   }
 
-  @Override
-  public String getPointerAccessName(MemoryRegion pRegion) {
-    checkNotNull(pRegion);
-    return pRegion.getName();
+  DefaultRegionManager(TypeHandlerWithPointerAliasing pTypeHandler) {
+    super(pTypeHandler);
   }
 
   @Override

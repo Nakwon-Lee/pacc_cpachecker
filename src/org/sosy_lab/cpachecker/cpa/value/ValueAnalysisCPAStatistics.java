@@ -35,7 +35,7 @@ import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -55,9 +55,9 @@ public class ValueAnalysisCPAStatistics implements Statistics {
   private Path precisionFile = null;
 
   private LongAdder iterations = new LongAdder();
-  private StatCounter assumptions = new StatCounter("Number of Assumptions");
+  private StatCounter assumptions = new StatCounter("Number of assumptions");
   private StatCounter deterministicAssumptions =
-      new StatCounter("Number of deterministic Assumptions");
+      new StatCounter("Number of deterministic assumptions");
   private final ValueAnalysisCPA cpa;
 
   public ValueAnalysisCPAStatistics(ValueAnalysisCPA cpa, Configuration config) throws InvalidConfigurationException {
@@ -73,8 +73,9 @@ public class ValueAnalysisCPAStatistics implements Statistics {
 
   @Override
   public void printStatistics(PrintStream out, Result result, UnmodifiableReachedSet reached) {
-    StatInt numberOfVariables       = new StatInt(StatKind.COUNT, "Number of variables");
-    StatInt numberOfGlobalVariables = new StatInt(StatKind.COUNT, "Number of global variables");
+    StatInt numberOfVariables = new StatInt(StatKind.AVG, "Number of variables per state");
+    StatInt numberOfGlobalVariables =
+        new StatInt(StatKind.AVG, "Number of global variables per state");
 
     for (AbstractState currentAbstractState : reached) {
       ValueAnalysisState currentState = AbstractStates.extractStateByType(currentAbstractState, ValueAnalysisState.class);
@@ -105,7 +106,7 @@ public class ValueAnalysisCPAStatistics implements Statistics {
   private void exportPrecision(UnmodifiableReachedSet reached) {
     VariableTrackingPrecision consolidatedPrecision =
         VariableTrackingPrecision.joinVariableTrackingPrecisionsInReachedSet(reached);
-    try (Writer writer = MoreFiles.openOutputFile(precisionFile, Charset.defaultCharset())) {
+    try (Writer writer = IO.openOutputFile(precisionFile, Charset.defaultCharset())) {
       consolidatedPrecision.serialize(writer);
     } catch (IOException e) {
       cpa.getLogger().logUserException(Level.WARNING, e, "Could not write value-analysis precision to file");

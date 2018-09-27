@@ -27,11 +27,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +43,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithAssumptions;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
 import org.sosy_lab.cpachecker.core.interfaces.Property;
 import org.sosy_lab.cpachecker.core.interfaces.Targetable;
+import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariable.AutomatonIntVariable;
 import org.sosy_lab.cpachecker.exceptions.InvalidQueryException;
 import org.sosy_lab.cpachecker.util.expressions.ExpressionTree;
 import org.sosy_lab.cpachecker.util.expressions.ExpressionTrees;
@@ -175,7 +178,7 @@ public class AutomatonState implements AbstractQueryableState, Targetable, Seria
     this.assumptions = pAssumptions;
     this.candidateInvariants = pCandidateInvariants;
 
-    if (isTarget()) {
+    if (internalState.isTarget()) {
       checkNotNull(pViolatedPropertyDescription);
       violatedPropertyDescription = pViolatedPropertyDescription;
     } else {
@@ -274,8 +277,8 @@ public class AutomatonState implements AbstractQueryableState, Targetable, Seria
           pPreviousState.getVars(),
           pPreviousState.getInternalState(),
           pPreviousState.automatonCPA,
-          pPreviousState.getAssumptions(),
-          pPreviousState.getCandidateInvariants(),
+          ImmutableList.of(),
+          ExpressionTrees.getTrue(),
           -1,
           -1,
           null);
@@ -308,7 +311,7 @@ public class AutomatonState implements AbstractQueryableState, Targetable, Seria
 
     @Override
     public String toString() {
-      return "AutomatonUnknownState<" + previousState.toString() + ">";
+      return "AutomatonUnknownState<" + previousState + ">";
     }
   }
 
@@ -327,12 +330,12 @@ public class AutomatonState implements AbstractQueryableState, Targetable, Seria
     if (pProperty.equalsIgnoreCase(INTERNAL_STATE_IS_TARGET_PROPERTY)) {
       return getInternalState().isTarget();
     }
-    String[] parts = pProperty.split("==");
-    if (parts.length != 2) {
+    List<String> parts = Splitter.on("==").trimResults().splitToList(pProperty);
+    if (parts.size() != 2) {
       throw new InvalidQueryException("The Query \"" + pProperty + "\" is invalid. Could not split the property string correctly.");
     } else {
-      String left = parts[0].trim();
-      String right = parts[1].trim();
+      String left = parts.get(0);
+      String right = parts.get(1);
       if (left.equalsIgnoreCase("state")) {
         return this.getInternalState().getName().equals(right);
       } else {
@@ -355,19 +358,33 @@ public class AutomatonState implements AbstractQueryableState, Targetable, Seria
   @Override
   public void modifyProperty(String pModification) throws InvalidQueryException {
     // allows to set values of Automaton variables like "x:=6"
-    String[] parts = pModification.split(":=");
-    if (parts.length != 2) {
+    List<String> parts = Splitter.on(":=").trimResults().splitToList(pModification);
+    if (parts.size() != 2) {
       throw new InvalidQueryException("The Query \"" + pModification + "\" is invalid. Could not split the string correctly.");
     } else {
-      String left = parts[0].trim();
-      String right = parts[1].trim();
+      String left = parts.get(0);
+      String right = parts.get(1);
       AutomatonVariable var = this.vars.get(left);
       if (var != null) {
-        try {
-          int val = Integer.parseInt(right);
-          var.setValue(val);
-        } catch (NumberFormatException e) {
-          throw new InvalidQueryException("The Query \"" + pModification + "\" is invalid. Could not parse the int \"" + right + "\".");
+        if (var instanceof AutomatonIntVariable) {
+          try {
+            int val = Integer.parseInt(right);
+            ((AutomatonIntVariable) var).setValue(val);
+          } catch (NumberFormatException e) {
+            throw new InvalidQueryException(
+                "The Query \""
+                    + pModification
+                    + "\" is invalid. Could not parse the int \""
+                    + right
+                    + "\".");
+          }
+        } else {
+          throw new InvalidQueryException(
+              "Automaton variable '"
+                  + var.getName()
+                  + "' is not supported in query '"
+                  + pModification
+                  + "'");
         }
       } else {
         throw new InvalidQueryException("Could not modify the variable \"" + left + "\" (Variable not found)");
@@ -417,7 +434,7 @@ public class AutomatonState implements AbstractQueryableState, Targetable, Seria
         internalState = AutomatonInternalState.BREAK;
       } else if(stateId == AutomatonInternalState.BOTTOM.getStateId()) {
         internalState = AutomatonInternalState.BOTTOM;
-      } 
+      }
     }
 
     automatonCPA = GlobalInfo.getInstance().getAutomatonInfo().getCPAForAutomaton((String)in.readObject());

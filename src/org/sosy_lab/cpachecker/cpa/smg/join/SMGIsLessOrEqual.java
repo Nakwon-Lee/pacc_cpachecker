@@ -2,7 +2,7 @@
  *  CPAchecker is a tool for configurable software verification.
  *  This file is part of CPAchecker.
  *
- *  Copyright (C) 2007-2014  Dirk Beyer
+ *  Copyright (C) 2007-2018  Dirk Beyer
  *  All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,52 +23,105 @@
  */
 package org.sosy_lab.cpachecker.cpa.smg.join;
 
-import java.util.Deque;
-import java.util.HashSet;
+import com.google.common.collect.Iterables;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import org.sosy_lab.cpachecker.cfa.types.c.CVoidType;
 import org.sosy_lab.cpachecker.cpa.smg.CLangStackFrame;
-import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValue;
-import org.sosy_lab.cpachecker.cpa.smg.SMGEdgeHasValueFilter;
-import org.sosy_lab.cpachecker.cpa.smg.SMGEdgePointsTo;
-import org.sosy_lab.cpachecker.cpa.smg.graphs.CLangSMG;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGObject;
-import org.sosy_lab.cpachecker.cpa.smg.objects.SMGRegion;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.UnmodifiableCLangSMG;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValueFilter;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGObject;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGRegion;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGValue;
+import org.sosy_lab.cpachecker.util.statistics.ThreadSafeTimerContainer;
+import org.sosy_lab.cpachecker.util.statistics.ThreadSafeTimerContainer.TimerWrapper;
 
 /**
  * This class implements a faster way to test, if one smg is less or equal to another.
  * Simply joining two smg and requesting its status takes too long.
- *
  */
 public class SMGIsLessOrEqual {
+
+  public static final ThreadSafeTimerContainer isLEQTimer =
+      new ThreadSafeTimerContainer("Time for joining SMGs");
+  public static final ThreadSafeTimerContainer globalsTimer =
+      new ThreadSafeTimerContainer("Time for joining globals");
+  public static final ThreadSafeTimerContainer stackTimer =
+      new ThreadSafeTimerContainer("Time for joining stacks");
+  public static final ThreadSafeTimerContainer heapTimer =
+      new ThreadSafeTimerContainer("Time for joining heaps");
 
   private SMGIsLessOrEqual() {} // Utility class.
 
   /**
-   *
    * Checks, if smg2 is less or equal to smg1.
+   *
    * @return true, iff smg1 is less or equal to smg2, false otherwise.
    */
-  public static boolean isLessOrEqual(CLangSMG pSMG1, CLangSMG pSMG2) {
+  public static boolean isLessOrEqual(UnmodifiableCLangSMG pSMG1, UnmodifiableCLangSMG pSMG2) {
 
-    // if smg1 is smg2, smg1 is equal to smg2
-    if (pSMG1 == pSMG2) {
+    TimerWrapper timer = isLEQTimer.getNewTimer();
+    timer.start();
+    try {
+
+      // if smg1 is smg2, smg1 is equal to smg2
+      if (pSMG1 == pSMG2) {
+        return true;
+      }
+
+      // if smg1 has not allocated the same number of SMGObjects in the heap, it is not equal to smg2
+      if (pSMG1.getHeapObjects().size() != pSMG2.getHeapObjects().size()) {
+        return false;
+      }
+
+      if (pSMG1.getStackFrames().size() != pSMG2.getStackFrames().size()) {
+        return false;
+      }
+
+      TimerWrapper gt = globalsTimer.getNewTimer();
+      gt.start();
+      try {
+        if (!maybeGlobalsLessOrEqual(pSMG1, pSMG2)) {
+          return false;
+        }
+      } finally {
+        gt.stop();
+      }
+
+      TimerWrapper st = stackTimer.getNewTimer();
+      st.start();
+      try {
+        if (!maybeStackLessOrEqual(pSMG1, pSMG2)) {
+          return false;
+        }
+      } finally {
+        st.stop();
+      }
+
+      TimerWrapper ht = heapTimer.getNewTimer();
+      ht.start();
+      try {
+        if (!maybeHeapLessOrEqual(pSMG1, pSMG2)) {
+          return false;
+        }
+      } finally {
+        ht.stop();
+      }
+
       return true;
-    }
 
-    // if smg1 has not allocated the same number of SMGObjects in the heap, it is not equal to smg2
-    if (pSMG1.getHeapObjects().size() != pSMG2.getHeapObjects().size()) {
-      return false;
+    } finally {
+      timer.stop();
     }
+  }
 
-    if (pSMG1.getStackFrames().size() != pSMG2.getStackFrames().size()) {
-      return false;
-    }
-
+  /** returns whether globals variables are "maybe LEQ" or "definitely not LEQ". */
+  private static boolean maybeGlobalsLessOrEqual(
+      UnmodifiableCLangSMG pSMG1, UnmodifiableCLangSMG pSMG2) {
     Map<String, SMGRegion> globals_in_smg1 = pSMG1.getGlobalObjects();
     Map<String, SMGRegion> globals_in_smg2 = pSMG2.getGlobalObjects();
 
@@ -88,17 +141,19 @@ public class SMGIsLessOrEqual {
       }
 
       SMGObject globalInSMG2 = globals_in_smg2.get(entry.getKey());
-
       if (!isLessOrEqualFields(pSMG1, pSMG2, globalInSMG1, globalInSMG2)) {
         return false;
       }
     }
 
-    Deque<CLangStackFrame> stack_in_smg1 = pSMG1.getStackFrames();
-    Deque<CLangStackFrame> stack_in_smg2 = pSMG2.getStackFrames();
+    return true;
+  }
 
-    Iterator<CLangStackFrame> smg1stackIterator = stack_in_smg1.descendingIterator();
-    Iterator<CLangStackFrame> smg2stackIterator = stack_in_smg2.descendingIterator();
+  /** returns whether variables on the stack are "maybe LEQ" or "definitely not LEQ". */
+  private static boolean maybeStackLessOrEqual(
+      UnmodifiableCLangSMG pSMG1, UnmodifiableCLangSMG pSMG2) {
+    Iterator<CLangStackFrame> smg1stackIterator = pSMG1.getStackFrames().iterator();
+    Iterator<CLangStackFrame> smg2stackIterator = pSMG2.getStackFrames().iterator();
 
     // Check, whether the stack frames of smg1 are less or equal to smg 2
     while (smg1stackIterator.hasNext() && smg2stackIterator.hasNext()) {
@@ -122,10 +177,7 @@ public class SMGIsLessOrEqual {
         return false;
       }
 
-      Set<String> localVars = new HashSet<>();
-      localVars.addAll(frameInSMG1.getVariables().keySet());
-
-      for (String localVar : localVars) {
+      for (String localVar : frameInSMG1.getVariables().keySet()) {
 
         //technically, one should look if any SMGHVE exist in additional region in SMG1
         if ((!frameInSMG2.containsVariable(localVar))) {
@@ -141,7 +193,12 @@ public class SMGIsLessOrEqual {
       }
     }
 
-    // Check, whether the heap of smg1 is less or equal to smg 2
+    return true;
+  }
+
+  /** returns whether two heaps are "maybe LEQ" or "definitely not LEQ". */
+  private static boolean maybeHeapLessOrEqual(
+      UnmodifiableCLangSMG pSMG1, UnmodifiableCLangSMG pSMG2) {
     Set<SMGObject> heap_in_smg1 = pSMG1.getHeapObjects();
     Set<SMGObject> heap_in_smg2 = pSMG2.getHeapObjects();
 
@@ -165,7 +222,11 @@ public class SMGIsLessOrEqual {
     return true;
   }
 
-  private static boolean isLessOrEqualFields(CLangSMG pSMG1, CLangSMG pSMG2, SMGObject pSMGObject1,
+  /** check whether an object is LEQ than another object. */
+  private static boolean isLessOrEqualFields(
+      UnmodifiableCLangSMG pSMG1,
+      UnmodifiableCLangSMG pSMG2,
+      SMGObject pSMGObject1,
       SMGObject pSMGObject2) {
 
     if (pSMGObject1.getSize() != pSMGObject2.getSize()) {
@@ -179,18 +240,17 @@ public class SMGIsLessOrEqual {
     SMGEdgeHasValueFilter filterForSMG1 = SMGEdgeHasValueFilter.objectFilter(pSMGObject1);
     SMGEdgeHasValueFilter filterForSMG2 = SMGEdgeHasValueFilter.objectFilter(pSMGObject2);
 
-    Set<SMGEdgeHasValue> HVE1 = filterForSMG1.filterSet(pSMG1.getHVEdges());
-    Set<SMGEdgeHasValue> HVE2 = filterForSMG2.filterSet(pSMG2.getHVEdges());
+    Set<SMGEdgeHasValue> HVE2 = pSMG2.getHVEdges(filterForSMG2);
 
-    //TODO Merge Zero.
-    for (SMGEdgeHasValue edge1 : HVE1) {
+    // TODO Merge Zero.
+    for (SMGEdgeHasValue edge1 : pSMG1.getHVEdges(filterForSMG1)) {
       filterForSMG2.filterAtOffset(edge1.getOffset()).filterByType(edge1.getType()).filterHavingValue(edge1.getValue());
 
-      if (!filterForSMG2.edgeContainedIn(HVE2)) {
+      if (!Iterables.any(HVE2, filterForSMG2::holdsFor)) {
         return false;
       }
 
-      Integer value = edge1.getValue();
+      SMGValue value = edge1.getValue();
 
       if (pSMG1.isPointer(value)) {
         if (!pSMG2.isPointer(value)) {
@@ -201,11 +261,11 @@ public class SMGIsLessOrEqual {
         SMGEdgePointsTo ptE2 = pSMG2.getPointer(value);
         String label1 = ptE1.getObject().getLabel();
         String label2 = ptE2.getObject().getLabel();
-        Integer offset1 = ptE1.getOffset();
-        Integer offset2 = ptE2.getOffset();
+        long offset1 = ptE1.getOffset();
+        long offset2 = ptE2.getOffset();
 
         //TODO How does one check, if two pointers point to the same region? You would have to recover the stack frame.
-        if (!(offset1.equals(offset2) && label1.equals(label2))) {
+        if (!(offset1 == offset2 && label1.equals(label2))) {
           return false;
         }
       }

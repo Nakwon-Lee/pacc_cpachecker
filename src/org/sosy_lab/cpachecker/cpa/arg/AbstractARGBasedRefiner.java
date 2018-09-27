@@ -41,11 +41,12 @@ import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Refiner;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
-import org.sosy_lab.cpachecker.core.interfaces.WrapperCPA;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
+import org.sosy_lab.cpachecker.cpa.arg.path.ARGPath;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.exceptions.RefinementFailedException;
+import org.sosy_lab.cpachecker.util.CPAs;
 
 /**
  * Base implementation for {@link Refiner}s that provides access to ARG utilities
@@ -83,14 +84,7 @@ public class AbstractARGBasedRefiner implements Refiner, StatisticsProvider {
     checkArgument(
         !(pRefiner instanceof Refiner),
         "ARGBasedRefiners may not implement Refiner, choose between these two!");
-
-    if (!(pCpa instanceof WrapperCPA)) {
-      throw new InvalidConfigurationException("ARG CPA needed for refinement");
-    }
-    ARGCPA argCpa = ((WrapperCPA) pCpa).retrieveWrappedCpa(ARGCPA.class);
-    if (argCpa == null) {
-      throw new InvalidConfigurationException("ARG CPA needed for refinement");
-    }
+    ARGCPA argCpa = CPAs.retrieveCPAOrFail(pCpa, ARGCPA.class, Refiner.class);
     return new AbstractARGBasedRefiner(pRefiner, argCpa, argCpa.getLogger());
   }
 
@@ -138,6 +132,7 @@ public class AbstractARGBasedRefiner implements Refiner, StatisticsProvider {
       ARGPath targetPath = counterexample.getTargetPath();
 
       // new targetPath must contain root and error node
+      assert path != null : "Counterexample should come from a correct path.";
       assert targetPath.getFirstState() == path.getFirstState() : "Target path from refiner does not contain root node";
       assert targetPath.getLastState()  == path.getLastState() : "Target path from refiner does not contain target state";
 

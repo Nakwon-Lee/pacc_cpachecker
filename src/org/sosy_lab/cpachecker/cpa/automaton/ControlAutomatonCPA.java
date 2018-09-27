@@ -35,7 +35,7 @@ import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.io.MoreFiles;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.io.PathTemplate;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
@@ -56,7 +56,6 @@ import org.sosy_lab.cpachecker.core.defaults.StopSepOperator;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractDomain;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.CPAFactory;
-import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysisWithBAM;
 import org.sosy_lab.cpachecker.core.interfaces.MergeOperator;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustment;
@@ -73,8 +72,7 @@ import org.sosy_lab.cpachecker.util.globalinfo.AutomatonInfo;
  */
 @Options(prefix="cpa.automaton")
 public class ControlAutomatonCPA
-    implements ConfigurableProgramAnalysis,
-        StatisticsProvider,
+    implements StatisticsProvider,
         ConfigurableProgramAnalysisWithBAM,
         ProofCheckerCPA {
 
@@ -82,10 +80,21 @@ public class ControlAutomatonCPA
       description="export automaton to file")
   private boolean export = false;
 
-  @Option(secure=true, name="dotExportFile",
-      description="file for saving the automaton in DOT format (%s will be replaced with automaton name)")
+  @Option(
+      secure = true,
+      name = "dotExportFile",
+      description =
+          "file for saving the automaton in DOT format (%s will be replaced with automaton name)")
   @FileOption(FileOption.Type.OUTPUT_FILE)
-  private PathTemplate exportFile = PathTemplate.ofFormatString("%s.dot");
+  private PathTemplate dotExportFile = PathTemplate.ofFormatString("%s.dot");
+
+  @Option(
+      secure = true,
+      name = "spcExportFile",
+      description =
+          "file for saving the automaton in spc format (%s will be replaced with automaton name)")
+  @FileOption(FileOption.Type.OUTPUT_FILE)
+  private PathTemplate spcExportFile = PathTemplate.ofFormatString("%s.spc");
 
   public static CPAFactory factory() {
     return AutomaticCPAFactory.forType(ControlAutomatonCPA.class);
@@ -141,24 +150,33 @@ public class ControlAutomatonCPA
       throw new InvalidConfigurationException("Explicitly specified automaton CPA needs option cpa.automaton.inputFile!");
 
     } else {
-      this.automaton = constructAutomataFromFile(pConfig, pLogger, inputFile, pCFA);
+      this.automaton = constructAutomataFromFile(pConfig, inputFile);
     }
 
     pLogger.log(Level.FINEST, "Automaton", automaton.getName(), "loaded.");
 
-    if (export && exportFile != null) {
-      try (Writer w =
-          MoreFiles.openOutputFile(
-              exportFile.getPath(automaton.getName()), Charset.defaultCharset())) {
-        automaton.writeDotFile(w);
-      } catch (IOException e) {
-        pLogger.logUserException(Level.WARNING, e, "Could not write the automaton to DOT file");
+    if (export) {
+      if (dotExportFile != null) {
+        try (Writer w =
+            IO.openOutputFile(
+                dotExportFile.getPath(automaton.getName()), Charset.defaultCharset())) {
+          automaton.writeDotFile(w);
+        } catch (IOException e) {
+          pLogger.logUserException(Level.WARNING, e, "Could not write the automaton to DOT file");
+        }
+      }
+      if (spcExportFile != null) {
+        try {
+          IO.writeFile(
+              spcExportFile.getPath(automaton.getName()), Charset.defaultCharset(), automaton);
+        } catch (IOException e) {
+          pLogger.logUserException(Level.WARNING, e, "Could not write the automaton to SPC file");
+        }
       }
     }
   }
 
-  private Automaton constructAutomataFromFile(
-      Configuration pConfig, LogManager logger, Path pFile, CFA cfa)
+  private Automaton constructAutomataFromFile(Configuration pConfig, Path pFile)
       throws InvalidConfigurationException {
 
     Scope scope = cfa.getLanguage() == Language.C
@@ -222,7 +240,7 @@ public class ControlAutomatonCPA
 
   @Override
   public StopOperator getStopOperator() {
-    return new StopSepOperator(getAbstractDomain());
+      return new StopSepOperator(getAbstractDomain());
   }
 
   @Override

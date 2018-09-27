@@ -23,16 +23,29 @@
  */
 package org.sosy_lab.cpachecker.cpa.livevar;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.sosy_lab.cpachecker.util.LiveVariables.LIVE_DECL_EQUIVALENCE;
 
 import com.google.common.base.Equivalence.Wrapper;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import javax.annotation.Nullable;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -80,21 +93,7 @@ import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.LiveVariables;
-import org.sosy_lab.cpachecker.util.VariableClassification;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.logging.Level;
-
-import javax.annotation.Nullable;
+import org.sosy_lab.cpachecker.util.variableclassification.VariableClassification;
 
 /**
  * This transfer relation computes the live variables for each location. For
@@ -129,6 +128,12 @@ public class LiveVariablesTransferRelation extends ForwardingTransferRelation<Li
     logger = pLogger;
     cfa = pCFA;
 
+    if (!cfa.getVarClassification().isPresent() && cfa.getLanguage() == Language.C) {
+      throw new AssertionError(
+          "Without information of the variable classification"
+              + " the live variables analysis cannot be used.");
+    }
+
     VariableClassification variableClassification;
     if (pLang == Language.C) {
       variableClassification = pVarClass.get();
@@ -147,9 +152,10 @@ public class LiveVariablesTransferRelation extends ForwardingTransferRelation<Li
 
     BitSet addressedVars = new BitSet(noVars);
     if (pLang == Language.C) {
-      Set<String> addressedVarsSet = variableClassification.getAddressedVariables();
+      Set<String> addressedVarsSet =
+          Preconditions.checkNotNull(variableClassification).getAddressedVariables();
       for (int i=0; i<noVars; i++) {
-        ASimpleDeclaration decl = allDeclarations.get(i).get();
+        ASimpleDeclaration decl = checkNotNull(allDeclarations.get(i).get());
         if (addressedVarsSet.contains(decl.getQualifiedName())) {
           addressedVars.set(i);
         }
@@ -278,7 +284,7 @@ public class LiveVariablesTransferRelation extends ForwardingTransferRelation<Li
 
     Wrapper<ASimpleDeclaration> varDecl = LIVE_DECL_EQUIVALENCE.wrap(decl);
     int varDeclPos = declarationListPos.get(varDecl);
-    AInitializer init = ((AVariableDeclaration)varDecl.get()).getInitializer();
+    AInitializer init = ((AVariableDeclaration) decl).getInitializer();
 
     // there is no initializer thus we only have to remove the initialized variable
     // from the live variables

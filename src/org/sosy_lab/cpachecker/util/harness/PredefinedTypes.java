@@ -41,7 +41,7 @@ import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CVoidType;
 import org.sosy_lab.cpachecker.cfa.types.java.JSimpleType;
 
-final class PredefinedTypes {
+public final class PredefinedTypes {
 
   private PredefinedTypes() {
 
@@ -72,6 +72,21 @@ final class PredefinedTypes {
         || isDiv(pDeclaration)
         || isVerifierError(pDeclaration)
         || isVerifierAssume(pDeclaration);
+  }
+
+  public static boolean isKnownTestFunction(@Nullable AFunctionDeclaration pDeclaration) {
+    return isMalloc(pDeclaration)
+        || isFree(pDeclaration)
+        || isExit(pDeclaration)
+        || isAbort(pDeclaration)
+        || isPrintf(pDeclaration)
+        || isVerifierError(pDeclaration)
+        || isVerifierAssume(pDeclaration);
+  }
+
+  public static boolean isPredefinedFunctionWithoutVerifierError(
+      @Nullable AFunctionDeclaration pDeclaration) {
+    return !isVerifierError(pDeclaration) && isPredefinedFunction(pDeclaration);
   }
 
   public static Type getCanonicalType(Type pType) {

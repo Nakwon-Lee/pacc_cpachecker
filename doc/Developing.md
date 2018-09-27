@@ -16,6 +16,8 @@ There are four possibilities to retrieve the source code:
 
 - Our [Git mirror](https://svn.sosy-lab.org/software/cpachecker.git)
 
+- A Git mirror at [GitLab](https://gitlab.com/sosy-lab/software/cpachecker/)
+
 - A Git mirror at [GitHub](https://github.com/sosy-lab/cpachecker)
 
 Only our `SVN` repository allows committing,
@@ -27,11 +29,13 @@ fails or causes problems.
 For browsing through the code online,
 there are these possibilities:
 
-- https://svn.sosy-lab.org/trac/cpachecker/browser/CPAchecker
-  (with an SVN account)
+- https://gitlab.com/sosy-lab/software/cpachecker/tree/trunk/
 - https://github.com/sosy-lab/cpachecker/tree/trunk/
 
-For bug tracking, we use our [Trac](https://svn.sosy-lab.org/trac/cpachecker/).
+For bug tracking, we use [GitLab](https://gitlab.com/sosy-lab/software/cpachecker/issues).
+The issue tracker is only accessible for CPAchecker developers,
+please click on [Request Access](https://gitlab.com/sosy-lab/software/cpachecker/) after signing in to GitLab
+or [contact us](Mailing.md).
 
 For building the code on the command line, c.f. [`../INSTALL.md`](../INSTALL.md).
 
@@ -42,10 +46,9 @@ commit to the SVN repository (with `git svn dcommit`)
 while still using Git to fetch the commits:
 
 ```
-git clone -n -o mirror https://svn.sosy-lab.org/git/software/cpachecker.git/
+git clone -o mirror https://svn.sosy-lab.org/software/cpachecker.git/
 cd cpachecker
 git svn init --prefix=mirror/ -s https://svn.sosy-lab.org/software/cpachecker
-git checkout -t mirror/trunk
 ```
 
 This also works with GitHub.
@@ -56,23 +59,26 @@ Develop CPAchecker from within Eclipse
 
 0. Install a Java 8 compatible JDK (c.f. [`../INSTALL.md`](../INSTALL.md)).
 
-1. Install [Eclipse](http://www.eclipse.org/) with at least version 4.4, with JDT.
+1. Install [Eclipse](http://www.eclipse.org/) with at least version 4.6, with JDT.
 
-2. Install an SVN plugin for Eclipse, e.g. [SubClipse](http://subclipse.tigris.org).
+2. IMPORTANT: Install the Eclipse plugin for [google-java-format]:
+   Download the `google-java-format-eclipse-plugin-*.jar`
+   from the most recent [google-java-format release](https://github.com/google/google-java-format/releases)
+   and put it into the `dropins` folder of your Eclipse installation
+   (where you extracted the Eclipse archive, not the workspace).
+
+3. Install an SVN plugin for Eclipse, e.g. [SubClipse](http://subclipse.tigris.org).
    Create new project from [SVN repository](https://svn.sosy-lab.org/software/cpachecker/trunk)
    (or use GIT as described above).
 
-3. Copy the file `.factorypath.template` to `.factorypath`,
+4. Copy the file `.factorypath.template` to `.factorypath`,
    and (if necessary) adjust the path to the CPAchecker directory within it.
 
-4. If Eclipse complains about a missing JDK
+5. If Eclipse complains about a missing JDK
    (`Unbound classpath container: 'JRE System Library [JavaSE-1.8]'`),
    go to Window -> Preferences -> Java -> Installed JREs,
    click the "Search" button and select the path where your Java 8 installation
    can be found (on Ubuntu `/usr/lib/jvm` will do).
-
-5. Ignore warnings `Unsatisfied version constraint: 'org.eclipse.cdt.core ...'`
-   and `Bundle 'org.eclipse.cdt.core' cannot be resolved'`.
 
 6. In order to run CPAchecker, use one of the supplied launch configurations
    or create your own.
@@ -88,7 +94,7 @@ Develop CPAchecker from within Eclipse
 Code-Quality Checks and Continuous Integration
 ----------------------------------------------
 
-We use javac, Google Error-Prone, the Eclipse Java Compiler, and FindBugs
+We use javac, Google Error-Prone, the Eclipse Java Compiler, and SpotBugs
 for findings bugs in the source, and we keep CPAchecker
 free of warnings from all these tools.
 You can run them all at once (plus the unit tests) with `ant all-checks`.

@@ -34,19 +34,20 @@ import org.sosy_lab.cpachecker.cfa.ast.c.DefaultCExpressionVisitor;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.types.c.CEnumType.CEnumerator;
 import org.sosy_lab.cpachecker.core.defaults.precision.VariableTrackingPrecision;
+import org.sosy_lab.cpachecker.exceptions.NoException;
 import org.sosy_lab.cpachecker.util.predicates.regions.Region;
 import org.sosy_lab.cpachecker.util.predicates.regions.RegionManager;
 
 /** This Visitor implements evaluation of simply typed expressions.
  * This Visitor is specialized for boolean expressions. */
 public class BDDBooleanExpressionVisitor
-        extends DefaultCExpressionVisitor<Region, RuntimeException> {
+        extends DefaultCExpressionVisitor<Region, NoException> {
 
-  private final static int BOOLEAN_SIZE = 1;
-  private final PredicateManager predMgr;
-  private final VariableTrackingPrecision precision;
+  protected static final int BOOLEAN_SIZE = 1;
+  protected final PredicateManager predMgr;
+  protected final VariableTrackingPrecision precision;
   protected final RegionManager rmgr;
-  private final CFANode location;
+  protected final CFANode location;
 
   /** This Visitor returns the boolean value for an expression. */
   protected BDDBooleanExpressionVisitor(final PredicateManager pPredMgr, final RegionManager pRmgr, final VariableTrackingPrecision pPrecision, final CFANode pLocation) {
