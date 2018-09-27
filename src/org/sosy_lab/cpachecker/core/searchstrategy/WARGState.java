@@ -2,7 +2,7 @@
  *  CPAchecker is a tool for configurable software verification.
  *  This file is part of CPAchecker.
  *
- *  Copyright (C) 2007-2016  Dirk Beyer
+ *  Copyright (C) 2007-2018  Dirk Beyer
  *  All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,42 +23,44 @@
  */
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
-import java.util.Set;
-import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
+import java.util.Comparator;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
+public class WARGState implements Comparable<WARGState>{
 
-public class CSRPOSearchStrategyFormula extends AbstractSearchStrategyFormula {
+    private ARGState state;
+    private Comparator<WARGState> comp;
 
-  private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","uID"};
+    public WARGState(ARGState e, Comparator<WARGState> pcomp) {
+      state = e;
+      comp = pcomp;
+    }
 
-  public CSRPOSearchStrategyFormula(Set<String> pVars){
-    super(pVars, varsUsed);
-  }
+    public ARGState getState() {
+      return state;
+    }
 
-  @Override
-  public int compare(ARGState e1, ARGState e2) {
-    int ret = 0;
+    @Override
+    public int compareTo(WARGState pArg0) {
+      return comp.compare(this, pArg0);
+    }
 
-    if (e1.CS() > e2.CS()){
-      ret = -1;
-    }else if (e1.CS() < e2.CS()){
-      ret = 1;
-    }else{
-      if (e1.RPO() > e2.RPO()){
-        ret = -1;
-      }else if (e1.RPO() < e2.RPO()){
-        ret = 1;
-      }else{
-        if (e1.uID() < e2.uID()){
-          ret = -1;
-        }else if (e1.uID() > e2.uID()){
-          ret = 1;
+    @Override
+    public final boolean equals(Object pObj) {
+      if(pObj instanceof WARGState) {
+        if(this.compareTo((WARGState) pObj) == 0) {
+          return true;
+        }else {
+          return false;
         }
+      }else {
+        return false;
       }
     }
 
-    return ret;
-  }
-
+    @Override
+    public int hashCode() {
+      // TODO Auto-generated method stub
+      return super.hashCode();
+    }
 }

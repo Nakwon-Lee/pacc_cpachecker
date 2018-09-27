@@ -21,7 +21,7 @@ from TraversalStrategyModels import *
 class RanTSExecutor:
 	def __init__(self, labfuncs):
 		self.atos = TSS.makingAtomTotalOrders(labfuncs)
-		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-Dy-MySearchStrategy', '-heap', '-timelimit', '-preprocess', '-stats', '-noout', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
+		self.defaultargv = ['./scripts/RanTSExecutor.py', '--no-container', '--', 'scripts/cpa.sh', '-', '-heap', '-timelimit', '-preprocess', '-stats', '-noout', '-setprop', 'cpa.predicate.memoryAllocationsAlwaysSucceed=true', '-spec', '../sv-benchmarks/c/ReachSafety.prp']
 		self.myargv = None
 
 	def makeArgv(self, cores, memlimit, timelimit, algo, filen):
@@ -54,7 +54,7 @@ def main():
 	outlog = 'output.log'
 	fitvalsfile = 'fitvalues.csv'
 	currxmlfile = 'currts.xml'
-	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
+	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/ABESearchStrategyFormula.java.java'
 	labfuncs = (('isAbs',1,(0,1),0),('CS',0,1),('RPO',0,1),('CS',0,0),('blkD',0,0),('blkD',0,1),('RPO',0,0),('uID',0,0),('uID',0,1),('LenP',0,1),('LenP',0,0),('loopD',0,1),('loopD',0,0))
 
 	mycore = 0 

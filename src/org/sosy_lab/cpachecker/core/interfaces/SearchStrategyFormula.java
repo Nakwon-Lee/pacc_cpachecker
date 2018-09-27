@@ -26,9 +26,9 @@ package org.sosy_lab.cpachecker.core.interfaces;
 import java.util.Comparator;
 import java.util.Set;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.core.searchstrategy.WARGState;
 
-public interface SearchStrategyFormula extends Comparator<ARGState>{
+public interface SearchStrategyFormula extends Comparator<WARGState>{
 
   interface Factory {
     SearchStrategyFormula create(Set<String> pVars)

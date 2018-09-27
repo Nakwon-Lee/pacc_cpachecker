@@ -3,20 +3,39 @@ import sys
 import csv
 import numpy as np
 
-def copyValtoDic(fdic, tdic, fkey, tkey):
+def copyValtoDic(fdic, tdic, fkey, tkey, vrest, vtime):
 	ret = 0
-	if fdic[fkey] == '':
-		tdic[tkey] = 'NaN'
-		ret = 0
-	else:
-		if fkey == 'Time':
-			if fdic['Result'] == '1':
+	if fkey == 'Time':
+		if fdic['Result'] == '1':
+			if vrest == 1:
 				tdic[tkey] = float(fdic[fkey])
+			elif vrest == 2:
+				tdic[tkey] = 'NaN'
 			else:
+				assert False, 'vrest should be 1 or 2'
+		elif fdic['Result'] == '0':
+			if float(vtime) > 900:
 				tdic[tkey] = 900
+			else:
+				tdic[tkey] = 'NaN'
+		elif fdic['Result'] == '':
+			tdic[tkey] = 900
+		else:
+			assert False, 'Result should be 1, 0, or None'
+	elif fkey == 'Result':
+		if vrest == None:
+			tdic[tkey] = 0
+		elif vrest == 1:
+			tdic[tkey] = float(fdic[fkey])
+		elif vrest == 2:
+			tdic[tkey] = 'NaN'
+		else:
+			tdic[tkey] = float(fdic[fkey]) 
+	else:
+		if fdic[fkey] == '':
+			tdic[tkey] = 'NaN'
 		else:
 			tdic[tkey] = float(fdic[fkey])
-		ret = 1
 
 	return ret
 
@@ -85,6 +104,28 @@ def staticCatcher(pfile):
 
 	return nlines, nconds
 
+def resultCatcher(pfile):
+	lines = pfile.readlines()
+	result = None
+	fulltime = None
+	for aline in lines:
+		if aline.find("Verification result:") is not -1:
+			tokens = aline.split()
+			token = tokens[2]
+			result = token[0:len(token)-1]
+			if result == 'TRUE':
+				result = 1
+			elif result == 'FALSE':
+				result = 2
+			else:
+				result = 0
+		if aline.find("Total CPU time for CPAchecker:") is not -1:
+			tokens = aline.split()
+			token = tokens[5]
+			fulltime = token[0:len(token)-1]
+
+	return result, fulltime
+
 def main():
 	dirname = sys.argv[1]
 	fileprefix = 'fitvalues'
@@ -96,6 +137,8 @@ def main():
 	fitvalsheader = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs')
 	fitvalsheaderex = ('NoAffS','VL','VC','Time','Result','AFC','SFC','NoR','NoIter','NoStop','AvgLenTP','DNonTItp','NoAbs','FNoAffS','FVL','FVC','FTime','FResult','FAFC','FSFC','FNoR','FNoIter','FNoStop','FAvgLenTP','FDNonTItp','FNoAbs')
 	destivs = ('Nums', 'Sum', 'Avg', 'Min', 'Max', 'Mid', 'Std', 'Unq')
+
+	count = 0
 
 	for afitval in fitvalsheaderex:
 		for adestiv in destivs:
@@ -211,8 +254,17 @@ def main():
 		if fitcsvreader != None: 
 			fitcsvreader.__next__()
 			for fitlow in fitcsvreader:
+				vrest = None
+				vtime = None
+				outffilename = dirpath + 'tsxml' + str(number) + '/output'+ str(i) + '.log'
+				#outffilename = dirpath + 'ouputs' + str(number) + '/output.log'
+				isoutfexist = os.path.exists(outffilename)
+				if isoutfexist:
+					outff = open(outffilename,'r')
+					vrest, vtime = resultCatcher(outff)
+					outff.close()
 				for afitval in fitvalsheader:
-					copyValtoDic(fitlow, valdiclist[i], afitval, afitval)
+					copyValtoDic(fitlow, valdiclist[i], afitval, afitval, vrest, vtime)
 					if valdiclist[i][afitval] != 'NaN':
 						destivediclist[afitval].append(valdiclist[i][afitval])
 				i = i + 1
@@ -221,8 +273,17 @@ def main():
 		if fullcsvreader != None:
 			fullcsvreader.__next__()
 			for fulllow in fullcsvreader:
+				vrest = None
+				vtime = None
+				outffilename = dirpath + 'tsxml' + str(number) + '/outputF'+ str(i) + '.log'
+				#outffilename = dirpath + 'ouputs' + str(number) + '/output.log'
+				isoutfexist = os.path.exists(outffilename)
+				if isoutfexist:
+					outff = open(outffilename,'r')
+					vrest, vtime = resultCatcher(outff)
+					outff.close()
 				for afitval in fitvalsheader:
-					copyValtoDic(fulllow, valdiclist[i], afitval, 'F'+afitval)
+					copyValtoDic(fulllow, valdiclist[i], afitval, 'F'+afitval, vrest, vtime)
 					if valdiclist[i]['F'+afitval] != 'NaN':
 						destivediclist['F'+afitval].append(valdiclist[i]['F'+afitval])
 				i = i + 1
@@ -236,7 +297,7 @@ def main():
 			quat1 = destivdic['FTimeMin']
 			quat3 = destivdic['FTimeMax']
 			qcd = (quat3-quat1)/(quat3+quat1)
-			if qcd > 0.5:
+			if qcd > 0.1:
 				tempdic = {}
 				tempdic['No.'] = idx
 				tempdic['file name'] = row['file name']

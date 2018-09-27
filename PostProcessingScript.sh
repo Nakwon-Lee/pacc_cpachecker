@@ -1,5 +1,5 @@
 #!/bin/bash
-SUM_DIC=summaryPA/
+SUM_DIC=summaryPAF/
 
 rm $SUM_DIC*
 

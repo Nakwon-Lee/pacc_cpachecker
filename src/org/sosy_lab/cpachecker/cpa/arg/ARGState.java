@@ -53,6 +53,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocations;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
 import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
+import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
 public class ARGState extends AbstractSingleWrapperState implements Comparable<ARGState>, Graphable{
@@ -120,6 +121,12 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
       lenPath = predicateState.getPathFormula().getLength();
     }
 
+    ValueAnalysisState valueState = AbstractStates.extractStateByType(pWrappedState, ValueAnalysisState.class);
+
+    if (valueState != null){
+      blkDepth = blkDepth + 1;
+    }
+
     CallstackState csState = AbstractStates.extractStateByType(pWrappedState, CallstackState.class);
     // assert csState != null : "extractStateByType is failed! (csState)";
     if (csState != null){
@@ -182,14 +189,6 @@ public class ARGState extends AbstractSingleWrapperState implements Comparable<A
     if (!parents.contains(pOtherParent)) {
       assert !pOtherParent.children.contains(this);
       parents.add(pOtherParent);
-      //DEBUG
-      if (pOtherParent.blkDepth > blkDepth){
-        blkDepth = pOtherParent.blkDepth;
-      }
-      if (pOtherParent.loopDepth > loopDepth){
-        loopDepth = pOtherParent.loopDepth;
-      }
-      //GUBED
       pOtherParent.children.add(this);
     } else {
       assert pOtherParent.children.contains(this);

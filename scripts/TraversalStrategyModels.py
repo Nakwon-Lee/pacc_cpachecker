@@ -184,7 +184,7 @@ class TraversalStrategy:
 		stack.append(self.toroot)
 		while len(stack) > 0:
 			node = stack.pop()
-			if node.ato != None and not isinstance(node.ato,FiniteDomainTotalOrder):
+			if node.ato != None and type(node.ato) is not FiniteDomainTotalOrder:
 				nodes.append(node)
 			for child in node.children:
 				stack.append(child)
@@ -274,8 +274,10 @@ class TraversalStrategy:
 		nancestors = 0
 		par = pcnode.parent
 		while(par is not None):
-			if pcnode.ato.name is par.ato.name:
-				ret = True
+			if type(pcnode.ato) is AtomicTotalOrder and type(par.ato) is AtomicTotalOrder:
+				if pcnode.ato.name == par.ato.name:
+					ret = True
+					break
 			par = par.parent
 			nancestors = nancestors + 1
 
@@ -338,6 +340,29 @@ class TraversalStrategy:
 		newroot.addChild(self.toroot)
 		self.toroot = newroot
 
+	def compressingTS(self): #the same function of ART nodes is not allowed in an order tree path
+		nodestack = []
+		nodestack.append(self.toroot)
+		while(len(nodestack)!=0):
+			cnode = nodestack.pop()
+			if cnode.ato == None:
+				pass
+			else:
+				if type(cnode.ato) is AtomicTotalOrder:
+					isdupl,nancestos = self.validationParents2(cnode)
+					mchild = cnode.children[0]
+					if isdupl: #the node is duplicated ato
+						par = cnode.parent
+						idx = self.getParIdx(cnode)
+						par.setChild(mchild,idx)
+						cnode.delParent()
+						cnode.delChild(0)
+					nodestack.append(mchild)
+				elif type(cnode.ato) is FiniteDomainTotalOrder:
+					for i in range(len(cnode.children)):
+						nodestack.append(cnode.children[i])
+
+
 class AtomicTotalOrder:
 
 	def __init__(self,pname,podr):
@@ -364,13 +389,16 @@ class TtOdrNode:
 		self.children.append(pchild)
 		pchild.setParent(self)
 
-	def setChild(self,pchild, idx):
+	def setChild(self,pchild,idx):
 		self.children[idx] = pchild
 		pchild.setParent(self)
 
 	def popChild(self):
 		child = self.children.pop()
 		child.delParent()
+
+	def delChild(self,idx):
+		child = self.children[idx] = None
 
 	def setParent(self,pparent):
 		self.parent = pparent

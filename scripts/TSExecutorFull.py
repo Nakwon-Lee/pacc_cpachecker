@@ -27,7 +27,7 @@ def main():
 	mycore = 0 
 	mytime = int(sys.argv[7])
 	mymem = 7000000000
-	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/MySearchStrategyFormula.java'
+	searchstrategyjavafile = 'src/org/sosy_lab/cpachecker/core/searchstrategy/ABESearchStrategyFormula.java'
 	dirname = sys.argv[1]
 	filename = sys.argv[2]
 	csvfile = sys.argv[3]

@@ -49,7 +49,7 @@ do
 done
 
 #cl5
-for i in {0..4}
+for i in {1..4}
 do
 	sudo python3 PostProcessingFitSearch.py cl5PAL$i $SUM_DIC
 done
@@ -71,7 +71,7 @@ do
 done
 
 #cl7
-for i in {0..8}
+for i in {1..8}
 do
 	sudo python3 PostProcessingFitSearch.py cl7PAL$i $SUM_DIC
 done
@@ -90,7 +90,7 @@ do
 done
 
 #cl9
-for i in {0..7}
+for i in {1..7}
 do
 	sudo python3 PostProcessingFitSearch.py cl9PAL$i $SUM_DIC
 done

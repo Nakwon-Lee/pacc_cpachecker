@@ -34,12 +34,13 @@ import java.util.TreeMap;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
+import org.sosy_lab.cpachecker.core.searchstrategy.WARGState;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 public class DynamicSortedWaitlist implements Waitlist {
 
   //invariant: all entries in this map are non-empty
-  private NavigableMap<ARGState, Waitlist> waitlist;
+  private NavigableMap<WARGState, Waitlist> waitlist;
 
   //DEBUG
   private final WaitlistFactory wrappedWaitlist;
@@ -81,7 +82,7 @@ public class DynamicSortedWaitlist implements Waitlist {
     }
     */
 
-    ARGState key = getSortKey(pState);
+    WARGState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       localWaitlist = wrappedWaitlist.createWaitlistInstance();
@@ -95,7 +96,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
   @Override
   public boolean contains(AbstractState pState) {
-    ARGState key = getSortKey(pState);
+    WARGState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       return false;
@@ -126,7 +127,7 @@ public class DynamicSortedWaitlist implements Waitlist {
   //originally final method but I modify it as non-final
   //GUBED
   public AbstractState pop() {
-    Entry<ARGState, Waitlist> highestEntry = null;
+    Entry<WARGState, Waitlist> highestEntry = null;
     /*
     //DEBUG
     if (this instanceof CallstackSortedWaitlist){
@@ -157,22 +158,24 @@ public class DynamicSortedWaitlist implements Waitlist {
     //GUBED
      * * */
 
-
     highestEntry = waitlist.firstEntry();
+    WARGState pkey = highestEntry.getKey();
     Waitlist localWaitlist = highestEntry.getValue();
+
     assert !localWaitlist.isEmpty();
     AbstractState result = localWaitlist.pop();
     if (localWaitlist.isEmpty()) {
-      waitlist.remove(highestEntry.getKey());
+      waitlist.remove(pkey);
     }
     size--;
+
     return result;
   }
 
   @Override
   public boolean remove(AbstractState pState) {
 
-    ARGState key = getSortKey(pState);
+    WARGState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       return false;
@@ -185,6 +188,7 @@ public class DynamicSortedWaitlist implements Waitlist {
       }
       size--;
     }
+
     return result;
   }
 
@@ -202,9 +206,9 @@ public class DynamicSortedWaitlist implements Waitlist {
     return waitlist.toString();
   }
 
-  protected ARGState getSortKey(AbstractState pState) {
-    assert pState instanceof ARGState : "given state must be a ARGState";
-    ARGState argstate = (ARGState)pState;
+  protected WARGState getSortKey(AbstractState pState) {
+    assert pState instanceof ARGState : "given state must be an ARGState";
+    WARGState argstate = new WARGState((ARGState)pState,searchForm);
 
     return argstate;
   }
@@ -224,6 +228,5 @@ public class DynamicSortedWaitlist implements Waitlist {
         return null;
       }
     };
-}
-
+  }
 }

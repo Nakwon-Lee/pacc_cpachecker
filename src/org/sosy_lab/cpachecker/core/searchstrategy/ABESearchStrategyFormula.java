@@ -28,11 +28,11 @@ import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 
-public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
+public class ABESearchStrategyFormula extends AbstractSearchStrategyFormula {
 
   private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","uID"};
 
-  public MySearchStrategyFormula(Set<String> pVars){
+  public ABESearchStrategyFormula(Set<String> pVars){
     super(pVars, varsUsed);
   }
 

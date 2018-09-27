@@ -28,11 +28,11 @@ import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 
-public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
+public class ValSearchStrategyFormula extends AbstractSearchStrategyFormula {
 
   private static final String[] varsUsed = {"isAbs","blkD","CS","RPO","uID"};
 
-  public MySearchStrategyFormula(Set<String> pVars){
+  public ValSearchStrategyFormula(Set<String> pVars){
     super(pVars, varsUsed);
   }
 
@@ -43,60 +43,22 @@ public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
     ARGState e2 = p2.getState();
 
 // compare start 
-if(e1.isAbs() < 1 && e2.isAbs() >= 1 ){
- return -1;
-}
-else if(e1.isAbs() >= 1 && e2.isAbs() < 1 ){
+if(e1.CS() < e2.CS()){
  return 1;
 }
-else{
-int thePhi = e1.isAbs();
-if(thePhi<1){
- if(e1.CS() < e2.CS()){
-  return 1;
- }
- else if(e1.CS() > e2.CS()){
-  return -1;
- }
- else{
-  if(e1.RPO() < e2.RPO()){
-   return 1;
-  }
-  else if(e1.RPO() > e2.RPO()){
-   return -1;
-  }
-  else{
-   return 0;
-  }
- }
- }
- else {
- if(e1.loopD() < e2.loopD()){
-  return 1;
- }
- else if(e1.loopD() > e2.loopD()){
-  return -1;
- }
- else{
-  if(e1.CS() < e2.CS()){
-   return 1;
-  }
-  else if(e1.CS() > e2.CS()){
-   return -1;
-  }
-  else{
-   if(e1.RPO() < e2.RPO()){
-    return 1;
-   }
-   else if(e1.RPO() > e2.RPO()){
-    return -1;
-   }
-   else{
-    return 0;
-   }
-  }
- }
+else if(e1.CS() > e2.CS()){
+ return -1;
 }
+else{
+ if(e1.RPO() < e2.RPO()){
+  return 1;
+ }
+ else if(e1.RPO() > e2.RPO()){
+  return -1;
+ }
+ else{
+  return 0;
+ }
 }
 // compare end
 
