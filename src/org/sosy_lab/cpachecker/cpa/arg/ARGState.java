@@ -49,6 +49,7 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithDummyLocation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocations;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
+import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
@@ -79,9 +80,13 @@ public class ARGState extends AbstractSingleWrapperState
   private final int stateId;
 
   //DEBUG
-  private int treeDepth = 0;
   private int blkDepth = 0;
   private int isAbsSt = 0;
+  private int callStack = 0;
+  private int revpostodr = -1;
+  private int lenPath = 0;
+  private int loopDepth = 0;
+  private boolean isInWL = false;
   //GUBED
 
   // If this is a target state, we may store additional information here.
@@ -94,15 +99,31 @@ public class ARGState extends AbstractSingleWrapperState
     stateId = idGenerator.getFreshId();
     if (pParentElement != null) {
       addParent(pParentElement);
+      // DEBUG
+      /*
+       * if (pParentElement.blkDepth > blkDepth) { blkDepth = pParentElement.blkDepth; }
+       *
+       * if (pParentElement.loopDepth > loopDepth) { loopDepth = pParentElement.loopDepth; }
+       */
+      // GUBED
     }
 
     //DEBUG
     PredicateAbstractState predicateState = AbstractStates.extractStateByType(pWrappedState, PredicateAbstractState.class);
     // assert predicateState != null : "extractStateByType is failed! (predicateState)";
-
     if (predicateState != null && predicateState.isAbstractionState()){
       isAbsSt = 1;
+      blkDepth = blkDepth + 1;
     }
+
+    CallstackState csState = AbstractStates.extractStateByType(pWrappedState, CallstackState.class);
+    if (csState != null) {
+      callStack = csState.getDepth();
+    }
+
+    CFANode thisnode = AbstractStates.extractLocation(pWrappedState);
+    revpostodr = thisnode.getReversePostorderId();
+
     //GUBED
   }
 
@@ -119,26 +140,45 @@ public class ARGState extends AbstractSingleWrapperState
   public void addParent(ARGState pOtherParent) {
     checkNotNull(pOtherParent);
     assert !destroyed : "Don't use destroyed ARGState " + this;
+    assert revpostodr == -1
+        || isInWL == false : "violation of assumption of modifying feature of ARGnode in WL";
 
     // Manually enforce set semantics.
     if (!parents.contains(pOtherParent)) {
       assert !pOtherParent.children.contains(this);
       parents.add(pOtherParent);
-
-      //DEBUG
-      if (treeDepth <= pOtherParent.treeDepth) {
-        treeDepth = pOtherParent.treeDepth + 1;
-      }
-
-      if (pOtherParent.blkDepth > blkDepth){
-        blkDepth = pOtherParent.blkDepth;
-      }
-    //GUBED
-
-        pOtherParent.children.add(this);
+      pOtherParent.children.add(this);
     } else {
       assert pOtherParent.children.contains(this);
     }
+
+    // DEBUG
+    // assume that an ARG node's features are not modified when it is in the waitlist
+
+    assert !wasExpanded : "violation of assuming";
+
+    if (pOtherParent.blkDepth >= blkDepth) {
+      blkDepth = pOtherParent.blkDepth;
+      if (isAbsSt == 1) { // this is only for addparent after construction
+        blkDepth = blkDepth + 1;
+      }
+    }
+
+    PredicateAbstractState predicateState =
+        AbstractStates.extractStateByType(getWrappedState(), PredicateAbstractState.class);
+    // assert predicateState != null : "extractStateByType is failed! (predicateState)";
+    if (predicateState != null && predicateState.isAbstractionState()) {
+      lenPath = predicateState.getPathFormula().getLength();
+    }
+
+    if (pOtherParent.loopDepth >= loopDepth) {
+      loopDepth = pOtherParent.loopDepth;
+      CFANode thisnode = AbstractStates.extractLocation(getWrappedState());
+      if (thisnode.isLoopStart()) {
+        loopDepth = loopDepth + 1;
+      }
+    }
+    // GUBED
   }
 
   /**
@@ -330,9 +370,6 @@ public class ARGState extends AbstractSingleWrapperState
     assert (child.parents.contains(this));
     children.remove(child);
     child.parents.remove(this);
-    //DEBUG
-    child.updateTreeDepth();
-    //GUBED
   }
 
   // counterexample
@@ -627,31 +664,44 @@ public class ARGState extends AbstractSingleWrapperState
   }
 
   // DEBUG
-  public void updateTreeDepth() {
-
-    treeDepth = 0;
-
-    for (ARGState tPar : parents) {
-      if (treeDepth <= tPar.treeDepth) {
-        treeDepth = tPar.treeDepth + 1;
-      }
-    }
-  }
-
-  public int getTreeDepth() {
-    return treeDepth;
-  }
-
-  public int getBlkDepth() {
+  public int blkD() {
     return blkDepth;
   }
 
-  public void incBlkDepth() {
-    blkDepth++;
+  public int isAbs() {
+    return isAbsSt;
   }
 
-  public int isAbsState() {
-    return isAbsSt;
+  public int CS() {
+    return callStack;
+  }
+
+  public int RPO() {
+    return revpostodr;
+  }
+
+  public int uID() {
+    return stateId;
+  }
+
+  public int LenP() {
+    return lenPath;
+  }
+
+  public int loopD() {
+    return loopDepth;
+  }
+
+  public void setIsW() {
+    isInWL = true;
+  }
+
+  public void unsetIsW() {
+    isInWL = false;
+  }
+
+  public boolean getIsW() {
+    return isInWL;
   }
   // GUBED
 }

@@ -873,19 +873,14 @@ public final class InterpolationManager {
 
       } else {
         // this is a real bug
-<<<<<<< HEAD
         //DEBUG
         //this is not for forced covering!! if it is for forced covering, it should not be needed
         //GUBED
-        if(!useFC){
-          info = getErrorPath(f, itpProver, elementsOnPath);
-        }else{
-          info = CounterexampleTraceInfo.feasibleFC();
-        }
-
-=======
+        /*
+         * if(!useFC){ info = getErrorPath(f, itpProver, elementsOnPath); }else{ info =
+         * CounterexampleTraceInfo.feasibleFC(); }
+         */
         info = getErrorPath(formulas, itpProver);
->>>>>>> upstream/trunk
       }
 
       logger.log(Level.ALL, "Counterexample information:", info);
