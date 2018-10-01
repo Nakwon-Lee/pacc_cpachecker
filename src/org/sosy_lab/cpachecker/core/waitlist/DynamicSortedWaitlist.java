@@ -168,6 +168,7 @@ public class DynamicSortedWaitlist implements Waitlist {
       assert !localWaitlist.isEmpty();
     }
     localWaitlist.add(pState);
+    size++;
     key.setIsW();
   }
 
