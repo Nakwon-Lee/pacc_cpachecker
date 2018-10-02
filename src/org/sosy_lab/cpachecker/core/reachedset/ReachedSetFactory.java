@@ -26,13 +26,11 @@ package org.sosy_lab.cpachecker.core.reachedset;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
-import org.sosy_lab.common.configuration.ClassOption;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonFailedMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.AutomatonMatchesWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.BlockConfiguration;
@@ -59,19 +57,6 @@ public class ReachedSetFactory {
   private enum ReachedSetType {
     NORMAL, LOCATIONMAPPED, PARTITIONED, PSEUDOPARTITIONED, USAGE
   }
-
-  @Option(secure=true, name = "traversal.dynamic",
-      description = "use dynamicsortedwaitlist")
-  boolean dynamicWaitlist = false;
-
-  @Option(secure=true, name = "traversal.nOfVars",
-      description = "number of variables for search info")
-  int nOfVars = 0;
-
-  @Option(secure=true, name = "traversal.searchformula",
-      description = "the name of using searchformula")
-  @ClassOption(packagePrefix="org.sosy_lab.cpachecker")
-  Class<? extends SearchStrategyFormula> searchFormClass;
 
   @Option(
     secure = true,
@@ -194,6 +179,10 @@ public class ReachedSetFactory {
   )
   private boolean useBlocks = false;
 
+  @Option(secure=true, name = "traversal.dynamic",
+      description = "use dynamicsortedwaitlist")
+  boolean dynamicWaitlist = false;
+
   @Option(
     secure = true,
     name = "reachedSet",
@@ -275,9 +264,7 @@ public class ReachedSetFactory {
     }else{*/
 
     if (dynamicWaitlist) {
-      assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
-      assert searchFormClass != null : "searchFormClass must not be null";
-      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, nOfVars, searchFormClass);
+      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, config);
     }
 
     if (useWeightedDepthOrder) {
