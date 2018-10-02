@@ -144,10 +144,8 @@ public class DynamicSortedWaitlist implements Waitlist {
           return new DynamicSortedWaitlist(pSecondaryStrategy, pConfig);
         } catch (InvalidConfigurationException e) {
           // TODO Auto-generated catch block
-          e.printStackTrace();
+          throw new AssertionError(e);
         }
-
-        return null;
       }
     };
   }

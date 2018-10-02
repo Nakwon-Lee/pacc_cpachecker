@@ -440,7 +440,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   }
 
   //DEBUG
-  private class FCComparator implements Comparator<AbstractState> {
+  private static class FCComparator implements Comparator<AbstractState> {
 
     @Override
     public int compare(AbstractState pO1, AbstractState pO2) {
