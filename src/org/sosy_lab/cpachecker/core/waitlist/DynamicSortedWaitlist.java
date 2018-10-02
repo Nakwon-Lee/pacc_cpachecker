@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import javax.security.auth.login.Configuration;
 import org.sosy_lab.common.configuration.ClassOption;
-import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
@@ -47,9 +47,9 @@ import org.sosy_lab.cpachecker.util.statistics.StatKind;
 public class DynamicSortedWaitlist implements Waitlist {
 
   @Option(
-      secure = true,
-      name = "searchformula",
-      description = "them name of using searchformula")
+    secure = true,
+    name = "searchformula",
+    description = "the name of using searchformula")
   @ClassOption(packagePrefix = "org.sosy_lab.cpachecker")
   private SearchStrategyFormula.Factory searchFormClass;
 
@@ -57,6 +57,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
   private final WaitlistFactory wrappedWaitlist;
 
+  // invariant: all entries in this map are non-empty
   private final NavigableMap<ARGState, Waitlist> waitlist;
 
   private int size = 0;
@@ -65,12 +66,17 @@ public class DynamicSortedWaitlist implements Waitlist {
   private final StatCounter delegationCount;
   private final Map<String, StatInt> delegationCounts = new HashMap<>();
 
-  protected DynamicSortedWaitlist(WaitlistFactory pSecondaryStrategy, Configuration pConfig) throws InvalidConfigurationException {
+  public DynamicSortedWaitlist(
+      WaitlistFactory pSecondaryStrategy,
+      Configuration pConfig)
+      throws InvalidConfigurationException {
     wrappedWaitlist = Preconditions.checkNotNull(pSecondaryStrategy);
     popCount = new StatCounter("Pop requests to waitlist (" + getClass().getSimpleName() + ")");
-    delegationCount = new StatCounter(
-        "Pops delegated to wrapped waitlists (" + wrappedWaitlist.getClass().getSimpleName() +
-            ")");
+    delegationCount =
+        new StatCounter(
+            "Pops delegated to wrapped waitlists ("
+                + wrappedWaitlist.getClass().getSimpleName()
+                + ")");
     pConfig.inject(this, DynamicSortedWaitlist.class);
     searchForm = searchFormClass.create();
     waitlist = new TreeMap<>(searchForm);
@@ -80,24 +86,16 @@ public class DynamicSortedWaitlist implements Waitlist {
   public AbstractState pop(){
     popCount.inc();
     Entry<ARGState, Waitlist> highestEntry = null;
+
+    // DEBUG
     /*
-    assert ret instanceof SearchInfoable : "poped state must be a SearchIfoable";
-    SearchInfoable siaRet = (SearchInfoable) ret;
-    SearchInfo siRet = siaRet.getSearchInfo();
-    assert siRet instanceof SimpleSearchInfo : "poped state must have SimpleSearchInfo";
-    SimpleSearchInfo ssiRet = (SimpleSearchInfo)siRet;
-    System.out.println("sel! "+ssiRet.getInfos().get("BlkDepth"));
-    if (ssiRet.getInfos().get("BlkDepth")==0){
-      System.out.println("What!?");
-    }
-
-    PredicateAbstractState predicateState = AbstractStates.extractStateByType(ret, PredicateAbstractState.class);
-    assert predicateState != null : "extractStateByType is failed! (predicateState)";
-
-    if (predicateState.isAbstractionState()){
-      System.out.println("AbstractionState!!!");
-    }
-    */
+     * Iterator<ARGState> tempit = waitlist.navigableKeySet().iterator(); PrintWriter outfile =
+     * null; try { outfile = new PrintWriter(new BufferedWriter((new FileWriter("nodes.txt",
+     * true)))); } catch (IOException e1) { // TODO Auto-generated catch block e1.printStackTrace();
+     * } while (tempit.hasNext()) { ARGState temparg = tempit.next(); outfile.print("(" +
+     * temparg.isAbs() + "," + temparg.blkD() + "," + temparg.uID() + "," + ")"); }
+     */
+    // GUBED
 
     highestEntry = waitlist.lastEntry();
     Waitlist localWaitlist = highestEntry.getValue();
@@ -110,6 +108,18 @@ public class DynamicSortedWaitlist implements Waitlist {
       delegationCount.inc();
     }
     size--;
+
+    assert result instanceof ARGState : "violation of assumption that the poped state is an ARGState";
+
+    ARGState rarg = (ARGState) result;
+    rarg.unsetIsW();
+    // DEBUG
+    /*
+     * ARGState rarg = (ARGState) result; outfile.print("   (" + rarg.isAbs() + "," + rarg.blkD() +
+     * "," + rarg.uID() + "," + ")"); outfile.println(); if (outfile != null) { outfile.close(); }
+     */
+    // GUBED
+
     return result;
   }
 
@@ -120,18 +130,19 @@ public class DynamicSortedWaitlist implements Waitlist {
     return argstate;
   }
 
-  public static WaitlistFactory factory(final WaitlistFactory pSecondaryStrategy, Configuration pConfig) {
+  public static WaitlistFactory factory(
+      WaitlistFactory pSecondaryStrategy,
+      Configuration pConfig) {
     return new WaitlistFactory() {
 
       @Override
       public Waitlist createWaitlistInstance() {
-
-          try {
-            return new DynamicSortedWaitlist(pSecondaryStrategy, pConfig);
-          } catch (InvalidConfigurationException e) {
-            // TODO Auto-generated catch block
-            throw new AssertionError(e);
-          }
+        try {
+          return new DynamicSortedWaitlist(pSecondaryStrategy, pConfig);
+        } catch (InvalidConfigurationException e) {
+          // TODO Auto-generated catch block
+          throw new AssertionError(e);
+        }
       }
     };
   }
@@ -153,10 +164,18 @@ public class DynamicSortedWaitlist implements Waitlist {
     }
     localWaitlist.add(pState);
     size++;
+    key.setIsW();
   }
 
   @Override
   public void clear() {
+    Iterator<AbstractState> tempit = iterator();
+    while (tempit.hasNext()) {
+      AbstractState targ = tempit.next();
+      assert targ instanceof ARGState : "states in waitlist should be an ARGState";
+      ARGState ttarg = (ARGState) targ;
+      ttarg.unsetIsW();
+    }
     waitlist.clear();
     size = 0;
   }
@@ -193,6 +212,8 @@ public class DynamicSortedWaitlist implements Waitlist {
       }
       size--;
     }
+
+    key.unsetIsW();
     return result;
   }
 

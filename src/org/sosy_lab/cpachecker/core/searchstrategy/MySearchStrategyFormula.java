@@ -23,48 +23,83 @@
  */
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
-import org.sosy_lab.cpachecker.core.defaults.AbstractSearchStrategyFormula;
-import org.sosy_lab.cpachecker.core.defaults.SimpleSearchInfo;
-import org.sosy_lab.cpachecker.core.interfaces.SearchInfo;
+import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 
-public class MySearchStrategyFormula extends AbstractSearchStrategyFormula {
+public class MySearchStrategyFormula implements SearchStrategyFormula {
 
-  public MySearchStrategyFormula(Integer nOfVars){
+  public MySearchStrategyFormula() {
     super();
-    correlations.put("RPOrder", 1);
   }
 
   @Override
-  public int compare(SearchInfo pO1, SearchInfo pO2) {
+  public int compare(ARGState e1, ARGState e2) {
 
-    Integer ret = 0;
-
-    assert pO1 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
-    assert pO2 instanceof SimpleSearchInfo : "parameters must be SimpleSearchInfo";
-
-    SimpleSearchInfo spO1 = (SimpleSearchInfo)pO1;
-    SimpleSearchInfo spO2 = (SimpleSearchInfo)pO2;
-
-    if (spO1.getInfos().get("BlkDepth") > spO2.getInfos().get("BlkDepth")) {
-      ret = -1;
-    }else if (spO1.getInfos().get("BlkDepth") < spO2.getInfos().get("BlkDepth")) {
-      ret = 1;
-    }else{
-      if (spO1.getInfos().get("CallStack") > spO2.getInfos().get("CallStack")){
-        ret = 1;
-      }else if (spO1.getInfos().get("CallStack") < spO2.getInfos().get("CallStack")){
-        ret = -1;
-      }else{
-        if (spO1.getInfos().get("RPOrder") > spO2.getInfos().get("RPOrder")){
-          ret = 1;
-        }else if (spO1.getInfos().get("RPOrder") < spO2.getInfos().get("RPOrder")){
-          ret = -1;
-        }
-      }
-    }
-
-    return ret;
+// compare start 
+if(e1.isAbs() < 1 && e2.isAbs() >= 1 ){
+ return 1;
+}
+else if(e1.isAbs() >= 1 && e2.isAbs() < 1 ){
+ return -1;
+}
+else{
+int thePhi = e1.isAbs();
+if(thePhi<1){
+ if(e1.CS() < e2.CS()){
+  return -1;
+ }
+ else if(e1.CS() > e2.CS()){
+  return 1;
+ }
+ else{
+  if(e1.RPO() < e2.RPO()){
+   return -1;
+  }
+  else if(e1.RPO() > e2.RPO()){
+   return 1;
+  }
+  else{
+   return 0;
+  }
+ }
+ }
+ else {
+ if(e1.blkD() < e2.blkD()){
+  return -1;
+ }
+ else if(e1.blkD() > e2.blkD()){
+  return 1;
+ }
+ else{
+  if(e1.uID() < e2.uID()){
+   return 1;
+  }
+  else if(e1.uID() > e2.uID()){
+   return -1;
+  }
+  else{
+   if(e1.LenP() < e2.LenP()){
+    return 1;
+   }
+   else if(e1.LenP() > e2.LenP()){
+    return -1;
+   }
+   else{
+    return 0;
+   }
+  }
+ }
+}
+}
+    // compare end
   }
 
+  public static class Factory implements SearchStrategyFormula.Factory{
+
+    @Override
+    public SearchStrategyFormula create() {
+      return new MySearchStrategyFormula();
+    }
+  }
 }
