@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.9//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.9.dtd">
+<!--
+  Example file that demonstrates the use of CPAchecker.
+  This file can and should be used as a base for building own benchmark definitions.
+-->
+<benchmark tool="cpachecker" timelimit="900s" hardtimelimit="1000s" memlimit="7000 MB" cpuCores="2">
+
+  <!-- Note that all paths to ../../test/programs need to be changed if you move this file. -->
+
+  <!-- Global sourcefiles are used in every run definition. -->
+  <tasks name="Affected">
+    <includesfile>../../../sv-benchmarks/c/TSAffected.set</includesfile>
+  </tasks>
+
+  <tasks name="Affected-64">
+    <includesfile>../../../sv-benchmarks/c/TSAffected-64.set</includesfile>
+    <option name="-64"/>
+  </tasks>
+
+  <!-- Global options for all run definitions. -->
+  <!-- Set the Java heap size to some value lower than the memlimit.
+       Note that Java does not use SI units, but IEC units (factor 1024). -->
+  <option name="-heap">6000M</option>
+
+  <!--
+    Always use property files as specification
+    to guarantee correct interpretation of the results.
+    The following will use the file ALL.prp in the same directory as the source file.
+  -->
+  <propertyfile>../../../sv-benchmarks/c/ReachSafety.prp</propertyfile>
+
+
+  <!-- For final benchmarks for performance measurement, disable assertions. -->
+  <!-- <option name="-disable-java-assertions"/> -->
+
+  <!--
+    Do not use the shortcut configurations such as -predicateAnalysis
+    or -explicitAnalysis, instead use the long names
+    to have more meaningful names in the result tables.
+  -->
+
+  <rundefinition name="Test-PA-ABElf-CE">
+    <option name="-TS-single-predabs-ABElf-ChainEffect"/>
+    <!-- Recommended option "-noout", as the CPAchecker output files
+         are normally not interesting for benchmarks. -->
+    <option name="-noout"/>
+  </rundefinition>
+
+  <!--
+    Search the CPAchecker output for some values.
+    The <column> tag has the pattern as content,
+    and the script will try to extract a numerical value from matching lines.
+    "numberOfDigits" gives the number of digits after the decimal separator,
+    "title" the name of the column in the table.
+    Both attributes are optional.
+    These tags are not necessary here,
+    statistics can still be extracted after the benchmark run.
+  <columns>
+    <column title="total" numberOfDigits="1">time for CPAchecker</column>
+    <column title="reached">reached set</column>
+  </columns>
+  -->
+</benchmark>
