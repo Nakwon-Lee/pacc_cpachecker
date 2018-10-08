@@ -237,7 +237,7 @@ public class CFADistanceToError {
     return retstr;
   }
 
-  private class DistanceToErrComparator implements Comparator<CFANode> {
+  private static class DistanceToErrComparator implements Comparator<CFANode> {
 
     private int curridx;
 
