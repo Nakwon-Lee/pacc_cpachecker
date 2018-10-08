@@ -26,12 +26,11 @@ package org.sosy_lab.cpachecker.cfa.model;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import org.sosy_lab.common.UniqueIdGenerator;
-import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import org.sosy_lab.common.UniqueIdGenerator;
+import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 
 public class CFANode implements Comparable<CFANode>, Serializable {
 
@@ -58,6 +57,12 @@ public class CFANode implements Comparable<CFANode>, Serializable {
 
   // reverse postorder sort id, smaller if it appears later in sorting
   private int reversePostorderId = 0;
+
+  // control distance to error locations
+  private List<Integer> distancetoerr = new ArrayList<>();
+
+  private boolean initvisit = false;
+  private boolean calcvisit = false;
 
   public CFANode(String pFunctionName) {
     assert !pFunctionName.isEmpty();
@@ -257,5 +262,27 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     // leaving and entering edges have to be updated explicitly after reading a node
     leavingEdges = new ArrayList<>(1);
     enteringEdges = new ArrayList<>(1);
+  }
+
+  public int getDistancetoerr(int idx) {
+    assert calcvisit : "dist to err is not calculated";
+    return distancetoerr.get(idx);
+  }
+
+  public List<Integer> getDistancetoerrList() {
+    return distancetoerr;
+  }
+
+  public void setDistancetoerr(int idx, int pDistancetoerr) {
+    assert initvisit : "CFANode is not visited by forward search";
+    distancetoerr.set(idx, pDistancetoerr);
+    calcvisit = true;
+  }
+
+  public void initDistancetoerr(int plen) {
+    for (int i = 0; i < plen; i++) {
+      distancetoerr.add(Integer.MAX_VALUE);
+    }
+    initvisit = true;
   }
 }

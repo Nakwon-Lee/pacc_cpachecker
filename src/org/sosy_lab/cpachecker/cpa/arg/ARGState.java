@@ -36,8 +36,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.sosy_lab.common.UniqueIdGenerator;
@@ -87,6 +89,7 @@ public class ARGState extends AbstractSingleWrapperState
   private int lenPath = 0;
   private int loopDepth = 0;
   private boolean isInWL = false;
+  private int distoerr = Integer.MAX_VALUE;
   //GUBED
 
   // If this is a target state, we may store additional information here.
@@ -123,6 +126,10 @@ public class ARGState extends AbstractSingleWrapperState
 
     CFANode thisnode = AbstractStates.extractLocation(pWrappedState);
     revpostodr = thisnode.getReversePostorderId();
+    if (!thisnode.getDistancetoerrList().isEmpty()) {
+      NavigableSet<Integer> tempset = new TreeSet<>(thisnode.getDistancetoerrList());
+      distoerr = tempset.first();
+    }
 
     //GUBED
   }
@@ -702,6 +709,10 @@ public class ARGState extends AbstractSingleWrapperState
 
   public boolean getIsW() {
     return isInWL;
+  }
+
+  public int distE() {
+    return distoerr;
   }
   // GUBED
 }

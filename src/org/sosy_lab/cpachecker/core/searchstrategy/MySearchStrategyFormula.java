@@ -65,25 +65,25 @@ if(thePhi<1){
  }
  }
  else {
- if(e1.blkD() < e2.blkD()){
-  return -1;
- }
- else if(e1.blkD() > e2.blkD()){
+ if(e1.distE() < e2.distE()){
   return 1;
  }
+ else if(e1.distE() > e2.distE()){
+  return -1;
+ }
  else{
-  if(e1.uID() < e2.uID()){
-   return 1;
-  }
-  else if(e1.uID() > e2.uID()){
+  if(e1.blkD() < e2.blkD()){
    return -1;
   }
+  else if(e1.blkD() > e2.blkD()){
+   return 1;
+  }
   else{
-   if(e1.LenP() < e2.LenP()){
-    return 1;
-   }
-   else if(e1.LenP() > e2.LenP()){
+   if(e1.uID() < e2.uID()){
     return -1;
+   }
+   else if(e1.uID() > e2.uID()){
+    return 1;
    }
    else{
     return 0;

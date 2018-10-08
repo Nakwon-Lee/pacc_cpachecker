@@ -266,6 +266,18 @@ public class CFACreator {
       description="This option enables the computation of a classification of CFA nodes.")
 private boolean classifyNodes = false;
 
+  @Option(
+    secure = true,
+    name = "cfa.distancetoError",
+    description = "This option enables the computation of distance to error location for each CFA node.")
+  private boolean distancetoError = false;
+
+  @Option(
+    secure = true,
+    name = "cfa.errorloc",
+    description = "This option is the name of error loc.")
+  private String errorlocindi;
+
   @Option(secure=true, description="C, Java, or LLVM IR?")
   private Language language = Language.C;
 
@@ -500,6 +512,16 @@ private boolean classifyNodes = false;
     // on the information collected above (such as loops and post-order ids).
 
     // (currently no such post-processings exist)
+
+    if (distancetoError) {
+      CFADistanceToError errorfinder = new CFADistanceToError();
+      errorfinder.findErrorLocations(cfa.getMainFunction(), errorlocindi);
+      errorfinder.initiationDistToError(cfa.getMainFunction());
+      errorfinder.calcDistanceToError();
+      // System.out.print(errorfinder.toStringDistErr(cfa.getMainFunction()));
+    }
+
+    logger.log(Level.FINE, "After calculating distance to errors");
 
     // SIXTH, get information about the CFA,
     // the cfa should not be modified after this line.
