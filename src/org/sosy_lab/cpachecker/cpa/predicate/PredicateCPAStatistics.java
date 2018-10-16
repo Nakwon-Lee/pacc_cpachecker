@@ -54,13 +54,16 @@ import org.sosy_lab.common.time.TimeSpan;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
+import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.MergeOperator;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
+import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.cpa.predicate.persistence.LoopInvariantsWriter;
 import org.sosy_lab.cpachecker.cpa.predicate.persistence.PredicateAbstractionsWriter;
 import org.sosy_lab.cpachecker.cpa.predicate.persistence.PredicateMapWriter;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.Precisions;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionManager;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionPredicate;
@@ -280,9 +283,29 @@ class PredicateCPAStatistics implements Statistics {
       loopInvariantsWriter.exportLoopInvariantsAsPrecision(invariantPrecisionsFile, reached);
     }
 
+    // DEBUG
+    int reachedabstractionstates = 0;
+    for (AbstractState state : reached.asCollection()) {
+      if (state instanceof ARGState) {
+        ARGState argst = (ARGState) state;
+        PredicateAbstractState predicateState =
+            AbstractStates
+                .extractStateByType(argst.getWrappedState(), PredicateAbstractState.class);
+        assert predicateState != null;
+        if (predicateState.isAbstractionState()) {
+          reachedabstractionstates = reachedabstractionstates + 1;
+        }
+      }
+    }
+    // GUBED
+
     PredicateAbstractionManager.Stats as = amgr.stats;
 
     out.println("Number of abstractions:            " + prec.numAbstractions + " (" + toPercent(prec.numAbstractions, trans.postTimer.getNumberOfIntervals()) + " of all post computations)");
+    // DEBUG
+    out.println("Number of abstraction states ");
+    out.println("in resulted reachedset:            " + reachedabstractionstates);
+    // GUBED
     if (prec.numAbstractions > 0) {
       out.println("  Times abstraction was reused:    " + as.numAbstractionReuses);
       out.println("  Because of function entry/exit:  " + valueWithPercentage(blk.numBlkFunctions, prec.numAbstractions));
