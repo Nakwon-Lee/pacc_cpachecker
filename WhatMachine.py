@@ -14,6 +14,10 @@ def main():
 
 	for task in tasks:
 		print(task.get('name'))
+		tasknamestr = task.get('name')
+		nametokens = tasknamestr.split('-')
+		newnamestr = nametokens[0] + '-' + machinenum
+		task.attrib['name'] = newnamestr
 		includes = task.findall('includesfile')
 		for include in includes:
 			filestr = include.text
