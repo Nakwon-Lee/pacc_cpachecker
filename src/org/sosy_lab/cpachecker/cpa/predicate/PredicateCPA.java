@@ -24,7 +24,8 @@
 package org.sosy_lab.cpachecker.cpa.predicate;
 
 import com.google.common.collect.ImmutableSet;
-
+import java.util.Collection;
+import java.util.logging.Level;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.collect.PathCopyingPersistentTreeMap;
 import org.sosy_lab.common.configuration.Configuration;
@@ -56,6 +57,7 @@ import org.sosy_lab.cpachecker.core.interfaces.pcc.ProofChecker;
 import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
+import org.sosy_lab.cpachecker.util.blocking.BlockedABElbprime;
 import org.sosy_lab.cpachecker.util.blocking.BlockedCFAReducer;
 import org.sosy_lab.cpachecker.util.blocking.interfaces.BlockComputer;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionManager;
@@ -70,9 +72,6 @@ import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
 import org.sosy_lab.cpachecker.util.refinement.PrefixProvider;
 import org.sosy_lab.java_smt.api.SolverException;
-
-import java.util.Collection;
-import java.util.logging.Level;
 
 /**
  * CPA that defines symbolic predicate abstraction.
@@ -94,6 +93,12 @@ public class PredicateCPA
 
   @Option(secure=true, name="enableBlockreducer", description="Enable the possibility to precompute explicit abstraction locations.")
   private boolean enableBlockreducer = false;
+
+  @Option(
+    secure = true,
+    name = "enableCustomBlock",
+    description = "Enable the possibility to precompute explicit abstraction locations (Custom).")
+  private boolean enableCustomBlock = false;
 
   @Option(secure=true, name="merge", values={"SEP", "ABE"}, toUppercase=true,
       description="which merge operator to use for predicate cpa (usually ABE should be used)")
@@ -151,6 +156,12 @@ public class PredicateCPA
       BlockComputer blockComputer = new BlockedCFAReducer(config, logger);
       blk.setExplicitAbstractionNodes(blockComputer.computeAbstractionNodes(cfa));
     }
+    // DEBUG
+    if (enableCustomBlock) {
+      BlockComputer ABElbprime = new BlockedABElbprime(config, logger);
+      blk.setExplicitAbstractionNodes(ABElbprime.computeAbstractionNodes(cfa));
+    }
+    // GUBED
     blk.setCFA(cfa);
 
     solver = Solver.create(config, logger, pShutdownNotifier);
