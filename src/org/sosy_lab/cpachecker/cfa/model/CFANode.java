@@ -297,7 +297,7 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     return isencoded;
   }
 
-  public void setIseEcoded(boolean pIsencoded) {
+  public void setIsEncoded(boolean pIsencoded) {
     isencoded = pIsencoded;
   }
 
