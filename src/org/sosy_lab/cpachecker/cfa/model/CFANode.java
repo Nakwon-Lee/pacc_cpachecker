@@ -285,4 +285,8 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     }
     initvisit = true;
   }
+
+  public boolean getInitVisit() {
+    return initvisit;
+  }
 }
