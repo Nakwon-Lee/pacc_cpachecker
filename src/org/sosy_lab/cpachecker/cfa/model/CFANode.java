@@ -293,6 +293,10 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     initvisit = true;
   }
 
+  public boolean getInitVisit() {
+    return initvisit;
+  }
+
   public boolean getIsEncoded() {
     return isencoded;
   }
@@ -300,6 +304,4 @@ public class CFANode implements Comparable<CFANode>, Serializable {
   public void setIsEncoded(boolean pIsencoded) {
     isencoded = pIsencoded;
   }
-
-  // GUBED
 }

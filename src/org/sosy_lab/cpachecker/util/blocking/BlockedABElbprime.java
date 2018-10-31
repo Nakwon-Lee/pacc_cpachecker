@@ -73,7 +73,8 @@ public class BlockedABElbprime implements BlockComputer {
   @Override
   public ImmutableSet<CFANode> computeAbstractionNodes(CFA pCfa) {
     Set<CFANode> endlocs = findEndLocations(pCfa.getMainFunction());
-
+    System.out.println("errorLocs: " + endlocs);
+    Set<CFANode> abslocs = calcABEbpAbstractionNodes(endlocs);
     return null;
   }
 
@@ -226,6 +227,10 @@ public class BlockedABElbprime implements BlockComputer {
     }
 
     return absNodes;
+  }
+
+  private static class TFPair implements Pair<Boolean, Boolean> {
+
   }
 
 }
