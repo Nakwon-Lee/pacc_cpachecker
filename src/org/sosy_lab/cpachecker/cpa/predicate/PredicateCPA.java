@@ -158,7 +158,7 @@ public class PredicateCPA
     }
     // DEBUG
     if (enableCustomBlock) {
-      BlockComputer ABElbprime = new BlockedABElbprime(config, logger);
+      BlockComputer ABElbprime = new BlockedABElbprime(config);
       blk.setExplicitAbstractionNodes(ABElbprime.computeAbstractionNodes(cfa));
     }
     // GUBED

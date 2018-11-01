@@ -19,8 +19,6 @@
  */
 package org.sosy_lab.cpachecker.util.blocking;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -28,12 +26,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
-import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.ast.AStatement;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallStatement;
@@ -42,6 +40,7 @@ import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
+import org.sosy_lab.cpachecker.core.interfaces.Pair;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.blocking.interfaces.BlockComputer;
 
@@ -56,26 +55,18 @@ public class BlockedABElbprime implements BlockComputer {
   @Option(secure = true, name = "errorloc", description = "This option is the name of error loc.")
   private String errorlocindi;
 
-  private final LogManager logger;
-  private Set<CFANode> visitedByForward;
-
-  public BlockedABElbprime(Configuration pConfig, LogManager pLogger)
+  public BlockedABElbprime(Configuration pConfig)
       throws InvalidConfigurationException {
     pConfig.inject(this);
-
-    this.logger = checkNotNull(pLogger);
-  }
-
-  private boolean isAbstractionNode(CFANode pNode) {
-    return pNode.isLoopStart() && allowReduceLoopHeads;
   }
 
   @Override
   public ImmutableSet<CFANode> computeAbstractionNodes(CFA pCfa) {
     Set<CFANode> endlocs = findEndLocations(pCfa.getMainFunction());
-    System.out.println("errorLocs: " + endlocs);
+    System.out.println("endLocs: " + endlocs);
     Set<CFANode> abslocs = calcABEbpAbstractionNodes(endlocs);
-    return null;
+    System.out.println("absLocs: " + abslocs);
+    return ImmutableSet.copyOf(abslocs);
   }
 
   public Set<CFANode> findEndLocations(CFANode pRootNode) {
@@ -132,104 +123,388 @@ public class BlockedABElbprime implements BlockComputer {
   }
 
   private Set<CFANode> calcABEbpAbstractionNodes(Set<CFANode> pEndlocs) {
-    Set<CFANode> absNodes = new HashSet<>();
-    absNodes.addAll(pEndlocs);
 
-    Deque<CFANode> nodestack = new ArrayDeque<>();
-    Map<CFANode,Integer> branchmap = new HashMap<>();
+    Deque<NAPair> nodestack = new ArrayDeque<>();
+    Map<String, Set<NAPair>> function_En = new HashMap<>();
+    Map<String, TFPair> function_LocE = new HashMap<>();
+    Map<String, TFPair> function_Ex = new HashMap<>();
+    Map<String, TFPair> direct_Ex = new HashMap<>();
+    Map<CFANode, NAPair> branchmap = new HashMap<>();
     Set<CFANode> visited = new HashSet<>();
 
-    nodestack.addAll(pEndlocs);
-    // visited.addAll(pEndlocs);
+    Set<CFANode> absNodes = new HashSet<>();
+
+    for (CFANode anode : pEndlocs) {
+      NAPair napair;
+      if (anode.getIsEncoded()) {
+        absNodes.add(anode);
+        napair = new NAPair(new NCPair(anode, null), new TFPair(true, true));
+      } else {
+        napair = new NAPair(new NCPair(anode, null), new TFPair(false, false));
+      }
+
+      nodestack.add(napair);
+      visited.add(anode);
+    }
 
     while (!nodestack.isEmpty()) {
-      CFANode currnode = nodestack.poll();
 
-      if (visited.contains(currnode)) {
-        continue;
-      } else {
-        visited.add(currnode);
+      for (NAPair apair : nodestack) {
+        System.out.print("N" + apair.getLeft().getLeft().getNodeNumber() + ", ");
       }
+      System.out.println();
+
+      NAPair currnapair = nodestack.pollFirst();
+      NCPair currncpair = currnapair.getLeft();
+      TFPair currtfpair = currnapair.getRight();
+      CFANode currnode = currncpair.getLeft();
+
+      System.out.println("Pick: N" + currnode.getNodeNumber());
+
+      TFPair intermediatepair;
 
       Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
 
       boolean multiple = false;
       if (currnode.getNumEnteringEdges() > 1) {
-        multiple = true;
+        if (!currnode.isLoopStart()) {
+          multiple = true;
+        }
       }
+
+      if (multiple) {
+        intermediatepair = new TFPair(false, false);
+      } else {
+        intermediatepair = new TFPair(currtfpair.getLeft(), currtfpair.getRight());
+      }
+
       while (predecessors.hasNext()) {
         CFANode predecessor = predecessors.next();
         CFAEdge preedge = predecessor.getEdgeTo(currnode);
         CFAEdgeType preedgetype = preedge.getEdgeType();
 
-        if (multiple) {
-          if (preedgetype == CFAEdgeType.FunctionCallEdge) {
-            predecessor.setIsEncoded(currnode.getIsEncoded());
-          } else {
-            predecessor.setIsEncoded(false);
+        if (preedgetype == CFAEdgeType.StatementEdge) {
+
+          if (preedge instanceof CFunctionSummaryStatementEdge) {
+            continue;
           }
-        } else {
-          predecessor.setIsEncoded(currnode.getIsEncoded());
-        }
 
-        if (isAbstractionNode(predecessor)) {
-          predecessor.setIsEncoded(true);
-        }
+          if (visited.contains(predecessor)) {
+            continue;
+          }
 
-        if (isAbstractionNode(predecessor)) {
-          predecessor.setIsEncoded(true);
-          nodestack.add(predecessor);
-        } else {
-          if (!multiple) {
-            predecessor.setIsEncoded(currnode.getIsEncoded());
-          } else { // multiple predecessors
-            // CFAEdge preedge = predecessor.getEdgeTo(currnode);
-            // CFAEdgeType preedgetype = preedge.getEdgeType();
+          nodestack.add(
+              new NAPair(
+                  new NCPair(predecessor, currncpair.getRight()),
+                  intermediatepair));
+          visited.add(predecessor);
 
-            if (preedgetype == CFAEdgeType.FunctionCallEdge) {
-              predecessor.setIsEncoded(currnode.getIsEncoded());
-            } else {
-              predecessor.setIsEncoded(false);
-            }
+        } else if (preedgetype == CFAEdgeType.AssumeEdge) {
 
-            // Timing for inserting node to stack
-            // if predcessor is a branch node,
-            // branch only have two leaving edges
-            if (preedgetype == CFAEdgeType.AssumeEdge
-                && !predecessor.isLoopStart()
-                && predecessor.getNumLeavingEdges() > 1) {
-              assert predecessor
-                  .getNumLeavingEdges() <= 2 : "the branch has more than two leaving edges";
-              boolean isencoded = currnode.getIsEncoded();
-              if (branchmap.containsKey(predecessor)) {
-                if (branchmap.get(predecessor) == 1 && isencoded) {
-                  predecessor.setIsEncoded(true);
-                  branchmap.remove(predecessor);
-                  nodestack.add(predecessor);
-                } else {
-                  predecessor.setIsEncoded(false);
-                  branchmap.remove(predecessor);
-                  nodestack.add(predecessor);
-                }
+          if (visited.contains(predecessor)) {
+            continue;
+          }
+
+          if (!predecessor.isLoopStart() && predecessor.getNumLeavingEdges() > 1) {
+            // branch!
+            assert predecessor
+                .getNumLeavingEdges() == 2 : "the branch has more than two leaving edges";
+
+            if (branchmap.containsKey(predecessor)) {
+              // branch, already found (need result of another assume edge)
+              NAPair prednapair = branchmap.get(predecessor);
+              TFPair predtfpair = prednapair.getRight();
+              NCPair predncpair = prednapair.getLeft();
+
+              boolean tleft = predtfpair.getLeft() && intermediatepair.getLeft();
+              boolean tright = predtfpair.getRight() && intermediatepair.getRight();
+              TFPair newtfpair = new TFPair(tleft, tright);
+              NCPair newncpair;
+              if (predncpair.getRight() != null) {
+                newncpair = new NCPair(predecessor, predncpair.getRight());
+              } else if (currncpair.getRight() != null) {
+                newncpair = new NCPair(predecessor, currncpair.getRight());
               } else {
-                if (isencoded) {
-                  branchmap.put(predecessor, 1);
-                } else {
-                  branchmap.put(predecessor, 0);
-                }
+                newncpair = new NCPair(predecessor, null);
               }
+
+              if (newtfpair.getLeft() || newtfpair.getRight()) {
+                absNodes.add(predecessor);
+              }
+
+              nodestack.add(new NAPair(newncpair, newtfpair));
+              visited.add(predecessor);
+              branchmap.remove(predecessor);
             } else {
-              nodestack.add(predecessor);
+              // branch, found first
+
+              branchmap.put(
+                  predecessor,
+                  new NAPair(
+                      new NCPair(predecessor, currncpair.getRight()),
+                      new TFPair(intermediatepair.getLeft(), intermediatepair.getRight())));
+            }
+          } else if (predecessor.isLoopStart()) {
+            // loop head!
+            if (branchmap.containsKey(predecessor)) {
+              // loop head, already found
+              NAPair prednapair = branchmap.get(predecessor);
+              NCPair predncpair = prednapair.getLeft();
+              NCPair newncpair;
+
+              if (predncpair.getRight() != null) {
+                newncpair = new NCPair(predecessor, predncpair.getRight());
+              } else if (currncpair.getRight() != null) {
+                newncpair = new NCPair(predecessor, currncpair.getRight());
+              } else {
+                newncpair = new NCPair(predecessor, null);
+              }
+
+              absNodes.add(predecessor);
+              nodestack.add(
+                  new NAPair(newncpair, new TFPair(true, true)));
+              visited.add(predecessor);
+              branchmap.remove(predecessor);
+
+            } else {
+              // loop head, found first
+              branchmap.put(
+                  predecessor,
+                  new NAPair(
+                      new NCPair(predecessor, currncpair.getRight()),
+                      new TFPair(intermediatepair.getLeft(), intermediatepair.getRight())));
+            }
+          } else {
+            // single edge assuming
+            nodestack.add(
+                new NAPair(
+                    new NCPair(predecessor, currncpair.getRight()),
+                    new TFPair(intermediatepair.getLeft(), intermediatepair.getRight())));
+            visited.add(predecessor);
+          }
+        } else if (preedgetype == CFAEdgeType.FunctionReturnEdge) {
+          String funcname = predecessor.getFunctionName();
+          CFANode caller = currnode.getEnteringSummaryEdge().getPredecessor();
+
+          if (function_En.containsKey(funcname)) {
+            // somebody is traversing (or traversed) the function
+            if (visited.contains(caller)) {
+              continue;
+            }
+
+            if (function_Ex.containsKey(funcname)) {
+              // traversed! caller is the predecessor
+
+              boolean tfleft =
+                  intermediatepair.getLeft()
+                      ? function_Ex.get(funcname).getLeft()
+                      : function_Ex.get(funcname).getRight();
+              boolean tfright =
+                  intermediatepair.getRight()
+                      ? function_Ex.get(funcname).getLeft()
+                      : function_Ex.get(funcname).getRight();
+
+              nodestack.add(
+                  new NAPair(
+                      new NCPair(caller, currncpair.getRight().getRight()),
+                      new TFPair(tfleft, tfright)));
+              visited.add(caller);
+            } else if (direct_Ex.containsKey(funcname)) {// traversed! directly
+              // caller is the predecessor and might be visited
+            } else {// is traversing!
+              // caller is the predecessor but not yet computed
+              function_En.get(funcname)
+                  .add(new NAPair(new NCPair(caller, currncpair.getRight()), intermediatepair));
+            }
+
+          } else {// I'm the first who traverse the function
+            function_En.put(funcname, new HashSet<NAPair>());
+            function_LocE.put(funcname, intermediatepair);
+            nodestack.add(
+                new NAPair(
+                    new NCPair(predecessor, new NCPair(caller, currncpair.getRight())),
+                    new TFPair(true, false)));
+            visited.add(predecessor);
+          }
+
+        } else if (preedgetype == CFAEdgeType.FunctionCallEdge) {
+
+          if (visited.contains(predecessor)) {
+            continue;
+          }
+
+          if (currncpair.getRight() != null) {// has caller function
+            if (predecessor.compareTo(currncpair.getRight().getLeft()) != 0) {
+              // invalid callEdge
+              continue;
+            }
+
+            TFPair newtfpair = new TFPair(intermediatepair.getLeft(), intermediatepair.getRight());
+            function_Ex.put(currnode.getFunctionName(), newtfpair);
+            boolean tfleft =
+                function_LocE.get(currnode.getFunctionName()).getLeft()
+                    ? newtfpair.getLeft()
+                    : newtfpair.getRight();
+            boolean tfright =
+                function_LocE.get(currnode.getFunctionName()).getRight()
+                    ? newtfpair.getLeft()
+                    : newtfpair.getRight();
+            nodestack.add(
+                new NAPair(
+                    new NCPair(predecessor, currncpair.getRight().getRight()),
+                    new TFPair(tfleft, tfright)));
+            visited.add(predecessor);
+          } else {
+            // has no caller function
+            nodestack.add(
+                new NAPair(
+                    new NCPair(predecessor, currncpair.getRight()),
+                    new TFPair(intermediatepair.getLeft(), intermediatepair.getRight())));
+            if (!direct_Ex.containsKey(currnode.getFunctionName())) {
+              direct_Ex.put(
+                  currnode.getFunctionName(),
+                  new TFPair(intermediatepair.getLeft(), intermediatepair.getRight()));
             }
           }
+
+        } else {
+          if (visited.contains(predecessor)) {
+            continue;
+          }
+
+          nodestack.add(
+              new NAPair(
+                  new NCPair(predecessor, currncpair.getRight()),
+                  new TFPair(intermediatepair.getLeft(), intermediatepair.getRight())));
+          visited.add(predecessor);
+        }
+        // end action for an edge
+      }
+      // end actions for predecessors
+      // handle waited function returns in here
+      for (Entry<String, Set<NAPair>> entry : function_En.entrySet()) {
+        if (direct_Ex.containsKey(entry.getKey())) {
+          // direct_Ex found! throw all nodes!
+          entry.getValue().clear();
+        }
+
+        if (function_Ex.containsKey(entry.getKey())) {
+          // function_Ex found! add all nodes!
+          for (NAPair apair : entry.getValue()) {
+            boolean tfleft =
+                apair.getRight().getLeft()
+                    ? function_Ex.get(entry.getKey()).getLeft()
+                    : function_Ex.get(entry.getKey()).getRight();
+            boolean tfright =
+                apair.getRight().getRight()
+                    ? function_Ex.get(entry.getKey()).getLeft()
+                    : function_Ex.get(entry.getKey()).getRight();
+
+            apair.setRight(new TFPair(tfleft, tfright));
+            nodestack.add(apair);
+            visited.add(apair.getLeft().getLeft());
+          }
+
+          entry.getValue().clear();
         }
       }
+
     }
 
     return absNodes;
   }
 
   private static class TFPair implements Pair<Boolean, Boolean> {
+
+    private Boolean truecase = null;
+    private Boolean falsecase = null;
+
+    public TFPair(Boolean pTrue, Boolean pFalse) {
+      truecase = pTrue;
+      falsecase = pFalse;
+    }
+
+    @Override
+    public void setLeft(Boolean pPt1) {
+      truecase = pPt1;
+    }
+
+    @Override
+    public Boolean getLeft() {
+      return truecase;
+    }
+
+    @Override
+    public void setRight(Boolean pPt2) {
+      falsecase = pPt2;
+    }
+
+    @Override
+    public Boolean getRight() {
+      return falsecase;
+    }
+
+  }
+
+  private static class NCPair implements Pair<CFANode, NCPair> {
+    private CFANode node;
+    private NCPair caller;
+
+    public NCPair(CFANode me, NCPair pCaller) {
+      node = me;
+      caller = pCaller;
+    }
+
+    @Override
+    public void setLeft(CFANode pPt1) {
+      node = pPt1;
+    }
+
+    @Override
+    public CFANode getLeft() {
+      return node;
+    }
+
+    @Override
+    public void setRight(NCPair pPt2) {
+      caller = pPt2;
+    }
+
+    @Override
+    public NCPair getRight() {
+      return caller;
+    }
+  }
+
+  private static class NAPair implements Pair<NCPair, TFPair> {
+
+    NCPair node;
+    TFPair enco;
+
+    public NAPair(NCPair pNode, TFPair pEnco) {
+      node = pNode;
+      enco = pEnco;
+    }
+
+    @Override
+    public void setLeft(NCPair pPt1) {
+      node = pPt1;
+    }
+
+    @Override
+    public NCPair getLeft() {
+      return node;
+    }
+
+    @Override
+    public void setRight(TFPair pPt2) {
+      enco = pPt2;
+    }
+
+    @Override
+    public TFPair getRight() {
+      return enco;
+    }
 
   }
 
