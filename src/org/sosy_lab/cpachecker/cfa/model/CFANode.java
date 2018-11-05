@@ -58,11 +58,16 @@ public class CFANode implements Comparable<CFANode>, Serializable {
   // reverse postorder sort id, smaller if it appears later in sorting
   private int reversePostorderId = 0;
 
+  // DEBUG
   // control distance to error locations
   private List<Integer> distancetoerr = new ArrayList<>();
 
   private boolean initvisit = false;
   private boolean calcvisit = false;
+
+  // is this node encoded?
+  private boolean isencoded = false;
+  // GUBED
 
   public CFANode(String pFunctionName) {
     assert !pFunctionName.isEmpty();
@@ -264,6 +269,8 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     enteringEdges = new ArrayList<>(1);
   }
 
+  // DEBUG
+
   public int getDistancetoerr(int idx) {
     assert calcvisit : "dist to err is not calculated";
     return distancetoerr.get(idx);
@@ -288,5 +295,13 @@ public class CFANode implements Comparable<CFANode>, Serializable {
 
   public boolean getInitVisit() {
     return initvisit;
+  }
+
+  public boolean getIsEncoded() {
+    return isencoded;
+  }
+
+  public void setIsEncoded(boolean pIsencoded) {
+    isencoded = pIsencoded;
   }
 }
