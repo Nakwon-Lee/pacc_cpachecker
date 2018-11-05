@@ -8,7 +8,7 @@ int main(void){
 	int i;
 	int j;
 
-	int (* func)(int);
+	// int (* func)(int);
 
 	i=0;
 
@@ -22,15 +22,17 @@ int main(void){
 	}
 
 	if (c>0){
-		func = incOne;
+		j=0;
+		while(j<1){
+			a = a - 1;
+			j = incOne(j);
+		}
 	}else{
-		func = incTwo;
-	}
-
-	j=0;
-	while(j<1){
-		a = a - 1;
-		j = func(j);
+		j=0;
+		while(j<1){
+			a = a - 1;
+			j = incTwo(j);
+		}
 	}
 
 	if(a<b){
@@ -49,11 +51,23 @@ int incOne(int a){
 }
 
 int incOne2(int a){
-	return a + a;
+	int ret;
+	int i = 0;
+	while(i<1){
+		ret = a + a;
+		i = i + 1;
+	}
+	return ret;
 }
 
 int incTwo(int a){
-	return a + 2;
+	int ret;
+	int i = 0;
+	while(i<1){
+		ret = a + 2;
+		i = i + 1;
+	}
+	return ret;
 }
 
 void errorFn(void){

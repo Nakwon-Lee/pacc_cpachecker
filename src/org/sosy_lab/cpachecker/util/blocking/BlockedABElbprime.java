@@ -137,7 +137,7 @@ public class BlockedABElbprime implements BlockComputer {
     for (CFANode anode : pEndlocs) {
       NAPair napair;
       if (anode.getIsEncoded()) {
-        absNodes.add(anode);
+        // absNodes.add(anode);
         napair = new NAPair(new NCPair(anode, null), new TFPair(true, true));
       } else {
         napair = new NAPair(new NCPair(anode, null), new TFPair(false, false));
@@ -260,7 +260,7 @@ public class BlockedABElbprime implements BlockComputer {
                 newncpair = new NCPair(predecessor, null);
               }
 
-              absNodes.add(predecessor);
+              // absNodes.add(predecessor);
               nodestack.add(
                   new NAPair(newncpair, new TFPair(true, true)));
               visited.add(predecessor);
@@ -273,6 +273,19 @@ public class BlockedABElbprime implements BlockComputer {
                   new NAPair(
                       new NCPair(predecessor, currncpair.getRight()),
                       new TFPair(intermediatepair.getLeft(), intermediatepair.getRight())));
+              // add loop predecessor to nodestack
+              Iterator<CFANode> looppreds = CFAUtils.predecessorsOf(predecessor).iterator();
+
+              while (looppreds.hasNext()) {
+                CFANode looppred = looppreds.next();
+                if (looppred.getNodeNumber() > predecessor.getNodeNumber()) {
+                  nodestack.add(
+                      new NAPair(
+                          new NCPair(looppred, currncpair.getRight()),
+                          new TFPair(true, true)));
+                  visited.add(looppred);
+                }
+              }
             }
           } else {
             // single edge assuming
@@ -306,7 +319,7 @@ public class BlockedABElbprime implements BlockComputer {
 
               nodestack.add(
                   new NAPair(
-                      new NCPair(caller, currncpair.getRight().getRight()),
+                      new NCPair(caller, currncpair.getRight()),
                       new TFPair(tfleft, tfright)));
               visited.add(caller);
             } else if (direct_Ex.containsKey(funcname)) {// traversed! directly
