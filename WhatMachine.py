@@ -25,6 +25,19 @@ def main():
 			newstr = tokens[0] + '-' + machinenum + '.set'
 			include.text = newstr
 
+	if len(args) == 4:
+		rundefs = root.findall('rundefinition')
+
+		for rundef in rundefs:
+			print(rundef.get('name'))
+			rundefnamestr = rundef.get('name')
+			namertokens = rundefnamestr.split('-')
+			newrnamestr = ''
+			for i in range(len(namertokens)-1):
+				newrnamestr = newrnamestr + namertokens[i] + '-'
+			newrnamestr = newrnamestr + args[3]
+			rundef.attrib['name'] = newrnamestr	
+
 	dump(root)
 
 	ElementTree(root).write(args[1])

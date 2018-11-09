@@ -149,17 +149,17 @@ public class BlockedABElbprime implements BlockComputer {
 
     while (!nodestack.isEmpty()) {
 
-      for (NAPair apair : nodestack) {
-        System.out.print("N" + apair.getLeft().getLeft().getNodeNumber() + ", ");
-      }
-      System.out.println();
+      /*
+       * for (NAPair apair : nodestack) { System.out.print("N" +
+       * apair.getLeft().getLeft().getNodeNumber() + ", "); } System.out.println();
+       */
 
       NAPair currnapair = nodestack.pollFirst();
       NCPair currncpair = currnapair.getLeft();
       TFPair currtfpair = currnapair.getRight();
       CFANode currnode = currncpair.getLeft();
 
-      System.out.println("Pick: N" + currnode.getNodeNumber());
+      // System.out.println("Pick: N" + currnode.getNodeNumber());
 
       TFPair intermediatepair;
 
