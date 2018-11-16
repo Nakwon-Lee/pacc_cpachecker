@@ -61,6 +61,11 @@ public class DynamicSortedRandomWaitlist implements Waitlist {
     description = "the probability of random selection (Abs only)")
   private int rprob = 0;
 
+  @Option(secure = true, name = "randoSeed", description = "the seed for random")
+  private long ranseed = 0;
+
+  private Random ranutil;
+
   private SearchStrategyFormula searchForm;
 
   private final WaitlistFactory wrappedWaitlist;
@@ -79,6 +84,8 @@ public class DynamicSortedRandomWaitlist implements Waitlist {
       Configuration pConfig)
       throws InvalidConfigurationException {
     wrappedWaitlist = Preconditions.checkNotNull(pSecondaryStrategy);
+    ranutil = new Random();
+    ranutil.setSeed(ranseed);
     popCount = new StatCounter("Pop requests to waitlist (" + getClass().getSimpleName() + ")");
     delegationCount =
         new StatCounter(
@@ -112,13 +119,12 @@ public class DynamicSortedRandomWaitlist implements Waitlist {
     if (highestEntry.getKey().isAbs() == 1) {
       // all nodes in the waitlist are abstraction nodes (last entry is the list of abstraction
       // nodes)
-      Random rand = new Random();
-      int pick = rand.nextInt(100);
+      int pick = ranutil.nextInt(100);
 
       if (pick < rprob) {
         Set<ARGState> tempset = waitlist.keySet();
         ARGState[] temparr = tempset.toArray(new ARGState[0]);
-        highestEntry = waitlist.ceilingEntry(temparr[rand.nextInt(tempset.size())]);
+        highestEntry = waitlist.ceilingEntry(temparr[ranutil.nextInt(tempset.size())]);
         if (highestEntry == null) {
           highestEntry = waitlist.lastEntry();
         }
