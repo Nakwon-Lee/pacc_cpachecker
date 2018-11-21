@@ -83,16 +83,18 @@ public class DynamicSortedRandomWaitlist implements Waitlist {
       WaitlistFactory pSecondaryStrategy,
       Configuration pConfig)
       throws InvalidConfigurationException {
+
     wrappedWaitlist = Preconditions.checkNotNull(pSecondaryStrategy);
-    ranutil = new Random();
-    ranutil.setSeed(ranseed);
     popCount = new StatCounter("Pop requests to waitlist (" + getClass().getSimpleName() + ")");
     delegationCount =
         new StatCounter(
             "Pops delegated to wrapped waitlists ("
                 + wrappedWaitlist.getClass().getSimpleName()
                 + ")");
+
     pConfig.inject(this, DynamicSortedRandomWaitlist.class);
+    ranutil = new Random();
+    ranutil.setSeed(ranseed);
     searchForm = searchFormClass.create();
     waitlist = new TreeMap<>(searchForm);
   }
