@@ -290,6 +290,10 @@ class MainCPAStatistics implements Statistics {
       dumpReachedSet(reached);
       printSubStatistics(out, result, reached);
       exportCoverage(out, reached);
+    } else {
+      // DEBUG
+      exportCoverageNoRun(out);
+      // GUBED
     }
 
     out.println();
@@ -360,6 +364,19 @@ class MainCPAStatistics implements Statistics {
       }
     }
   }
+
+  // DEBUG
+  private void exportCoverageNoRun(PrintStream out) {
+    if (exportCoverage && cfa != null) {
+      CoverageData cov = new CoverageData();
+      cov.putCFA(cfa);
+      out.println();
+      out.println("Code Coverage");
+      out.println("-----------------------------");
+      CoverageReportStdoutSummary.write(cov, out);
+    }
+  }
+  // GUBED
 
   private void dumpReachedSet(UnmodifiableReachedSet reached) {
     dumpReachedSet(reached, reachedSetFile, false);
