@@ -297,6 +297,10 @@ private boolean classifyNodes = false;
     private final List<Statistics> statisticsCollection;
     private final LogManager logger;
 
+    // DEBUG
+    private int nofbranches;
+    //GUBED
+
     private CFACreatorStatistics(LogManager pLogger) {
       logger = pLogger;
       statisticsCollection = new ArrayList<>();
@@ -315,6 +319,7 @@ private boolean classifyNodes = false;
       out.println("    Time for AST to CFA:      " + conversionTime);
       out.println("    Time for CFA sanity check:" + checkTime);
       out.println("    Time for post-processing: " + processingTime);
+      out.println("    Number of branches:          " + nofbranches);
 
       if (exportTime.getNumberOfIntervals() > 0) {
         out.println("    Time for CFA export:      " + exportTime);
@@ -512,6 +517,9 @@ private boolean classifyNodes = false;
     // on the information collected above (such as loops and post-order ids).
 
     // (currently no such post-processings exist)
+
+    CFANoBranches nobrancheir = new CFANoBranches();
+    stats.nofbranches = nobrancheir.getNoBranches(cfa.getMainFunction());
 
     if (distancetoError) {
       CFADistanceToError errorfinder = new CFADistanceToError();
