@@ -1,5 +1,5 @@
 #!/bin/bash
 
-rm -R benchmark-TS-ABElbp-RanTS-machine.2018-11-$2.logfiles/
+rm -R benchmark-TS-CPAseqp-CE2-machine.2018-$2.logfiles/
 
-rm nwlee/m$3/benchmark-TS-ABElbp-RanTS-machine.2018-11-$1.logfiles.zip
+rm m$3/benchmark-TS-CPAseqp-CE2-machine.2018-$1.logfiles.zip
