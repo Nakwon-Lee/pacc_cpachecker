@@ -44,6 +44,7 @@ import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopIterationSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.PostorderSortedWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.RandomWaitlistSeed;
 import org.sosy_lab.cpachecker.core.waitlist.ReversePostorderSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.SMGSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ThreadingSortedWaitlist;
@@ -191,6 +192,12 @@ public class ReachedSetFactory {
 
   @Option(
     secure = true,
+    name = "traversal.purerand",
+    description = "use pure random waitlist")
+  boolean pureRandomWaitlist = false;
+
+  @Option(
+    secure = true,
     name = "reachedSet",
     description =
         "which reached set implementation to use?"
@@ -275,6 +282,10 @@ public class ReachedSetFactory {
 
     if (dynamicWaitlistRandom) {
       waitlistFactory = DynamicSortedRandomWaitlist.factory(waitlistFactory, config);
+    }
+
+    if (pureRandomWaitlist) {
+      waitlistFactory = RandomWaitlistSeed.factory(config);
     }
 
     if (useWeightedDepthOrder) {
