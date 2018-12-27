@@ -103,6 +103,7 @@ public class BlockOperator {
   public int numBlkFunctionHeads = 0;
   public int numBlkFunctions = 0;
   public int numBlkLoops = 0;
+  public int numBlkExplicit = 0;
   public int numBlkJoins = 0;
   public int numBlkBranch = 0;
   public int numBlkThreshold = 0;
@@ -124,6 +125,7 @@ public class BlockOperator {
 
     if (alwaysAtExplicitNodes && explicitAbstractionNodes != null
         && explicitAbstractionNodes.contains(loc)) {
+      numBlkExplicit++;
       return true;
     }
 

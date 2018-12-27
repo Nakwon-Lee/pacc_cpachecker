@@ -310,6 +310,7 @@ class PredicateCPAStatistics implements Statistics {
       out.println("  Times abstraction was reused:    " + as.numAbstractionReuses);
       out.println("  Because of function entry/exit:  " + valueWithPercentage(blk.numBlkFunctions, prec.numAbstractions));
       out.println("  Because of loop head:            " + valueWithPercentage(blk.numBlkLoops, prec.numAbstractions));
+      out.println("  Because of Explicit:             " + valueWithPercentage(blk.numBlkExplicit, prec.numAbstractions));
       out.println("  Because of join nodes:           " + valueWithPercentage(blk.numBlkJoins, prec.numAbstractions));
       out.println("  Because of threshold:            " + valueWithPercentage(blk.numBlkThreshold, prec.numAbstractions));
       out.println("  Because of target state:         " + valueWithPercentage(prec.numTargetAbstractions, prec.numAbstractions));

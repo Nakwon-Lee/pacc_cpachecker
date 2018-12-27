@@ -49,9 +49,12 @@ public class BlockedABElbprime implements BlockComputer {
 
   @Option(
     secure = true,
-    description = "Allow reduction of loop heads; calculate abstractions always at loop heads?")
-  private boolean allowReduceLoopHeads = true;
-
+    description = "calculate abstractions always at loop heads?")
+  private boolean allowLoopHeads = true;
+  /*
+   * @Option( secure = true, description = "calculate abstractions always at function call/return?")
+   * private boolean allowFunctions = true;
+   */
   @Option(secure = true, name = "errorloc", description = "This option is the name of error loc.")
   private String errorlocindi;
 
