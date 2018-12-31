@@ -36,7 +36,7 @@ public class MySearchStrategyFormula implements SearchStrategyFormula {
   @Override
   public int compare(ARGState e1, ARGState e2) {
 
-// compare start 
+// compare start
 if(e1.isAbs() < 1 && e2.isAbs() >= 1 ){
  return 1;
 }
@@ -72,23 +72,7 @@ if(thePhi<1){
   return -1;
  }
  else{
-  if(e1.blkD() < e2.blkD()){
-   return -1;
-  }
-  else if(e1.blkD() > e2.blkD()){
-   return 1;
-  }
-  else{
-   if(e1.uID() < e2.uID()){
-    return -1;
-   }
-   else if(e1.uID() > e2.uID()){
-    return 1;
-   }
-   else{
-    return 0;
-   }
-  }
+          return 0;
  }
 }
 }

@@ -38,6 +38,7 @@ import org.sosy_lab.cpachecker.core.waitlist.BlockWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.BranchBasedWeightedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DepthBasedWeightedWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedAllRandomWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedRandomWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
@@ -192,6 +193,12 @@ public class ReachedSetFactory {
 
   @Option(
     secure = true,
+    name = "traversal.dynamicAR",
+    description = "use dynamicsortedwaitlistAllRandom")
+  boolean dynamicWaitlistAllRandom = false;
+
+  @Option(
+    secure = true,
     name = "traversal.purerand",
     description = "use pure random waitlist")
   boolean pureRandomWaitlist = false;
@@ -282,6 +289,10 @@ public class ReachedSetFactory {
 
     if (dynamicWaitlistRandom) {
       waitlistFactory = DynamicSortedRandomWaitlist.factory(waitlistFactory, config);
+    }
+
+    if (dynamicWaitlistAllRandom) {
+      waitlistFactory = DynamicSortedAllRandomWaitlist.factory(waitlistFactory, config);
     }
 
     if (pureRandomWaitlist) {

@@ -36,7 +36,7 @@ public class GreedySearchStrategyFormula implements SearchStrategyFormula {
   @Override
   public int compare(ARGState e1, ARGState e2) {
 
-// compare start 
+// compare start
  if(e1.distE() < e2.distE()){
   return 1;
  }
@@ -44,15 +44,7 @@ public class GreedySearchStrategyFormula implements SearchStrategyFormula {
   return -1;
  }
  else{
-   if(e1.uID() < e2.uID()){
-    return -1;
-   }
-   else if(e1.uID() > e2.uID()){
-    return 1;
-   }
-   else{
-    return 0;
-   }
+      return 0;
   }
     // compare end
   }
