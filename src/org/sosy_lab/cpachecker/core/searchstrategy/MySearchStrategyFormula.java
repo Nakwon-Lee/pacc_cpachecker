@@ -72,7 +72,13 @@ if(thePhi<1){
   return -1;
  }
  else{
-          return 0;
+          if (e1.uID() < e2.uID()) {
+            return -1;
+          } else if (e1.uID() > e2.uID()) {
+            return 1;
+          } else {
+            return 0;
+          }
  }
 }
 }
