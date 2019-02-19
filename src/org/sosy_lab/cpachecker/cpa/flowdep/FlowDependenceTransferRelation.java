@@ -36,7 +36,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAddressOfLabelExpression;
@@ -181,9 +181,10 @@ class FlowDependenceTransferRelation
       // If the declaration contains an initializer, create the corresponding flow dependences
       // for its variable uses
       CExpression initializerExp = ((CInitializerExpression) maybeInitializer).getExpression();
+      MemoryLocation def = MemoryLocation.valueOf(pDecl.getQualifiedName());
       return handleOperation(
           pCfaEdge,
-          Optional.empty(),
+          Optional.of(def),
           getUsedVars(initializerExp, pPointerState),
           pNextFlowState,
           pReachDefState);
@@ -363,12 +364,33 @@ class FlowDependenceTransferRelation
       PointerState pPointerState)
       throws CPATransferException {
 
-    return handleOperation(
-        pCfaEdge,
-        Optional.empty(),
-        getUsedVars(pStatement, pPointerState),
-        pNextState,
-        pReachDefState);
+    FlowDependenceState nextState = pNextState;
+    Set<MemoryLocation> possibleDefs;
+    if (pStatement instanceof CAssignment) {
+      possibleDefs = getDef(((CAssignment) pStatement).getLeftHandSide(), pPointerState);
+
+      if (possibleDefs != null) {
+        for (MemoryLocation def : possibleDefs) {
+          nextState =
+              handleOperation(
+                  pCfaEdge,
+                  Optional.ofNullable(def),
+                  getUsedVars(pStatement, pPointerState),
+                  nextState,
+                  pReachDefState);
+        }
+      } else {
+        nextState =
+            handleOperation(
+                pCfaEdge,
+                Optional.empty(),
+                getUsedVars(pStatement, pPointerState),
+                nextState,
+                pReachDefState);
+      }
+    }
+
+    return nextState;
   }
 
   @Override

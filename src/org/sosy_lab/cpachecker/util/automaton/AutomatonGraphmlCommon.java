@@ -34,6 +34,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.CharStreams;
 import com.google.common.io.MoreFiles;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -48,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -99,7 +100,6 @@ import org.sosy_lab.cpachecker.cfa.model.c.CFunctionCallEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionReturnEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
-import org.sosy_lab.cpachecker.core.CPAchecker;
 import org.sosy_lab.cpachecker.core.counterexample.CFAEdgeWithAdditionalInfo;
 import org.sosy_lab.cpachecker.util.CFATraversal;
 import org.sosy_lab.cpachecker.util.CFATraversal.CFAVisitor;
@@ -191,8 +191,13 @@ public class AutomatonGraphmlCommon {
       this(id, pKeyFor, attrName, attrType, null);
     }
 
+    // because of https://github.com/spotbugs/spotbugs/issues/616
+    @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
     KeyDef(
-        String id, ElementType pKeyFor, String attrName, String attrType,
+        String id,
+        ElementType pKeyFor,
+        String attrName,
+        String attrType,
         @Nullable Object defaultValue) {
       this.id = Preconditions.checkNotNull(id);
       this.keyFor = Preconditions.checkNotNull(pKeyFor);
@@ -375,7 +380,7 @@ public class AutomatonGraphmlCommon {
       graph.appendChild(
           createDataElement(KeyDef.SOURCECODELANGUAGE, pCfa.getLanguage().toString()));
       graph.appendChild(
-          createDataElement(KeyDef.PRODUCER, "CPAchecker " + CPAchecker.getCPAcheckerVersion()));
+          createDataElement(KeyDef.PRODUCER, pVerificationTaskMetaData.getProducerString()));
 
       int nSpecs = 0;
       for (SpecificationProperty property : pVerificationTaskMetaData.getProperties()) {

@@ -24,14 +24,12 @@
 package org.sosy_lab.cpachecker.cpa.arg;
 
 import java.util.HashSet;
-import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractDomain;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.MergeOperator;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 
-@Options
 public class ARGMergeJoin implements MergeOperator {
 
   private final MergeOperator wrappedMerge;
@@ -76,8 +74,10 @@ public class ARGMergeJoin implements MergeOperator {
     if (mergeOnWrappedSubsumption) {
       HashSet<ARGState> parents1 = new HashSet<>(argElement1.getParents());
       HashSet<ARGState> parents2 = new HashSet<>(argElement2.getParents());
-      continueMerge = continueMerge ||
-          ((!parents2.containsAll(parents1) && wrappedDomain.isLessOrEqual(wrappedState1,wrappedState2)));
+      continueMerge =
+          continueMerge
+              || (!parents2.containsAll(parents1)
+                  && wrappedDomain.isLessOrEqual(wrappedState1, wrappedState2));
     }
     if (!continueMerge) {
       return pElement2;

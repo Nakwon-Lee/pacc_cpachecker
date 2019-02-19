@@ -34,6 +34,7 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import org.sosy_lab.common.ShutdownNotifier;
@@ -128,7 +129,7 @@ public class WitnessExporter {
         pIsRelevantEdge,
         Predicates.alwaysFalse(),
         Optional.empty(),
-        Optional.of(pCounterExample),
+        Optional.ofNullable(pCounterExample),
         GraphBuilder.ARG_PATH);
   }
 
@@ -193,14 +194,15 @@ public class WitnessExporter {
                   extractPredicateAnalysisAbstractionStateInvariants(
                       functionName, state, stateInvariant);
 
+              Set<ExpressionTree<Object>> approximations = new LinkedHashSet<>();
+              approximations.add(stateInvariant);
               for (ExpressionTreeReportingState etrs :
                   AbstractStates.asIterable(state).filter(ExpressionTreeReportingState.class)) {
-                stateInvariant =
-                    factory.and(
-                        stateInvariant,
-                        etrs.getFormulaApproximation(
-                            cfa.getFunctionHead(functionName), pEdge.getSuccessor()));
+                approximations.add(
+                    etrs.getFormulaApproximation(
+                        cfa.getFunctionHead(functionName), pEdge.getSuccessor()));
               }
+              stateInvariant = factory.and(approximations);
               stateInvariants.add(stateInvariant);
             }
             ExpressionTree<Object> invariant = factory.or(stateInvariants);
@@ -242,10 +244,10 @@ public class WitnessExporter {
                     "Witnessexport was interrupted for generation of Proofwitness", e);
               }
               if (invString != null) {
+                if (invString.equals("0")) {
+                  return ExpressionTrees.getFalse();
+                }
                 if (!invString.equals("1")) {
-                  if (invString.equals("0")) {
-                    return ExpressionTrees.getFalse();
-                  }
                   stateInvariant =
                       factory.and(stateInvariant, LeafExpression.of((Object) invString));
                 }

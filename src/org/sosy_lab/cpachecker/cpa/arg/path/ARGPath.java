@@ -30,12 +30,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.errorprone.annotations.ForOverride;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 import org.sosy_lab.common.Appenders.AbstractAppender;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
@@ -128,10 +130,20 @@ public class ARGPath extends AbstractAppender {
    * using bam) we return an empty list instead.
    */
   public List<CFAEdge> getFullPath() {
-    if (fullPath != null) {
-      return fullPath;
+    if (fullPath == null) {
+      fullPath = buildFullPath();
     }
+    return fullPath;
+  }
 
+  /**
+   * Compute a full list of CFAedges along the given list of ARGStates.
+   *
+   * <p>This method is intended to be only called lazily and only once, because it might be
+   * expensive.
+   */
+  @ForOverride
+  protected List<CFAEdge> buildFullPath() {
     List<CFAEdge> newFullPath = new ArrayList<>();
     PathIterator it = pathIterator();
 
@@ -165,7 +177,6 @@ public class ARGPath extends AbstractAppender {
       }
     }
 
-    this.fullPath = newFullPath;
     return newFullPath;
   }
 
@@ -266,26 +277,15 @@ public class ARGPath extends AbstractAppender {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((edges == null) ? 0 : edges.hashCode());
-    return result;
+    return Objects.hash(edges);
   }
 
   @Override
   public boolean equals(Object pOther) {
     if (this == pOther) { return true; }
     if (!(pOther instanceof ARGPath)) { return false; }
-
-    ARGPath other = (ARGPath) pOther;
-
-    if (edges == null) {
-      if (other.edges != null) { return false; }
-    } else if (!edges.equals(other.edges)) { return false; }
-
     // We do not compare the states because they are different from iteration to iteration!
-
-    return true;
+    return Objects.equals(edges, ((ARGPath) pOther).edges);
   }
 
   @Override

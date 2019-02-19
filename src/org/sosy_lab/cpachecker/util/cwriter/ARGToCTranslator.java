@@ -27,7 +27,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -42,7 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -85,14 +84,35 @@ public class ARGToCTranslator {
   private static String DEFAULTRETURN = "default return";
   private static String TMPVARPREFIX = "__tmp_";
 
-  private static abstract class Statement {
-    public abstract void translateToCode(StringBuilder buffer, int indent);
+  abstract static class Statement {
+    private static int gotoCounter = 0;
+
+    private boolean isGotoTarget = false;
+    private String gotoLabel = null;
+
+    public void translateToCode(StringBuilder buffer, int indent) {
+      if (isGotoTarget) {
+        buffer.append(gotoLabel).append(":;\n");
+      }
+      translateToCode0(buffer, indent);
+    }
+
+    abstract void translateToCode0(StringBuilder buffer, int indent);
 
     protected static void writeIndent(StringBuilder buffer, int indent) {
       for(int i = 0; i < indent; i++) {
         // buffer.append(" ");
       }
       buffer.append(" ");
+    }
+
+    public String getLabel() {
+      if (!isGotoTarget) {
+        gotoLabel = "label_" + gotoCounter;
+        gotoCounter++;
+        isGotoTarget = true;
+      }
+      return gotoLabel;
     }
   }
 
@@ -104,7 +124,7 @@ public class ARGToCTranslator {
 
   }
 
-  private static class CompoundStatement extends Statement {
+  static class CompoundStatement extends Statement {
     private final List<Statement> statements;
     private final CompoundStatement outerBlock;
 
@@ -122,7 +142,7 @@ public class ARGToCTranslator {
     }
 
     @Override
-    public void translateToCode(StringBuilder buffer, int indent) {
+    public void translateToCode0(StringBuilder buffer, int indent) {
       writeIndent(buffer, indent);
       buffer.append("{\n");
 
@@ -139,7 +159,7 @@ public class ARGToCTranslator {
     }
   }
 
-  private static class SimpleStatement extends Statement {
+  static class SimpleStatement extends Statement {
     private final String code;
 
     public SimpleStatement(String pCode) {
@@ -147,14 +167,14 @@ public class ARGToCTranslator {
     }
 
     @Override
-    public void translateToCode(StringBuilder buffer, int indent) {
+    public void translateToCode0(StringBuilder buffer, int indent) {
       writeIndent(buffer, indent);
       buffer.append(code);
       buffer.append("\n");
     }
   }
 
-  private static class FunctionBody extends Statement {
+  static class FunctionBody extends Statement {
     private final String functionHeader;
     private final CompoundStatement functionBody;
 
@@ -168,7 +188,7 @@ public class ARGToCTranslator {
     }
 
     @Override
-    public void translateToCode(StringBuilder buffer, int indent) {
+    public void translateToCode0(StringBuilder buffer, int indent) {
       writeIndent(buffer, indent);
       buffer.append(functionHeader);
       buffer.append("\n");
@@ -1053,7 +1073,7 @@ public class ARGToCTranslator {
     public DeclarationInfo addNewDeclarationInfo(final CDeclaration dec, final String decId) {
       ImmutableMap<CDeclaration, String> newFunDecInfo;
       if (currentFuncDecInfo.containsKey(dec)) {
-        Builder<CDeclaration, String> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<CDeclaration, String> builder = ImmutableMap.builder();
         builder.put(dec, decId);
         for (Entry<CDeclaration, String> entry : currentFuncDecInfo.entrySet()) {
           if (!entry.getKey().equals(dec)) {
@@ -1073,7 +1093,7 @@ public class ARGToCTranslator {
     }
 
     public DeclarationInfo fromFunctionCall(final CFunctionCallEdge callEdge, final String decId) {
-      Builder<CDeclaration, String> builder = ImmutableMap.builder();
+      ImmutableMap.Builder<CDeclaration, String> builder = ImmutableMap.builder();
 
       for (CParameterDeclaration paramDecl :
           callEdge

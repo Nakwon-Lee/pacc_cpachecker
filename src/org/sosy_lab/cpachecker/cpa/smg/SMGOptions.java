@@ -83,7 +83,8 @@ public class SMGOptions {
       secure = true,
       name = "memoryAllocationFunctions",
       description = "Memory allocation functions")
-  private ImmutableSet<String> memoryAllocationFunctions = ImmutableSet.of("malloc", "__kmalloc", "kmalloc");
+  private ImmutableSet<String> memoryAllocationFunctions =
+      ImmutableSet.of("malloc", "__kmalloc", "kmalloc", "realloc");
 
   @Option(
     secure = true,
@@ -192,9 +193,16 @@ public class SMGOptions {
 
   @Option(
       secure = true,
-      name = "handleExternVariableAsExternalAllocation",
-      description = "Handle extern variables with incomplete type (extern int array[]) as external allocation")
-  private boolean handleExternVariableAsExternalAllocation = false;
+      name = "allocateExternalVariables",
+      description = "Allocate memory on declaration of external variable")
+  private boolean allocateExternalVariables = true;
+
+  @Option(
+      secure = true,
+      name = "handleIncompleteExternalVariableAsExternalAllocation",
+      description =
+          "Handle external variables with incomplete type (extern int array[]) as external allocation")
+  private boolean handleIncompleteExternalVariableAsExternalAllocation = false;
 
   public enum SMGExportLevel {
     NEVER,
@@ -299,8 +307,12 @@ public class SMGOptions {
     return exportSMG;
   }
 
-  public boolean isHandleExternVariableAsExternalAllocation() {
-    return handleExternVariableAsExternalAllocation;
+  public boolean isHandleIncompleteExternalVariableAsExternalAllocation() {
+    return handleIncompleteExternalVariableAsExternalAllocation;
+  }
+
+  public boolean getAllocateExternalVariables() {
+    return allocateExternalVariables;
   }
 
   public boolean isHandleUnknownDereferenceAsSafe() {

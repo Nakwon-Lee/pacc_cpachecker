@@ -49,6 +49,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
+import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
@@ -65,7 +66,7 @@ import org.sosy_lab.cpachecker.util.Precisions;
 public class ARGReachedSet {
 
   private final int refinementNumber;
-  private final ARGCPA cpa;
+  private final ConfigurableProgramAnalysis cpa;
 
   private final ReachedSet mReached;
   private final UnmodifiableReachedSet mUnmodifiableReached;
@@ -87,7 +88,7 @@ public class ARGReachedSet {
     this(pReached, null);
   }
 
-  public ARGReachedSet(ReachedSet pReached, ARGCPA pCpa) {
+  public ARGReachedSet(ReachedSet pReached, ConfigurableProgramAnalysis pCpa) {
     this(pReached, pCpa, -1);
   }
 
@@ -95,7 +96,8 @@ public class ARGReachedSet {
    * This constructor may be used only during an refinement
    * which should be added to the refinement graph .dot file.
    */
-  public ARGReachedSet(ReachedSet pReached, ARGCPA pCpa, int pRefinementNumber) {
+  public ARGReachedSet(
+      ReachedSet pReached, ConfigurableProgramAnalysis pCpa, int pRefinementNumber) {
     mReached = checkNotNull(pReached);
     mUnmodifiableReached = new UnmodifiableReachedSetWrapper(mReached);
 
@@ -129,7 +131,7 @@ public class ARGReachedSet {
    * States which have become unreachable get properly detached
    */
   public void recalculateReachedSet(ARGState rootState) {
-    removeReachableFrom(Collections.singleton(rootState), ARGState::getChildren, x -> true);
+    removeUnReachableFrom(Collections.singleton(rootState), ARGState::getChildren, x -> true);
   }
 
   /**
@@ -141,12 +143,12 @@ public class ARGReachedSet {
         .filter(AbstractStates.IS_TARGET_STATE)
         .toList();
     if (!targetStates.isEmpty()) {
-      removeReachableFrom(targetStates,
+      removeUnReachableFrom(targetStates,
           ARGState::getParents, x -> x.wasExpanded());
     }
   }
 
-  private void removeReachableFrom(Collection<AbstractState> startStates,
+  private void removeUnReachableFrom(Collection<AbstractState> startStates,
       Function<? super ARGState, ? extends Iterable<ARGState>> successorFunction,
       Predicate<ARGState> allowedToRemove) {
     Deque<AbstractState> toVisit = new ArrayDeque<>(startStates);
@@ -166,12 +168,13 @@ public class ARGReachedSet {
         toRemove.add((ARGState) inOldReached);
       }
     }
-    mReached.removeAll(toRemove);
     for (ARGState state : toRemove) {
       if (!state.isDestroyed()) {
+        removeCoverageOf(state);
         state.removeFromARG();
       }
     }
+    mReached.removeAll(toRemove);
   }
 
   /**
@@ -351,11 +354,13 @@ public class ARGReachedSet {
   }
 
   private void dumpSubgraph(ARGState e) {
-    if (cpa == null) {
+    if (cpa == null || !(cpa instanceof ARGCPA)) {
       return;
     }
 
-    ARGToDotWriter refinementGraph = cpa.getARGExporter().getRefinementGraphWriter();
+    ARGCPA argCpa = (ARGCPA) cpa;
+
+    ARGToDotWriter refinementGraph = argCpa.getARGExporter().getRefinementGraphWriter();
     if (refinementGraph == null) {
       return;
     }
@@ -383,7 +388,9 @@ public class ARGReachedSet {
       }
 
     } catch (IOException ex) {
-      cpa.getLogger().logUserException(Level.WARNING, ex, "Could not write refinement graph to file");
+      argCpa
+          .getLogger()
+          .logUserException(Level.WARNING, ex, "Could not write refinement graph to file");
     }
 
   }
