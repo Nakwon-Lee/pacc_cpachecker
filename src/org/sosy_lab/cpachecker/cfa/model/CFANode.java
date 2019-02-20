@@ -310,10 +310,12 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     return isencoded;
   }
 
-  //GUBED
-
   public void setIsEncoded(boolean pIsencoded) {
     isencoded = pIsencoded;
+  }
+
+   //GUBED
+
   public void addOutOfScopeVariables(Collection<CSimpleDeclaration> pOutOfScopeVariables) {
     if (outOfScopeVariables == null) { // lazy
       outOfScopeVariables = new LinkedHashSet<>();
