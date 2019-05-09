@@ -205,10 +205,6 @@ public class CounterexampleCPAchecker implements CounterexampleChecker {
           lCpas.getInitialState(entryNode, StateSpacePartition.getDefaultPartition()),
           lCpas.getInitialPrecision(entryNode, StateSpacePartition.getDefaultPartition()));
 
-
-      //DEBUG
-      System.out.println("CounterexampleCPAChecker.checkCounterexample lAlgorithm?   "+lAlgorithm.getClass().getName());
-       //GUBED
       lAlgorithm.run(lReached);
 
       lShutdownManager.requestShutdown("Analysis terminated");

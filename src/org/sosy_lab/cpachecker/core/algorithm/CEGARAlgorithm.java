@@ -248,6 +248,10 @@ public class CEGARAlgorithm implements Algorithm, StatisticsProvider, ReachedSet
           break;
         }
 
+        // DEBUG
+        // System.out.println("refine?");
+        // GUBED
+
         // if there is any target state do refinement
         if (refinementNecessary(reached, previousLastState)) {
           refinementSuccessful = refine(reached);
