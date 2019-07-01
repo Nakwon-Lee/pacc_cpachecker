@@ -285,7 +285,7 @@ private boolean classifyNodes = false;
   @Option(
     secure = true,
     name = "cfa.distancetoError",
-    description = "This option enables the computation of distance to error location for each CFA node.")
+    description = "This option enables the computation of distance to error locations for each CFA node.")
   private boolean distancetoError = false;
 
   @Option(
@@ -293,6 +293,12 @@ private boolean classifyNodes = false;
     name = "cfa.errorloc",
     description = "This option is the name of error loc.")
   private String errorlocindi;
+
+  @Option(
+    secure = true,
+    name = "cfa.distancetoEnd",
+    description = "This option enables the computation of distance to end locations for each CFA node.")
+  private boolean distancetoEnd = false;
 
   @Option(secure=true, description="C, Java, or LLVM IR?")
   private Language language = Language.C;
@@ -548,7 +554,16 @@ private boolean classifyNodes = false;
       // System.out.print(errorfinder.toStringDistErr(cfa.getMainFunction()));
     }
 
-    logger.log(Level.FINE, "After calculating distance to errors");
+    if (distancetoEnd) {
+      CFADistanceToEnd endfinder = new CFADistanceToEnd();
+      endfinder.findEndLocations(cfa.getMainFunction());
+      endfinder.initiationDistToEnd(cfa.getMainFunction());
+      endfinder.calcDistanceToEnd2();
+      // System.out.print(endfinder.toStringDistEnd(cfa.getMainFunction()));
+    }
+
+    logger.log(Level.FINE, "After calculating distance to errors (ends)");
+
 
     // SIXTH, get information about the CFA,
     // the cfa should not be modified after this line.

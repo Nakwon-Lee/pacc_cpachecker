@@ -70,9 +70,12 @@ public class CFANode implements Comparable<CFANode>, Serializable {
   // DEBUG
   // control distance to error locations
   private List<Integer> distancetoerr = new ArrayList<>();
+  private List<Integer> distancetoend = new ArrayList<>();
 
   private boolean initvisit = false;
   private boolean calcvisit = false;
+  private boolean initvisit2 = false;
+  private boolean calcvisit2 = false;
 
   // is this node encoded?
   private boolean isencoded = false;
@@ -312,6 +315,32 @@ public class CFANode implements Comparable<CFANode>, Serializable {
 
   public void setIsEncoded(boolean pIsencoded) {
     isencoded = pIsencoded;
+  }
+
+  public int getDistancetoend(int idx) {
+    assert calcvisit2 : "dist to end is not calculated";
+    return distancetoend.get(idx);
+  }
+
+  public List<Integer> getDistancetoendList() {
+    return distancetoend;
+  }
+
+  public void setDistancetoend(int idx, int pDistancetoend) {
+    assert initvisit2 : "CFANode is not visited by forward search";
+    distancetoend.set(idx, pDistancetoend);
+    calcvisit2 = true;
+  }
+
+  public void initDistancetoend(int plen) {
+    for (int i = 0; i < plen; i++) {
+      distancetoend.add(Integer.MAX_VALUE);
+    }
+    initvisit2 = true;
+  }
+
+  public boolean getInitVisit2() {
+    return initvisit2;
   }
 
    //GUBED

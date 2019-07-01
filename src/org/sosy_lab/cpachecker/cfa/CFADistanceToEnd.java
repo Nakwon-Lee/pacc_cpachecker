@@ -31,9 +31,6 @@ import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
-import org.sosy_lab.cpachecker.cfa.ast.AStatement;
-import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallStatement;
-import org.sosy_lab.cpachecker.cfa.model.AStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
@@ -42,13 +39,13 @@ import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
 import org.sosy_lab.cpachecker.core.interfaces.Pair;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 
-public class CFADistanceToError {
+public class CFADistanceToEnd {
 
-  private Set<CFAEdge> errorEdges = new HashSet<>();
+  private Set<CFANode> endNodes = new HashSet<>();
 
   private Set<CFANode> visitedByForward;
 
-  public void findErrorLocations(CFANode pRootNode, String errorindi) {
+  public void findEndLocations(CFANode pRootNode) {
     Deque<CFANode> nodestack = new ArrayDeque<>();
     Set<CFANode> visited = new HashSet<>();
 
@@ -65,6 +62,8 @@ public class CFADistanceToError {
 
       Iterator<CFANode> successors = CFAUtils.successorsOf(currnode).iterator();
 
+      int num = 0;
+
       while (successors.hasNext()) {
         CFANode successor = successors.next();
         CFAEdge edge = currnode.getEdgeTo(successor);
@@ -76,32 +75,19 @@ public class CFADistanceToError {
             continue;
           }
 
-          AStatementEdge stmtedge = (AStatementEdge) edge;
-          AStatement stmt = stmtedge.getStatement();
-          if (stmt instanceof CFunctionCallStatement) {
-            CFunctionCallStatement cfcstmt = (CFunctionCallStatement) stmt;
-            String errorfunname =
-                cfcstmt.getFunctionCallExpression()
-                    .getFunctionNameExpression()
-                    .toQualifiedASTString();
-            if (errorfunname.compareTo(errorindi) == 0) {
-              errorEdges.add(edge);
-              // Iterator<CFANode> errorsuccs = CFAUtils.successorsOf(successor).iterator();
-              // remove all leaving edges of error state
-              /*
-               * while (errorsuccs.hasNext()) { CFANode errorsucc = errorsuccs.next(); CFAEdge
-               * errsuccedge = successor.getEdgeTo(errorsucc);
-               * successor.removeLeavingEdge(errsuccedge); }
-               */
-            }
-          }
         }
+        num++;
         nodestack.push(successor);
       }
+
+      if (num == 0) {
+        endNodes.add(currnode);
+      }
+
     }
   }
 
-  public void initiationDistToError(CFANode pRootNode) {
+  public void initiationDistToEnd(CFANode pRootNode) {
     Deque<NCPair> nodestack = new ArrayDeque<>();
     Set<CFANode> visited = new HashSet<>();
     Set<String> functions_En = new HashSet<>();
@@ -144,7 +130,7 @@ public class CFADistanceToError {
         visited.add(currnode);
       }
 
-      currnode.initDistancetoerr(errorEdges.size());
+      currnode.initDistancetoend(endNodes.size());
 
       Iterator<CFANode> successors = CFAUtils.successorsOf(currnode).iterator();
 
@@ -178,268 +164,17 @@ public class CFADistanceToError {
       }
     }
     visitedByForward = visited;
-    System.out.println("errorEdges: " + errorEdges.toString());
+    System.out.println("endNodes: " + endNodes.toString());
   }
 
-  public void calcDistanceToError() {
-
+  public void calcDistanceToEnd2() {
     int i = 0;
 
-    for (CFAEdge edge : errorEdges) {
+    for (CFANode node : endNodes) {
 
-      System.out.println("Start erroredge " + i);
+      System.out.println("Start endnode " + i);
 
-      DistanceToErrComparator dtecomp = new DistanceToErrComparator(i);
-
-      Deque<NavigableSet<NDPair>> funcstack = new ArrayDeque<>();
-      NavigableSet<NDPair> tempstack = new TreeSet<>(dtecomp);
-      funcstack.push(tempstack);
-
-      Deque<Set<CFANode>> visitstack = new ArrayDeque<>();
-      Set<CFANode> tempvisited = new HashSet<>();
-      visitstack.push(tempvisited);
-
-      Deque<Integer> compdiststack = new ArrayDeque<>();
-      compdiststack.push(0);
-
-      HashMap<String, Integer> function_Dist = new HashMap<>();
-
-      CFANode errnode = edge.getSuccessor();
-      errnode.setDistancetoerr(i, 0);
-
-      CFANode node = edge.getPredecessor();
-
-      assert node
-          .getNumLeavingEdges() == 1 : "predecessor of error edge should have only one leaving edge";
-      node.setDistancetoerr(i, 1);
-
-      // visited nodes set for current call stack
-      Set<CFANode> visited = tempvisited;
-      visited.add(node);
-      visited.add(errnode);
-
-      // waiting nodes stack for current call stack
-      NavigableSet<NDPair> nodestack = tempstack;
-      nodestack.add(new NDPair(new NCPair(node, null), 0));
-
-      // input comparative distance for current call stack
-      Integer currcompvisit = compdiststack.peek();
-
-      while (!funcstack.isEmpty()) {
-
-        nodestack = funcstack.peek();
-        visited = visitstack.peek();
-        currcompvisit = compdiststack.peek();
-        String temp = "";
-        for (NDPair nddd : nodestack) {
-          CFANode dd = nddd.getLeft().getLeft();
-          temp = temp.concat("N" + dd.getNodeNumber() + ":" + dd.getDistancetoerr(i) + " ");
-        }
-        System.out.println(temp + nodestack.first().getLeft().getLeft().getFunctionName());
-
-        NDPair currndpair = nodestack.pollFirst();
-        NCPair currncpair = currndpair.getLeft();
-        CFANode currnode = currncpair.getLeft();
-
-        System.out
-            .println("Pick N" + currnode.getNodeNumber() + ":" + currnode.getDistancetoerr(i));
-
-        Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
-
-        int predcount = 0;
-        boolean freturn = false;
-        boolean fcall = false;
-        while (predecessors.hasNext()) {
-          CFANode predecessor = predecessors.next();
-
-          CFAEdge preedge = predecessor.getEdgeTo(currnode);
-          CFAEdgeType preedgetype = preedge.getEdgeType();
-
-          if (!visitedByForward.contains(predecessor)) {
-            continue;
-          }
-
-          if (preedgetype == CFAEdgeType.AssumeEdge) {
-
-            if (visited.contains(predecessor)) {
-              continue;
-            }
-
-            if (predecessor.getDistancetoerr(i) > currnode.getDistancetoerr(i) + 1) {
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
-            }
-
-            Integer predndint = currndpair.getRight() + 1;
-
-            nodestack.add(new NDPair(new NCPair(predecessor, currncpair.getRight()), predndint));
-            visited.add(predecessor);
-
-          } else if (preedgetype == CFAEdgeType.StatementEdge) {
-
-            if (visited.contains(predecessor)) {
-              continue;
-            }
-
-            if (preedge instanceof CFunctionSummaryStatementEdge) {
-              continue;
-            }
-
-            if (predecessor.getDistancetoerr(i) > currnode.getDistancetoerr(i)) {
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-            }
-            nodestack.add(
-                new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight()));
-            visited.add(predecessor);
-
-          } else if (preedgetype == CFAEdgeType.FunctionReturnEdge) {
-
-            freturn = true;
-
-            String funcname = predecessor.getFunctionName();
-            CFANode caller = currnode.getEnteringSummaryEdge().getPredecessor();
-
-            if (function_Dist.containsKey(funcname)) { // do not enter the function
-
-              assert function_Dist.get(
-                  funcname) != null : "we assume that a deeper stacked function should be processed first";
-
-              if(visited.contains(caller)) {
-                continue;
-              }
-
-              NDPair tempndpair =
-                  new NDPair(new NCPair(caller, currncpair.getRight()), currndpair.getRight());
-              if (caller.getDistancetoerr(i) > currnode.getDistancetoerr(i)
-                  + function_Dist.get(funcname)) {
-                caller.setDistancetoerr(
-                    i,
-                    currnode.getDistancetoerr(i) + function_Dist.get(funcname));
-              }
-              nodestack.add(tempndpair);
-              visited.add(caller);
-
-            } else { // enter the function (new function stack, and new visited set)
-
-              NavigableSet<NDPair> tempset = new TreeSet<>(dtecomp);
-              funcstack.push(tempset);
-
-              Set<CFANode> tempnodeset = new HashSet<>();
-              visitstack.push(tempnodeset);
-
-              compdiststack.push(currndpair.getRight());
-
-              function_Dist.put(predecessor.getFunctionName(), null);
-
-              if (predecessor.getDistancetoerr(i) > currnode.getDistancetoerr(i)) {
-                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-              }
-              NCPair predncpair =
-                  new NCPair(predecessor, new NCPair(caller, currncpair.getRight()));
-              tempset.add(new NDPair(predncpair, 0));
-              tempnodeset.add(predecessor);
-            }
-
-          } else if (preedgetype == CFAEdgeType.FunctionCallEdge) {
-
-            if (currncpair.getRight() != null) {// has caller function
-              if (predecessor.compareTo(currncpair.getRight().getLeft()) != 0) {
-                // invalid callEdge
-                continue;
-              }
-            }
-
-            if (currncpair.getRight() != null) {// has caller function
-
-              fcall = true;
-
-              NavigableSet<NDPair> temptop = funcstack.pop();
-              Set<CFANode> tempvitop = visitstack.pop();
-
-              if (visitstack.peek().contains(predecessor)) {
-                funcstack.push(temptop);
-                visitstack.push(tempvitop);
-                continue;
-              }
-
-              assert function_Dist.containsKey(
-                  currnode
-                      .getFunctionName()) : "function_dist must have the key for callee function";
-              function_Dist.put(currnode.getFunctionName(), currndpair.getRight());
-
-              if (predecessor.getDistancetoerr(i) > currnode.getDistancetoerr(i)) {
-                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-              }
-
-              funcstack.peek().add(
-                  new NDPair(
-                      new NCPair(predecessor, currncpair.getRight().getRight()),
-                      currcompvisit + currndpair.getRight()));
-              visitstack.peek().add(predecessor);
-
-              funcstack.push(temptop);
-              visitstack.push(tempvitop);
-
-            }else {// has no caller function
-
-              if (visited.contains(predecessor)) {
-                continue;
-              }
-
-              if (predecessor.getDistancetoerr(i) > currnode.getDistancetoerr(i)) {
-                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-              }
-              nodestack.add(
-                  new NDPair(
-                      new NCPair(predecessor, currncpair.getRight()),
-                      currndpair.getRight()));
-              visited.add(predecessor);
-            }
-
-          } else {
-
-            if (visited.contains(predecessor)) {
-              continue;
-            }
-
-            if (predecessor.getDistancetoerr(i) > currnode.getDistancetoerr(i)) {
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-            }
-            nodestack.add(
-                new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight()));
-            visited.add(predecessor);
-
-          }
-          predcount = predcount + 1;
-        }
-
-        if (fcall) {
-          assert predcount == 1 : "fcall should have only one valid predecessor";
-        }
-
-        if (freturn) {
-          assert predcount == 1 : "freturn should have only one predecessor";
-        }
-
-        // need changing funcstack
-        while (funcstack.peek().isEmpty()) {
-          funcstack.pop();
-          visitstack.pop();
-          compdiststack.pop();
-        }
-      }
-
-      i = i + 1;
-    }
-  }
-
-  public void calcDistanceToError2() {
-    int i = 0;
-
-    for (CFAEdge edge : errorEdges) {
-
-      System.out.println("Start erroredge " + i);
-
-      DistanceToErrComparator dtecomp = new DistanceToErrComparator(i);
+      DistanceToEndComparator dtecomp = new DistanceToEndComparator(i);
       NavigableSet<NDPair> nodestack = new TreeSet<>(dtecomp);
 
       Set<CFANode> visited = new HashSet<>();
@@ -452,22 +187,15 @@ public class CFADistanceToError {
       //function name and its direct dist
       Map<String, Integer> direct_Ex = new HashMap<>();
 
-      CFANode errnode = edge.getSuccessor();
-      if (!errnode.getInitVisit()) {
+      CFANode endnode = node;
+      if (!endnode.getInitVisit()) {
         continue;
       }
-      errnode.setDistancetoerr(i, 0);
+      endnode.setDistancetoend(i, 0);
 
-      CFANode node = edge.getPredecessor();
+      visited.add(endnode);
 
-      assert node
-          .getNumLeavingEdges() == 1 : "predecessor of error edge should have only one leaving edge";
-      node.setDistancetoerr(i, 1);
-
-      visited.add(node);
-      visited.add(errnode);
-
-      nodestack.add(new NDPair(new NCPair(node, null), 0));
+      nodestack.add(new NDPair(new NCPair(endnode, null), 0));
 
       while (!nodestack.isEmpty()) {
         NDPair currndpair = nodestack.pollFirst();
@@ -493,12 +221,15 @@ public class CFADistanceToError {
             }
 
             if (predecessor.isLoopStart()) {
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+              predecessor.setDistancetoend(i, currnode.getDistancetoend(i) + 1);
+
               // increase local dist
               Integer predndint = currndpair.getRight() + 1;
+
               nodestack.add(new NDPair(new NCPair(predecessor, currncpair.getRight()), predndint));
             } else {
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              predecessor.setDistancetoend(i, currnode.getDistancetoend(i));
+
               nodestack.add(
                   new NDPair(
                       new NCPair(predecessor, currncpair.getRight()),
@@ -517,7 +248,7 @@ public class CFADistanceToError {
               continue;
             }
 
-            predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+            predecessor.setDistancetoend(i, currnode.getDistancetoend(i));
 
             nodestack.add(
                 new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight()));
@@ -541,7 +272,7 @@ public class CFADistanceToError {
                         new NCPair(caller, currncpair.getRight()),
                         currndpair.getRight() + function_Ex.get(funcname));
                 caller
-                    .setDistancetoerr(i, currnode.getDistancetoerr(i) + function_Ex.get(funcname));
+                    .setDistancetoend(i, currnode.getDistancetoend(i) + function_Ex.get(funcname));
 
                 nodestack.add(tempndpair);
                 visited.add(caller);
@@ -554,14 +285,14 @@ public class CFADistanceToError {
                 NDPair tempndpair = new NDPair(new NCPair(caller, currncpair.getRight()),
                         currndpair.getRight());
                 caller
-                .setDistancetoerr(i, currnode.getDistancetoerr(i));
+                    .setDistancetoend(i, currnode.getDistancetoend(i));
                 function_En.get(funcname).add(tempndpair);
               }
 
             } else {// I'm the first who traverse the function
               function_En.put(funcname, new HashSet<NDPair>());
               function_LocD.put(funcname, currndpair.getRight());
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              predecessor.setDistancetoend(i, currnode.getDistancetoend(i));
               NCPair predncpair =
                   new NCPair(predecessor, new NCPair(caller, currncpair.getRight()));
               nodestack.add(new NDPair(predncpair, 0));
@@ -581,7 +312,7 @@ public class CFADistanceToError {
               }
 
               function_Ex.put(currnode.getFunctionName(), currndpair.getRight());
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              predecessor.setDistancetoend(i, currnode.getDistancetoend(i));
               nodestack.add(
                   new NDPair(
                       new NCPair(predecessor, currncpair.getRight().getRight()),
@@ -590,14 +321,14 @@ public class CFADistanceToError {
 
             } else {// has no caller function
 
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              predecessor.setDistancetoend(i, currnode.getDistancetoend(i));
               nodestack.add(
                   new NDPair(
                       new NCPair(predecessor, currncpair.getRight()),
                       currndpair.getRight()));
               visited.add(predecessor);
               if (!direct_Ex.containsKey(currnode.getFunctionName())) {
-                direct_Ex.put(currnode.getFunctionName(), currnode.getDistancetoerr(i));
+                direct_Ex.put(currnode.getFunctionName(), currnode.getDistancetoend(i));
               }
 
             }
@@ -608,7 +339,7 @@ public class CFADistanceToError {
               continue;
             }
 
-            predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+            predecessor.setDistancetoend(i, currnode.getDistancetoend(i));
             nodestack.add(
                 new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight()));
             visited.add(predecessor);
@@ -627,9 +358,9 @@ public class CFADistanceToError {
           if (function_Ex.containsKey(entry.getKey())) {
             // function_Ex found! add all nodes!
             for (NDPair apair : entry.getValue()) {
-              apair.getLeft().getLeft().setDistancetoerr(
+              apair.getLeft().getLeft().setDistancetoend(
                   i,
-                  apair.getLeft().getLeft().getDistancetoerr(i) + function_Ex.get(entry.getKey()));
+                  apair.getLeft().getLeft().getDistancetoend(i) + function_Ex.get(entry.getKey()));
               apair.setRight(apair.getRight() + function_Ex.get(entry.getKey()));
               nodestack.add(apair);
               visited.add(apair.getLeft().getLeft());
@@ -643,7 +374,7 @@ public class CFADistanceToError {
     }
   }
 
-  public String toStringDistErr(CFANode prootnode) {
+  public String toStringDistEnd(CFANode prootnode) {
     String retstr = "";
     Deque<CFANode> nodestack = new ArrayDeque<>();
     Set<CFANode> visited = new HashSet<>();
@@ -660,9 +391,9 @@ public class CFADistanceToError {
       }
 
       retstr = retstr.concat("N" + currnode.getNodeNumber() + ":");
-      List<Integer> key = currnode.getDistancetoerrList();
+      List<Integer> key = currnode.getDistancetoendList();
       for (int i = 0; i < key.size(); i++) {
-        retstr = retstr.concat(currnode.getDistancetoerr(i) + ",");
+        retstr = retstr.concat(currnode.getDistancetoend(i) + ",");
       }
       retstr = retstr.concat(System.lineSeparator());
 
@@ -676,11 +407,11 @@ public class CFADistanceToError {
     return retstr;
   }
 
-  private static class DistanceToErrComparator implements Comparator<NDPair> {
+  private static class DistanceToEndComparator implements Comparator<NDPair> {
 
     private int curridx;
 
-    public DistanceToErrComparator(int pi) {
+    public DistanceToEndComparator(int pi) {
       curridx = pi;
     }
 
@@ -688,7 +419,7 @@ public class CFADistanceToError {
     public int compare(NDPair pnc0, NDPair pnc1) {
       CFANode pArg0 = pnc0.getLeft().getLeft();
       CFANode pArg1 = pnc1.getLeft().getLeft();
-      int ret = Integer.compare(pArg0.getDistancetoerr(curridx), pArg1.getDistancetoerr(curridx));
+      int ret = Integer.compare(pArg0.getDistancetoend(curridx), pArg1.getDistancetoend(curridx));
       if (ret == 0) {
         ret = pArg0.compareTo(pArg1);
       }
