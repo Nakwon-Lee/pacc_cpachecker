@@ -82,14 +82,12 @@ public class ARGState extends AbstractSingleWrapperState
   private final int stateId;
 
   //DEBUG
-  private int blkDepth = 0;
   private int isAbsSt = 0;
   private int callStack = 0;
   private int revpostodr = -1;
-  private int lenPath = 0;
-  private int loopDepth = 0;
   private boolean isInWL = false;
   private int distoerr = Integer.MAX_VALUE;
+  private int distoend = Integer.MAX_VALUE;
   //GUBED
 
   // If this is a target state, we may store additional information here.
@@ -116,7 +114,6 @@ public class ARGState extends AbstractSingleWrapperState
     // assert predicateState != null : "extractStateByType is failed! (predicateState)";
     if (predicateState != null && predicateState.isAbstractionState()){
       isAbsSt = 1;
-      blkDepth = blkDepth + 1;
     }
 
     CallstackState csState = AbstractStates.extractStateByType(pWrappedState, CallstackState.class);
@@ -125,10 +122,17 @@ public class ARGState extends AbstractSingleWrapperState
     }
 
     CFANode thisnode = AbstractStates.extractLocation(pWrappedState);
-    revpostodr = thisnode.getReversePostorderId();
-    if (!thisnode.getDistancetoerrList().isEmpty()) {
-      NavigableSet<Integer> tempset = new TreeSet<>(thisnode.getDistancetoerrList());
-      distoerr = tempset.first();
+    if (thisnode != null) {
+      revpostodr = thisnode.getReversePostorderId();
+      if (!thisnode.getDistancetoerrList().isEmpty()) {
+        NavigableSet<Integer> tempset = new TreeSet<>(thisnode.getDistancetoerrList());
+        distoerr = tempset.first();
+      }
+
+      if (!thisnode.getDistancetoendList().isEmpty()) {
+        NavigableSet<Integer> tempset = new TreeSet<>(thisnode.getDistancetoendList());
+        distoend = tempset.first();
+      }
     }
 
     //GUBED
@@ -164,27 +168,9 @@ public class ARGState extends AbstractSingleWrapperState
 
     assert !wasExpanded : "violation of assuming";
 
-    if (pOtherParent.blkDepth >= blkDepth) {
-      blkDepth = pOtherParent.blkDepth;
-      if (isAbsSt == 1) { // this is only for addparent after construction
-        blkDepth = blkDepth + 1;
-      }
-    }
-
     PredicateAbstractState predicateState =
         AbstractStates.extractStateByType(getWrappedState(), PredicateAbstractState.class);
     // assert predicateState != null : "extractStateByType is failed! (predicateState)";
-    if (predicateState != null && predicateState.isAbstractionState()) {
-      lenPath = predicateState.getPathFormula().getLength();
-    }
-
-    if (pOtherParent.loopDepth >= loopDepth) {
-      loopDepth = pOtherParent.loopDepth;
-      CFANode thisnode = AbstractStates.extractLocation(getWrappedState());
-      if (thisnode.isLoopStart()) {
-        loopDepth = loopDepth + 1;
-      }
-    }
     // GUBED
   }
 
@@ -663,9 +649,6 @@ public class ARGState extends AbstractSingleWrapperState
   }
 
   // DEBUG
-  public int blkD() {
-    return blkDepth;
-  }
 
   public int isAbs() {
     return isAbsSt;
@@ -683,14 +666,6 @@ public class ARGState extends AbstractSingleWrapperState
     return stateId;
   }
 
-  public int LenP() {
-    return lenPath;
-  }
-
-  public int loopD() {
-    return loopDepth;
-  }
-
   public void setIsW() {
     isInWL = true;
   }
@@ -705,6 +680,10 @@ public class ARGState extends AbstractSingleWrapperState
 
   public int distE() {
     return distoerr;
+  }
+
+  public int dEnd() {
+    return distoend;
   }
   // GUBED
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<benchmark cpuCores="2" hardtimelimit="16 min" memlimit="7 GB" timelimit="15 min" tool="cpachecker">
+
+  <option name="-LPAABE19-BATS"/>
+  <option name="-heap">6000M</option>
+  <option name="-benchmark"/>
+  <option name="-timelimit">900 s</option>
+
+  <rundefinition name="test">
+    <tasks name="test">
+      <includesfile>../../setsReachSafety/ReachSafety-Arrays-X.set</includesfile>
+      <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
+    </tasks>
+  </rundefinition>
+
+  <rundefinition name="test-termi">
+    <tasks name="test-termi">
+      <includesfile>../../setsTermination/Termination-MainControlFlow-X.set</includesfile>
+      <propertyfile>../../../sv-benchmarks/c/properties/termination.prp</propertyfile>
+      <option name="-64"/>
+    </tasks>
+  </rundefinition>
+
+</benchmark>

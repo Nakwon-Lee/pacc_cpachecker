@@ -8,37 +8,39 @@ def main():
 	machinenum = args[2]
 	root = xmltree.getroot()
 	indent(root)
-	dump(root)
+	#dump(root)
 
-	tasks = root.findall('tasks')
+	runs = root.findall('rundefinition')
 
-	for task in tasks:
-		print(task.get('name'))
-		tasknamestr = task.get('name')
-		nametokens = tasknamestr.split('-')
-		newnamestr = nametokens[0] + '-' + machinenum
-		task.attrib['name'] = newnamestr
-		includes = task.findall('includesfile')
-		for include in includes:
-			filestr = include.text
-			tokens = filestr.split('-')
-			newstr = tokens[0] + '-' + machinenum + '.set'
-			include.text = newstr
+	for arun in runs:
+		tasks = arun.findall('tasks')
+		for task in tasks:
+			includes = task.findall('includesfile')
+			for include in includes:
+				print(include.text)
+				filestr = include.text
+				tokens = filestr.split('-')
+				newstr = ''
+				for i in range(len(tokens)-1):
+					newstr = newstr + tokens[i] + '-'
+				newstr = newstr + machinenum + '.set'
+				print(newstr)
+				include.text = newstr
 
-	if len(args) == 4:
-		rundefs = root.findall('rundefinition')
+	# if len(args) == 4:
+	# 	rundefs = root.findall('rundefinition')
 
-		for rundef in rundefs:
-			print(rundef.get('name'))
-			rundefnamestr = rundef.get('name')
-			namertokens = rundefnamestr.split('-')
-			newrnamestr = ''
-			for i in range(len(namertokens)-1):
-				newrnamestr = newrnamestr + namertokens[i] + '-'
-			newrnamestr = newrnamestr + args[3]
-			rundef.attrib['name'] = newrnamestr	
+	# 	for rundef in rundefs:
+	# 		print(rundef.get('name'))
+	# 		rundefnamestr = rundef.get('name')
+	# 		namertokens = rundefnamestr.split('-')
+	# 		newrnamestr = ''
+	# 		for i in range(len(namertokens)-1):
+	# 			newrnamestr = newrnamestr + namertokens[i] + '-'
+	# 		newrnamestr = newrnamestr + args[3]
+	# 		rundef.attrib['name'] = newrnamestr	
 
-	dump(root)
+	#dump(root)
 
 	ElementTree(root).write(args[1])
 
