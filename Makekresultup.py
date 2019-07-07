@@ -1,7 +1,7 @@
 import sys
 
 DIRECTORY_PATH = 'sftpbatches/'
-BATCH_STR_PRE = 'put results/benchmark* nwlee/RQ1-6/T'
+BATCH_STR_PRE = 'put results/benchmark* nwlee/BATS/T'
 BATCH_STR_MID = '/m'
 BATCH_STR_SUF = '/\nquit\n'
 FILE_NAME_PRE = 'kresultup'
