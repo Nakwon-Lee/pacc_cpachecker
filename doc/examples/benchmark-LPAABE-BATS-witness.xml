@@ -1,71 +1,70 @@
 <?xml version="1.0"?>
-<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.9//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.9.dtd">
-<benchmark cpuCores="2" hardtimelimit="16 min" memlimit="7 GB" timelimit="15 min" tool="cpachecker">
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
+<benchmark tool="cpachecker" timelimit="900 s" hardtimelimit="960 s" memlimit="7 GB" cpuCores="2">
 
   <resultfiles>**.graphml</resultfiles>
 
-  <option name="-LPAABE19-Ex" />
-  <option name="-heap">6000M</option>
-  <option name="-benchmark" />
-  <option name="-outputpath">output/${rundefinition_name}.${inputfile_name}.LAEx</option>
+  <option name="-witnessValidation"/>
+  <option name="-setprop">witness.checkProgramHash=false</option>
+  <option name="-heap">5000m</option>
+  <option name="-benchmark"/>
+  <option name="-setprop">cpa.predicate.memoryAllocationsAlwaysSucceed=true</option>
 
   <rundefinition name="sv-comp19_prop-reachsafety">
 
+    <requiredfiles>../../output/${rundefinition_name}.${inputfile_name}.LABATS/witness.graphml</requiredfiles>
+    <option name="-witness">output/${rundefinition_name}.${inputfile_name}.LABATS/witness.graphml</option>
+
     <tasks name="ReachSafety-Arrays">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-Arrays-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-BitVectors">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-BitVectors-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-ControlFlow">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-ControlFlow-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-ECA">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-ECA-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-Floats">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-Floats-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-Heap">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-Heap-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-Loops">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-Loops-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-ProductLines">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-ProductLines-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-Recursive">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-Recursive-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
     <tasks name="ReachSafety-Sequentialized">
+      <exclude>../../../sv-benchmarks/c/*/*_false-unreach-call*</exclude>
       <includesfile>../../setsReachSafety/ReachSafety-Sequentialized-X.set</includesfile>
       <propertyfile>../../../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
     </tasks>
   </rundefinition>
-  <rundefinition name="sv-comp19_prop-termination">
-    <tasks name="Termination-MainControlFlow">
-      <includesfile>../../setsTermination/Termination-MainControlFlow-X.set</includesfile>
-      <propertyfile>../../../sv-benchmarks/c/properties/termination.prp</propertyfile>
-      <option name="-64" />
-    </tasks>
-    <tasks name="Termination-MainHeap">
-      <includesfile>../../setsTermination/Termination-MainHeap-X.set</includesfile>
-      <propertyfile>../../../sv-benchmarks/c/properties/termination.prp</propertyfile>
-      <option name="-64" />
-    </tasks>
-    <tasks name="Termination-Other">
-      <includesfile>../../setsTermination/Termination-Other-X.set</includesfile>
-      <propertyfile>../../../sv-benchmarks/c/properties/termination.prp</propertyfile>
-    </tasks>
-  </rundefinition>
+
 </benchmark>
