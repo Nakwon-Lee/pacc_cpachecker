@@ -128,9 +128,7 @@ public class CFADErrReversePostorder {
         // Do a simulated "function call" by pushing something on the stacks,
         // creating a new stack frame.
         nodeStack.push(successor);
-        if (nodeStack.peek().getNodeNumber() == 12) {
-          System.out.println("me!");
-        }
+
         iteratorStack.push(null);
 
       } else {

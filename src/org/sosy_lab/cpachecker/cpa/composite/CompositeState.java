@@ -44,16 +44,27 @@ import org.sosy_lab.cpachecker.core.interfaces.Partitionable;
 import org.sosy_lab.cpachecker.core.interfaces.Property;
 import org.sosy_lab.cpachecker.core.interfaces.PseudoPartitionable;
 import org.sosy_lab.cpachecker.core.interfaces.Targetable;
+import org.sosy_lab.cpachecker.core.searchstrategy.ARGW;
 import org.sosy_lab.cpachecker.cpa.arg.Splitable;
 
 public class CompositeState
     implements AbstractWrapperState, Targetable, Partitionable, PseudoPartitionable, Serializable,
-        Graphable, Splitable {
+    Graphable, Splitable, ARGW {
   private static final long serialVersionUID = -5143296331663510680L;
   private final ImmutableList<AbstractState> states;
   private transient Object partitionKey; // lazily initialized
   private transient Comparable<?> pseudoPartitionKey; // lazily initialized
   private transient Object pseudoHashCode; // lazily initialized
+
+  // DEBUG
+  private boolean isProcessed = false;
+  private int stateId = 0;
+  private int isAbsSt = 0;
+  private int callStack = 0;
+  private int revpostodr = -1;
+  private int distoerr = Integer.MAX_VALUE;
+  private int distoend = Integer.MAX_VALUE;
+  // GUBED
 
   public CompositeState(List<AbstractState> elements) {
     this.states = ImmutableList.copyOf(elements);
@@ -300,4 +311,78 @@ public class CompositeState
     CompositeState newState = new CompositeState(newWrappedStates);
     return newState;
   }
+
+  // DEBUG
+
+  @Override
+  public void sisAbs(int pAbs) {
+    isAbsSt = pAbs;
+  }
+
+  @Override
+  public int isAbs() {
+    return isAbsSt;
+  }
+
+  @Override
+  public void sCS(int pCS) {
+    callStack = pCS;
+  }
+
+  @Override
+  public int CS() {
+    return callStack;
+  }
+
+  @Override
+  public void sRPO(int pRPO) {
+    revpostodr = pRPO;
+  }
+
+  @Override
+  public int RPO() {
+    return revpostodr;
+  }
+
+  @Override
+  public void suID(int puId) {
+    stateId = puId;
+  }
+
+  @Override
+  public int uID() {
+    return stateId;
+  }
+
+  @Override
+  public void sdistE(int pDistE) {
+    distoerr = pDistE;
+  }
+
+  @Override
+  public int distE() {
+    return distoerr;
+  }
+
+  @Override
+  public void sdEnd(int pDend) {
+    distoend = pDend;
+  }
+
+  @Override
+  public int dEnd() {
+    return distoend;
+  }
+
+  @Override
+  public void setIsP() {
+    isProcessed = true;
+  }
+
+  @Override
+  public boolean isP() {
+    return isProcessed;
+  }
+
+  // GUBED
 }

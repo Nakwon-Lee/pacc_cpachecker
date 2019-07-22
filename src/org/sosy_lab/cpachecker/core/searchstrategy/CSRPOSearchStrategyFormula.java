@@ -23,8 +23,8 @@
  */
 package org.sosy_lab.cpachecker.core.searchstrategy;
 
+import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
-import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 
 
 public class CSRPOSearchStrategyFormula implements SearchStrategyFormula {
@@ -34,8 +34,10 @@ public class CSRPOSearchStrategyFormula implements SearchStrategyFormula {
   }
 
   @Override
-  public int compare(ARGState e1, ARGState e2) {
+  public int compare(AbstractState arg1, AbstractState arg2) {
 
+    ARGW e1 = (ARGW) arg1;
+    ARGW e2 = (ARGW) arg2;
 // compare start
     if (e1.CS() < e2.CS()) {
       return -1;

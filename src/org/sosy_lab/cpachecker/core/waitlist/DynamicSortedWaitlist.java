@@ -30,15 +30,22 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import org.sosy_lab.common.configuration.ClassOption;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.SearchStrategyFormula;
+import org.sosy_lab.cpachecker.core.searchstrategy.ARGW;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
+import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
+import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.statistics.StatCounter;
 import org.sosy_lab.cpachecker.util.statistics.StatInt;
 import org.sosy_lab.cpachecker.util.statistics.StatKind;
@@ -58,7 +65,7 @@ public class DynamicSortedWaitlist implements Waitlist {
   private final WaitlistFactory wrappedWaitlist;
 
   // invariant: all entries in this map are non-empty
-  private final NavigableMap<ARGState, Waitlist> waitlist;
+  private final NavigableMap<AbstractState, Waitlist> waitlist;
 
   private int size = 0;
 
@@ -85,7 +92,7 @@ public class DynamicSortedWaitlist implements Waitlist {
   @Override
   public AbstractState pop(){
     popCount.inc();
-    Entry<ARGState, Waitlist> highestEntry = null;
+    Entry<AbstractState, Waitlist> highestEntry = null;
 
     // DEBUG
     /*
@@ -109,10 +116,6 @@ public class DynamicSortedWaitlist implements Waitlist {
     }
     size--;
 
-    assert result instanceof ARGState : "violation of assumption that the poped state is an ARGState";
-
-    ARGState rarg = (ARGState) result;
-    rarg.unsetIsW();
     // DEBUG
     /*
      * ARGState rarg = (ARGState) result; outfile.print("   (" + rarg.isAbs() + "," + rarg.blkD() +
@@ -123,11 +126,49 @@ public class DynamicSortedWaitlist implements Waitlist {
     return result;
   }
 
-  protected ARGState getSortKey(AbstractState pState) {
-    assert pState instanceof ARGState : "given state must be a ARGState";
-    ARGState argstate = (ARGState)pState;
+  protected AbstractState getSortKey(AbstractState pState) {
 
-    return argstate;
+    assert pState instanceof ARGW : "State must be a ARGW";
+
+    ARGW ARGWst = (ARGW) pState;
+
+    if (!ARGWst.isP()) {
+
+      PredicateAbstractState predicateState =
+          AbstractStates.extractStateByType(pState, PredicateAbstractState.class);
+      // assert predicateState != null : "extractStateByType is failed! (predicateState)";
+      if (predicateState != null && predicateState.isAbstractionState()) {
+        ARGWst.sisAbs(1);
+      }
+
+      CallstackState csState = AbstractStates.extractStateByType(pState, CallstackState.class);
+      if (csState != null) {
+        ARGWst.sCS(csState.getDepth());
+      }
+
+      CFANode thisnode = AbstractStates.extractLocation(pState);
+      if (thisnode != null) {
+        ARGWst.sRPO(thisnode.getReversePostorderId());
+        if (!thisnode.getDistancetoerrList().isEmpty()) {
+          NavigableSet<Integer> tempset = new TreeSet<>(thisnode.getDistancetoerrList());
+          ARGWst.sdistE(tempset.first());
+        }
+
+        if (!thisnode.getDistancetoendList().isEmpty()) {
+          NavigableSet<Integer> tempset = new TreeSet<>(thisnode.getDistancetoendList());
+          ARGWst.sdEnd(tempset.first());
+        }
+      }
+
+      if (pState instanceof ARGState) {
+        ARGState argst = (ARGState) pState;
+        ARGWst.suID(argst.getStateId());
+      }
+
+      ARGWst.setIsP();
+    }
+
+    return pState;
   }
 
   public static WaitlistFactory factory(
@@ -154,7 +195,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
   @Override
   public void add(AbstractState pState) {
-    ARGState key = getSortKey(pState);
+    AbstractState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       localWaitlist = wrappedWaitlist.createWaitlistInstance();
@@ -164,25 +205,17 @@ public class DynamicSortedWaitlist implements Waitlist {
     }
     localWaitlist.add(pState);
     size++;
-    key.setIsW();
   }
 
   @Override
   public void clear() {
-    Iterator<AbstractState> tempit = iterator();
-    while (tempit.hasNext()) {
-      AbstractState targ = tempit.next();
-      assert targ instanceof ARGState : "states in waitlist should be an ARGState";
-      ARGState ttarg = (ARGState) targ;
-      ttarg.unsetIsW();
-    }
     waitlist.clear();
     size = 0;
   }
 
   @Override
   public boolean contains(AbstractState pState) {
-    ARGState key = getSortKey(pState);
+    AbstractState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       return false;
@@ -199,7 +232,7 @@ public class DynamicSortedWaitlist implements Waitlist {
 
   @Override
   public boolean remove(AbstractState pState) {
-    ARGState key = getSortKey(pState);
+    AbstractState key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {
       return false;
@@ -213,7 +246,6 @@ public class DynamicSortedWaitlist implements Waitlist {
       size--;
     }
 
-    key.unsetIsW();
     return result;
   }
 

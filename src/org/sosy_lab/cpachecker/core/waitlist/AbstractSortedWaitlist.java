@@ -101,6 +101,7 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
     //GUBED
      *
      */
+
     K key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
     if (localWaitlist == null) {

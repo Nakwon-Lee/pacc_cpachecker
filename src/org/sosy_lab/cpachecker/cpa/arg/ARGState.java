@@ -51,13 +51,14 @@ import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithDummyLocation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractStateWithLocations;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
+import org.sosy_lab.cpachecker.core.searchstrategy.ARGW;
 import org.sosy_lab.cpachecker.cpa.callstack.CallstackState;
 import org.sosy_lab.cpachecker.cpa.predicate.PredicateAbstractState;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 
 
 public class ARGState extends AbstractSingleWrapperState
-    implements Comparable<ARGState>, Graphable, Splitable{
+    implements Comparable<ARGState>, Graphable, Splitable, ARGW {
 
   private static final long serialVersionUID = 2608287648397165040L;
 
@@ -82,10 +83,11 @@ public class ARGState extends AbstractSingleWrapperState
   private final int stateId;
 
   //DEBUG
+  private boolean isProcessed = false;
   private int isAbsSt = 0;
+  private int uid = 0;
   private int callStack = 0;
   private int revpostodr = -1;
-  private boolean isInWL = false;
   private int distoerr = Integer.MAX_VALUE;
   private int distoend = Integer.MAX_VALUE;
   //GUBED
@@ -151,8 +153,6 @@ public class ARGState extends AbstractSingleWrapperState
   public void addParent(ARGState pOtherParent) {
     checkNotNull(pOtherParent);
     assert !destroyed : "Don't use destroyed ARGState " + this;
-    assert revpostodr == -1
-        || isInWL == false : "violation of assumption of modifying feature of ARGnode in WL";
 
     // Manually enforce set semantics.
     if (!parents.contains(pOtherParent)) {
@@ -650,40 +650,75 @@ public class ARGState extends AbstractSingleWrapperState
 
   // DEBUG
 
+  @Override
+  public void sisAbs(int pAbs) {
+    isAbsSt = pAbs;
+  }
+
+  @Override
   public int isAbs() {
     return isAbsSt;
   }
 
+  @Override
+  public void sCS(int pCS) {
+    callStack = pCS;
+  }
+
+  @Override
   public int CS() {
     return callStack;
   }
 
+  @Override
+  public void sRPO(int pRPO) {
+    revpostodr = pRPO;
+  }
+
+  @Override
   public int RPO() {
     return revpostodr;
   }
 
+  @Override
+  public void suID(int puId) {
+    uid = puId;
+  }
+
+  @Override
   public int uID() {
     return stateId;
   }
 
-  public void setIsW() {
-    isInWL = true;
+  @Override
+  public void sdistE(int pDistE) {
+    distoerr = pDistE;
   }
 
-  public void unsetIsW() {
-    isInWL = false;
-  }
-
-  public boolean getIsW() {
-    return isInWL;
-  }
-
+  @Override
   public int distE() {
     return distoerr;
   }
 
+  @Override
+  public void sdEnd(int pDend) {
+    distoend = pDend;
+  }
+
+  @Override
   public int dEnd() {
     return distoend;
   }
+
+  @Override
+  public void setIsP() {
+    isProcessed = true;
+  }
+
+  @Override
+  public boolean isP() {
+    return isProcessed;
+  }
+
   // GUBED
 }

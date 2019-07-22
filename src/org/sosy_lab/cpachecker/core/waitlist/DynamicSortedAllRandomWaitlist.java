@@ -140,10 +140,6 @@ public class DynamicSortedAllRandomWaitlist implements Waitlist {
         delegationCount.inc();
       }
 
-    assert result instanceof ARGState : "violation of assumption that the poped state is an ARGState";
-    ARGState rarg = (ARGState) result;
-    rarg.unsetIsW();
-
     size--;
     // DEBUG
     /*
@@ -196,18 +192,10 @@ public class DynamicSortedAllRandomWaitlist implements Waitlist {
     }
     localWaitlist.add(pState);
     size++;
-    key.setIsW();
   }
 
   @Override
   public void clear() {
-    Iterator<AbstractState> tempit = iterator();
-    while (tempit.hasNext()) {
-      AbstractState targ = tempit.next();
-      assert targ instanceof ARGState : "states in waitlist should be an ARGState";
-      ARGState ttarg = (ARGState) targ;
-      ttarg.unsetIsW();
-    }
     waitlist.clear();
     size = 0;
   }
@@ -244,8 +232,6 @@ public class DynamicSortedAllRandomWaitlist implements Waitlist {
       }
       size--;
     }
-
-    key.unsetIsW();
     return result;
   }
 
