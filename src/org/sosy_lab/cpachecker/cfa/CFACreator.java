@@ -300,6 +300,9 @@ private boolean classifyNodes = false;
     description = "This option enables the computation of distance to end locations for each CFA node.")
   private boolean distancetoEnd = false;
 
+  @Option(secure = true, name = "cfa.scheme", description = "block encoding scheme")
+  private BlockScheme scheme = BlockScheme.L;
+
   @Option(secure=true, description="C, Java, or LLVM IR?")
   private Language language = Language.C;
 
@@ -548,7 +551,7 @@ private boolean classifyNodes = false;
 
     if (distancetoError) {
       CFADistanceToError errorfinder = new CFADistanceToError();
-      errorfinder.findErrorLocations(cfa.getMainFunction(), errorlocindi);
+      errorfinder.findErrorLocations(cfa, errorlocindi, scheme);
       errorfinder.initiationDistToError(cfa.getMainFunction());
       errorfinder.calcDistanceToError2();
       // System.out.print(errorfinder.toStringDistErr(cfa.getMainFunction()));

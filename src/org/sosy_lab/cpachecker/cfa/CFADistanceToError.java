@@ -48,9 +48,28 @@ public class CFADistanceToError {
 
   private Set<CFANode> visitedByForward;
 
-  public void findErrorLocations(CFANode pRootNode, String errorindi) {
+  private Set<CFANode> targets = new HashSet<>();
+
+  public void findErrorLocations(CFA pcfa, String errorindi, BlockScheme pScheme) {
     Deque<CFANode> nodestack = new ArrayDeque<>();
     Set<CFANode> visited = new HashSet<>();
+
+    switch (pScheme) {
+      case L:
+        if (pcfa.getAllLoopHeads().isPresent()) {
+          targets.addAll(pcfa.getAllLoopHeads().get());
+        }
+        break;
+      case Lf:
+        if (pcfa.getAllLoopHeads().isPresent()) {
+          targets.addAll(pcfa.getAllLoopHeads().get());
+        }
+        break;
+      default:
+        break;
+    }
+
+    CFANode pRootNode = pcfa.getMainFunction();
 
     // pNode must be the root node
     nodestack.push(pRootNode);
@@ -61,6 +80,19 @@ public class CFADistanceToError {
         continue;
       } else {
         visited.add(currnode);
+      }
+
+      switch (pScheme) {
+        case L:
+          break;
+        case Lf:
+          if (currnode instanceof FunctionEntryNode
+              || (currnode.getEnteringSummaryEdge() != null)) {
+            targets.add(currnode);
+          }
+          break;
+        default:
+          break;
       }
 
       Iterator<CFANode> successors = CFAUtils.successorsOf(currnode).iterator();
@@ -474,6 +506,8 @@ public class CFADistanceToError {
         NCPair currncpair = currndpair.getLeft();
         CFANode currnode = currncpair.getLeft();
 
+        boolean isTarget = false;
+
         Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
 
         while (predecessors.hasNext()) {
@@ -485,6 +519,10 @@ public class CFADistanceToError {
             continue;
           }
 
+          if (targets.contains(predecessor)) {
+            isTarget = true;
+          }
+
           //action for each edge type
 
           if (preedgetype == CFAEdgeType.AssumeEdge) {
@@ -492,7 +530,7 @@ public class CFADistanceToError {
               continue;
             }
 
-            if (predecessor.isLoopStart()) {
+            if (isTarget) {
               predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
               // increase local dist
               Integer predndint = currndpair.getRight() + 1;
@@ -517,10 +555,20 @@ public class CFADistanceToError {
               continue;
             }
 
-            predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+            if (isTarget) {
+              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+              // increase local dist
+              Integer predndint = currndpair.getRight() + 1;
+              nodestack.add(new NDPair(new NCPair(predecessor, currncpair.getRight()), predndint));
+            } else {
+              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
 
-            nodestack.add(
-                new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight()));
+              nodestack.add(
+                  new NDPair(
+                      new NCPair(predecessor, currncpair.getRight()),
+                      currndpair.getRight()));
+            }
+
             visited.add(predecessor);
 
           } else if (preedgetype == CFAEdgeType.FunctionReturnEdge) {
@@ -532,6 +580,12 @@ public class CFADistanceToError {
 
               if (visited.contains(caller)) {
                 continue;
+              }
+
+              if (isTarget) {
+
+              } else {
+
               }
 
               if (function_Ex.containsKey(funcname)) {// traversed!
@@ -559,13 +613,20 @@ public class CFADistanceToError {
               }
 
             } else {// I'm the first who traverse the function
+              // TODO
+              if (isTarget) {
+                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+              } else {
+                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              }
               function_En.put(funcname, new HashSet<NDPair>());
               function_LocD.put(funcname, currndpair.getRight());
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+
               NCPair predncpair =
                   new NCPair(predecessor, new NCPair(caller, currncpair.getRight()));
               nodestack.add(new NDPair(predncpair, 0));
               visited.add(predecessor);
+              // DOTO
             }
 
           }else if(preedgetype == CFAEdgeType.FunctionCallEdge) {
