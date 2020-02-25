@@ -476,12 +476,12 @@ public class CFADistanceToError {
 
       Set<CFANode> visited = new HashSet<>();
 
-      // function name and its waited nodes
+      // function name and the nodes waiting that the distE of the function is computed
       Map<String, Set<NDPair>> function_En = new HashMap<>();
       Map<String, Integer> function_LocD = new HashMap<>();
-      // function name and its shortest dist
+      // function name and the distE of the function
       Map<String, Integer> function_Ex = new HashMap<>();
-      //function name and its direct dist
+      // function name and the
       Map<String, Integer> direct_Ex = new HashMap<>();
 
       CFANode errnode = edge.getSuccessor();
@@ -574,59 +574,86 @@ public class CFADistanceToError {
           } else if (preedgetype == CFAEdgeType.FunctionReturnEdge) {
 
             String funcname = predecessor.getFunctionName();
-            CFANode caller = currnode.getEnteringSummaryEdge().getPredecessor();
+            CFANode callnode = currnode.getEnteringSummaryEdge().getPredecessor();
+
+            boolean isTargetSub = false;
+
+            // is the call node a target?
+            if (targets.contains(callnode)) {
+              isTargetSub = true;
+            }
 
             if (function_En.containsKey(funcname)) {// somebody is traversing (or traversed) the function
 
-              if (visited.contains(caller)) {
+              if (visited.contains(callnode)) {
                 continue;
               }
 
-              if (isTarget) {
-
-              } else {
-
-              }
-
-              if (function_Ex.containsKey(funcname)) {// traversed!
-                // caller is the predecessor
-                NDPair tempndpair =
-                    new NDPair(
-                        new NCPair(caller, currncpair.getRight()),
-                        currndpair.getRight() + function_Ex.get(funcname));
-                caller
-                    .setDistancetoerr(i, currnode.getDistancetoerr(i) + function_Ex.get(funcname));
+              if (function_Ex.containsKey(funcname)) {// traversed! the distE value of the callee
+                                                      // function is already computed.
+                // compute the distE value of the callnode using the distE value of the callee
+                // function
+                NDPair tempndpair = null;
+                if (isTargetSub) {
+                  tempndpair =
+                      new NDPair(
+                          new NCPair(callnode, currncpair.getRight()),
+                          currndpair.getRight() + function_Ex.get(funcname) + 1);
+                  callnode.setDistancetoerr(
+                      i,
+                      currnode.getDistancetoerr(i) + function_Ex.get(funcname) + 1);
+                } else {
+                  tempndpair =
+                      new NDPair(
+                          new NCPair(callnode, currncpair.getRight()),
+                          currndpair.getRight() + function_Ex.get(funcname));
+                  callnode.setDistancetoerr(
+                      i,
+                      currnode.getDistancetoerr(i) + function_Ex.get(funcname));
+                }
 
                 nodestack.add(tempndpair);
-                visited.add(caller);
+                visited.add(callnode);
 
-              } else if(direct_Ex.containsKey(funcname)) {// traversed! directly
-                // caller is the predecessor and might be visited
+              } else if (direct_Ex.containsKey(funcname)) {
+                // the callee function is traversed partly because the error location is reachable
+                // from the function entry without returning the function
 
               } else {// is traversing!
-             // caller is the predecessor but not yet computed
-                NDPair tempndpair = new NDPair(new NCPair(caller, currncpair.getRight()),
-                        currndpair.getRight());
-                caller
-                .setDistancetoerr(i, currnode.getDistancetoerr(i));
+                NDPair tempndpair = null;
+                if (isTargetSub) {
+                  callnode.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+                  tempndpair =
+                      new NDPair(
+                          new NCPair(callnode, currncpair.getRight()),
+                          currndpair.getRight() + 1);
+                } else {
+                  callnode.setDistancetoerr(i, currnode.getDistancetoerr(i));
+                  tempndpair =
+                      new NDPair(
+                          new NCPair(callnode, currncpair.getRight()),
+                          currndpair.getRight());
+                }
                 function_En.get(funcname).add(tempndpair);
               }
 
             } else {// I'm the first who traverse the function
-              // TODO
+              function_En.put(funcname, new HashSet<NDPair>());
               if (isTarget) {
                 predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+                function_LocD.put(funcname, currndpair.getRight() + 1);
               } else {
                 predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+                function_LocD.put(funcname, currndpair.getRight());
               }
-              function_En.put(funcname, new HashSet<NDPair>());
-              function_LocD.put(funcname, currndpair.getRight());
-
               NCPair predncpair =
-                  new NCPair(predecessor, new NCPair(caller, currncpair.getRight()));
-              nodestack.add(new NDPair(predncpair, 0));
+                  new NCPair(predecessor, new NCPair(callnode, currncpair.getRight()));
+              if (isTarget) {
+                nodestack.add(new NDPair(predncpair, 1));
+              } else {
+                nodestack.add(new NDPair(predncpair, 0));
+              }
               visited.add(predecessor);
-              // DOTO
             }
 
           }else if(preedgetype == CFAEdgeType.FunctionCallEdge) {
@@ -635,14 +662,17 @@ public class CFADistanceToError {
               continue;
             }
 
-            if (currncpair.getRight() != null) {// has caller function
+            if (currncpair.getRight() != null) {// has callnode
               if (predecessor.compareTo(currncpair.getRight().getLeft()) != 0) {
                 // invalid callEdge
                 continue;
               }
-
+              if (isTarget) {
+                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+              } else {
+                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              }
               function_Ex.put(currnode.getFunctionName(), currndpair.getRight());
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
               nodestack.add(
                   new NDPair(
                       new NCPair(predecessor, currncpair.getRight().getRight()),
