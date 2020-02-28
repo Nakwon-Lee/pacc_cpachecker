@@ -641,11 +641,10 @@ public class CFADistanceToError {
               function_En.put(funcname, new HashSet<NDPair>());
               if (isTarget) {
                 predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
-                function_LocD.put(funcname, currndpair.getRight() + 1);
               } else {
                 predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-                function_LocD.put(funcname, currndpair.getRight());
               }
+              function_LocD.put(funcname, currndpair.getRight());
               NCPair predncpair =
                   new NCPair(predecessor, new NCPair(callnode, currncpair.getRight()));
               if (isTarget) {
@@ -672,6 +671,7 @@ public class CFADistanceToError {
               } else {
                 predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
               }
+              // save the distE value of the function
               function_Ex.put(currnode.getFunctionName(), currndpair.getRight());
               nodestack.add(
                   new NDPair(
@@ -679,31 +679,48 @@ public class CFADistanceToError {
                       function_LocD.get(currnode.getFunctionName()) + currndpair.getRight()));
               visited.add(predecessor);
 
-            } else {// has no caller function
-
-              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-              nodestack.add(
-                  new NDPair(
-                      new NCPair(predecessor, currncpair.getRight()),
-                      currndpair.getRight()));
+            } else {// has no callnode, which means this flow does not pass the exit of the function
+              NDPair tempnd = null;
+              if (isTarget) {
+                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+                tempnd = new NDPair(
+                    new NCPair(predecessor, currncpair.getRight()),
+                        currndpair.getRight() + 1);
+              } else {
+                predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+                tempnd =
+                    new NDPair(
+                        new NCPair(predecessor, currncpair.getRight()),
+                        currndpair.getRight());
+              }
+              nodestack.add(tempnd);
               visited.add(predecessor);
+              // save the distE value of the function entry node
               if (!direct_Ex.containsKey(currnode.getFunctionName())) {
                 direct_Ex.put(currnode.getFunctionName(), currnode.getDistancetoerr(i));
               }
-
             }
 
-          } else {
+          } else { // other edges
 
             if (visited.contains(predecessor)) {
               continue;
             }
 
-            predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
-            nodestack.add(
-                new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight()));
+            NDPair tempnd = null;
+            if (isTarget) {
+              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i) + 1);
+              tempnd =
+                  new NDPair(
+                      new NCPair(predecessor, currncpair.getRight()),
+                      currndpair.getRight() + 1);
+            } else {
+              predecessor.setDistancetoerr(i, currnode.getDistancetoerr(i));
+              tempnd =
+                  new NDPair(new NCPair(predecessor, currncpair.getRight()), currndpair.getRight());
+            }
+            nodestack.add(tempnd);
             visited.add(predecessor);
-
           }
           //end action for an edge
         }
