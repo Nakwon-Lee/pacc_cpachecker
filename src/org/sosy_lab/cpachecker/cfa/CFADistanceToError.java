@@ -60,7 +60,7 @@ public class CFADistanceToError {
           targets.addAll(pcfa.getAllLoopHeads().get());
         }
         break;
-      case Lf:
+      case LF:
         if (pcfa.getAllLoopHeads().isPresent()) {
           targets.addAll(pcfa.getAllLoopHeads().get());
         }
@@ -85,7 +85,7 @@ public class CFADistanceToError {
       switch (pScheme) {
         case L:
           break;
-        case Lf:
+        case LF:
           if (currnode instanceof FunctionEntryNode
               || (currnode.getEnteringSummaryEdge() != null)) {
             targets.add(currnode);
@@ -695,7 +695,7 @@ public class CFADistanceToError {
               }
               nodestack.add(tempnd);
               visited.add(predecessor);
-              // save the distE value of the function entry node
+              // save the direct function
               if (!direct_Ex.containsKey(currnode.getFunctionName())) {
                 direct_Ex.put(currnode.getFunctionName(), currnode.getDistancetoerr(i));
               }
@@ -727,11 +727,13 @@ public class CFADistanceToError {
         // end actions for predecessors
         // handle waited function returns in here
         for (Entry<String, Set<NDPair>> entry : function_En.entrySet()) {
+          // if the function is visited directly, it is not necessary to compute the distE of
+          // callnode
           if (direct_Ex.containsKey(entry.getKey())) {
             // direct_Ex found! throw all nodes!
             entry.getValue().clear();
           }
-
+          // the distE of the function is computed
           if (function_Ex.containsKey(entry.getKey())) {
             // function_Ex found! add all nodes!
             for (NDPair apair : entry.getValue()) {

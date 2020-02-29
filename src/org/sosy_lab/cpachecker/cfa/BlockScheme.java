@@ -21,5 +21,5 @@ package org.sosy_lab.cpachecker.cfa;
 
 public enum BlockScheme {
   L,
-  Lf
+  LF;
 }
