@@ -44,8 +44,6 @@ public class CFADistanceToError {
 
   private Set<CFAEdge> errorEdges = new HashSet<>();
 
-  private Set<CFANode> visitedByForward;
-
   private Set<CFANode> targets = new HashSet<>();
 
   public void findErrorLocations(CFA pcfa, String errorindi, BlockScheme pScheme) {
@@ -131,6 +129,63 @@ public class CFADistanceToError {
     }
   }
 
+  public void findErrorLocations2(CFA pcfa, String errorindi, BlockScheme pScheme) {
+    switch (pScheme) {
+      case L:
+        if (pcfa.getAllLoopHeads().isPresent()) {
+          targets.addAll(pcfa.getAllLoopHeads().get());
+        }
+        break;
+      case LF:
+        if (pcfa.getAllLoopHeads().isPresent()) {
+          targets.addAll(pcfa.getAllLoopHeads().get());
+        }
+        break;
+      default:
+        break;
+    }
+
+    for (CFANode anode : pcfa.getAllNodes()) {
+      switch (pScheme) {
+        case L:
+          break;
+        case LF:
+          if (anode instanceof FunctionEntryNode || (anode.getEnteringSummaryEdge() != null)) {
+            targets.add(anode);
+          }
+          break;
+        default:
+          break;
+      }
+
+      Iterator<CFANode> successors = CFAUtils.successorsOf(anode).iterator();
+
+      while (successors.hasNext()) {
+        CFANode successor = successors.next();
+        CFAEdge edge = anode.getEdgeTo(successor);
+        CFAEdgeType edgetype = edge.getEdgeType();
+
+        if (edgetype == CFAEdgeType.StatementEdge) {
+          if (edge instanceof CFunctionSummaryStatementEdge) {
+            continue;
+          }
+          AStatementEdge stmtedge = (AStatementEdge) edge;
+          AStatement stmt = stmtedge.getStatement();
+          if (stmt instanceof CFunctionCallStatement) {
+            CFunctionCallStatement cfcstmt = (CFunctionCallStatement) stmt;
+            String errorfunname =
+                cfcstmt.getFunctionCallExpression()
+                    .getFunctionNameExpression()
+                    .toQualifiedASTString();
+            if (errorfunname.compareTo(errorindi) == 0) {
+              errorEdges.add(edge);
+            }
+          }
+        }
+      }
+    }
+  }
+
   public void initiationDistToError(CFANode pRootNode) {
     Deque<CFANode> nodestack = new ArrayDeque<>();
     Set<CFANode> reached = new HashSet<>();
@@ -157,7 +212,13 @@ public class CFADistanceToError {
 
       reached.add(currnode);
     }
-    visitedByForward = reached;
+    System.out.println("errorEdges: " + errorEdges.toString());
+  }
+
+  public void initiationDistToError2(CFA pcfa) {
+    for (CFANode anode : pcfa.getAllNodes()) {
+      anode.initDistancetoerr(errorEdges.size());
+    }
     System.out.println("errorEdges: " + errorEdges.toString());
   }
 
@@ -212,10 +273,6 @@ public class CFADistanceToError {
           CFANode predecessor = predecessors.next();
           CFAEdge preedge = predecessor.getEdgeTo(currnode);
           CFAEdgeType preedgetype = preedge.getEdgeType();
-
-          if (!visitedByForward.contains(predecessor)) {
-            continue;
-          }
 
           boolean isTarget = false;
 

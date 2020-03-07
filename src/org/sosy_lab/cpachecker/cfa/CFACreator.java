@@ -551,8 +551,8 @@ private boolean classifyNodes = false;
 
     if (distancetoError) {
       CFADistanceToError errorfinder = new CFADistanceToError();
-      errorfinder.findErrorLocations(cfa, errorlocindi, scheme);
-      errorfinder.initiationDistToError(cfa.getMainFunction());
+      errorfinder.findErrorLocations2(cfa, errorlocindi, scheme);
+      errorfinder.initiationDistToError2(cfa);
       errorfinder.calcDistanceToError2();
       // System.out.print(errorfinder.toStringDistErr(cfa.getMainFunction()));
     }
