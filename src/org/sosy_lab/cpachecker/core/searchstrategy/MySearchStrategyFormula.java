@@ -40,51 +40,25 @@ public class MySearchStrategyFormula implements SearchStrategyFormula {
     ARGW e2 = (ARGW) arg2;
 
 // compare start
-if(e1.isAbs() < 1 && e2.isAbs() >= 1 ){
- return 1;
-}
-else if(e1.isAbs() >= 1 && e2.isAbs() < 1 ){
- return -1;
-}
-else{
-int thePhi = e1.isAbs();
-if(thePhi<1){
- if(e1.CS() < e2.CS()){
-  return -1;
- }
- else if(e1.CS() > e2.CS()){
-  return 1;
- }
- else{
-  if(e1.RPO() < e2.RPO()){
-   return -1;
-  }
-  else if(e1.RPO() > e2.RPO()){
-   return 1;
-  }
-  else{
-   return 0;
-  }
- }
- }
- else {
- if(e1.distE() < e2.distE()){
-  return 1;
- }
- else if(e1.distE() > e2.distE()){
-  return -1;
- }
- else{
-          if (e1.uID() < e2.uID()) {
-            return 1;
-          } else if (e1.uID() > e2.uID()) {
-            return -1;
-          } else {
-            return 0;
-          }
- }
-}
-}
+    if (e1.distE() < e2.distE()) {
+      return 1;
+    } else if (e1.distE() > e2.distE()) {
+      return -1;
+    } else {
+      if (e1.CS() < e2.CS()) {
+        return -1;
+      } else if (e1.CS() > e2.CS()) {
+        return 1;
+      } else {
+        if (e1.RPO() < e2.RPO()) {
+          return -1;
+        } else if (e1.RPO() > e2.RPO()) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    }
     // compare end
   }
 

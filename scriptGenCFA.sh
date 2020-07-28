@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 Makekresultup.py 0 $1
+#python3 Makekresultup.py 0 $1
 
 #main analysis
 sudo swapoff -a
