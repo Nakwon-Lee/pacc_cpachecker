@@ -1,29 +1,13 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.FluentIterable.from;
@@ -31,9 +15,9 @@ import static org.sosy_lab.common.collect.PersistentSortedMaps.merge;
 import static org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.CTypeUtils.checkIsSimplified;
 
 import com.google.common.base.Equivalence;
-import com.google.common.base.Verify;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.CheckReturnValue;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -63,16 +47,12 @@ import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.c.CVoidType;
 import org.sosy_lab.cpachecker.util.Pair;
-import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMap.SSAMapBuilder;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.SSAMapMerger.MergeResult;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.Constraints;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.PointerTargetSetBuilder.RealPointerTargetSetBuilder;
-import org.sosy_lab.cpachecker.util.predicates.smt.ArrayFormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.BooleanFormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
-import org.sosy_lab.cpachecker.util.predicates.smt.FunctionFormulaManagerView;
-import org.sosy_lab.java_smt.api.ArrayFormula;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 import org.sosy_lab.java_smt.api.Formula;
 import org.sosy_lab.java_smt.api.FormulaType;
@@ -130,11 +110,9 @@ class PointerTargetSetManager {
   private final FormulaEncodingWithPointerAliasingOptions options;
   private final FormulaManagerView formulaManager;
   private final BooleanFormulaManagerView bfmgr;
-  private final @Nullable ArrayFormulaManagerView afmgr;
-  private final FunctionFormulaManagerView ffmgr;
   private final TypeHandlerWithPointerAliasing typeHandler;
   private final MemoryRegionManager regionMgr;
-
+  private final SMTHeap heap;
   /**
    * Creates a new PointerTargetSetManager.
    *
@@ -154,11 +132,19 @@ class PointerTargetSetManager {
     options = pOptions;
     formulaManager = pFormulaManager;
     bfmgr = formulaManager.getBooleanFormulaManager();
-    afmgr = options.useArraysForHeap() ? formulaManager.getArrayFormulaManager() : null;
-    ffmgr = formulaManager.getFunctionFormulaManager();
     typeHandler = pTypeHandler;
     shutdownNotifier = pShutdownNotifier;
     regionMgr = pRegionMgr;
+
+    if (pOptions.useByteArrayForHeap()) {
+      heap =
+          new SMTHeapWithByteArray(
+              pFormulaManager, pTypeHandler.getPointerType(), pConv.machineModel);
+    } else if (pOptions.useArraysForHeap()) {
+      heap = new SMTHeapWithArrays(pFormulaManager, pTypeHandler.getPointerType());
+    } else {
+      heap = new SMTHeapWithUninterpretedFunctionCalls(pFormulaManager);
+    }
   }
 
   /**
@@ -174,15 +160,7 @@ class PointerTargetSetManager {
       final FormulaType<V> targetType,
       final int ssaIndex,
       final I address) {
-    final FormulaType<I> addressType = formulaManager.getFormulaType(address);
-    checkArgument(typeHandler.getPointerType().equals(addressType));
-    if (options.useArraysForHeap()) {
-      final ArrayFormula<I, V> arrayFormula =
-          afmgr.makeArray(targetName, ssaIndex, addressType, targetType);
-      return afmgr.select(arrayFormula, address);
-    } else {
-      return ffmgr.declareAndCallUninterpretedFunction(targetName, ssaIndex, targetType, address);
-    }
+    return heap.makePointerDereference(targetName, targetType, ssaIndex, address);
   }
 
   /**
@@ -196,14 +174,7 @@ class PointerTargetSetManager {
       final String targetName,
       final FormulaType<E> targetType,
       final I address) {
-    final FormulaType<I> addressType = formulaManager.getFormulaType(address);
-    checkArgument(typeHandler.getPointerType().equals(addressType));
-    if (options.useArraysForHeap()) {
-      final ArrayFormula<I, E> arrayFormula = afmgr.makeArray(targetName, addressType, targetType);
-      return afmgr.select(arrayFormula, address);
-    } else {
-      return ffmgr.declareAndCallUF(targetName, targetType, address);
-    }
+    return heap.makePointerDereference(targetName, targetType, address);
   }
 
   /**
@@ -223,33 +194,15 @@ class PointerTargetSetManager {
       final int newIndex,
       final I address,
       final E value) {
-    FormulaType<E> targetType = formulaManager.getFormulaType(value);
-    checkArgument(pTargetType.equals(targetType));
-    FormulaType<I> addressType = formulaManager.getFormulaType(address);
-    checkArgument(typeHandler.getPointerType().equals(addressType));
-    if (options.useArraysForHeap()) {
-      final ArrayFormula<I, E> oldFormula =
-          afmgr.makeArray(
-              targetName,
-              oldIndex,
-              addressType,
-              targetType);
-      final ArrayFormula<I, E> arrayFormula =
-          afmgr.makeArray(
-              targetName,
-              newIndex,
-              addressType,
-              targetType);
-      return formulaManager.makeEqual(arrayFormula, afmgr.store(oldFormula, address, value));
-    } else {
-      final Formula lhs =
-          ffmgr.declareAndCallUninterpretedFunction(targetName, newIndex, targetType, address);
-      return formulaManager.assignment(lhs, value);
-    }
+    return heap.makePointerAssignment(targetName, pTargetType, oldIndex, newIndex, address, value);
   }
 
   /**
    * Merges two {@link PointerTargetSet}s into one.
+   *
+   * <p>This can modify the given SSAMap in one case: if one of the PointerTargetSets contains a
+   * base for a variable, and the other does not, there will of course be a base for this variable
+   * in the result, and this variable will be deleted from the SSAMap.
    *
    * @param pts1 The first {@code PointerTargetSet}.
    * @param pts2 The second {@code PointerTargetSet}.
@@ -258,7 +211,7 @@ class PointerTargetSetManager {
    * @throws InterruptedException If the algorithms gets interrupted by an external shutdown.
    */
   MergeResult<PointerTargetSet> mergePointerTargetSets(
-      final PointerTargetSet pts1, final PointerTargetSet pts2, final SSAMap ssa)
+      final PointerTargetSet pts1, final PointerTargetSet pts2, final SSAMapBuilder ssa)
       throws InterruptedException {
 
     if (pts1.isEmpty() && pts2.isEmpty()) {
@@ -324,7 +277,8 @@ class PointerTargetSetManager {
     shutdownNotifier.shutdownIfNecessary();
 
     PersistentSortedMap<String, PersistentList<PointerTarget>> mergedTargets =
-      merge(pts1.getTargets(), pts2.getTargets(), mergeOnConflict());
+        merge(
+            pts1.getTargets(), pts2.getTargets(), (key, list1, list2) -> mergeLists(list1, list2));
     shutdownNotifier.shutdownIfNecessary();
 
     // Targets is always the cross product of bases and fields.
@@ -383,7 +337,9 @@ class PointerTargetSetManager {
     INSTANCE;
 
     /**
-     * Resolves a merge conflict between two types and returns the resolved type
+     * Resolves a merge conflict between two types and returns the resolved type.
+     *
+     * <p>We build up a new union-type containing all given types, except for fake-types.
      *
      * @param key   Not used in the algorithm.
      * @param type1 The first type to merge.
@@ -400,53 +356,60 @@ class PointerTargetSetManager {
       int currentFieldIndex = 0;
       final ImmutableList.Builder<CCompositeTypeMemberDeclaration> membersBuilder =
           ImmutableList.builder();
-      if (type1 instanceof CCompositeType) {
-        final CCompositeType compositeType1 = (CCompositeType) type1;
-        if (compositeType1.getKind() == ComplexTypeKind.UNION &&
-            !compositeType1.getMembers().isEmpty() &&
-            compositeType1.getMembers().get(0).getName().equals(getUnitedFieldBaseName(0))) {
-          membersBuilder.addAll(compositeType1.getMembers());
-          currentFieldIndex += compositeType1.getMembers().size();
-        } else {
-          membersBuilder.add(new CCompositeTypeMemberDeclaration(compositeType1,
-                                                                 getUnitedFieldBaseName(currentFieldIndex)));
+      final Set<CType> seenMembers = new HashSet<>();
+      if (isAlreadyMergedCompositeType(type1)) {
+        // if already a merged type, just copy the inner types, without creating new base-names
+        for (CCompositeTypeMemberDeclaration innerType : ((CCompositeType) type1).getMembers()) {
+          membersBuilder.add(innerType);
+          seenMembers.add(innerType.getType());
           currentFieldIndex++;
         }
       } else {
-        membersBuilder.add(new CCompositeTypeMemberDeclaration(type1,
-                                                               getUnitedFieldBaseName(currentFieldIndex)));
+        membersBuilder.add(
+            new CCompositeTypeMemberDeclaration(type1, getUnitedFieldBaseName(currentFieldIndex)));
+        seenMembers.add(type1);
         currentFieldIndex++;
       }
-      if (type2 instanceof CCompositeType) {
-        final CCompositeType compositeType2 = (CCompositeType) type2;
-        if (compositeType2.getKind() == ComplexTypeKind.UNION &&
-            !compositeType2.getMembers().isEmpty() &&
-            compositeType2.getMembers().get(0).getName().equals(getUnitedFieldBaseName(0))) {
-          for (CCompositeTypeMemberDeclaration memberDeclaration : compositeType2.getMembers()) {
-            membersBuilder.add(new CCompositeTypeMemberDeclaration(memberDeclaration.getType(),
-                                                                   getUnitedFieldBaseName(currentFieldIndex)));
+      if (isAlreadyMergedCompositeType(type2)) {
+        // if already a merged type, just copy the inner types, if needed
+        for (CCompositeTypeMemberDeclaration innerType : ((CCompositeType) type2).getMembers()) {
+          if (seenMembers.add(innerType.getType())) {
+            membersBuilder.add(
+                new CCompositeTypeMemberDeclaration(
+                    innerType.getType(), getUnitedFieldBaseName(currentFieldIndex)));
             currentFieldIndex++;
           }
-        } else {
-          membersBuilder.add(new CCompositeTypeMemberDeclaration(compositeType2,
-                                                                 getUnitedFieldBaseName(currentFieldIndex)));
         }
       } else {
-        membersBuilder.add(new CCompositeTypeMemberDeclaration(type2,
-                                                               getUnitedFieldBaseName(currentFieldIndex)));
+        if (seenMembers.add(type2)) {
+          membersBuilder.add(
+              new CCompositeTypeMemberDeclaration(
+                  type2, getUnitedFieldBaseName(currentFieldIndex)));
+        }
       }
 
+      ImmutableList<CCompositeTypeMemberDeclaration> members = membersBuilder.build();
+      String varName =
+          UNITED_BASE_UNION_TAG_PREFIX
+              + Joiner.on("_and_")
+                  .join(
+                      Iterables.transform(members, m -> m.getType().toString().replace(" ", "_")));
+      return new CCompositeType(false, false, ComplexTypeKind.UNION, members, varName, varName);
+    }
 
-      String varName = UNITED_BASE_UNION_TAG_PREFIX
-                       + type1.toString().replace(' ', '_')
-                       + "_and_"
-                       + type2.toString().replace(' ', '_');
-      return new CCompositeType(false,
-                                false,
-                                ComplexTypeKind.UNION,
-                                membersBuilder.build(),
-                                varName,
-                                varName);
+    /**
+     * check whether the given type was already build by a previous merge of other types.
+     *
+     * <p>We check for UNION-type with special fieldnames.
+     */
+    private static boolean isAlreadyMergedCompositeType(final CType type) {
+      if (type instanceof CCompositeType) {
+        final CCompositeType compositeType = (CCompositeType) type;
+        return compositeType.getKind() == ComplexTypeKind.UNION
+            && !compositeType.getMembers().isEmpty()
+            && compositeType.getMembers().get(0).getName().equals(getUnitedFieldBaseName(0));
+      }
+      return false;
     }
   }
 
@@ -480,29 +443,17 @@ class PointerTargetSetManager {
   }
 
   /**
-   * Gives a handler for merge conflicts.
-   *
-   * @param <K> The type of the keys in the merge conflict handler.
-   * @param <T> The type of the list entries in the merge conflict handler.
-   * @return A handler for merge conflicts.
-   */
-  private static <K, T> MergeConflictHandler<K, PersistentList<T>> mergeOnConflict() {
-    return (key, list1, list2) -> mergeLists(list1, list2);
-  }
-
-  /**
    * Create constraint that imports the old value of a variable into the memory handled with UFs.
    *
    * @param newBases A map of new bases.
    * @param sharedFields A list of shared fields.
-   * @param ssa The SSA map.
+   * @param ssaBuilder The SSA map.
    * @return A boolean formula for the import constraint.
    */
   private BooleanFormula makeValueImportConstraints(
       final PersistentSortedMap<String, CType> newBases,
       final List<CompositeField> sharedFields,
-      final SSAMap ssa) {
-    SSAMapBuilder ssaBuilder = ssa.builder();
+      final SSAMapBuilder ssaBuilder) {
     Constraints constraints = new Constraints(bfmgr);
     for (final Map.Entry<String, CType> base : newBases.entrySet()) {
       if (!options.isDynamicAllocVariableName(base.getKey())
@@ -512,11 +463,6 @@ class PointerTargetSetManager {
             baseVar, base.getKey(), base.getValue(), sharedFields, ssaBuilder, constraints, null);
       }
     }
-
-    Verify.verify(
-        ssaBuilder.build().equals(ssa),
-        "Unexpected SSMap changes for value-import constraints: %s",
-        Sets.difference(ssaBuilder.allVariables(), ssa.allVariables()));
 
     return constraints.get();
   }
@@ -578,7 +524,7 @@ class PointerTargetSetManager {
                   newRegion,
                   memberDeclaration.getType(),
                   compositeType,
-                  offset.getAsLong(),
+                  offset.orElseThrow(),
                   containerOffset + properOffset,
                   targets,
                   fields);

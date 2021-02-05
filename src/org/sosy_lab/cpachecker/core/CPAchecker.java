@@ -1,32 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.common.ShutdownNotifier.interruptCurrentThreadOnShutdown;
-import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.StandardSystemProperty;
@@ -65,6 +49,7 @@ import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
+import org.sosy_lab.cpachecker.cfa.CFACheck;
 import org.sosy_lab.cpachecker.cfa.CFACreator;
 import org.sosy_lab.cpachecker.cfa.Language;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
@@ -80,19 +65,20 @@ import org.sosy_lab.cpachecker.core.algorithm.mpv.MPVAlgorithm;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
-import org.sosy_lab.cpachecker.core.interfaces.Property;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ResultProviderReachedSet;
+import org.sosy_lab.cpachecker.core.specification.Specification;
+import org.sosy_lab.cpachecker.core.specification.SpecificationProperty;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.ParserException;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.CPAs;
 import org.sosy_lab.cpachecker.util.LoopStructure;
-import org.sosy_lab.cpachecker.util.SpecificationProperty;
 import org.sosy_lab.cpachecker.util.automaton.TargetLocationProvider;
 import org.sosy_lab.cpachecker.util.automaton.TargetLocationProviderImpl;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
@@ -341,6 +327,7 @@ public class CPAchecker {
     CFA cfa = null;
     Result result = Result.NOT_YET_STARTED;
     String violatedPropertyDescription = "";
+    Specification specification = null;
 
     final ShutdownRequestListener interruptThreadOnShutdown = interruptCurrentThreadOnShutdown();
     shutdownNotifier.register(interruptThreadOnShutdown);
@@ -362,11 +349,11 @@ public class CPAchecker {
         shutdownNotifier.shutdownIfNecessary();
 
         ConfigurableProgramAnalysis cpa;
-        Specification specification;
         stats.cpaCreationTime.start();
         try {
           specification =
-              Specification.fromFiles(properties, specificationFiles, cfa, config, logger);
+              Specification.fromFiles(
+                  properties, specificationFiles, cfa, config, logger, shutdownNotifier);
           cpa = factory.createCPA(cfa, specification);
         } finally {
           stats.cpaCreationTime.stop();
@@ -416,9 +403,10 @@ public class CPAchecker {
 
       if (status.wasPropertyChecked()) {
         stats.resultAnalysisTime.start();
-        Collection<Property> violatedProperties = reached.getViolatedProperties();
-        if (!violatedProperties.isEmpty()) {
-          violatedPropertyDescription = Joiner.on(", ").join(violatedProperties);
+
+        if (reached.hasViolatedProperties()) {
+          violatedPropertyDescription = Joiner.on(", ").join(reached.getViolatedProperties());
+
           if (!status.isPrecise()) {
             result = Result.UNKNOWN;
           } else {
@@ -496,17 +484,21 @@ public class CPAchecker {
     final CFA cfa;
     if (serializedCfaFile == null) {
       // parse file and create CFA
+      logger.logf(Level.INFO, "Parsing CFA from file(s) \"%s\"", Joiner.on(", ").join(fileNames));
       CFACreator cfaCreator = new CFACreator(config, logger, shutdownNotifier);
       stats.setCFACreator(cfaCreator);
       cfa = cfaCreator.parseFileAndCreateCFA(fileNames);
 
     } else {
       // load CFA from serialization file
+      logger.logf(Level.INFO, "Reading CFA from file \"%s\"", serializedCfaFile);
       try (InputStream inputStream = Files.newInputStream(serializedCfaFile);
           InputStream gzipInputStream = new GZIPInputStream(inputStream);
           ObjectInputStream ois = new ObjectInputStream(gzipInputStream)) {
         cfa = (CFA) ois.readObject();
       }
+
+      assert CFACheck.check(cfa.getMainFunction(), null, cfa.getMachineModel());
     }
 
     stats.setCFA(cfa);
@@ -545,11 +537,13 @@ public class CPAchecker {
         status = status.update(algorithm.run(reached));
 
         if (cexLimit > 0) {
-          counterExampleCount = Optionals.presentInstances(
-              from(reached)
-              .filter(IS_TARGET_STATE)
-              .filter(ARGState.class)
-              .transform(ARGState::getCounterexampleInformation)).toList().size();
+          counterExampleCount =
+              Optionals.presentInstances(
+                      from(reached)
+                          .filter(AbstractStates::isTargetState)
+                          .filter(ARGState.class)
+                          .transform(ARGState::getCounterexampleInformation))
+                  .size();
         }
         // either run only once (if stopAfterError == true)
         // or until the waitlist is empty
@@ -625,16 +619,18 @@ public class CPAchecker {
         initialLocations = ImmutableSet.copyOf(pCfa.getAllFunctionHeads());
         break;
       case FUNCTION_SINKS:
-        initialLocations = ImmutableSet.<CFANode>builder().addAll(getAllEndlessLoopHeads(pCfa.getLoopStructure().get()))
-                                                          .addAll(getAllFunctionExitNodes(pCfa))
-                                                          .build();
+          initialLocations =
+              ImmutableSet.<CFANode>builder()
+                  .addAll(getAllEndlessLoopHeads(pCfa.getLoopStructure().orElseThrow()))
+                  .addAll(getAllFunctionExitNodes(pCfa))
+                  .build();
         break;
       case PROGRAM_SINKS:
           initialLocations =
               ImmutableSet.<CFANode>builder()
                   .addAll(
                       CFAUtils.getProgramSinks(
-                          pCfa, pCfa.getLoopStructure().get(), pAnalysisEntryFunction))
+                          pCfa, pCfa.getLoopStructure().orElseThrow(), pAnalysisEntryFunction))
                   .build();
 
         break;
@@ -645,7 +641,12 @@ public class CPAchecker {
               tlp.tryGetAutomatonTargetLocations(
                   pAnalysisEntryFunction,
                   Specification.fromFiles(
-                      pProperties, backwardSpecificationFiles, pCfa, config, logger));
+                      pProperties,
+                      backwardSpecificationFiles,
+                      pCfa,
+                      config,
+                      logger,
+                      shutdownNotifier));
           break;
       default:
         throw new AssertionError("Unhandled case statement: " + initialStatesFor);

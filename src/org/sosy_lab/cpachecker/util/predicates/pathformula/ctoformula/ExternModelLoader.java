@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula;
 
 import com.google.common.base.Splitter;
@@ -54,7 +39,7 @@ public class ExternModelLoader {
   }
 
   public BooleanFormula handleExternModelFunction(List<CExpression> parameters, SSAMapBuilder ssa) {
-    assert (parameters.size()>0): "No external model given!";
+    assert (!parameters.isEmpty()) : "No external model given!";
     // the parameter comes in C syntax (with ")
     String filename = parameters.get(0).toASTString().replaceAll("\"", "");
     Path modelFile = Paths.get(filename);
@@ -75,7 +60,7 @@ public class ExternModelLoader {
       throw new UnsupportedOperationException("Sorry, we can only load dimacs models.");
     }
     try (BufferedReader br = Files.newBufferedReader(pModelFile, StandardCharsets.UTF_8)) {
-      ArrayList<String> predicates = new ArrayList<>(10000);
+      List<String> predicates = new ArrayList<>(10000);
       //var ids in dimacs files start with 1, so we want the first var at position 1
       predicates.add("RheinDummyVar");
       BooleanFormula externalModel = bfmgr.makeTrue();
@@ -100,7 +85,7 @@ public class ExternModelLoader {
           // +1 because of the dummy var
           assert predicates.size() == Integer.parseInt(parts.get(2)) + 1
               : "did not get all dimcas variables?";
-        } else if (line.trim().length()>0) {
+        } else if (!line.trim().isEmpty()) {
           //-17552 -11882 1489 48905 0
           // constraints
           BooleanFormula constraint = bfmgr.makeFalse();

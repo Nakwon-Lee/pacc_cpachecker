@@ -1,29 +1,15 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.constraints.util;
 
-import org.junit.Assert;
+import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.Test;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -43,7 +29,7 @@ import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 /**
  * Unit tests for {@link org.sosy_lab.cpachecker.cpa.constraints.util.StateSimplifier}.
  *
- * There exist four symbolic identifiers that are divided into two groups by their dependencies:
+ * <p>There exist four symbolic identifiers that are divided into two groups by their dependencies:
  * Constraints exist so that the first identifier is dependent on the second one and so that the
  * third is dependent on the fourth. No dependencies exist between these two groups.
  */
@@ -103,7 +89,7 @@ public class StateSimplifierTest {
 
     simplifier.removeOutdatedConstraints(constraintsState, initialValueState);
 
-    Assert.assertTrue(constraintsState.isEmpty());
+    assertThat(constraintsState).isEmpty();
   }
 
   @Test
@@ -117,17 +103,13 @@ public class StateSimplifierTest {
 
     simplifier.removeOutdatedConstraints(constraintsState, valueState);
 
-    Assert.assertTrue(group2ConstraintsExist(constraintsState));
+    assertThat(group2ConstraintsExist(constraintsState)).isTrue();
   }
 
   private boolean group2ConstraintsExist(
       ConstraintsState pNewState
   ) {
-
-    boolean allExist = pNewState.contains(group2Constraint1);
-    allExist &= pNewState.contains(group2Constraint2);
-
-    return allExist;
+    return pNewState.contains(group2Constraint1) && pNewState.contains(group2Constraint2);
   }
 
   @Test
@@ -141,8 +123,8 @@ public class StateSimplifierTest {
 
     simplifier.removeOutdatedConstraints(constraintsState, valueState);
 
-    Assert.assertTrue(constraintsState.size() == 1
-        && constraintsState.contains(group2Constraint1));
+    assertThat(constraintsState).hasSize(1);
+    assertThat(constraintsState).contains(group2Constraint1);
   }
 
   private ConstraintsState getSampleConstraints() {

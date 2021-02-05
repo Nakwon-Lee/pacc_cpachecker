@@ -1,36 +1,20 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.assumptions.storage;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
-import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.defaults.SingleEdgeTransferRelation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
@@ -69,26 +53,26 @@ public class AssumptionStorageTransferRelation extends SingleEdgeTransferRelatio
 
     // If we must stop, then let's stop by returning an empty set
     if (element.isStop()) {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     return topStateSet;
   }
 
   @Override
-  public Collection<? extends AbstractState> strengthen(AbstractState el, List<AbstractState> others, CFAEdge edge, Precision p) throws CPATransferException, InterruptedException {
+  public Collection<? extends AbstractState> strengthen(
+      AbstractState el, Iterable<AbstractState> others, CFAEdge edge, Precision p)
+      throws CPATransferException, InterruptedException {
     AssumptionStorageState asmptStorageElem = (AssumptionStorageState)el;
     return Collections.singleton(strengthen(asmptStorageElem, others, edge));
   }
 
   AssumptionStorageState strengthen(
-      AssumptionStorageState pAsmptStorageElem, List<AbstractState> pOthers, CFAEdge pEdge)
+      AssumptionStorageState pAsmptStorageElem, Iterable<AbstractState> pOthers, CFAEdge pEdge)
       throws UnrecognizedCodeException, InterruptedException {
     BooleanFormulaManagerView bfmgr = formulaManager.getBooleanFormulaManager();
 
-    final CFANode currentLocation =
-        Iterables.getOnlyElement(AbstractStates.extractLocations(pOthers));
-    String function = currentLocation.getFunctionName();
+    String function = pEdge.getSuccessor().getFunctionName();
 
     BooleanFormula assumption = pAsmptStorageElem.getAssumption();
     BooleanFormula stopFormula = pAsmptStorageElem.getStopFormula();

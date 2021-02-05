@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,19 +13,20 @@ import static com.google.common.collect.FluentIterable.from;
 import static org.sosy_lab.cpachecker.util.CFAUtils.hasBackWardsEdges;
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
+import com.google.common.collect.Comparators;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -121,6 +106,9 @@ public final class LoopStructure implements Serializable {
   public static class Loop implements Serializable, Comparable<Loop> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Comparator<Iterable<CFANode>> NODES_COMPARATOR =
+        Comparators.lexicographical(Comparator.<CFANode>naturalOrder());
 
     // Technically not immutable, but all modifying methods are private
     // and never called after the LoopStructure information has been collected.
@@ -280,7 +268,7 @@ public final class LoopStructure implements Serializable {
       return "Loop with heads " + loopHeads + "\n"
            + "  incoming: " + incomingEdges + "\n"
            + "  outgoing: " + outgoingEdges + "\n"
-           + "  nodes:    " + nodes;
+           + "  nodes:    " + nodes + "\n";
     }
 
     @Override
@@ -304,12 +292,12 @@ public final class LoopStructure implements Serializable {
     public int compareTo(Loop pOther) {
       return ComparisonChain.start()
           .compare(nodes.size(), pOther.nodes.size())
-          .compare(nodes, pOther.nodes, Ordering.natural().lexicographical())
+          .compare(nodes, pOther.nodes, NODES_COMPARATOR)
           .result();
     }
   }
 
-  private final ImmutableMultimap<String, Loop> loops;
+  private final ImmutableListMultimap<String, Loop> loops;
 
   private transient @Nullable ImmutableSet<CFANode> loopHeads = null; // computed lazily
 
@@ -317,7 +305,7 @@ public final class LoopStructure implements Serializable {
   private transient @Nullable ImmutableSet<String> loopExitConditionVariables;
   private transient @Nullable ImmutableSet<String> loopIncDecVariables;
 
-  private LoopStructure(ImmutableMultimap<String, Loop> pLoops) {
+  private LoopStructure(ImmutableListMultimap<String, Loop> pLoops) {
     loops = pLoops;
   }
 
@@ -479,25 +467,24 @@ public final class LoopStructure implements Serializable {
    * @throws ParserException If the structure of the CFA is too complex for determining loops.
    */
   public static LoopStructure getLoopStructure(MutableCFA cfa) throws ParserException {
-    ImmutableMultimap.Builder<String, Loop> loops = ImmutableMultimap.builder();
+    ImmutableListMultimap.Builder<String, Loop> loops = ImmutableListMultimap.builder();
     for (String functionName : cfa.getAllFunctionNames()) {
-      SortedSet<CFANode> nodes = cfa.getFunctionNodes(functionName);
+      NavigableSet<CFANode> nodes = cfa.getFunctionNodes(functionName);
       loops.putAll(functionName, findLoops(nodes, cfa.getLanguage()));
     }
     return new LoopStructure(loops.build());
   }
 
   /**
-   * Find all loops inside a given set of CFA nodes.
-   * The nodes in the given set may not be connected
-   * with any nodes outside of this set.
-   * This method tries to differentiate nested loops.
+   * Find all loops inside a given set of CFA nodes. The nodes in the given set may not be connected
+   * with any nodes outside of this set. This method tries to differentiate nested loops.
    *
    * @param nodes The set of nodes to look for loops in.
    * @param language The source language.
    * @return A collection of found loops.
    */
-  private static Collection<Loop> findLoops(SortedSet<CFANode> nodes, Language language) throws ParserException {
+  private static Collection<Loop> findLoops(NavigableSet<CFANode> nodes, Language language)
+      throws ParserException {
 
     // Two optimizations:
     // - if there are no backwards directed edges, there are no loops,
@@ -667,12 +654,16 @@ public final class LoopStructure implements Serializable {
       }
     } while (!toRemove.isEmpty());
 
-    return loops;
+    return ImmutableList.copyOf(loops);
   }
 
-  private static boolean identifyLoops(boolean reverseMerge, SortedSet<CFANode> nodes,
+  private static boolean identifyLoops(
+      boolean reverseMerge,
+      NavigableSet<CFANode> nodes,
       final Function<CFANode, Integer> arrayIndexForNode,
-      final CFANode[] nodesArray, final Edge[][] edges, List<Loop> loops) {
+      final CFANode[] nodesArray,
+      final Edge[][] edges,
+      List<Loop> loops) {
 
     boolean changed = false;
 

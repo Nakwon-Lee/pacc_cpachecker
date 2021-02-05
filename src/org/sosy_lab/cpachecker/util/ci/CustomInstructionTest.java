@@ -1,45 +1,32 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ci;
 
+import static com.google.common.truth.Truth.assert_;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Truth;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.sosy_lab.common.ShutdownNotifier;
+import org.sosy_lab.common.annotations.SuppressForbidden;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
@@ -68,6 +55,7 @@ public class CustomInstructionTest {
   private ARGState end;
 
   @Before
+  @SuppressForbidden("reflection only in test")
   public void init()
       throws NoSuchMethodException, SecurityException, InstantiationException,
           IllegalAccessException, IllegalArgumentException, InvocationTargetException,
@@ -103,10 +91,10 @@ public class CustomInstructionTest {
         new AppliedCustomInstruction(
             startNode,
             endNodes,
-            Collections.emptyList(),
-            Collections.emptyList(),
-            Collections.emptyList(),
-            Pair.of(Collections.emptyList(), ""),
+            ImmutableList.of(),
+            ImmutableList.of(),
+            ImmutableList.of(),
+            Pair.of(ImmutableList.of(), ""),
             SSAMap.emptySSAMap());
 
     cis.put(startNode, aci);
@@ -128,7 +116,7 @@ public class CustomInstructionTest {
     Truth.assertThat(aci.isStartState(notStart)).isFalse();
     try {
       aci.isStartState(noLocation);
-      Assert.fail();
+      assert_().fail();
     } catch (CPAException e) {
     }
 
@@ -137,7 +125,7 @@ public class CustomInstructionTest {
     Truth.assertThat(cia.isStartState(notStart)).isFalse();
     try {
       cia.isStartState(noLocation);
-      Assert.fail();
+      assert_().fail();
     } catch (CPAException e) {
     }
   }
@@ -151,7 +139,7 @@ public class CustomInstructionTest {
     Truth.assertThat(aci.isEndState(start)).isFalse();
     try {
       aci.isEndState(noLocation);
-      Assert.fail();
+      assert_().fail();
     } catch (CPAException e) {
     }
 
@@ -169,7 +157,7 @@ public class CustomInstructionTest {
     // test if input parameter not a start state
     try {
       cia.getAppliedCustomInstructionFor(end);
-      Assert.fail();
+      assert_().fail();
     } catch (CPAException e) {
       Truth.assertThat(e)
           .hasMessageThat()
@@ -178,7 +166,7 @@ public class CustomInstructionTest {
     // test if input parameter does not contain location state
     try {
       cia.getAppliedCustomInstructionFor(new ARGState(new CallstackState(null, "main", startNode), null));
-      Assert.fail();
+      assert_().fail();
     } catch (CPAException e) {
     }
   }
@@ -187,11 +175,7 @@ public class CustomInstructionTest {
   public void testGetSignature() {
     ci =
         new CustomInstruction(
-            null,
-            null,
-            Collections.emptyList(),
-            Collections.emptyList(),
-            ShutdownNotifier.createDummy());
+            null, null, ImmutableList.of(), ImmutableList.of(), ShutdownNotifier.createDummy());
     Truth.assertThat(ci.getSignature()).isEqualTo("() -> ()");
 
     List<String> inputVars = new ArrayList<>();
@@ -216,11 +200,7 @@ public class CustomInstructionTest {
   public void testGetFakeSMTDescription() {
     ci =
         new CustomInstruction(
-            null,
-            null,
-            Collections.emptyList(),
-            Collections.emptyList(),
-            ShutdownNotifier.createDummy());
+            null, null, ImmutableList.of(), ImmutableList.of(), ShutdownNotifier.createDummy());
     Pair<List<String>, String> pair = ci.getFakeSMTDescription();
     Truth.assertThat(pair.getFirst()).isEmpty();
     Truth.assertThat(pair.getSecond()).isEqualTo("(define-fun ci() Bool true)");
@@ -229,7 +209,7 @@ public class CustomInstructionTest {
     inputVars.add("var");
     ci =
         new CustomInstruction(
-            null, null, inputVars, Collections.emptyList(), ShutdownNotifier.createDummy());
+            null, null, inputVars, ImmutableList.of(), ShutdownNotifier.createDummy());
     pair = ci.getFakeSMTDescription();
     Truth.assertThat(pair.getFirst()).hasSize(1);
     Truth.assertThat(pair.getFirst().get(0)).isEqualTo("(declare-fun var () Int)");
@@ -239,7 +219,7 @@ public class CustomInstructionTest {
     outputVars.add("var1");
     ci =
         new CustomInstruction(
-            null, null, Collections.emptyList(), outputVars, ShutdownNotifier.createDummy());
+            null, null, ImmutableList.of(), outputVars, ShutdownNotifier.createDummy());
     pair = ci.getFakeSMTDescription();
     Truth.assertThat(pair.getFirst()).hasSize(1);
     Truth.assertThat(pair.getFirst().get(0)).isEqualTo("(declare-fun var1@1 () Int)");
@@ -325,9 +305,7 @@ public class CustomInstructionTest {
           startNode = node;
         }
         if (((CLabelNode) node).getLabel().startsWith("end_ci")) {
-          for(CFANode predecessor: CFAUtils.allPredecessorsOf(node)) {
-            endNodes.add(predecessor);
-          }
+          CFAUtils.allPredecessorsOf(node).copyInto(endNodes);
         }
       }
       for (CFAEdge e : CFAUtils.allLeavingEdges(node)) {
@@ -398,9 +376,9 @@ public class CustomInstructionTest {
             startNode,
             endNodes,
             inputVariables,
-            Collections.emptyList(),
+            ImmutableList.of(),
             inputVariables,
-            Pair.of(Collections.emptyList(), ""),
+            Pair.of(ImmutableList.of(), ""),
             SSAMap.emptySSAMap());
     Truth.assertThat(aci.getInputVariables()).containsExactly("main::a");
   }
@@ -415,10 +393,10 @@ public class CustomInstructionTest {
         new AppliedCustomInstruction(
             startNode,
             endNodes,
-            Collections.emptyList(),
+            ImmutableList.of(),
             outputVariables,
-            Collections.emptyList(),
-            Pair.of(Collections.emptyList(), ""),
+            ImmutableList.of(),
+            Pair.of(ImmutableList.of(), ""),
             SSAMap.emptySSAMap());
     Truth.assertThat(aci.getOutputVariables()).containsExactly("main::a");
   }
@@ -434,10 +412,10 @@ public class CustomInstructionTest {
         new AppliedCustomInstruction(
             startNode,
             endNodes,
-            Collections.singletonList("main::a"),
-            Collections.emptyList(),
+            ImmutableList.of("main::a"),
+            ImmutableList.of(),
             inputVarsAndConstants,
-            Pair.of(Collections.emptyList(), ""),
+            Pair.of(ImmutableList.of(), ""),
             SSAMap.emptySSAMap());
     Truth.assertThat(aci.getInputVariablesAndConstants()).containsExactlyElementsIn(inputVarsAndConstants).inOrder();
   }

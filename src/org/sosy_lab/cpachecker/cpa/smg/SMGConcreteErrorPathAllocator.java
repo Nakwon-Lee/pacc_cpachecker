@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg;
 
 import com.google.common.collect.ImmutableMap;
@@ -52,10 +37,13 @@ import org.sosy_lab.cpachecker.core.counterexample.ConcreteStatePath.SingleConcr
 import org.sosy_lab.cpachecker.core.counterexample.IDExpression;
 import org.sosy_lab.cpachecker.core.counterexample.LeftHandSide;
 import org.sosy_lab.cpachecker.core.counterexample.Memory;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.SMGHasValueEdges;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.UnmodifiableCLangSMG;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGObject;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGKnownSymbolicValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.value.SMGValue;
 import org.sosy_lab.cpachecker.cpa.value.refiner.ConcreteErrorPathAllocator;
 import org.sosy_lab.cpachecker.util.Pair;
 
@@ -182,13 +170,13 @@ public class SMGConcreteErrorPathAllocator extends ConcreteErrorPathAllocator<SM
 
   private Map<Address, Object> createHeapValues(SMGState pSMGState, SMGObjectAddressMap pAdresses) {
 
-    Set<SMGEdgeHasValue> symbolicValues = pSMGState.getHeap().getHVEdges();
+    SMGHasValueEdges symbolicValues = pSMGState.getHeap().getHVEdges();
 
     Map<Address, Object> result = new HashMap<>();
 
     for (SMGEdgeHasValue hvEdge : ImmutableSet.copyOf(symbolicValues)) {
 
-      SMGKnownSymbolicValue symbolicValue = (SMGKnownSymbolicValue) hvEdge.getValue();
+      SMGValue symbolicValue = hvEdge.getValue();
       BigInteger value = null;
 
       if (symbolicValue.isZero()) {
@@ -198,8 +186,11 @@ public class SMGConcreteErrorPathAllocator extends ConcreteErrorPathAllocator<SM
 
         //TODO ugly, use common representation
         value = pAdresses.calculateAddress(pointer.getObject(), pointer.getOffset(), pSMGState).getAddressValue();
-      } else if (pSMGState.isExplicit(symbolicValue)) {
-        value = BigInteger.valueOf(pSMGState.getExplicit(symbolicValue).getAsLong());
+      } else if (symbolicValue instanceof SMGKnownSymbolicValue
+          && pSMGState.isExplicit((SMGKnownSymbolicValue) symbolicValue)) {
+        value =
+            BigInteger
+                .valueOf(pSMGState.getExplicit((SMGKnownSymbolicValue) symbolicValue).getAsLong());
       } else {
         continue;
       }
@@ -223,7 +214,7 @@ public class SMGConcreteErrorPathAllocator extends ConcreteErrorPathAllocator<SM
       // Create a new base address for the object if necessary
       if (!objectAddressMap.containsKey(pObject)) {
         objectAddressMap.put(pObject, nextAlloc);
-        IDExpression lhs = pSMGState.getHeap().createIDExpression(pObject);
+        IDExpression lhs = createIDExpression(pSMGState.getHeap(), pObject);
         if (lhs != null) {
           variableAddressMap.put(lhs, nextAlloc);
         }
@@ -240,5 +231,22 @@ public class SMGConcreteErrorPathAllocator extends ConcreteErrorPathAllocator<SM
     public Map<LeftHandSide, Address> getAddressMap() {
       return ImmutableMap.copyOf(variableAddressMap);
     }
+  }
+
+  private static IDExpression createIDExpression(UnmodifiableCLangSMG smg, SMGObject pObject) {
+
+    if (smg.getGlobalObjects().containsValue(pObject)) {
+      // TODO Breaks if label is changed
+      return new IDExpression(pObject.getLabel());
+    }
+
+    for (CLangStackFrame frame : smg.getStackFrames()) {
+      if (frame.getVariables().containsValue(pObject)) {
+        // TODO Breaks if label is changed
+        return new IDExpression(pObject.getLabel(), frame.getFunctionDeclaration().getName());
+      }
+    }
+
+    return null;
   }
 }

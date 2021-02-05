@@ -1,42 +1,30 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg.graphs.object.test;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.Iterables;
 import com.google.common.truth.Truth;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.Assert;
+import org.sosy_lab.common.collect.Collections3;
 import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cpa.smg.SMGAbstractionManager;
 import org.sosy_lab.cpachecker.cpa.smg.SMGInconsistentException;
 import org.sosy_lab.cpachecker.cpa.smg.SMGRuntimeCheck;
 import org.sosy_lab.cpachecker.cpa.smg.SMGState;
 import org.sosy_lab.cpachecker.cpa.smg.SMGTargetSpecifier;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.CLangSMG;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.SMGHasValueEdges;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValueFilter;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
@@ -58,9 +46,7 @@ public final class SMGListAbstractionTestHelpers {
   }
 
   private static SMGValue[] generateNewAddresses(int pCount) {
-    if (pCount < 1) {
-      throw new IllegalArgumentException("Count must be at least 1.");
-    }
+    checkArgument(pCount >= 1, "Count must be at least 1.");
     SMGValue[] addresses = new SMGValue[pCount];
     for (int i = 0; i < pCount; i++) {
       addresses[i] = newVal();
@@ -69,9 +55,7 @@ public final class SMGListAbstractionTestHelpers {
   }
 
   private static SMGObject[] createRegionsOnHeap(CLangSMG pSmg, int pCount, int pSize) {
-    if (pCount < 1) {
-      throw new IllegalArgumentException("Count must be at least 1.");
-    }
+    checkArgument(pCount >= 1, "Count must be at least 1.");
     SMGObject[] regions = new SMGObject[pCount];
     for (int i = 0; i < pCount; i++) {
       SMGObject region = new SMGRegion(pSize, "list_node" + i);
@@ -88,12 +72,10 @@ public final class SMGListAbstractionTestHelpers {
       int pHfo,
       int pNfo,
       int pPfo,
-      Integer[] pMinLengths,
+      int[] pMinLengths,
       int pLevel,
       SMGListLinkage pLinkage) {
-    if (pCount < 1) {
-      throw new IllegalArgumentException("Count must be at least 1.");
-    }
+    checkArgument(pCount >= 1, "Count must be at least 1.");
     SMGObject[] lists = new SMGObject[pCount];
     for (int i = 0; i < pCount; i++) {
       SMGObject list = null;
@@ -115,13 +97,12 @@ public final class SMGListAbstractionTestHelpers {
 
   private static SMGEdgeHasValue[] addFieldsToObjectsOnHeap(
       CLangSMG pSmg, SMGObject[] pObjects, SMGValue[] pValues, int pFieldSize, int pFieldOffset) {
-    if (pObjects == null || pValues == null || pObjects.length == 0) {
-      throw new IllegalArgumentException("The provided arrays must not be null or empty.");
-    }
-    if (pObjects.length != pValues.length) {
-      throw new IllegalArgumentException(
-          "The number of objects must be equal to the number of values.");
-    }
+    checkArgument(
+        pObjects != null && pValues != null && pObjects.length != 0,
+        "The provided arrays must not be null or empty.");
+    checkArgument(
+        pObjects.length == pValues.length,
+        "The number of objects must be equal to the number of values.");
     SMGEdgeHasValue[] hvEdges = new SMGEdgeHasValue[pObjects.length];
     for (int i = 0; i < pObjects.length; i++) {
       pSmg.addValue(pValues[i]);
@@ -134,13 +115,12 @@ public final class SMGListAbstractionTestHelpers {
 
   private static SMGEdgePointsTo[] addPointersToRegionsOnHeap(
       CLangSMG pSmg, SMGObject[] pRegions, SMGValue[] pAddresses, int pOffset) {
-    if (pRegions == null || pAddresses == null || pRegions.length == 0) {
-      throw new IllegalArgumentException("The provided arrays must not be null or empty.");
-    }
-    if (pRegions.length != pAddresses.length) {
-      throw new IllegalArgumentException(
-          "The number of regions must be equal to the number of addresses.");
-    }
+    checkArgument(
+        pRegions != null && pAddresses != null && pRegions.length != 0,
+        "The provided arrays must not be null or empty.");
+    checkArgument(
+        pRegions.length == pAddresses.length,
+        "The number of regions must be equal to the number of addresses.");
     SMGEdgePointsTo[] ptEdges = new SMGEdgePointsTo[pRegions.length];
     for (int i = 0; i < pRegions.length; i++) {
       pSmg.addValue(pAddresses[i]);
@@ -158,13 +138,12 @@ public final class SMGListAbstractionTestHelpers {
       SMGValue[] pAddresses,
       int pHeadOffset,
       SMGTargetSpecifier pFirstOrLast) {
-    if (pLists == null || pAddresses == null || pLists.length == 0) {
-      throw new IllegalArgumentException("The provided arrays must not be null or empty.");
-    }
-    if (pLists.length != pAddresses.length) {
-      throw new IllegalArgumentException(
-          "The number of lists must be equal to the number of addresses.");
-    }
+    checkArgument(
+        pLists != null && pAddresses != null && pLists.length != 0,
+        "The provided arrays must not be null or empty.");
+    checkArgument(
+        pLists.length == pAddresses.length,
+        "The number of lists must be equal to the number of addresses.");
     SMGEdgePointsTo[] ptEdges = new SMGEdgePointsTo[pLists.length];
     for (int i = 0; i < pLists.length; i++) {
       pSmg.addValue(pAddresses[i]);
@@ -176,7 +155,7 @@ public final class SMGListAbstractionTestHelpers {
   }
 
   // in contrast to linked regions( and linked sll's), linked dll's need two addresses each
-  public static SMGValue[] linkObjectsOnHeap(
+  static SMGValue[] linkObjectsOnHeap(
       CLangSMG pSmg,
       SMGValue[] pAddresses,
       int pHfo,
@@ -184,23 +163,23 @@ public final class SMGListAbstractionTestHelpers {
       int pPfo,
       SMGListCircularity pCircularity,
       SMGListLinkage pLinkage) {
-    if (pSmg == null) {
-      throw new IllegalArgumentException("The smg was null.");
-    }
-    if (pAddresses == null || pAddresses.length < 1) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
-    if (pCircularity != SMGListCircularity.OPEN && pCircularity != SMGListCircularity.CIRCULAR) {
-      throw new IllegalArgumentException("Unsupported list circularity: " + pCircularity);
-    }
-    if (pLinkage != SMGListLinkage.SINGLE_LINKED && pLinkage != SMGListLinkage.DOUBLY_LINKED) {
-      throw new IllegalArgumentException("Unsupported list linkage: " + pLinkage);
-    }
+    checkArgument(pSmg != null, "The smg was null.");
+    checkArgument(
+        pAddresses != null && pAddresses.length >= 1,
+        "The provided array must not be null or empty.");
+    checkArgument(
+        pCircularity == SMGListCircularity.OPEN || pCircularity == SMGListCircularity.CIRCULAR,
+        "Unsupported list circularity: %s",
+        pCircularity);
+    checkArgument(
+        pLinkage == SMGListLinkage.SINGLE_LINKED || pLinkage == SMGListLinkage.DOUBLY_LINKED,
+        "Unsupported list linkage: %s",
+        pLinkage);
 
     // to prevent ambiguity, existing links must be deleted before the new linking
     deleteLinksOfObjects(pSmg, pAddresses, pNfo, pPfo);
 
-    CType ptrType = pSmg.getMachineModel().getPointerEquivalentSimpleType();
+    int ptrSize = pSmg.getSizeofPtrInBits();
     final SMGValue firstAddress = pAddresses[0];
     if (!pSmg.isPointer(firstAddress)) {
       throw new IllegalArgumentException(
@@ -224,7 +203,7 @@ public final class SMGListAbstractionTestHelpers {
       SMGEdgeHasValue previousHvNext;
       if (i == 0) {
         if (pCircularity == SMGListCircularity.OPEN && pLinkage == SMGListLinkage.DOUBLY_LINKED) {
-          hvPrev = new SMGEdgeHasValue(ptrType, pPfo, node, SMGZeroValue.INSTANCE);
+          hvPrev = new SMGEdgeHasValue(ptrSize, pPfo, node, SMGZeroValue.INSTANCE);
           pSmg.addHasValueEdge(hvPrev);
         }
       } else {
@@ -244,22 +223,23 @@ public final class SMGListAbstractionTestHelpers {
             } else {
               address2 = Iterables.getOnlyElement(pte).getValue();
             }
-            hvPrev = new SMGEdgeHasValue(ptrType, pPfo, node, address2);
+            hvPrev = new SMGEdgeHasValue(ptrSize, pPfo, node, address2);
             pSmg.addHasValueEdge(hvPrev);
           } else {
-            hvPrev = new SMGEdgeHasValue(ptrType, pPfo, node, previousAddress);
+            hvPrev = new SMGEdgeHasValue(ptrSize, pPfo, node, previousAddress);
             pSmg.addHasValueEdge(hvPrev);
           }
         }
-        previousHvNext = new SMGEdgeHasValue(ptrType, pNfo, previousNode, address);
+        previousHvNext = new SMGEdgeHasValue(ptrSize, pNfo, previousNode, address);
         pSmg.addHasValueEdge(previousHvNext);
       }
     }
+    assert node != null;
     // circular lists: connect first and last nodes; else point to NULL
     SMGEdgeHasValue hvNext;
     SMGEdgeHasValue hvPrev;
     if (pCircularity.equals(SMGListCircularity.CIRCULAR)) {
-      hvNext = new SMGEdgeHasValue(ptrType, pNfo, node, firstAddress);
+      hvNext = new SMGEdgeHasValue(ptrSize, pNfo, node, firstAddress);
       if (pLinkage == SMGListLinkage.DOUBLY_LINKED) {
         if (node.getKind() == SMGObjectKind.DLL) {
           SMGValue address2 = null;
@@ -276,15 +256,15 @@ public final class SMGListAbstractionTestHelpers {
           } else {
             address2 = Iterables.getOnlyElement(pte).getValue();
           }
-          hvPrev = new SMGEdgeHasValue(ptrType, pPfo, firstNode, address2);
+          hvPrev = new SMGEdgeHasValue(ptrSize, pPfo, firstNode, address2);
           pSmg.addHasValueEdge(hvPrev);
         } else {
-          hvPrev = new SMGEdgeHasValue(ptrType, pPfo, firstNode, address);
+          hvPrev = new SMGEdgeHasValue(ptrSize, pPfo, firstNode, address);
           pSmg.addHasValueEdge(hvPrev);
         }
       }
     } else {
-      hvNext = new SMGEdgeHasValue(ptrType, pNfo, node, SMGZeroValue.INSTANCE);
+      hvNext = new SMGEdgeHasValue(ptrSize, pNfo, node, SMGZeroValue.INSTANCE);
     }
     pSmg.addHasValueEdge(hvNext);
 
@@ -292,15 +272,14 @@ public final class SMGListAbstractionTestHelpers {
   }
 
   private static SMGValue[] joinValuesPerList(SMGValue[][] pLists) {
-    if (pLists == null || pLists.length == 0) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
+    checkArgument(
+        pLists != null && pLists.length != 0, "The provided array must not be null or empty.");
     SMGValue[] values = new SMGValue[pLists.length];
     for (int i = 0; i < pLists.length; i++) {
       SMGValue[] list = pLists[i];
       if (list == null) {
         throw new IllegalArgumentException("The provided array must not contain null.");
-      } else if (list.length < 1 || Stream.of(list).distinct().count() > 1) {
+      } else if (list.length < 1 || !Collections3.allElementsEqual(list)) {
         values[i] = newVal();
       } else {
         values[i] = list[0];
@@ -309,15 +288,12 @@ public final class SMGListAbstractionTestHelpers {
     return values;
   }
 
-  private static Integer[] getMinLengths(SMGValue[][] pLists) {
-    if (pLists == null || pLists.length == 0) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
-    Integer[] minLengths = new Integer[pLists.length];
+  private static int[] getMinLengths(SMGValue[][] pLists) {
+    checkArgument(
+        pLists != null && pLists.length != 0, "The provided array must not be null or empty.");
+    int[] minLengths = new int[pLists.length];
     for (int i = 0; i < pLists.length; i++) {
-      if (pLists[i] == null) {
-        throw new IllegalArgumentException("The provided array must not contain null.");
-      }
+      checkArgument(pLists[i] != null, "The provided array must not contain null.");
       minLengths[i] = pLists[i].length;
     }
     return minLengths;
@@ -325,14 +301,17 @@ public final class SMGListAbstractionTestHelpers {
 
   private static void deleteLinksOfObjects(
       CLangSMG pSmg, SMGValue[] pAddresses, int pNfo, int pPfo) {
-    if (pAddresses == null || pAddresses.length == 0) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
+    checkArgument(
+        pAddresses != null && pAddresses.length != 0,
+        "The provided array must not be null or empty.");
     for (SMGValue address : pAddresses) {
       SMGObject object = pSmg.getObjectPointedBy(address);
-      for (Integer offset : new Integer[] {pNfo, pPfo}) {
-        Set<SMGEdgeHasValue> set =
-            pSmg.getHVEdges(SMGEdgeHasValueFilter.objectFilter(object).filterAtOffset(offset));
+      for (int offset : new int[] {pNfo, pPfo}) {
+        SMGHasValueEdges set =
+            pSmg.getHVEdges(
+                SMGEdgeHasValueFilter.objectFilter(object)
+                    .filterAtOffset(offset)
+                    .filterBySize(pSmg.getSizeofPtrInBits()));
         for (SMGEdgeHasValue hv : set) {
           pSmg.removeHasValueEdge(hv);
         }
@@ -340,7 +319,7 @@ public final class SMGListAbstractionTestHelpers {
     }
   }
 
-  public static SMGValue[] addLinkedRegionsWithValuesToHeap(
+  static SMGValue[] addLinkedRegionsWithValuesToHeap(
       CLangSMG pSmg,
       SMGValue[] pValues,
       int pSize,
@@ -351,9 +330,8 @@ public final class SMGListAbstractionTestHelpers {
       int pDataSize,
       SMGListCircularity pCircularity,
       SMGListLinkage pLinkage) {
-    if (pValues == null || pValues.length < 1) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
+    checkArgument(
+        pValues != null && pValues.length >= 1, "The provided array must not be null or empty.");
     SMGValue[] addresses = generateNewAddresses(pValues.length);
     SMGObject[] regions = createRegionsOnHeap(pSmg, pValues.length, pSize);
     addPointersToRegionsOnHeap(pSmg, regions, addresses, 0);
@@ -361,7 +339,7 @@ public final class SMGListAbstractionTestHelpers {
     return linkObjectsOnHeap(pSmg, addresses, pHfo, pNfo, pPfo, pCircularity, pLinkage);
   }
 
-  public static SMGValue[] addLinkedRegionsWithRegionsWithValuesToHeap(
+  static SMGValue[] addLinkedRegionsWithRegionsWithValuesToHeap(
       CLangSMG pSmg,
       SMGValue[] pValues,
       int pRegionSize,
@@ -375,9 +353,8 @@ public final class SMGListAbstractionTestHelpers {
       int pSubDataSize,
       SMGListCircularity pCircularity,
       SMGListLinkage pLinkage) {
-    if (pValues == null || pValues.length < 1) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
+    checkArgument(
+        pValues != null && pValues.length >= 1, "The provided array must not be null or empty.");
     SMGValue[] addresses = generateNewAddresses(pValues.length);
     SMGObject[] regions = createRegionsOnHeap(pSmg, pValues.length, pRegionSize);
     SMGValue[] subaddresses = generateNewAddresses(pValues.length);
@@ -389,7 +366,7 @@ public final class SMGListAbstractionTestHelpers {
     return linkObjectsOnHeap(pSmg, addresses, pHfo, pNfo, pPfo, pCircularity, pLinkage);
   }
 
-  public static SMGValue[] addLinkedRegionsWithSublistsWithValuesToHeap(
+  static SMGValue[] addLinkedRegionsWithSublistsWithValuesToHeap(
       CLangSMG pSmg,
       SMGValue[][] pSublists,
       int pNodeSize,
@@ -400,26 +377,26 @@ public final class SMGListAbstractionTestHelpers {
       int pDataSize,
       SMGListCircularity pCircularity,
       SMGListLinkage pLinkage) {
-    if (pSublists == null || pSublists.length < 1) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
+    checkArgument(
+        pSublists != null && pSublists.length >= 1,
+        "The provided array must not be null or empty.");
     SMGValue[] addresses = generateNewAddresses(pSublists.length);
     SMGObject[] regions = createRegionsOnHeap(pSmg, pSublists.length, pNodeSize);
     SMGValue[] subaddresses = generateNewAddresses(pSublists.length);
-    Integer[] minLengths = getMinLengths(pSublists);
+    int[] minLengths = getMinLengths(pSublists);
     int level = 0;
     SMGObject[] sublists =
         createListsOnHeap(
             pSmg, pSublists.length, pNodeSize, pHfo, pNfo, pPfo, minLengths, level, pLinkage);
     addPointersToRegionsOnHeap(pSmg, regions, addresses, 0);
     addPointersToListsOnHeap(pSmg, sublists, subaddresses, pHfo, SMGTargetSpecifier.FIRST);
-    addFieldsToObjectsOnHeap(pSmg, regions, subaddresses, pDataSize, pDfo);
+    addFieldsToObjectsOnHeap(pSmg, regions, subaddresses, pSmg.getSizeofPtrInBits(), pDfo);
     SMGValue[] values = joinValuesPerList(pSublists);
     addFieldsToObjectsOnHeap(pSmg, sublists, values, pDataSize, pDfo);
     return linkObjectsOnHeap(pSmg, addresses, pHfo, pNfo, pPfo, pCircularity, pLinkage);
   }
 
-  public static SMGValue[] addLinkedListsWithValuesToHeap(
+  static SMGValue[] addLinkedListsWithValuesToHeap(
       CLangSMG pSmg,
       SMGValue[][] pLists,
       int pNodeSize,
@@ -430,12 +407,11 @@ public final class SMGListAbstractionTestHelpers {
       int pDataSize,
       SMGListCircularity pCircularity,
       SMGListLinkage pLinkage) {
-    if (pLists == null || pLists.length == 0) {
-      throw new IllegalArgumentException("The provided array must not be null or empty.");
-    }
+    checkArgument(
+        pLists != null && pLists.length != 0, "The provided array must not be null or empty.");
     SMGValue[] addresses = generateNewAddresses(pLists.length);
     int level = 0;
-    Integer[] minLengths = getMinLengths(pLists);
+    int[] minLengths = getMinLengths(pLists);
     SMGObject[] lists =
         createListsOnHeap(
             pSmg, pLists.length, pNodeSize, pHfo, pNfo, pPfo, minLengths, level, pLinkage);
@@ -445,62 +421,70 @@ public final class SMGListAbstractionTestHelpers {
     return linkObjectsOnHeap(pSmg, addresses, pHfo, pNfo, pPfo, pCircularity, pLinkage);
   }
 
-  public static SMGRegion addGlobalListPointerToSMG(
-      CLangSMG pSmg, SMGValue pHeadAddress, String pLabel) {
-    SMGRegion globalVar = new SMGRegion(8 * pSmg.getMachineModel().getSizeofPtr(), pLabel);
-    SMGEdgeHasValue hv =
-        new SMGEdgeHasValue(
-            pSmg.getMachineModel().getPointerEquivalentSimpleType(), 0, globalVar, pHeadAddress);
+  static SMGRegion addGlobalListPointerToSMG(CLangSMG pSmg, SMGValue pHeadAddress, String pLabel) {
+    SMGRegion globalVar = new SMGRegion(pSmg.getSizeofPtrInBits(), pLabel);
+    SMGEdgeHasValue hv = new SMGEdgeHasValue(pSmg.getSizeofPtrInBits(), 0, globalVar, pHeadAddress);
     pSmg.addGlobalObject(globalVar);
     pSmg.addHasValueEdge(hv);
     return globalVar;
   }
 
-  public static void executeHeapAbstractionWithConsistencyChecks(SMGState pState, CLangSMG pSmg)
+  static void executeHeapAbstractionWithConsistencyChecks(SMGState pState, CLangSMG pSmg)
       throws SMGInconsistentException {
     SMGAbstractionManager manager =
         new SMGAbstractionManager(LogManager.createTestLogManager(), pSmg, pState);
     pState.performConsistencyCheck(SMGRuntimeCheck.FORCED);
     manager.execute();
+    pState.pruneUnreachable();
     pState.performConsistencyCheck(SMGRuntimeCheck.FORCED);
   }
 
-  public static void assertAbstractListSegmentAsExpected(
+  static void assertAbstractListSegmentAsExpected(
       SMGObject pSegment, int pRegionSize, int pLevel, SMGObjectKind pListKind, int pListLength) {
-    Assert.assertTrue(pSegment.isAbstract());
+    assertThat(pSegment.isAbstract()).isTrue();
     Truth.assertThat(pSegment.getSize()).isEqualTo(pRegionSize);
     Truth.assertThat(pSegment.getLevel()).isEqualTo(pLevel);
-    Truth.assertThat(pSegment.getKind()).isSameAs(pListKind);
+    Truth.assertThat(pSegment.getKind()).isSameInstanceAs(pListKind);
     Truth.assertThat(pSegment).isInstanceOf(SMGAbstractList.class);
     SMGAbstractList<?> segmentAsList = (SMGAbstractList<?>) pSegment;
     Truth.assertThat(segmentAsList.getMinimumLength()).isAtMost(pListLength);
     Truth.assertThat(segmentAsList.getMinimumLength()).isEqualTo(pListLength);
   }
 
-  public static void assertStoredDataOfAbstractList(
+  static void assertStoredDataOfAbstractList(
       CLangSMG pSmg, SMGValue[] pValues, SMGObject pObject, int pDfo) {
-    boolean allValuesEqual = Arrays.stream(pValues).distinct().count() == 1;
-    if (allValuesEqual) {
+    if (Collections3.allElementsEqual(pValues)) {
       SMGEdgeHasValue hv =
           Iterables.getOnlyElement(
-              pSmg.getHVEdges(SMGEdgeHasValueFilter.objectFilter(pObject).filterAtOffset(pDfo)));
+              pSmg.getHVEdges(
+                  SMGEdgeHasValueFilter.objectFilter(pObject)
+                      .filterAtOffset(pDfo)
+                      .filterWithoutSize()));
       if (pValues.length > 0) {
         Truth.assertThat(hv.getValue()).isEqualTo(pValues[0]);
       }
     }
   }
 
-  public static void assertStoredDataOfAbstractSublist(
+  static void assertStoredDataOfAbstractSublist(
       CLangSMG pSmg, SMGValue[][] pSublists, SMGObject pSubobject, int pDfo) {
-    boolean onlyNonEmptySublists = Stream.of(pSublists).noneMatch(e -> e == null || e.length == 0);
-    boolean allValuesEqualInUnionOfSublists =
-        Stream.of(pSublists).flatMap(Arrays::stream).distinct().count() == 1;
-    if (onlyNonEmptySublists && allValuesEqualInUnionOfSublists) {
-      SMGEdgeHasValue hv =
-          Iterables.getOnlyElement(
-              pSmg.getHVEdges(SMGEdgeHasValueFilter.objectFilter(pSubobject).filterAtOffset(pDfo)));
-      Truth.assertThat(hv.getValue()).isEqualTo(pSublists[0][0]);
+    if (pSublists.length == 0) {
+      return;
     }
+    if (Stream.of(pSublists).anyMatch(e -> e == null || e.length == 0)) {
+      return; // some empty sublists
+    }
+    if (!Collections3.allElementsEqual(Stream.of(pSublists).flatMap(Arrays::stream))) {
+      return; // not all values in union of sublists are equal
+    }
+
+    SMGEdgeHasValue hv =
+        Iterables.getOnlyElement(
+            pSmg.getHVEdges(
+                SMGEdgeHasValueFilter.objectFilter(pSubobject)
+                    .filterAtOffset(pDfo)
+                    .filterWithoutSize()));
+    Truth.assertThat(hv.getValue()).isEqualTo(pSublists[0][0]);
   }
 
   private SMGListAbstractionTestHelpers() {}

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates.bdd;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -28,8 +13,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.sosy_lab.cpachecker.util.statistics.StatisticsWriter.writingStatisticsTo;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.primitives.ImmutableIntArray;
 import java.io.PrintStream;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
@@ -38,14 +24,17 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import net.sf.javabdd.BDD;
 import net.sf.javabdd.BDDFactory;
+import net.sf.javabdd.BDDPairing;
 import net.sf.javabdd.JFactory;
 import org.sosy_lab.common.ShutdownNotifier;
+import org.sosy_lab.common.annotations.SuppressForbidden;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.IntegerOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -68,11 +57,12 @@ import org.sosy_lab.java_smt.api.Formula;
 import org.sosy_lab.java_smt.api.FunctionDeclaration;
 import org.sosy_lab.java_smt.api.QuantifiedFormulaManager.Quantifier;
 import org.sosy_lab.java_smt.api.visitors.BooleanFormulaVisitor;
+
 /**
  * A wrapper for the javabdd (http://javabdd.sf.net) package.
  *
- * This class is not thread-safe, but it could be easily made so by synchronizing
- * the {@link #createNewVar()} method (assuming the BDDFactory is thread-safe).
+ * <p>This class is not thread-safe, but it could be easily made so by synchronizing the {@link
+ * #createNewVar()} method (assuming the BDDFactory is thread-safe).
  */
 @Options(prefix = "bdd.javabdd")
 class JavaBDDRegionManager implements RegionManager {
@@ -89,8 +79,8 @@ class JavaBDDRegionManager implements RegionManager {
   private final ReferenceQueue<JavaBDDRegion> referenceQueue =
       new ReferenceQueue<>();
   // In this map we store the info which BDD to free after a JavaBDDRegion object was GCed.
-  private final Map<Reference<? extends JavaBDDRegion>, BDD> referenceMap = Maps
-      .newIdentityHashMap();
+  private final IdentityHashMap<Reference<? extends JavaBDDRegion>, BDD> referenceMap =
+      new IdentityHashMap<>();
 
   @Option(secure = true, description = "Initial size of the BDD node table in percentage of available Java heap memory (only used if initTableSize is 0).")
   private double initTableRatio = 0.001;
@@ -109,8 +99,9 @@ class JavaBDDRegionManager implements RegionManager {
   private int nextvar = 0;
   private int varcount = 100;
 
-  JavaBDDRegionManager(String bddPackage, Configuration config,
-      LogManager pLogger) throws InvalidConfigurationException {
+  @SuppressForbidden("reflection on own methods")
+  JavaBDDRegionManager(String bddPackage, Configuration config, LogManager pLogger)
+      throws InvalidConfigurationException {
     config.inject(this);
     logger = pLogger;
     if (initTableRatio <= 0 || initTableRatio >= 1) {
@@ -240,9 +231,9 @@ class JavaBDDRegionManager implements RegionManager {
   }
 
   /**
-   * Return the current size of the cache of the BDD library.
-   * Returns -1 if value cannot be read.
+   * Return the current size of the cache of the BDD library. Returns -1 if value cannot be read.
    */
+  @SuppressForbidden("reflection only for statistics")
   private int readCacheSize() {
     if (factory instanceof JFactory) {
       // Unfortunately JFactory does not update its reported size on cache resizes.
@@ -281,9 +272,6 @@ class JavaBDDRegionManager implements RegionManager {
       factory.setVarNum(varcount);
     }
     BDD ret = factory.ithVar(nextvar++);
-
-    factory.printOrder();
-
     return ret;
   }
 
@@ -469,10 +457,10 @@ class JavaBDDRegionManager implements RegionManager {
   }
 
   @Override
-  public void setVarOrder(ArrayList<Integer> pVarOrder) {
+  public void setVarOrder(ImmutableIntArray pVarOrder) {
     int[] order = new int[varcount];
     for (int i = 0; i < order.length; i++) {
-      if (i < pVarOrder.size()) {
+      if (i < pVarOrder.length()) {
         order[i] = pVarOrder.get(i);
       } else {
         order[i] = i;
@@ -508,6 +496,16 @@ class JavaBDDRegionManager implements RegionManager {
       default:
         break;
     }
+  }
+
+  @Override
+  public Region replace(Region pRegion, Region[] pOldPredicates, Region[] pNewPredicates) {
+    Preconditions.checkArgument(pOldPredicates.length == pNewPredicates.length);
+    BDDPairing pairing = factory.makePair();
+    for (int i = 0; i < pOldPredicates.length; i++) {
+      pairing.set(unwrap(pOldPredicates[i]).var(), unwrap(pNewPredicates[i]).var());
+    }
+    return wrap(unwrap(pRegion).replace(pairing));
   }
 
   private class BDDRegionBuilder implements RegionBuilder {

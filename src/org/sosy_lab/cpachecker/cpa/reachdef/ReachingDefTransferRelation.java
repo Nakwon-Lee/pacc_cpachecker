@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.reachdef;
 
 import static org.sosy_lab.cpachecker.util.reachingdef.ReachingDefUtils.possiblePointees;
@@ -35,11 +20,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
+import org.sosy_lab.common.collect.Collections3;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -218,7 +204,7 @@ public class ReachingDefTransferRelation implements TransferRelation {
             "Start of main function. ",
             "Add undefined position for local variables of main function. ",
             "Add definition of parameters of main function.");
-        if (pCfaEdge.getPredecessor() == main
+        if (Objects.equals(pCfaEdge.getPredecessor(), main)
             && ((ReachingDefState) pState).getLocalReachingDefinitions().size() == 0) {
           result =
               ((ReachingDefState) pState)
@@ -270,8 +256,8 @@ public class ReachingDefTransferRelation implements TransferRelation {
                       Collection<CLeftHandSide> firstRes = binExp.getOperand1().accept(this);
                       Collection<CLeftHandSide> sndRes = binExp.getOperand2().accept(this);
 
-                      Set<CLeftHandSide> res = new HashSet<>();
-                      res.addAll(firstRes);
+                      Set<CLeftHandSide> res = new HashSet<>(firstRes);
+
                       res.addAll(sndRes);
 
                       return res;
@@ -309,12 +295,9 @@ public class ReachingDefTransferRelation implements TransferRelation {
     return newState;
   }
 
-  private Set<MemoryLocation> getParameters(CFunctionEntryNode pNode) {
-    return pNode
-        .getFunctionParameters()
-        .stream()
-        .map(x -> MemoryLocation.valueOf(x.getQualifiedName()))
-        .collect(Collectors.toSet());
+  private ImmutableSet<MemoryLocation> getParameters(CFunctionEntryNode pNode) {
+    return Collections3.transformedImmutableSetCopy(
+        pNode.getFunctionParameters(), x -> MemoryLocation.valueOf(x.getQualifiedName()));
   }
 
   private ReachingDefState handleReturnStatement(
@@ -474,7 +457,10 @@ public class ReachingDefTransferRelation implements TransferRelation {
 
   @Override
   public @Nullable Collection<? extends AbstractState> strengthen(
-      AbstractState state, List<AbstractState> otherStates, CFAEdge cfaEdge, Precision precision)
+      AbstractState state,
+      Iterable<AbstractState> otherStates,
+      CFAEdge cfaEdge,
+      Precision precision)
       throws CPATransferException, InterruptedException {
 
     for (AbstractState o : otherStates) {

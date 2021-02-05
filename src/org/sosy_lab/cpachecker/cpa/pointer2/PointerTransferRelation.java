@@ -1,30 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.pointer2;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -119,7 +105,9 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
           throws CPATransferException, InterruptedException {
     PointerState pointerState = (PointerState) pState;
     PointerState resultState = getAbstractSuccessor(pointerState, pCfaEdge);
-    return resultState == null ? Collections.<AbstractState>emptySet() : Collections.<AbstractState>singleton(resultState);
+    return resultState == null
+        ? ImmutableSet.of()
+        : Collections.<AbstractState>singleton(resultState);
   }
 
   private PointerState getAbstractSuccessor(PointerState pState, CFAEdge pCfaEdge)
@@ -168,7 +156,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
       assert returnVar.isPresent()
           : "Return edge with assignment, but no return variable: " + summaryEdge;
 
-      LocationSet pointedTo = pState.getPointsToSet(returnVar.get());
+      LocationSet pointedTo = pState.getPointsToSet(returnVar.orElseThrow());
 
       return handleAssignment(pState, callAssignment.getLeftHandSide(), pointedTo);
     } else {
@@ -183,7 +171,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
       ABinaryExpression binOp = (ABinaryExpression) expression;
       if (binOp.getOperator() == BinaryOperator.EQUALS) {
         Optional<Boolean> areEq = areEqual(pState, binOp.getOperand1(), binOp.getOperand2());
-        if (areEq.isPresent() && areEq.get() != pAssumeEdge.getTruthAssumption()) {
+        if (areEq.isPresent() && areEq.orElseThrow() != pAssumeEdge.getTruthAssumption()) {
           return null;
         }
       }
@@ -204,7 +192,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
           }
         } else if (pOperand2 instanceof CCharLiteralExpression) {
           CCharLiteralExpression op2 = (CCharLiteralExpression) pOperand2;
-          if (op2.getValue() == 0) {
+          if (op2.getCharacter() == 0) {
             return negate(areEqual(pPointerState, op1.getOperand1(), op1.getOperand2()));
           }
         }
@@ -296,7 +284,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
     if (!returnVariable.isPresent()) {
       return pState;
     }
-    return handleAssignment(pState, returnVariable.get(), pCfaEdge.getExpression().get());
+    return handleAssignment(pState, returnVariable.orElseThrow(), pCfaEdge.getExpression().get());
   }
 
   private Optional<MemoryLocation> getFunctionReturnVariable(FunctionEntryNode pFunctionEntryNode) {
@@ -419,7 +407,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
     } else if (locationSet instanceof ExplicitLocationSet) {
       locations = (ExplicitLocationSet) locationSet;
     } else {
-      locations = Collections.emptySet();
+      locations = ImmutableSet.of();
     }
     PointerState result = pState;
     for (MemoryLocation location : locations) {
@@ -573,9 +561,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
                 for (MemoryLocation location : ((ExplicitLocationSet) starredLocations)) {
                   LocationSet pointsToSet = pState.getPointsToSet(location);
                   if (pointsToSet.isTop()) {
-                    for (MemoryLocation loc : pState.getKnownLocations()) {
-                      result.add(loc);
-                    }
+                    result.addAll(pState.getKnownLocations());
                     break;
                   } else if (!pointsToSet.isBot() && pointsToSet instanceof ExplicitLocationSet) {
                     ExplicitLocationSet explicitLocationSet = (ExplicitLocationSet) pointsToSet;
@@ -751,7 +737,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
    */
   public static Iterable<MemoryLocation> toNormalSet(PointerState pState, LocationSet pLocationSet) {
     if (pLocationSet.isBot()) {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
     if (pLocationSet.isTop() || !(pLocationSet instanceof ExplicitLocationSet)) {
       return pState.getKnownLocations();
@@ -762,7 +748,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
   @Override
   public Collection<? extends AbstractState> strengthen(
       AbstractState pState,
-      List<AbstractState> pOtherStates,
+      Iterable<AbstractState> pOtherStates,
       @Nullable CFAEdge pCfaEdge,
       Precision pPrecision)
       throws CPATransferException, InterruptedException {
@@ -770,7 +756,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
       Optional<AFunctionCall> functionCall = asFunctionCall(pCfaEdge);
       if (functionCall.isPresent()) {
         AFunctionCallExpression functionCallExpression =
-            functionCall.get().getFunctionCallExpression();
+            functionCall.orElseThrow().getFunctionCallExpression();
         AExpression functionNameExpression = functionCallExpression.getFunctionNameExpression();
         if (functionNameExpression instanceof CPointerExpression) {
           CExpression derefNameExpr = ((CPointerExpression) functionNameExpression).getOperand();
@@ -779,7 +765,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
             Optional<CallstackState> callstackState = find(pOtherStates, CallstackState.class);
             if (callstackState.isPresent()) {
               return strengthenFieldReference(
-                  (PointerState) pState, callstackState.get(), fieldReference);
+                  (PointerState) pState, callstackState.orElseThrow(), fieldReference);
             }
           }
         }
@@ -816,7 +802,7 @@ public class PointerTransferRelation extends SingleEdgeTransferRelation {
           return Collections.singleton(pPointerState);
         }
       }
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
     return Collections.singleton(pPointerState);
   }

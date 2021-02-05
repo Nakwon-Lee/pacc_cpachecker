@@ -1,30 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.algorithm;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -64,7 +50,6 @@ import org.sosy_lab.cpachecker.cfa.types.c.CType;
 import org.sosy_lab.cpachecker.cfa.types.java.JArrayType;
 import org.sosy_lab.cpachecker.cfa.types.java.JSimpleType;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
-import org.sosy_lab.cpachecker.core.Specification;
 import org.sosy_lab.cpachecker.core.defaults.MultiStatistics;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
@@ -72,6 +57,7 @@ import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets;
 import org.sosy_lab.cpachecker.core.reachedset.ForwardingReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
+import org.sosy_lab.cpachecker.core.specification.Specification;
 import org.sosy_lab.cpachecker.exceptions.CPAEnabledAnalysisPropertyViolationException;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.UnsupportedCodeException;
@@ -87,9 +73,9 @@ public class SelectionAlgorithm extends NestingAlgorithm {
 
   private static class SelectionAlgorithmCFAVisitor implements CFAVisitor {
 
-    private final HashSet<String> functionNames = new HashSet<>();
-    private Set<String> arrayVariables = new HashSet<>();
-    private HashSet<String> floatVariables = new HashSet<>();
+    private final Set<String> functionNames = new HashSet<>();
+    private final Set<String> arrayVariables = new HashSet<>();
+    private final Set<String> floatVariables = new HashSet<>();
 
     @Override
     public TraversalProcess visitEdge(CFAEdge pEdge) {
@@ -366,7 +352,7 @@ public class SelectionAlgorithm extends NestingAlgorithm {
     }
 
     Optional<LoopStructure> loopStructure = cfa.getLoopStructure();
-    VariableClassification variableClassification = cfa.getVarClassification().get();
+    VariableClassification variableClassification = cfa.getVarClassification().orElseThrow();
 
     if (!variableClassification.getRelevantVariables().isEmpty()) {
       stats.relevantBoolRatio =
@@ -396,7 +382,7 @@ public class SelectionAlgorithm extends NestingAlgorithm {
             || !variableClassification.getAddressedFields().isEmpty();
 
     stats.requiresLoopHandling =
-        !loopStructure.isPresent() || !loopStructure.get().getAllLoops().isEmpty();
+        !loopStructure.isPresent() || !loopStructure.orElseThrow().getAllLoops().isEmpty();
 
     stats.requiresCompositeTypeHandling = !variableClassification.getRelevantFields().isEmpty();
 
@@ -497,7 +483,7 @@ public class SelectionAlgorithm extends NestingAlgorithm {
         mainFunction,
         singleShutdownManager,
         aggregateReached,
-        Collections.singleton("analysis.selectAnalysisHeuristically"),
+        ImmutableSet.of("analysis.selectAnalysisHeuristically"),
         stats.getSubStatistics());
   }
 

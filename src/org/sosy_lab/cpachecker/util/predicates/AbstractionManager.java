@@ -1,33 +1,17 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
+import com.google.common.primitives.ImmutableIntArray;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -48,7 +32,6 @@ import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.util.Triple;
 import org.sosy_lab.cpachecker.util.predicates.regions.Region;
-import org.sosy_lab.cpachecker.util.predicates.regions.RegionCreator;
 import org.sosy_lab.cpachecker.util.predicates.regions.RegionManager;
 import org.sosy_lab.cpachecker.util.predicates.regions.SymbolicRegionManager;
 import org.sosy_lab.cpachecker.util.predicates.smt.BooleanFormulaManagerView;
@@ -70,11 +53,11 @@ public final class AbstractionManager {
   private final FormulaManagerView fmgr;
   private final Solver solver;
   // Here we keep the mapping abstract predicate variable -> predicate
-  private final Map<Region, AbstractionPredicate> absVarToPredicate = Maps.newHashMap();
+  private final Map<Region, AbstractionPredicate> absVarToPredicate = new HashMap<>();
   // and the mapping symbolic variable -> predicate
-  private final Map<BooleanFormula, AbstractionPredicate> symbVarToPredicate = Maps.newHashMap();
+  private final Map<BooleanFormula, AbstractionPredicate> symbVarToPredicate = new HashMap<>();
   // and the mapping atom -> predicate
-  private final Map<BooleanFormula, AbstractionPredicate> atomToPredicate = Maps.newHashMap();
+  private final Map<BooleanFormula, AbstractionPredicate> atomToPredicate = new HashMap<>();
 
   // Properties for BDD variable ordering:
   @Option(secure = true, name = "abs.predicateOrdering.method",
@@ -250,10 +233,13 @@ public final class AbstractionManager {
    * Reorders the BDD variables.
    */
   public void reorderPredicates() {
+    if (varOrderMethod == PredicateOrderingStrategy.DISABLE) {
+      return; // do nothing
+    }
     if (this.varOrderMethod.getIsFrameworkStrategy()) {
       rmgr.reorder(this.varOrderMethod);
     } else {
-      ArrayList<Integer> predicateOrdering = new ArrayList<>(numberOfPredicates);
+      ImmutableIntArray.Builder predicateOrdering = ImmutableIntArray.builder(numberOfPredicates);
       if (varOrderMethod.equals(PredicateOrderingStrategy.RANDOMLY)) {
         predicateOrdering.addAll(randomListOfVarIDs);
       } else if (multiplePartitions) {
@@ -270,7 +256,7 @@ public final class AbstractionManager {
         }
       }
 
-      rmgr.setVarOrder(predicateOrdering);
+      rmgr.setVarOrder(predicateOrdering.build());
     }
   }
 
@@ -474,19 +460,18 @@ public final class AbstractionManager {
     // This class does not care whether this happens, if the RegionManager implementation
     // can work without AbstractionPredicates for each atom so can we.
     // This will affect statistics, however.
-    return rmgr.fromFormula(pF, fmgr,
-        new Function<BooleanFormula, Region>() {
-          @Override
-          public Region apply(BooleanFormula pInput) {
-            if (atomToPredicate.containsKey(pInput)) {
-              return atomToPredicate.get(pInput).getAbstractVariable();
-            }
-            return makePredicate(pInput).getAbstractVariable();
+    return rmgr.fromFormula(
+        pF,
+        fmgr,
+        atom -> {
+          if (atomToPredicate.containsKey(atom)) {
+            return atomToPredicate.get(atom).getAbstractVariable();
           }
+          return makePredicate(atom).getAbstractVariable();
         });
   }
 
-  public RegionCreator getRegionCreator() {
+  public RegionManager getRegionCreator() {
     return rmgr;
   }
 

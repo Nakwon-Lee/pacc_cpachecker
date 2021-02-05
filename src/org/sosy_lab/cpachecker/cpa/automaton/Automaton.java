@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.automaton;
 
 import com.google.common.collect.ImmutableList;
@@ -30,7 +15,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -132,7 +116,7 @@ public class Automaton {
 
   private static String formatState(AutomatonInternalState s, String color) {
     String name = s.getName().replace("_predefinedState_", "");
-    String shape = s.getDoesMatchAll() ? "doublecircle" : "circle";
+    String shape = s.isTarget() ? "doublecircle" : "circle";
     return String.format("%d [shape=\"" + shape + "\" color=\"%s\" label=\"%s\"]\n", s.getStateId(), color, name);
   }
 
@@ -193,7 +177,7 @@ public class Automaton {
 
     for (AutomatonInternalState s : states) {
       str.append("STATE ")
-          .append(s.getDoesMatchAll() ? "USEALL " : "USEFIRST ")
+          .append(s.isNonDetState() ? "USEALL " : "USEFIRST ")
           .append(s.getName())
           .append(":\n");
       for (AutomatonTransition t : s.getTransitions()) {
@@ -225,8 +209,8 @@ public class Automaton {
           AutomatonExpressionArguments args =
               new AutomatonExpressionArguments(
                   null,
-                  Collections.emptyMap(),
-                  Collections.emptyList(),
+                  ImmutableMap.of(),
+                  ImmutableList.of(),
                   edge,
                   LogManager.createNullLogManager());
           try {

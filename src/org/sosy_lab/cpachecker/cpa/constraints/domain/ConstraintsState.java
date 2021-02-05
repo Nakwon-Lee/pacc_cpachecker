@@ -1,36 +1,22 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.constraints.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +29,7 @@ import org.sosy_lab.java_smt.api.Model.ValueAssignment;
 /**
  * State for Constraints Analysis. Stores constraints and whether they are solvable.
  */
-public class ConstraintsState implements AbstractState, Graphable, Set<Constraint> {
+public final class ConstraintsState implements AbstractState, Graphable, Set<Constraint> {
 
   /** The constraints of this state */
   private List<Constraint> constraints;
@@ -56,14 +42,14 @@ public class ConstraintsState implements AbstractState, Graphable, Set<Constrain
   // add a constraint to 'constraints' if it's not yet in this list.
   private Optional<Constraint> lastAddedConstraint = Optional.empty();
 
-  private ImmutableCollection<ValueAssignment> definiteAssignment;
+  private ImmutableList<ValueAssignment> definiteAssignment;
   private ImmutableList<ValueAssignment> lastModelAsAssignment = ImmutableList.of();
 
   /**
    * Creates a new, initial <code>ConstraintsState</code> object.
    */
   public ConstraintsState() {
-    this(Collections.emptySet());
+    this(ImmutableSet.of());
   }
 
   public ConstraintsState(final Set<Constraint> pConstraints) {
@@ -78,7 +64,7 @@ public class ConstraintsState implements AbstractState, Graphable, Set<Constrain
    *
    * @param pState the state to copy
    */
-  protected ConstraintsState(ConstraintsState pState) {
+  ConstraintsState(ConstraintsState pState) {
     constraints = new ArrayList<>(pState.constraints);
 
     lastAddedConstraint = pState.lastAddedConstraint;
@@ -205,7 +191,7 @@ public class ConstraintsState implements AbstractState, Graphable, Set<Constrain
   }
 
   void setDefiniteAssignment(ImmutableCollection<ValueAssignment> pAssignment) {
-    definiteAssignment = pAssignment;
+    definiteAssignment = pAssignment.asList();
   }
 
   /** Returns the last model computed for this constraints state. */
@@ -299,9 +285,7 @@ public class ConstraintsState implements AbstractState, Graphable, Set<Constrain
 
     @Override
     public void remove() {
-      if (index < 0) {
-        throw new IllegalStateException("Iterator not at valid location");
-      }
+      checkState(index >= 0, "Iterator not at valid location");
 
       constraints.remove(index);
       index--;

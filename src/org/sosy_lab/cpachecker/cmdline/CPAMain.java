@@ -1,34 +1,21 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cmdline;
 
-import static java.util.stream.Collectors.toList;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.FluentIterable.from;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableSetCopy;
 import static org.sosy_lab.common.io.DuplicateOutputStream.mergeStreams;
 
-import com.google.common.base.Joiner;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -36,14 +23,15 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
 import com.google.common.io.MoreFiles;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -53,11 +41,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.matheclipse.core.util.WriterOutputStream;
 import org.sosy_lab.common.Optionals;
 import org.sosy_lab.common.ShutdownManager;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.ShutdownNotifier.ShutdownRequestListener;
+import org.sosy_lab.common.annotations.SuppressForbidden;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.ConfigurationBuilder;
 import org.sosy_lab.common.configuration.FileOption;
@@ -70,24 +58,27 @@ import org.sosy_lab.common.io.IO;
 import org.sosy_lab.common.log.BasicLogManager;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LoggingOptions;
+import org.sosy_lab.cpachecker.cfa.Language;
 import org.sosy_lab.cpachecker.cmdline.CmdLineArguments.InvalidCmdlineArgumentException;
 import org.sosy_lab.cpachecker.core.CPAchecker;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.algorithm.pcc.ProofGenerator;
 import org.sosy_lab.cpachecker.core.counterexample.ReportGenerator;
+import org.sosy_lab.cpachecker.core.specification.Property;
+import org.sosy_lab.cpachecker.core.specification.Property.CommonCoverageType;
+import org.sosy_lab.cpachecker.core.specification.Property.CommonPropertyType;
+import org.sosy_lab.cpachecker.core.specification.SpecificationProperty;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonGraphmlParser;
+import org.sosy_lab.cpachecker.cpa.testtargets.CoverFunction;
 import org.sosy_lab.cpachecker.cpa.testtargets.TestTargetType;
-import org.sosy_lab.cpachecker.util.Property;
-import org.sosy_lab.cpachecker.util.Property.CommonCoverageType;
-import org.sosy_lab.cpachecker.util.Property.CommonPropertyType;
 import org.sosy_lab.cpachecker.util.PropertyFileParser;
 import org.sosy_lab.cpachecker.util.PropertyFileParser.InvalidPropertyFileException;
-import org.sosy_lab.cpachecker.util.SpecificationProperty;
 import org.sosy_lab.cpachecker.util.automaton.AutomatonGraphmlCommon.WitnessType;
 import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
 import org.sosy_lab.cpachecker.util.resources.ResourceLimitChecker;
 
+@SuppressForbidden("System.out in this class is ok")
 public class CPAMain {
 
   static final int ERROR_EXIT_CODE = 1;
@@ -97,6 +88,11 @@ public class CPAMain {
     // CPAchecker uses American English for output,
     // so make sure numbers are formatted appropriately.
     Locale.setDefault(Locale.US);
+
+    if (args.length == 0) {
+      // be nice to user
+      args = new String[] {"-help"};
+    }
 
     // initialize various components
     Configuration cpaConfig = null;
@@ -113,6 +109,8 @@ public class CPAMain {
         throw Output.fatalError("Could not process command line arguments: %s", e.getMessage());
       } catch (IOException e) {
         throw Output.fatalError("Could not read config file %s", e.getMessage());
+      } catch (InterruptedException e) {
+        throw Output.fatalError("Interrupted: %s", e.getMessage());
       }
 
       logOptions = new LoggingOptions(cpaConfig);
@@ -138,6 +136,9 @@ public class CPAMain {
         throw new InvalidConfigurationException("Please specify a program to analyze on the command line.");
       }
       dumpConfiguration(options, cpaConfig, logManager);
+
+      // generate correct frontend based on file language
+      cpaConfig = detectFrontendLanguageIfNecessary(options, cpaConfig, logManager);
 
       limits = ResourceLimitChecker.fromConfiguration(cpaConfig, logManager, shutdownManager);
       limits.start();
@@ -237,8 +238,9 @@ public class CPAMain {
     private boolean printUsedOptions = false;
   }
 
+  @VisibleForTesting
   @Options
-  private static class MainOptions {
+  protected static class MainOptions {
     @Option(
       secure = true,
       name = "analysis.programNames",
@@ -246,6 +248,12 @@ public class CPAMain {
       description = "A String, denoting the programs to be analyzed"
     )
     private ImmutableList<String> programs = ImmutableList.of();
+
+    @Option(secure=true,
+        description="Programming language of the input program. If not given explicitly, "
+            + "auto-detection will occur")
+    // keep option name in sync with {@link CFACreator#language}, value might differ
+    private Language language = null;
 
     @Option(secure=true, name="configuration.dumpFile",
         description="Dump the complete configuration to a file.")
@@ -291,7 +299,8 @@ public class CPAMain {
    * @return A Configuration object, the output directory, and the specification properties.
    */
   private static Config createConfiguration(String[] args)
-      throws InvalidConfigurationException, InvalidCmdlineArgumentException, IOException {
+      throws InvalidConfigurationException, InvalidCmdlineArgumentException, IOException,
+          InterruptedException {
     // if there are some command line arguments, process them
     Map<String, String> cmdLineOptions = CmdLineArguments.processArguments(args);
 
@@ -305,17 +314,20 @@ public class CPAMain {
 
     // get name of config file (may be null)
     // and remove this from the list of options (it's not a real option)
-    String configFile = cmdLineOptions.remove(CmdLineArguments.CONFIGURATION_FILE_OPTION);
+    Optional<String> configFile =
+        Optional.ofNullable(cmdLineOptions.remove(CmdLineArguments.CONFIGURATION_FILE_OPTION));
 
     // create initial configuration
     // from default values, config file, and command-line arguments
     ConfigurationBuilder configBuilder = Configuration.builder();
     configBuilder.setOptions(EXTERN_OPTION_DEFAULTS);
-    if (configFile != null) {
-      configBuilder.setOption(APPROACH_NAME_OPTION, extractApproachNameFromConfigName(configFile));
-      configBuilder.loadFromFile(configFile);
+    if (configFile.isPresent()) {
+      configBuilder.setOption(
+          APPROACH_NAME_OPTION, extractApproachNameFromConfigName(configFile.orElseThrow()));
+      configBuilder.loadFromFile(configFile.orElseThrow());
     }
     configBuilder.setOptions(cmdLineOptions);
+
     Configuration config = configBuilder.build();
 
     // We want to be able to use options of type "File" with some additional
@@ -337,7 +349,7 @@ public class CPAMain {
             .build();
 
     // Read witness file if present, switch to appropriate config and adjust cmdline options
-    config = handleWitnessOptions(config, cmdLineOptions);
+    config = handleWitnessOptions(config, cmdLineOptions, configFile);
 
     BootstrapOptions options = new BootstrapOptions();
     config.inject(options);
@@ -358,6 +370,81 @@ public class CPAMain {
     return filename.contains(".") ? filename.substring(0, filename.lastIndexOf(".")) : filename;
   }
 
+  private static final String LANGUAGE_HINT =
+      String.format(
+          " Please specify a language directly with the option 'language=%s'.",
+          Arrays.toString(Language.values()));
+
+  /**
+   * Determines the frontend language based on the file endings of the given programs, if no
+   * language is given by the user. If a language is detected, it is set in the given {@link
+   * MainOptions} object and a new configuration for that language, based on the given
+   * configuration, is returned.
+   */
+  @VisibleForTesting
+  static Configuration detectFrontendLanguageIfNecessary(
+      MainOptions pOptions, Configuration pConfig, LogManager pLogManager)
+      throws InvalidConfigurationException {
+    if (pOptions.language == null) {
+      // if language was not specified by option, we determine the best matching language
+      Language frontendLanguage;
+      if (areJavaOptionsSet(pConfig)) {
+        frontendLanguage = Language.JAVA;
+      } else {
+        frontendLanguage = detectFrontendLanguageFromFileEndings(pOptions.programs);
+      }
+      Preconditions.checkNotNull(frontendLanguage);
+      ConfigurationBuilder configBuilder = Configuration.builder();
+      configBuilder.copyFrom(pConfig);
+      configBuilder.setOption("language", frontendLanguage.name());
+      pConfig = configBuilder.build();
+      pOptions.language = frontendLanguage;
+      pLogManager.logf(Level.INFO, "Language %s detected and set for analysis", frontendLanguage);
+    }
+    Preconditions.checkNotNull(pOptions.language);
+    return pConfig;
+  }
+
+  @SuppressWarnings("deprecation") // checking the properties directly is more maintainable
+  private static boolean areJavaOptionsSet(Configuration pConfig) {
+    // Make sure to keep this synchronized with EclipseJavaParser
+    return pConfig.hasProperty("java.sourcepath") || pConfig.hasProperty("java.classpath");
+  }
+
+  private static Language detectFrontendLanguageFromFileEndings(ImmutableList<String> pPrograms)
+      throws InvalidConfigurationException {
+    checkArgument(!pPrograms.isEmpty(), "Empty list of programs");
+    Language frontendLanguage = null;
+    for (String program : pPrograms) {
+      Language language;
+      String suffix = program.substring(program.lastIndexOf(".") + 1);
+      switch (suffix) {
+        case "ll":
+        case "bc":
+          language = Language.LLVM;
+          break;
+        case "c":
+        case "i":
+        case "h":
+        default:
+          language = Language.C;
+          break;
+      }
+      Preconditions.checkNotNull(language);
+      if (frontendLanguage == null) { // first iteration
+        frontendLanguage = language;
+      }
+      if (frontendLanguage != language) { // further iterations: check for conflicting endings
+        throw new InvalidConfigurationException(
+            String.format(
+                    "Differing file formats detected: %s and %s files are declared for analysis.",
+                    frontendLanguage, language)
+                + LANGUAGE_HINT);
+      }
+    }
+    return frontendLanguage;
+  }
+
   private static final ImmutableMap<Property, TestTargetType> TARGET_TYPES =
       ImmutableMap.<Property, TestTargetType>builder()
           .put(CommonCoverageType.COVERAGE_BRANCH, TestTargetType.ASSUME)
@@ -373,7 +460,7 @@ public class CPAMain {
       Set<SpecificationProperty> pProperties)
       throws InvalidConfigurationException, IOException {
     Set<Property> properties =
-        pProperties.stream().map(p -> p.getProperty()).collect(ImmutableSet.toImmutableSet());
+        transformedImmutableSetCopy(pProperties, SpecificationProperty::getProperty);
 
     final Path alternateConfigFile;
 
@@ -418,6 +505,18 @@ public class CPAMain {
           .copyFrom(config)
           .setOption("testcase.targets.type", TARGET_TYPES.get(properties.iterator().next()).name())
           .build();
+    } else if (from(properties).anyMatch(p -> p instanceof CoverFunction)) {
+      if (properties.size() != 1) {
+        throw new InvalidConfigurationException(
+            "Unsupported combination of properties: " + properties);
+      }
+      return Configuration.builder()
+          .copyFrom(config)
+          .setOption("testcase.targets.type", "FUN_CALL")
+          .setOption(
+              "testcase.targets.funName",
+              ((CoverFunction) properties.iterator().next()).getCoverFunction())
+          .build();
     } else {
       alternateConfigFile = null;
     }
@@ -454,6 +553,7 @@ public class CPAMain {
       ImmutableMap.<Property, String>builder()
           .put(CommonPropertyType.REACHABILITY_LABEL, "sv-comp-errorlabel")
           .put(CommonPropertyType.REACHABILITY, "sv-comp-reachability")
+          .put(CommonPropertyType.REACHABILITY_ERROR, "sv-comp-reachability")
           .put(CommonPropertyType.VALID_FREE, "sv-comp-memorysafety")
           .put(CommonPropertyType.VALID_DEREF, "sv-comp-memorysafety")
           .put(CommonPropertyType.VALID_MEMTRACK, "sv-comp-memorysafety")
@@ -472,7 +572,7 @@ public class CPAMain {
             .splitToList(cmdLineOptions.getOrDefault(SPECIFICATION_OPTION, ""));
 
     List<String> propertyFiles =
-        specificationFiles.stream().filter(file -> file.endsWith(".prp")).collect(toList());
+        from(specificationFiles).filter(file -> file.endsWith(".prp")).toList();
     if (propertyFiles.isEmpty()) {
       return ImmutableSet.of();
     }
@@ -495,23 +595,21 @@ public class CPAMain {
 
     // set the file from where to read the specification automaton
     ImmutableSet<SpecificationProperty> properties =
-        FluentIterable.from(parser.getProperties())
-            .transform(
-                prop ->
-                    new SpecificationProperty(
-                        parser.getEntryFunction(),
-                        prop,
-                        Optional.ofNullable(SPECIFICATION_FILES.get(prop))
-                            .map(CmdLineArguments::resolveSpecificationFileOrExit)))
-            .toSet();
+        transformedImmutableSetCopy(
+            parser.getProperties(),
+            prop ->
+                new SpecificationProperty(
+                    parser.getEntryFunction(),
+                    prop,
+                    Optional.ofNullable(SPECIFICATION_FILES.get(prop))
+                        .map(CmdLineArguments::resolveSpecificationFileOrExit)));
     assert !properties.isEmpty();
 
     String specFiles =
         Optionals.presentInstances(
-                properties
-                    .stream()
-                    .map(SpecificationProperty::getInternalSpecificationPath)
-                    .distinct())
+                properties.stream().map(SpecificationProperty::getInternalSpecificationPath))
+            .map(Object::toString)
+            .distinct()
             .collect(Collectors.joining(","));
     cmdLineOptions.put(SPECIFICATION_OPTION, specFiles);
     if (cmdLineOptions.containsKey(ENTRYFUNCTION_OPTION)) {
@@ -554,11 +652,17 @@ public class CPAMain {
     )
     @FileOption(Type.OPTIONAL_INPUT_FILE)
     private @Nullable Path correctnessWitnessValidationConfig = null;
+
+    @Option(
+        secure = true,
+        name = "witness.validation.correctness.isa",
+        description = "Use correctness witness as invariants specification automaton (ISA).")
+    private boolean validateInvariantsSpecificationAutomaton = false;
   }
 
   private static Configuration handleWitnessOptions(
-      Configuration config, Map<String, String> overrideOptions)
-      throws InvalidConfigurationException, IOException {
+      Configuration config, Map<String, String> overrideOptions, Optional<String> configFileName)
+      throws InvalidConfigurationException, IOException, InterruptedException {
     WitnessOptions options = new WitnessOptions();
     config.inject(options);
     if (options.witness == null) {
@@ -570,15 +674,16 @@ public class CPAMain {
     switch (witnessType) {
       case VIOLATION_WITNESS:
         validationConfigFile = options.violationWitnessValidationConfig;
-        String specs = overrideOptions.get(SPECIFICATION_OPTION);
-        String witnessSpec = options.witness.toString();
-        specs = specs == null ? witnessSpec : Joiner.on(',').join(specs, witnessSpec.toString());
-        overrideOptions.put(SPECIFICATION_OPTION, specs);
+        appendWitnessToSpecificationOption(options, overrideOptions);
         break;
       case CORRECTNESS_WITNESS:
         validationConfigFile = options.correctnessWitnessValidationConfig;
+        if (options.validateInvariantsSpecificationAutomaton) {
+          appendWitnessToSpecificationOption(options, overrideOptions);
+        } else {
         overrideOptions.put(
             "invariantGeneration.kInduction.invariantsAutomatonFile", options.witness.toString());
+        }
         break;
       default:
         throw new InvalidConfigurationException(
@@ -588,16 +693,28 @@ public class CPAMain {
       throw new InvalidConfigurationException(
           "Validating (violation|correctness) witnesses is not supported if option witness.validation.(violation|correctness).config is not specified.");
     }
-    return Configuration.builder()
-        .copyFrom(config)
-        .loadFromFile(validationConfigFile)
-        .setOptions(overrideOptions)
-        .clearOption("witness.validation.file")
-        .clearOption("witness.validation.violation.config")
-        .clearOption("witness.validation.correctness.config")
-        .clearOption("output.path")
-        .clearOption("rootDirectory")
-        .build();
+    ConfigurationBuilder configBuilder =
+        Configuration.builder()
+            .loadFromFile(validationConfigFile)
+            .setOptions(overrideOptions)
+            .clearOption("witness.validation.file")
+            .clearOption("witness.validation.violation.config")
+            .clearOption("witness.validation.correctness.config")
+            .clearOption("output.path")
+            .clearOption("rootDirectory");
+    if (configFileName.isPresent()) {
+      configBuilder.setOption(
+          APPROACH_NAME_OPTION, extractApproachNameFromConfigName(configFileName.orElseThrow()));
+    }
+    return configBuilder.build();
+  }
+
+  private static void appendWitnessToSpecificationOption(
+      WitnessOptions pOptions, Map<String, String> pOverrideOptions) {
+    String specs = pOverrideOptions.get(SPECIFICATION_OPTION);
+    String witnessSpec = pOptions.witness.toString();
+    specs = specs == null ? witnessSpec : (specs + "," + witnessSpec.toString());
+    pOverrideOptions.put(SPECIFICATION_OPTION, specs);
   }
 
   @SuppressWarnings("deprecation")
@@ -626,11 +743,10 @@ public class CPAMain {
 
     PrintStream stream = makePrintStream(mergeStreams(console, file));
 
-    StringWriter statistics = new StringWriter();
+    ByteArrayOutputStream statistics = new ByteArrayOutputStream();
     try {
       // print statistics
-      PrintStream statisticsStream =
-          makePrintStream(mergeStreams(stream, new WriterOutputStream(statistics)));
+      PrintStream statisticsStream = makePrintStream(mergeStreams(stream, statistics));
       mResult.printStatistics(statisticsStream);
       stream.println();
 
@@ -639,6 +755,9 @@ public class CPAMain {
         stream = makePrintStream(mergeStreams(System.out, file)); // ensure that result is printed to System.out
       }
       mResult.printResult(stream);
+
+      // write output files
+      mResult.writeOutputFiles();
 
       if (outputDirectory != null) {
         stream.println("More details about the verification run can be found in the directory \"" + outputDirectory + "\".");
@@ -654,12 +773,18 @@ public class CPAMain {
 
     // export report
     if (mResult.getResult() != Result.NOT_YET_STARTED) {
-      reportGenerator.generate(mResult.getCfa(), mResult.getReached(), statistics.toString());
+      reportGenerator.generate(
+          mResult.getResult(),
+          mResult.getCfa(),
+          mResult.getReached(),
+          statistics.toString(Charset.defaultCharset()));
     }
   }
 
-  @SuppressFBWarnings(value="DM_DEFAULT_ENCODING",
-      justification="Default encoding is the correct one for stdout.")
+  @SuppressFBWarnings(
+      value = "DM_DEFAULT_ENCODING",
+      justification = "Default encoding is the correct one for stdout.")
+  @SuppressWarnings("checkstyle:IllegalInstantiation") // ok for statistics
   private static PrintStream makePrintStream(OutputStream stream) {
     if (stream instanceof PrintStream) {
       return (PrintStream)stream;

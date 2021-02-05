@@ -1,29 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa;
 
-import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth.assert_;
 import static org.junit.Assume.assumeNoException;
 
@@ -56,7 +41,6 @@ import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.CFACreator;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
-import org.sosy_lab.cpachecker.core.Specification;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.CPAFactory;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
@@ -64,6 +48,7 @@ import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetFactory;
+import org.sosy_lab.cpachecker.core.specification.Specification;
 import org.sosy_lab.cpachecker.cpa.PropertyChecker.PropertyCheckerCPA;
 import org.sosy_lab.cpachecker.cpa.abe.ABECPA;
 import org.sosy_lab.cpachecker.cpa.arg.ARGCPA;
@@ -72,6 +57,7 @@ import org.sosy_lab.cpachecker.cpa.bam.BAMCPA;
 import org.sosy_lab.cpachecker.cpa.bam.BAMCPAWithBreakOnMissingBlock;
 import org.sosy_lab.cpachecker.cpa.cache.CacheCPA;
 import org.sosy_lab.cpachecker.cpa.composite.CompositeCPA;
+import org.sosy_lab.cpachecker.cpa.dca.DCACPA;
 import org.sosy_lab.cpachecker.cpa.flowdep.FlowDependenceCPA;
 import org.sosy_lab.cpachecker.cpa.location.LocationCPA;
 import org.sosy_lab.cpachecker.cpa.monitor.MonitorCPA;
@@ -108,6 +94,7 @@ public class CPAsTest {
     cpas.remove(BAMCPA.class);
     cpas.remove(BAMCPAWithBreakOnMissingBlock.class);
     cpas.remove(CacheCPA.class);
+    cpas.remove(DCACPA.class);
     cpas.remove(UsageCPA.class);
     cpas.remove(CompositeCPA.class);
     cpas.remove(MonitorCPA.class);
@@ -213,7 +200,7 @@ public class CPAsTest {
 
   @Test
   public void getInitialState() throws InterruptedException {
-    assertThat(cpa.getInitialState(main, partition)).named("initial state").isNotNull();
+    assertWithMessage("initial state").that(cpa.getInitialState(main, partition)).isNotNull();
   }
 
   @Test
@@ -226,7 +213,7 @@ public class CPAsTest {
       assumeNoException(e);
       throw new AssertionError(e);
     }
-    assertThat(joined).named("result of join").isNotNull();
+    assertWithMessage("result of join").that(joined).isNotNull();
     assert_()
         .withMessage("Join of same elements is unsound")
         .that(isLessOrEqual(initial, joined))
@@ -238,7 +225,7 @@ public class CPAsTest {
     AbstractState initial = cpa.getInitialState(main, partition);
     Precision initialPrec = cpa.getInitialPrecision(main, partition);
     AbstractState merged = cpa.getMergeOperator().merge(initial, initial, initialPrec);
-    assertThat(merged).named("result of merge").isNotNull();
+    assertWithMessage("result of merge").that(merged).isNotNull();
     assert_()
         .withMessage("Merging same elements was unsound")
         .that(isLessOrEqual(initial, merged))

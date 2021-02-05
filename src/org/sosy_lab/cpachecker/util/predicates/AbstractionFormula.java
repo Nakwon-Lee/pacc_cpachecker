@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -87,6 +72,17 @@ public class AbstractionFormula implements Serializable {
     this.idsOfStoredAbstractionReused = ImmutableSet.copyOf(pIdOfStoredAbstractionReused);
   }
 
+  /**
+   * create a copy with the same formula information, but a new unique object-id.
+   *
+   * <p>As we do not override {@link Object#equals} in AbstractionFormula, the new copy will not be
+   * "equal" to the old instance.
+   */
+  public AbstractionFormula copyOf() {
+    return new AbstractionFormula(
+        fMgr, region, formula, instantiatedFormula, blockFormula, idsOfStoredAbstractionReused);
+  }
+
   public boolean isReusedFromStoredAbstraction() {
     return !idsOfStoredAbstractionReused.isEmpty();
   }
@@ -111,6 +107,9 @@ public class AbstractionFormula implements Serializable {
   }
 
   public BooleanFormula asFormulaFromOtherSolver(FormulaManagerView pMgr) {
+    if (pMgr == fMgr) {
+      return formula;
+    }
     return pMgr.translateFrom(formula, fMgr);
   }
 
@@ -151,8 +150,10 @@ public class AbstractionFormula implements Serializable {
 
   /**
    * javadoc to remove unused parameter warning
+   *
    * @param in an input stream
    */
+  @SuppressWarnings("UnusedVariable") // parameter is required by API
   private void readObject(ObjectInputStream in) throws IOException {
     throw new InvalidObjectException("Proxy required");
   }

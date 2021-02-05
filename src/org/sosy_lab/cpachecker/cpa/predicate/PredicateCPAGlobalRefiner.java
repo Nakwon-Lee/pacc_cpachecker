@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.predicate;
 
 import static java.util.Collections.unmodifiableList;
@@ -29,14 +14,13 @@ import static org.sosy_lab.cpachecker.util.statistics.StatisticsWriter.writingSt
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,7 +108,7 @@ public class PredicateCPAGlobalRefiner implements Refiner, StatisticsProvider {
     try {
 
       List<AbstractState> targets =
-          FluentIterable.from(pReached).filter(AbstractStates.IS_TARGET_STATE).toList();
+          FluentIterable.from(pReached).filter(AbstractStates::isTargetState).toList();
       assert !targets.isEmpty();
 
       ARGReachedSet argReachedSet = new ARGReachedSet(pReached, argCPA);
@@ -161,7 +145,7 @@ public class PredicateCPAGlobalRefiner implements Refiner, StatisticsProvider {
       throws CPAException, InterruptedException, SolverException {
     logger.log(Level.FINE, "Starting refinement for", targets.size(), "elements.");
 
-    Map<ARGState, ARGState> predecessors = Maps.newHashMap();
+    Map<ARGState, ARGState> predecessors = new HashMap<>();
     SetMultimap<ARGState, ARGState> successors = HashMultimap.create();
 
     Deque<AbstractState> todo = new ArrayDeque<>(targets);
@@ -326,7 +310,7 @@ public class PredicateCPAGlobalRefiner implements Refiner, StatisticsProvider {
     assert bfmgr.isFalse(itpProver.getInterpolant(itpStack)); // last interpolant is False
 
     pAbstractionStatesTrace = FluentIterable.from(pAbstractionStatesTrace).skip(1).toList();
-    List<BooleanFormula> interpolants = Lists.newArrayList();
+    List<BooleanFormula> interpolants = new ArrayList<>();
 
     boolean visitedUnreachable = false;
     int sublistCounter = 1;

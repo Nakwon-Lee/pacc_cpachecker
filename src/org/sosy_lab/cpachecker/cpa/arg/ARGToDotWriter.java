@@ -1,30 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.arg;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Multimap;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -34,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import org.sosy_lab.cpachecker.cfa.export.DOTBuilder;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
@@ -41,7 +26,7 @@ import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.util.AbstractStates;
-import org.sosy_lab.cpachecker.util.Pair;
+import org.sosy_lab.cpachecker.util.BiPredicates;
 
 public class ARGToDotWriter {
 
@@ -57,17 +42,21 @@ public class ARGToDotWriter {
 
   /**
    * Create String with ARG in the DOT format of Graphviz.
+   *
    * @param sb Where to write the ARG into.
    * @param rootState the root element of the ARG
-   * @param successorFunction A function giving all successors of an ARGState. Only states reachable from root by iteratively applying this function will be dumped.
-   * @param displayedElements A predicate for selecting states that should be displayed. States which are only reachable via non-displayed states are ignored, too.
+   * @param successorFunction A function giving all successors of an ARGState. Only states reachable
+   *     from root by iteratively applying this function will be dumped.
+   * @param displayedElements A predicate for selecting states that should be displayed. States
+   *     which are only reachable via non-displayed states are ignored, too.
    * @param highlightEdge Which edges to highlight in the graph?
    */
-  public static void write(Appendable sb,
+  public static void write(
+      Appendable sb,
       final ARGState rootState,
       final Function<? super ARGState, ? extends Iterable<ARGState>> successorFunction,
       final Predicate<? super ARGState> displayedElements,
-      final Predicate<? super Pair<ARGState, ARGState>> highlightEdge)
+      final BiPredicate<ARGState, ARGState> highlightEdge)
       throws IOException {
 
     ARGToDotWriter toDotWriter = new ARGToDotWriter(sb);
@@ -79,6 +68,8 @@ public class ARGToDotWriter {
   }
 
   /**
+   * Create String with ARG in the DOT format of Graphviz.
+   *
    * @param sb Where to write the ARG into
    * @param states States that should be written
    * @param label A text to be show in the top left of the graph
@@ -94,7 +85,7 @@ public class ARGToDotWriter {
       sb.append(determineNode(state));
       sb.append(determineStateHint(state));
       for (ARGState child: state.getChildren()) {
-        sb.append(determineEdge(Predicates.alwaysFalse(), state, child));
+        sb.append(determineEdge(BiPredicates.alwaysFalse(), state, child));
       }
     }
     label = String.format("label=\"%s\";%nlabelloc=top;%nlabeljust=left;%n", label);
@@ -104,20 +95,24 @@ public class ARGToDotWriter {
 
   /**
    * Create String with ARG in the DOT format of Graphviz.
+   *
    * @param sb Where to write the ARG into.
    * @param rootStates the root elements of the ARGs
    * @param connections start- and end-points of edges between separate graphs
-   * @param successorFunction A function giving all successors of an ARGState. Only states reachable from root by iteratively applying this function will be dumped.
-   * @param displayedElements A predicate for selecting states that should be displayed. States which are only reachable via non-displayed states are ignored, too.
+   * @param successorFunction A function giving all successors of an ARGState. Only states reachable
+   *     from root by iteratively applying this function will be dumped.
+   * @param displayedElements A predicate for selecting states that should be displayed. States
+   *     which are only reachable via non-displayed states are ignored, too.
    * @param highlightEdge Which edges to highlight in the graph?
    */
-  public static void write(final Appendable sb,
+  public static void write(
+      final Appendable sb,
       final Set<ARGState> rootStates,
       final Multimap<ARGState, ARGState> connections,
       final Function<? super ARGState, ? extends Iterable<ARGState>> successorFunction,
       final Predicate<? super ARGState> displayedElements,
-      final Predicate<? super Pair<ARGState, ARGState>> highlightEdge)
-          throws IOException {
+      final BiPredicate<ARGState, ARGState> highlightEdge)
+      throws IOException {
 
     ARGToDotWriter toDotWriter = new ARGToDotWriter(sb);
     for (ARGState rootState : rootStates) {
@@ -138,17 +133,22 @@ public class ARGToDotWriter {
   }
 
   /**
-   * Create String with ARG in the DOT format of Graphviz.
-   * Only the states and edges are written, no surrounding graph definition.
+   * Create String with ARG in the DOT format of Graphviz. Only the states and edges are written, no
+   * surrounding graph definition.
+   *
    * @param rootState the root element of the ARG
-   * @param successorFunction A function giving all successors of an ARGState. Only states reachable from root by iteratively applying this function will be dumped.
-   * @param displayedElements A predicate for selecting states that should be displayed. States which are only reachable via non-displayed states are ignored, too.
+   * @param successorFunction A function giving all successors of an ARGState. Only states reachable
+   *     from root by iteratively applying this function will be dumped.
+   * @param displayedElements A predicate for selecting states that should be displayed. States
+   *     which are only reachable via non-displayed states are ignored, too.
    * @param highlightEdge Which edges to highlight in the graph?
    */
-  void writeSubgraph(final ARGState rootState,
+  void writeSubgraph(
+      final ARGState rootState,
       final Function<? super ARGState, ? extends Iterable<ARGState>> successorFunction,
       final Predicate<? super ARGState> displayedElements,
-      final Predicate<? super Pair<ARGState, ARGState>> highlightEdge) throws IOException {
+      final BiPredicate<ARGState, ARGState> highlightEdge)
+      throws IOException {
 
     Deque<ARGState> worklist = new ArrayDeque<>();
     Set<ARGState> processed = new HashSet<>();
@@ -185,8 +185,10 @@ public class ARGToDotWriter {
     sb.append(edges);
   }
 
-  private static String determineEdge(final Predicate<? super Pair<ARGState, ARGState>> highlightEdge,
-                                      final ARGState state, final ARGState successorState) {
+  private static String determineEdge(
+      final BiPredicate<ARGState, ARGState> highlightEdge,
+      final ARGState state,
+      final ARGState successorState) {
     final StringBuilder builder = new StringBuilder();
     builder.append(state.getStateId()).append(" -> ").append(successorState.getStateId());
     builder.append(" [");
@@ -200,7 +202,7 @@ public class ARGToDotWriter {
 
         // edge exists, use info from edge
       } else {
-        boolean colored = highlightEdge.apply(Pair.of(state, successorState));
+        boolean colored = highlightEdge.test(state, successorState);
         if (colored) {
           builder.append("color=\"red\" ");
         }

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.automaton;
 
 import com.google.common.collect.ImmutableList;
@@ -28,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.sosy_lab.common.UniqueIdGenerator;
+import org.sosy_lab.common.log.LogManager;
+import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonExpression.StringExpression;
 
 /** Represents a State in the automaton.
@@ -39,7 +26,7 @@ public class AutomatonInternalState {
 
   /** State representing BOTTOM */
   static final AutomatonInternalState BOTTOM =
-      new AutomatonInternalState("_predefinedState_BOTTOM", Collections.emptyList()) {
+      new AutomatonInternalState("_predefinedState_BOTTOM", ImmutableList.of()) {
         @Override
         public String toString() {
           return "STOP";
@@ -51,13 +38,9 @@ public class AutomatonInternalState {
       new AutomatonInternalState(
           "_predefinedState_ERROR",
           Collections.singletonList(
-              new AutomatonTransition(
-                  AutomatonBoolExpr.TRUE,
-                  Collections.emptyList(),
-                  null,
-                  Collections.emptyList(),
-                  BOTTOM,
-                  new StringExpression(""))),
+              new AutomatonTransition.Builder(AutomatonBoolExpr.TRUE, BOTTOM)
+                  .withViolatedPropertyDescription(new StringExpression(""))
+                  .build()),
           true,
           false,
           false) {
@@ -72,13 +55,7 @@ public class AutomatonInternalState {
       new AutomatonInternalState(
           "_predefinedState_BREAK",
           Collections.singletonList(
-              new AutomatonTransition(
-                  AutomatonBoolExpr.TRUE,
-                  Collections.emptyList(),
-                  null,
-                  Collections.emptyList(),
-                  BOTTOM,
-                  null)),
+              new AutomatonTransition.Builder(AutomatonBoolExpr.TRUE, BOTTOM).build()),
           false,
           false,
           false);
@@ -143,8 +120,7 @@ public class AutomatonInternalState {
   public String getName() {
     return name;
   }
-  /** @return a integer representation of this state.
-   */
+  /** Returns a integer representation of this state. */
   public int getStateId() {
     return stateId;
   }
@@ -153,10 +129,7 @@ public class AutomatonInternalState {
     return mIsTarget;
   }
 
-  /**
-   * @return Is it a state in that we will remain
-   *  the rest of the time?
-   */
+  /** Returns is it a state in that we will remain the rest of the time?. */
   public boolean isFinalSelfLoopingState() {
     if (transitions.size() == 1) {
       AutomatonTransition tr = transitions.get(0);
@@ -168,10 +141,6 @@ public class AutomatonInternalState {
     return false;
   }
 
-  public boolean getDoesMatchAll() {
-    return mAllTransitions;
-  }
-
   public ImmutableList<AutomatonTransition> getTransitions() {
     return transitions;
   }
@@ -179,5 +148,25 @@ public class AutomatonInternalState {
   @Override
   public String toString() {
     return this.name;
+  }
+
+  public boolean nontriviallyMatches(final CFAEdge pEdge, final LogManager pLogger) {
+    for(AutomatonTransition trans : transitions) {
+      if (trans.nontriviallyMatches(pEdge, pLogger)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean nontriviallyMatchesAndEndsIn(
+      final CFAEdge pEdge, final String pSuccessorName, final LogManager pLogger) {
+    for (AutomatonTransition trans : transitions) {
+      if (trans.getFollowState().getName().equals(pSuccessorName)
+          && trans.nontriviallyMatches(pEdge, pLogger)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

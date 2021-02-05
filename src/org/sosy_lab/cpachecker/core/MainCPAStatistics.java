@@ -1,40 +1,22 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.FluentIterable.from;
-import static org.sosy_lab.cpachecker.util.AbstractStates.EXTRACT_LOCATION;
-import static org.sosy_lab.cpachecker.util.AbstractStates.IS_TARGET_STATE;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
@@ -81,6 +63,7 @@ import org.sosy_lab.cpachecker.core.reachedset.PartitionedReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.bam.AbstractBAMCPA;
+import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.coverage.CoverageCollector;
 import org.sosy_lab.cpachecker.util.coverage.CoverageData;
 import org.sosy_lab.cpachecker.util.coverage.CoverageReportGcov;
@@ -409,10 +392,10 @@ class MainCPAStatistics implements Statistics {
 
   private void dumpLocationMappedReachedSet(final UnmodifiableReachedSet pReachedSet, Appendable sb)
       throws IOException {
-    final ListMultimap<CFANode, AbstractState> locationIndex
-        =  Multimaps.index(pReachedSet, EXTRACT_LOCATION);
+    final ListMultimap<CFANode, AbstractState> locationIndex =
+        Multimaps.index(pReachedSet, AbstractStates::extractLocation);
 
-    Function<CFANode, String> nodeLabelFormatter = new Function<CFANode, String>() {
+    Function<CFANode, String> nodeLabelFormatter = new Function<>() {
       @Override
       public String apply(CFANode node) {
         StringBuilder buf = new StringBuilder();
@@ -433,7 +416,15 @@ class MainCPAStatistics implements Statistics {
 
     for (Statistics s : subStats) {
       StatisticsUtils.printStatistics(s, out, logger, result, reached);
-      StatisticsUtils.writeOutputFiles(s, logger, result, reached);
+    }
+  }
+
+  @Override
+  public void writeOutputFiles(Result pResult, UnmodifiableReachedSet pReached) {
+    assert pReached != null : "ReachedSet may be null only if analysis not yet started";
+
+    for (Statistics s : subStats) {
+      StatisticsUtils.writeOutputFiles(s, logger, pResult, pReached);
     }
   }
 
@@ -473,10 +464,8 @@ class MainCPAStatistics implements Statistics {
       mostFrequentLocationCount = maxPartition.getValue().size();
 
     } else {
-      Multiset<CFANode> allLocations = HashMultiset.create(from(reached)
-                                                                    .transform(EXTRACT_LOCATION)
-                                                                    .filter(notNull()));
-
+      Multiset<CFANode> allLocations =
+          from(reached).transform(AbstractStates::extractLocation).filter(notNull()).toMultiset();
       locations = allLocations.elementSet();
 
       for (Multiset.Entry<CFANode> location : allLocations.entrySet()) {
@@ -498,8 +487,8 @@ class MainCPAStatistics implements Statistics {
       out.println("    Avg states per location:     " + reachedSize / locs);
       out.println("    Max states per location:     " + mostFrequentLocationCount + " (at node " + mostFrequentLocation + ")");
 
-      Set<String> functions = from(locations).transform(CFANode::getFunctionName).toSet();
-      out.println("  Number of reached functions:   " + functions.size() + " (" + StatisticsUtils.toPercent(functions.size(), cfa.getNumberOfFunctions()) + ")");
+      long functions = locations.stream().map(CFANode::getFunctionName).distinct().count();
+      out.println("  Number of reached functions:   " + functions + " (" + StatisticsUtils.toPercent(functions, cfa.getNumberOfFunctions()) + ")");
     }
 
     if (reached instanceof PartitionedReachedSet) {
@@ -515,7 +504,9 @@ class MainCPAStatistics implements Statistics {
         out.println();
       }
     }
-    out.println("  Number of target states:       " + from(reached).filter(IS_TARGET_STATE).size());
+    out.println(
+        "  Number of target states:       "
+            + from(reached).filter(AbstractStates::isTargetState).size());
   }
 
   private void printCfaStatistics(PrintStream out) {

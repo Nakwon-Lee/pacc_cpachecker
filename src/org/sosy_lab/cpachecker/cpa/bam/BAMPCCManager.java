@@ -1,38 +1,23 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.bam;
 
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -232,12 +217,12 @@ public final class BAMPCCManager {
         coveredNodes.add(current);
         do {
           if (!bamCPA.isCoveredBy(current, current.getCoveringState())) {
-            returnNodes = Collections.emptyList();
+            returnNodes = ImmutableList.of();
             return Pair.of(false, returnNodes);
           }
           coveredNodes.add(current);
           if (coveredNodes.contains(current.getCoveringState())) {
-            returnNodes = Collections.emptyList();
+            returnNodes = ImmutableList.of();
             return Pair.of(false, returnNodes);
           }
           current = current.getCoveringState();
@@ -266,7 +251,7 @@ public final class BAMPCCManager {
       }
 
       if (!areAbstractSuccessors0(current, current.getChildren(), pBlock)) {
-        returnNodes = Collections.emptyList();
+        returnNodes = ImmutableList.of();
         return Pair.of(false, returnNodes);
       }
 
@@ -283,7 +268,7 @@ public final class BAMPCCManager {
           continue;
         }
         if (visited.contains(child)) {
-          returnNodes = Collections.emptyList();
+          returnNodes = ImmutableList.of();
           return Pair.of(false, returnNodes);
         } else {
           waitingForUnexploredParents.remove(child);
@@ -294,7 +279,7 @@ public final class BAMPCCManager {
 
     }
     if (!waitingForUnexploredParents.isEmpty()) {
-      returnNodes = Collections.emptyList();
+      returnNodes = ImmutableList.of();
       return Pair.of(false, returnNodes);
     }
     return Pair.of(true, returnNodes);

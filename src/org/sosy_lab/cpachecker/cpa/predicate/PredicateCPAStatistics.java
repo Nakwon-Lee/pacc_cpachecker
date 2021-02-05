@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.predicate;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -31,7 +16,6 @@ import static org.sosy_lab.cpachecker.util.statistics.StatisticsUtils.valueWithP
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Writer;
@@ -41,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import org.sosy_lab.common.configuration.Configuration;
@@ -55,7 +40,6 @@ import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
-import org.sosy_lab.cpachecker.core.interfaces.MergeOperator;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.Statistics;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
@@ -88,12 +72,6 @@ class PredicateCPAStatistics implements Statistics {
   @FileOption(FileOption.Type.OUTPUT_FILE)
   private Path predmapFile = Paths.get("predmap.txt");
 
-  @Option(secure=true, name="precondition.file", description="File for exporting the weakest precondition.")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private Path preconditionFile = Paths.get("precondition.txt");
-  @Option(secure=true, name="precondition.export", description="Export the weakest precondition?")
-  private boolean preconditionExport = false;
-
   @Option(secure=true, description="export final loop invariants",
           name="invariants.export")
   private boolean exportInvariants = true;
@@ -120,14 +98,6 @@ class PredicateCPAStatistics implements Statistics {
   @FileOption(FileOption.Type.OUTPUT_FILE)
   private Path abstractionsFile = Paths.get("abstractions.txt");
 
-  @Option(description="enable export of all relations that were collected to synthecise the abstract precision?",
-      name="relations.export")
-  private boolean relationsExport = false;
-  @Option(description="file that consists all relations that were collected to synthecise the abstract precision",
-      name="relations.file")
-  @FileOption(FileOption.Type.OUTPUT_FILE)
-  private Path relationsFile = Paths.get("relations.txt");
-
   private final LogManager logger;
 
   private final Solver solver;
@@ -135,7 +105,7 @@ class PredicateCPAStatistics implements Statistics {
   private final BlockOperator blk;
   private final RegionManager rmgr;
   private final AbstractionManager absmgr;
-  private final PredicateAbstractionManager amgr;
+  private final PredicateAbstractionStatistics abstractionStats;
 
   private final PredicateStatistics statistics;
   private final PredicateMapWriter precisionWriter;
@@ -151,7 +121,7 @@ class PredicateCPAStatistics implements Statistics {
       BlockOperator pBlk,
       RegionManager pRmgr,
       AbstractionManager pAbsmgr,
-      PredicateAbstractionManager pPredAbsMgr,
+      PredicateAbstractionStatistics pAbstractionStats,
       PredicateStatistics pStatistics)
       throws InvalidConfigurationException {
     pConfig.inject(this, PredicateCPAStatistics.class);
@@ -162,7 +132,7 @@ class PredicateCPAStatistics implements Statistics {
     blk = pBlk;
     rmgr = pRmgr;
     absmgr = pAbsmgr;
-    amgr = pPredAbsMgr;
+    abstractionStats = pAbstractionStats;
     statistics = pStatistics;
 
     FormulaManagerView fmgr = pSolver.getFormulaManager();
@@ -198,7 +168,7 @@ class PredicateCPAStatistics implements Statistics {
 
       this.location = MultimapBuilder.treeKeys().linkedHashSetValues().build();
       this.function = MultimapBuilder.treeKeys().linkedHashSetValues().build();
-      this.global = Sets.newLinkedHashSet();
+      this.global = new LinkedHashSet<>();
     }
 
   }
@@ -207,7 +177,7 @@ class PredicateCPAStatistics implements Statistics {
     Preconditions.checkNotNull(targetFile);
     Preconditions.checkNotNull(predicates);
 
-    Set<AbstractionPredicate> allPredicates = Sets.newLinkedHashSet(predicates.global);
+    Set<AbstractionPredicate> allPredicates = new LinkedHashSet<>(predicates.global);
     allPredicates.addAll(predicates.function.values());
     allPredicates.addAll(predicates.location.values());
     allPredicates.addAll(predicates.locationInstance.values());
@@ -289,7 +259,7 @@ class PredicateCPAStatistics implements Statistics {
     }
     // GUBED
 
-    PredicateAbstractionManager.Stats as = amgr.stats;
+    PredicateAbstractionStatistics as = abstractionStats;
 
     int numAbstractions = statistics.numAbstractions.getUpdateCount();
     out.println("Number of abstractions:            " + numAbstractions + " (" + toPercent(numAbstractions, statistics.postTimer.getNumberOfIntervals()) + " of all post computations)");
@@ -299,10 +269,10 @@ class PredicateCPAStatistics implements Statistics {
     // GUBED
     if (numAbstractions > 0) {
       out.println("  Times abstraction was reused:    " + as.numAbstractionReuses);
-      out.println("  Because of function entry/exit:  " + valueWithPercentage(blk.numBlkFunctions, numAbstractions));
-      out.println("  Because of loop head:            " + valueWithPercentage(blk.numBlkLoops, numAbstractions));
-      out.println("  Because of join nodes:           " + valueWithPercentage(blk.numBlkJoins, numAbstractions));
-      out.println("  Because of threshold:            " + valueWithPercentage(blk.numBlkThreshold, numAbstractions));
+      out.println("  Because of function entry/exit:  " + valueWithPercentage(blk.numBlkFunctions.getValue(), numAbstractions));
+      out.println("  Because of loop head:            " + valueWithPercentage(blk.numBlkLoops.getValue(), numAbstractions));
+      out.println("  Because of join nodes:           " + valueWithPercentage(blk.numBlkJoins.getValue(), numAbstractions));
+      out.println("  Because of threshold:            " + valueWithPercentage(blk.numBlkThreshold.getValue(), numAbstractions));
       out.println("  Because of target state:         " + valueWithPercentage(statistics.numTargetAbstractions.getUpdateCount(), numAbstractions));
       out.println("  Times precision was empty:       " + valueWithPercentage(as.numSymbolicAbstractions, as.numCallsAbstraction));
       out.println("  Times precision was {false}:     " + valueWithPercentage(as.numSatCheckAbstractions, as.numCallsAbstraction));
@@ -342,11 +312,11 @@ class PredicateCPAStatistics implements Statistics {
       out.println("Max number of predicates per location:    " + maxPredsPerLocation);
       out.println("Avg number of predicates per location:    " + avgPredsPerLocation);
     }
-    if (as.numCallsAbstraction - as.numSymbolicAbstractions > 0) {
-      int numRealAbstractions = as.numCallsAbstraction - as.numSymbolicAbstractions - as.numCallsAbstractionCached;
+    if (as.numCallsAbstraction.get() > as.numSymbolicAbstractions.get()) {
+      int numRealAbstractions = as.numCallsAbstraction.get() - as.numSymbolicAbstractions.get() - as.numCallsAbstractionCached.get();
       out.println("Total predicates per abstraction:         " + as.numTotalPredicates);
       out.println("Max number of predicates per abstraction: " + as.maxPredicates);
-      out.println("Avg number of predicates per abstraction: " + div(as.numTotalPredicates, numRealAbstractions));
+      out.println("Avg number of predicates per abstraction: " + div(as.numTotalPredicates.get(), numRealAbstractions));
       out.println("Number of irrelevant predicates:          " + valueWithPercentage(as.numIrrelevantPredicates, as.numTotalPredicates));
       if (as.trivialPredicatesTime.getNumberOfIntervals() > 0) {
         out.println("Number of trivially used predicates:      " + valueWithPercentage(as.numTrivialPredicates, as.numTotalPredicates));
@@ -398,8 +368,15 @@ class PredicateCPAStatistics implements Statistics {
         out.println("    Abstraction reuse implication:  " + as.abstractionReuseImplicationTime);
       }
       out.println("    Solving time:                    " + as.abstractionSolveTime + " (Max: " + as.abstractionSolveTime.getMaxTime().formatAs(SECONDS) + ")");
-      out.println("    Model enumeration time:          " + as.abstractionEnumTime.getOuterSumTime().formatAs(SECONDS));
-      out.println("    Time for BDD construction:       " + as.abstractionEnumTime.getInnerSumTime().formatAs(SECONDS)   + " (Max: " + as.abstractionEnumTime.getInnerMaxTime().formatAs(SECONDS) + ")");
+      out.println(
+          "    Model enumeration time:          "
+              + as.abstractionModelEnumTime.getSumTime().formatAs(SECONDS));
+      out.println(
+          "    Time for BDD construction:       "
+              + as.abstractionBddConstructionTime.getSumTime().formatAs(SECONDS)
+              + " (Max: "
+              + as.abstractionBddConstructionTime.getMaxTime().formatAs(SECONDS)
+              + ")");
     }
 
     if (statistics.totalMergeTime.getNumberOfIntervals() != 0) { // at least used once
@@ -413,7 +390,14 @@ class PredicateCPAStatistics implements Statistics {
     if (statistics.symbolicCoverageCheckTimer.getNumberOfIntervals() > 0) {
       put(out, 1, statistics.symbolicCoverageCheckTimer);
     }
-    out.println("Total time for SMT solver (w/o itp): " + TimeSpan.sum(solver.solverTime.getSumTime(), as.abstractionSolveTime.getSumTime(), as.abstractionEnumTime.getOuterSumTime()).formatAs(SECONDS));
+    out.println(
+        "Total time for SMT solver (w/o itp): "
+            + TimeSpan
+                .sum(
+                    solver.solverTime.getSumTime(),
+                    as.abstractionSolveTime.getSumTime(),
+                    as.abstractionModelEnumTime.getSumTime())
+                .formatAs(SECONDS));
 
     if (statistics.abstractionCheckTimer.getNumberOfIntervals() > 0) {
       put(out, 0, statistics.abstractionCheckTimer);
@@ -423,5 +407,6 @@ class PredicateCPAStatistics implements Statistics {
     pfmgr.printStatistics(out);
     out.println();
     rmgr.printStatistics(out);
+    solver.printStatistics(out);
   }
 }

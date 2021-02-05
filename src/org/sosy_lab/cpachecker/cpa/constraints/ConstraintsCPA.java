@@ -1,26 +1,11 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.constraints;
 
 import java.util.Collection;
@@ -59,8 +44,9 @@ import org.sosy_lab.cpachecker.cpa.constraints.refiner.precision.ConstraintsPrec
 import org.sosy_lab.cpachecker.cpa.constraints.refiner.precision.FullConstraintsPrecision;
 import org.sosy_lab.cpachecker.cpa.value.symbolic.util.SymbolicValues;
 import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.CtoFormulaConverter;
-import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.CtoFormulaTypeHandler;
-import org.sosy_lab.cpachecker.util.predicates.pathformula.ctoformula.FormulaEncodingOptions;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.CToFormulaConverterWithPointerAliasing;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.FormulaEncodingWithPointerAliasingOptions;
+import org.sosy_lab.cpachecker.util.predicates.pathformula.pointeraliasing.TypeHandlerWithPointerAliasing;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.Solver;
 
@@ -133,10 +119,12 @@ public class ConstraintsCPA
       MachineModel pMachineModel)
       throws InvalidConfigurationException {
 
-    FormulaEncodingOptions options = new FormulaEncodingOptions(pConfig);
-    CtoFormulaTypeHandler typeHandler = new CtoFormulaTypeHandler(pLogger, pMachineModel);
+    FormulaEncodingWithPointerAliasingOptions options =
+        new FormulaEncodingWithPointerAliasingOptions(pConfig);
+    TypeHandlerWithPointerAliasing typeHandler =
+        new TypeHandlerWithPointerAliasing(logger, pMachineModel, options);
 
-    return new CtoFormulaConverter(
+    return new CToFormulaConverterWithPointerAliasing(
         options,
         pFormulaManager,
         pMachineModel,

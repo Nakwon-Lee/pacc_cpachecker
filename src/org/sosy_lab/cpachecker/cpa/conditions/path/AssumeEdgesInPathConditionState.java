@@ -1,30 +1,13 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.conditions.path;
 
-import java.io.Serializable;
-import java.util.Comparator;
 import java.util.Objects;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.conditions.AvoidanceReportingState;
@@ -32,7 +15,7 @@ import org.sosy_lab.cpachecker.util.assumptions.PreventingHeuristic;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
-public class AssumeEdgesInPathConditionState
+public final class AssumeEdgesInPathConditionState
     implements AbstractState, AvoidanceReportingState {
 
   private final int assumeEdgesInPath;
@@ -53,7 +36,7 @@ public class AssumeEdgesInPathConditionState
     return PreventingHeuristic.ASSUMEEDGESINPATH.getFormula(pMgr, assumeEdgesInPath);
   }
 
-  int getPathLength() {
+  public int getPathLength() {
     return assumeEdgesInPath;
   }
 
@@ -83,17 +66,5 @@ public class AssumeEdgesInPathConditionState
   @Override
   public int hashCode() {
     return Objects.hash(assumeEdgesInPath, thresholdReached);
-  }
-
-  public static class AssumeCountComparator
-      implements Comparator<AssumeEdgesInPathConditionState>, Serializable {
-
-    private static final long serialVersionUID = -1450643968410371993L;
-
-    @Override
-    public int compare(
-        AssumeEdgesInPathConditionState o1, AssumeEdgesInPathConditionState o2) {
-      return Integer.compare(o1.assumeEdgesInPath, o2.assumeEdgesInPath);
-    }
   }
 }

@@ -1,27 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ci.redundancyremover;
+
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.truth.Truth;
 import org.junit.Test;
@@ -35,7 +22,6 @@ import org.sosy_lab.cpachecker.cpa.value.ValueAnalysisState;
 import org.sosy_lab.cpachecker.cpa.value.type.NumericValue;
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
 import org.sosy_lab.cpachecker.util.states.MemoryLocation;
-
 
 public class RedundancyRemoverTest {
 
@@ -83,26 +69,26 @@ public class RedundancyRemoverTest {
 
     Interval i_35 = new Interval(-3L, 5L);
     Interval i01 = new Interval(0L, 1L);
-    Truth.assertThat(intervalStateImpl.covers(i_35, i01)).isEqualTo(true);
+    assertThat(intervalStateImpl.covers(i_35, i01)).isTrue();
 
     Interval i11a = new Interval(1L, 1L);
     Interval i11b = new Interval(1L, 1L);
-    Truth.assertThat(intervalStateImpl.covers(i11a, i11b)).isEqualTo(true);
+    assertThat(intervalStateImpl.covers(i11a, i11b)).isTrue();
 
     Interval iUnbounded = Interval.UNBOUND;
     Interval i37 = new Interval(3L, 7L);
-    Truth.assertThat(intervalStateImpl.covers(iUnbounded, i37)).isEqualTo(true);
+    assertThat(intervalStateImpl.covers(iUnbounded, i37)).isTrue();
 
     Interval i_38 = new Interval(-3L, 8L);
-    Truth.assertThat(intervalStateImpl.covers(i_35, i_38)).isEqualTo(false);
+    assertThat(intervalStateImpl.covers(i_35, i_38)).isFalse();
 
     Interval i17 = new Interval(1L, 7L);
     Interval i_57 = new Interval(-5L, 7L);
-    Truth.assertThat(intervalStateImpl.covers(i17, i_57)).isEqualTo(false);
+    assertThat(intervalStateImpl.covers(i17, i_57)).isFalse();
 
     Interval i03 = new Interval(0L, 3L);
     Interval i912 = new Interval(9L, 12L);
-    Truth.assertThat(intervalStateImpl.covers(i03, i912)).isEqualTo(false);
+    assertThat(intervalStateImpl.covers(i03, i912)).isFalse();
   }
 
   @Test

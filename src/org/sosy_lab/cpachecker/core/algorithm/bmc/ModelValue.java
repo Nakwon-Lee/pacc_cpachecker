@@ -1,30 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.algorithm.bmc;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.java_smt.api.BooleanFormula;
 
@@ -32,15 +16,14 @@ public class ModelValue {
 
   private final String variableName;
 
-  private final Supplier<String> textualRepresentation;
+  /** FormulaManager where the formula belongs to and was created with. */
+  private final FormulaManagerView fmgr;
+  private final BooleanFormula formula;
 
-  private final String formula;
-
-  public ModelValue(
-      String pVariableName, String pFormula, Supplier<String> pTextualRepresentation) {
+  public ModelValue(String pVariableName, BooleanFormula pFormula, FormulaManagerView pFmgr) {
     variableName = Objects.requireNonNull(pVariableName);
     formula = Objects.requireNonNull(pFormula);
-    textualRepresentation = Objects.requireNonNull(pTextualRepresentation);
+    fmgr = Objects.requireNonNull(pFmgr);
   }
 
   public String getVariableName() {
@@ -49,7 +32,7 @@ public class ModelValue {
 
   @Override
   public String toString() {
-    return textualRepresentation.get();
+    return formula.toString();
   }
 
   @Override
@@ -59,7 +42,9 @@ public class ModelValue {
     }
     if (pOther instanceof ModelValue) {
       ModelValue other = (ModelValue) pOther;
-      return variableName.equals(other.variableName) && formula.equals(other.formula);
+      return variableName.equals(other.variableName)
+          && formula.equals(other.formula)
+          && fmgr.equals(other.fmgr);
     }
     return false;
   }
@@ -70,6 +55,6 @@ public class ModelValue {
   }
 
   public BooleanFormula toAssignment(FormulaManagerView pFMGR) {
-    return pFMGR.parse(formula);
+    return pFMGR.translateFrom(formula, fmgr);
   }
 }

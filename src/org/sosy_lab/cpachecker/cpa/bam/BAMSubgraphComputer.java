@@ -1,31 +1,18 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.bam;
 
-import static com.google.common.collect.FluentIterable.from;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -33,7 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -60,13 +46,15 @@ public class BAMSubgraphComputer {
   protected final BAMDataManager data;
   private final LogManager logger;
   private final boolean useCopyOnWriteRefinement;
+  private final boolean cleanupOnMissingBlock;
 
-  BAMSubgraphComputer(AbstractBAMCPA bamCpa) {
+  BAMSubgraphComputer(AbstractBAMCPA bamCpa, boolean pCleanupOnMissingBlock) {
     this.partitioning = bamCpa.getBlockPartitioning();
     this.reducer = bamCpa.getReducer();
     this.data = bamCpa.getData();
     this.logger = bamCpa.getLogger();
     useCopyOnWriteRefinement = bamCpa.useCopyOnWriteRefinement();
+    cleanupOnMissingBlock = pCleanupOnMissingBlock;
   }
 
   /**
@@ -85,7 +73,9 @@ public class BAMSubgraphComputer {
    * the new CEX-graph contains the states of the most-outer block/reached-set.
    *
    * @param target a state from the reachedSet, is used as the last state of the returned subgraph.
-   * @param pMainReachedSet most outer reached set, contains the target-state.
+   * @param pMainReachedSet most outer reached set corresponding to the current refinement. The
+   *     given reached-set can be nested inside another reached-set, which must not be used in the
+   *     current refinement. The given reached-set contains the target-state.
    * @return root and target of a subgraph, that contains all states on all paths to newTreeTarget.
    *     The subgraph contains only copies of the real ARG states, because one real state can be
    *     used multiple times in one path.
@@ -106,8 +96,12 @@ public class BAMSubgraphComputer {
     assert mainRs.asCollection().containsAll(targets)
       : "target states should be contained in reached-set. The following states are not contained: "
         + Iterables.filter(targets, s -> !mainRs.contains(s));
-    assert !targets.isEmpty() : "cannot compute subgraph without target states";
-    Collection<BackwardARGState> newTargets = from(targets).transform(BackwardARGState::new).toList();
+    if (targets.isEmpty()) {
+      // cannot compute subgraph without target states
+      return Pair.of(new BackwardARGState((ARGState) mainRs.getFirstState()), ImmutableList.of());
+    }
+    Collection<BackwardARGState> newTargets =
+        transformedImmutableListCopy(targets, BackwardARGState::new);
     BackwardARGState root = computeCounterexampleSubgraph(pMainReachedSet, newTargets);
     assert mainRs.getFirstState() == root.getARGState();
     return Pair.of(root, newTargets);
@@ -169,17 +163,22 @@ public class BAMSubgraphComputer {
         } catch (MissingBlockException e) {
           assert !useCopyOnWriteRefinement
               : "CopyOnWrite-refinement should never cause missing blocks: " + e;
-          ARGInPlaceSubtreeRemover.removeSubtree(reachedSet, currentState);
-          throw new MissingBlockException();
+          if (cleanupOnMissingBlock) {
+            if (!currentState.isDestroyed()) {
+              // TODO Why is the state (and subtree) already removed before?
+              ARGInPlaceSubtreeRemover.removeSubtree(reachedSet, currentState);
+            }
+          }
+          throw e;
         }
 
       } else {
         // children are a normal successors -> create an connection from parent to children
         for (final BackwardARGState newChild : childrenInSubgraph) {
-          assert !currentState.getEdgesToChild(newChild.getARGState()).isEmpty()
-              : String.format(
-                  "unexpected ARG state: parent has no edge to child: %s -/-> %s",
-                  currentState, newChild.getARGState());
+          // assert !currentState.getEdgesToChild(newChild.getARGState()).isEmpty()
+          // : String.format(
+          // "unexpected ARG state: parent has no edge to child: %s -/-> %s",
+          // currentState, newChild.getARGState());
           newChild.addParent(newCurrentState);
         }
       }
@@ -225,7 +224,7 @@ public class BAMSubgraphComputer {
       if (!data.hasExpandedState(newExpandedTarget.getARGState())) {
         logger.log(Level.FINE,
             "Target state refers to a missing ARGState, i.e., the cached subtree was deleted. Updating it.");
-        throw new MissingBlockException();
+        throw new MissingBlockException(expandedRoot, newExpandedTarget.getWrappedState());
       }
 
       final ARGState reducedTarget =
@@ -235,7 +234,7 @@ public class BAMSubgraphComputer {
       if (reducedTarget.isDestroyed()) {
         logger.log(Level.FINE,
             "Target state refers to a destroyed ARGState, i.e., the cached subtree is outdated. Updating it.");
-        throw new MissingBlockException();
+        throw new MissingBlockException(expandedRoot, newExpandedTarget.getWrappedState());
       }
 
       final ReachedSet reachedSet = data.getReachedSetForInitialState(expandedRoot, reducedTarget);
@@ -251,8 +250,7 @@ public class BAMSubgraphComputer {
       reachedSets.put(reachedSet, newBackwardTarget);
     }
 
-    for (Entry<ReachedSet, Collection<BackwardARGState>> entry : reachedSets.asMap().entrySet()) {
-      final ReachedSet reachedSet = entry.getKey();
+    for (final ReachedSet reachedSet : reachedSets.keySet()) {
       final BackwardARGState newInnerRoot;
       try {
         newInnerRoot =
@@ -280,7 +278,7 @@ public class BAMSubgraphComputer {
           // TODO do we need this check? Maybe there is a bug, if the entry is not available?
           cacheEntry.deleteInfo();
         }
-        throw new MissingBlockException();
+        throw e;
       }
 
       // reconnect ARG: replace the root of the inner block
@@ -339,8 +337,23 @@ public class BAMSubgraphComputer {
 
     private static final long serialVersionUID = 123L;
 
-    public MissingBlockException() {
-      super("missing block");
+    private final AbstractState initialState;
+    private final AbstractState exitState;
+
+    public MissingBlockException(AbstractState pInitialState, AbstractState pExitState) {
+      super(String.format(
+          "missing block for non-reduced initial state %n%s and expanded exit state %n%s",
+          pInitialState, pExitState));
+      initialState = Preconditions.checkNotNull(pInitialState);
+      exitState = Preconditions.checkNotNull(pExitState);
+    }
+
+    AbstractState getInitialState() {
+      return initialState;
+    }
+
+    AbstractState getExitState() {
+      return exitState;
     }
   }
 }

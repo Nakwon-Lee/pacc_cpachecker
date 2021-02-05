@@ -1,29 +1,15 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg.join;
 
-import org.junit.Assert;
+import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
@@ -66,9 +52,9 @@ public class SMGJoinMapTargetAddressTest {
     SMGNodeMapping origMapping1 = new SMGNodeMapping(mapping1);
 
     SMGJoinMapTargetAddress mta = new SMGJoinMapTargetAddress(smg1, smg1, destSMG, mapping1, mapping1, SMGZeroValue.INSTANCE, SMGZeroValue.INSTANCE);
-    Assert.assertEquals(origDestSMG, mta.getSMG());
-    Assert.assertEquals(origMapping1, mta.mapping1);
-    Assert.assertSame(SMGZeroValue.INSTANCE, mta.getValue());
+    assertThat(mta.getSMG()).isEqualTo(origDestSMG);
+    assertThat(mta.mapping1).isEqualTo(origMapping1);
+    assertThat(mta.getValue()).isSameInstanceAs(SMGZeroValue.INSTANCE);
   }
 
   @Test
@@ -89,9 +75,9 @@ public class SMGJoinMapTargetAddressTest {
     UnmodifiableSMG origDestSMG = destSMG.copyOf();
 
     SMGJoinMapTargetAddress mta = new SMGJoinMapTargetAddress(smg1, smg1, destSMG, mapping1, mapping1, value1, value1);
-    Assert.assertEquals(origDestSMG, mta.getSMG());
-    Assert.assertEquals(origMapping1, mta.mapping1);
-    Assert.assertSame(destValue, mta.getValue());
+    assertThat(mta.getSMG()).isEqualTo(origDestSMG);
+    assertThat(mta.mapping1).isEqualTo(origMapping1);
+    assertThat(mta.getValue()).isSameInstanceAs(destValue);
   }
 
   @Test
@@ -109,17 +95,17 @@ public class SMGJoinMapTargetAddressTest {
     UnmodifiableSMG origDestSMG = destSMG.copyOf();
 
     SMGJoinMapTargetAddress mta = new SMGJoinMapTargetAddress(smg1, smg1, destSMG, mapping1, mapping2, value1, value2);
-    Assert.assertNotEquals(origDestSMG, mta.getSMG());
-    Assert.assertNotEquals(origMapping1, mta.mapping1);
-    Assert.assertNotEquals(origMapping2, mta.mapping2);
+    assertThat(mta.getSMG()).isNotEqualTo(origDestSMG);
+    assertThat(mta.mapping1).isNotEqualTo(origMapping1);
+    assertThat(mta.mapping2).isNotEqualTo(origMapping2);
 
-    Assert.assertFalse(origDestSMG.getValues().contains(mta.getValue()));
+    assertThat(origDestSMG.getValues().contains(mta.getValue())).isFalse();
 
     SMGEdgePointsTo newEdge = destSMG.getPointer(mta.getValue());
-    Assert.assertSame(destObj, newEdge.getObject());
-    Assert.assertEquals(0, newEdge.getOffset());
+    assertThat(newEdge.getObject()).isSameInstanceAs(destObj);
+    assertThat(newEdge.getOffset()).isEqualTo(0);
 
-    Assert.assertSame(mta.getValue(), mta.mapping1.get(value1));
-    Assert.assertSame(mta.getValue(), mta.mapping2.get(value2));
+    assertThat(mta.mapping1.get(value1)).isSameInstanceAs(mta.getValue());
+    assertThat(mta.mapping2.get(value2)).isSameInstanceAs(mta.getValue());
   }
 }

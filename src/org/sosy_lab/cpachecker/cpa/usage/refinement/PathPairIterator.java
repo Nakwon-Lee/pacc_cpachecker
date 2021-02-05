@@ -1,39 +1,22 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.usage.refinement;
 
-import static com.google.common.collect.FluentIterable.from;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
@@ -55,7 +38,7 @@ public class PathPairIterator extends
   private final Set<List<Integer>> refinedStates = new HashSet<>();
   private final BAMCPA bamCpa;
   private BAMMultipleCEXSubgraphComputer subgraphComputer;
-  private final Map<UsageInfo, BAMSubgraphIterator> targetToPathIterator;
+  private final IdentityHashMap<UsageInfo, BAMSubgraphIterator> targetToPathIterator;
 
   //Statistics
   private StatTimer computingPath = new StatTimer("Time for path computing");
@@ -65,8 +48,10 @@ public class PathPairIterator extends
   private StatCounter numberOfRepeatedConstructedPaths = new StatCounter("Number of repeated path computed");
   //private int numberOfrepeatedPaths = 0;
 
-  private Map<UsageInfo, List<ExtendedARGPath>> computedPathsForUsage = new IdentityHashMap<>();
-  private Map<UsageInfo, Iterator<ExtendedARGPath>> currentIterators = new IdentityHashMap<>();
+  private IdentityHashMap<UsageInfo, List<ExtendedARGPath>> computedPathsForUsage =
+      new IdentityHashMap<>();
+  private IdentityHashMap<UsageInfo, Iterator<ExtendedARGPath>> currentIterators =
+      new IdentityHashMap<>();
 
   private final Function<ARGState, Integer> idExtractor;
 
@@ -138,7 +123,7 @@ public class PathPairIterator extends
 
   private boolean checkIsUsageUnreachable(UsageInfo pInput) {
     return !computedPathsForUsage.containsKey(pInput)
-        || computedPathsForUsage.get(pInput).size() == 0;
+        || computedPathsForUsage.get(pInput).isEmpty();
   }
 
   @Override
@@ -149,7 +134,7 @@ public class PathPairIterator extends
     secondExtendedPath = pathPair.getSecond();
 
     Object predicateInfo = wrapperResult.getInfo(PredicateRefinerAdapter.class);
-    if (predicateInfo != null && predicateInfo instanceof List) {
+    if (predicateInfo instanceof List) {
       @SuppressWarnings("unchecked")
       List<ARGState> affectedStates = (List<ARGState>)predicateInfo;
       //affectedStates may be null, if the path was refined somewhen before
@@ -246,7 +231,7 @@ public class PathPairIterator extends
     if (iterator == null && computedPathsForUsage.containsKey(info)) {
       // first call
       // Clone the set to avoid concurrent modification
-      iterator = Lists.newArrayList(computedPathsForUsage.get(info)).iterator();
+      iterator = new ArrayList<>(computedPathsForUsage.get(info)).iterator();
       currentIterators.put(info, iterator);
     }
 
@@ -276,9 +261,9 @@ public class PathPairIterator extends
   }
 
   private void handleAffectedStates(List<ARGState> affectedStates) {
-    //ARGState nextStart;
-    //if (affectedStates != null) {
-      List<Integer>changedStateNumbers = from(affectedStates).transform(idExtractor).toList();
+    // ARGState nextStart;
+    // if (affectedStates != null) {
+    List<Integer> changedStateNumbers = transformedImmutableListCopy(affectedStates, idExtractor);
       refinedStates.add(changedStateNumbers);
 
     /*  nextStart = affectedStates.get(affectedStates.size() - 1);

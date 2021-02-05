@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa.export;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -32,16 +17,18 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.google.common.html.HtmlEscapers;
+import com.google.common.io.MoreFiles;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -135,7 +122,7 @@ public final class DOTBuilder2 {
     // global state for all functions
     private final Map<Integer, Set<Integer>> comboNodes = new HashMap<>();
     private final Map<Integer, StringBuilder> comboNodesLabels = new HashMap<>();
-    private final Set<Integer> mergedNodes = Sets.newLinkedHashSet();
+    private final Set<Integer> mergedNodes = new LinkedHashSet<>();
     private final Map<Integer, List<Integer>> virtFuncCallEdges = new HashMap<>();
     private int virtFuncCallNodeIdCounter = 100000;
 
@@ -179,7 +166,7 @@ public final class DOTBuilder2 {
       } else {
         // add combo edge
         if (currentComboEdge == null) {
-          currentComboEdge = Lists.newArrayList();
+          currentComboEdge = new ArrayList<>();
           comboedges.put(funcname, currentComboEdge);
         }
         currentComboEdge.add(edge);
@@ -211,7 +198,7 @@ public final class DOTBuilder2 {
           // Initialize the list of nodes and the label if necessary
           if (combinedNodes == null) {
             assert label == null : "label and combinedNodes should always be initialized and changed together";
-            combinedNodes = Sets.newLinkedHashSet();
+            combinedNodes = new LinkedHashSet<>();
             comboNodes.put(firstNode, combinedNodes);
             label = new StringBuilder();
             comboNodesLabels.put(firstNode, label);
@@ -250,9 +237,9 @@ public final class DOTBuilder2 {
 
     void writeFunctionFile(String funcname, Path outdir) throws IOException {
 
-      try (Writer out =
-          Files.newBufferedWriter(
-              outdir.resolve("cfa__" + funcname + ".dot"), StandardCharsets.UTF_8)) {
+      Path cfaFile = outdir.resolve("cfa__" + funcname + ".dot");
+      MoreFiles.createParentDirectories(cfaFile);
+      try (Writer out = Files.newBufferedWriter(cfaFile, StandardCharsets.UTF_8)) {
         out.write("digraph " + funcname + " {\n");
         StringBuilder outb = new StringBuilder();
 

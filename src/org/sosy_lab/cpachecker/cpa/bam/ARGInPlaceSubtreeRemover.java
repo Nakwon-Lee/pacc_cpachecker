@@ -1,41 +1,27 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.bam;
 
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.sosy_lab.cpachecker.cfa.blocks.Block;
@@ -53,11 +39,11 @@ import org.sosy_lab.cpachecker.cpa.bam.cache.BAMCacheAggressiveImpl;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.Precisions;
-import org.sosy_lab.cpachecker.util.statistics.StatTimer;
+import org.sosy_lab.cpachecker.util.statistics.ThreadSafeTimerContainer.TimerWrapper;
 
 public class ARGInPlaceSubtreeRemover extends ARGSubtreeRemover {
 
-  public ARGInPlaceSubtreeRemover(AbstractBAMCPA bamCpa, StatTimer pRemoveCachedSubtreeTimer) {
+  public ARGInPlaceSubtreeRemover(AbstractBAMCPA bamCpa, TimerWrapper pRemoveCachedSubtreeTimer) {
     super(bamCpa, pRemoveCachedSubtreeTimer);
   }
 
@@ -139,7 +125,7 @@ public class ARGInPlaceSubtreeRemover extends ARGSubtreeRemover {
                   return Pair.of(pNewPrecisions, pNewPrecisionTypes);
                 } else {
                   // no update of precision needed
-                  return Pair.of(Collections.emptyList(), Collections.emptyList());
+                  return Pair.of(ImmutableList.of(), ImmutableList.of());
                 }
               };
 
@@ -157,7 +143,7 @@ public class ARGInPlaceSubtreeRemover extends ARGSubtreeRemover {
             p.getSecond());
       }
 
-      if (firstState == relevantCallStates.get(0).getARGState()
+      if (Objects.equals(firstState, relevantCallStates.get(0).getARGState())
           && AbstractStates.isTargetState(lastState)) {
         // old code:
         // the main-reachedset contains only the root, exit-states and targets.
@@ -177,7 +163,7 @@ public class ARGInPlaceSubtreeRemover extends ARGSubtreeRemover {
       final ARGState lastRelevantNode, final ARGState target, final ARGState stateToRemove) {
     return doPrecisionRefinementForAllStates
         // special option (mostly for testing)
-        || (stateToRemove == lastRelevantNode)
+        || Objects.equals(stateToRemove, lastRelevantNode)
         // last iteration, most inner block for refinement
         || (data.hasInitialState(stateToRemove)
             && !target.getParents().isEmpty()
@@ -308,7 +294,7 @@ public class ARGInPlaceSubtreeRemover extends ARGSubtreeRemover {
       assert needsNewPrecisionEntries.size() == foundInnerUnpreciseEntries.size();
       assert needsNewPrecisionEntries.size() == rootStates.size();
 
-      if (bamState == pElement) {
+      if (bamState.equals(pElement)) {
         cutStateFound = true;
       }
 
@@ -367,7 +353,7 @@ public class ARGInPlaceSubtreeRemover extends ARGSubtreeRemover {
 
     // now only the initial elements should be on the stacks
     assert !Iterables.getOnlyElement(needsNewPrecisionEntries);
-    assert rootStates.getLast() == pPath.getFirstState();
+    assert Objects.equals(rootStates.getLast(), pPath.getFirstState());
   }
 
   /**

@@ -1,92 +1,56 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg;
 
 import com.google.common.base.Function;
-import java.io.PrintStream;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustment;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustmentResult;
 import org.sosy_lab.cpachecker.core.interfaces.PrecisionAdjustmentResult.Action;
-import org.sosy_lab.cpachecker.core.interfaces.Statistics;
-import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.cpa.smg.SMGOptions.SMGExportLevel;
 import org.sosy_lab.cpachecker.cpa.smg.refiner.SMGPrecision;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
 import org.sosy_lab.cpachecker.util.predicates.BlockOperator;
-import org.sosy_lab.cpachecker.util.statistics.StatCounter;
-import org.sosy_lab.cpachecker.util.statistics.StatTimer;
-import org.sosy_lab.cpachecker.util.statistics.StatisticsWriter;
 
-public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsProvider {
+public class SMGPrecisionAdjustment implements PrecisionAdjustment {
 
-  // statistics
-  final StatCounter abstractions    = new StatCounter("Number of abstraction computations");
-  final StatTimer totalAbstraction  = new StatTimer("Total time for abstraction computation");
-
-  private final Statistics statistics;
+  private final SMGStatistics statistics;
   private final LogManager logger;
   private final SMGExportDotOption exportOptions;
   private final BlockOperator blockOperator;
 
   public SMGPrecisionAdjustment(
-      LogManager pLogger, SMGExportDotOption pExportOptions, BlockOperator pBlockOperator) {
-
+      LogManager pLogger,
+      SMGExportDotOption pExportOptions,
+      BlockOperator pBlockOperator,
+      SMGStatistics pStats) {
     logger = pLogger;
     exportOptions = pExportOptions;
     blockOperator = pBlockOperator;
-
-    statistics = new Statistics() {
-      @Override
-      public void printStatistics(PrintStream pOut, Result pResult, UnmodifiableReachedSet pReached) {
-
-        StatisticsWriter writer = StatisticsWriter.writingStatisticsTo(pOut);
-        writer.put(abstractions);
-        writer.put(totalAbstraction);
-      }
-
-      @Override
-      public String getName() {
-        return SMGPrecisionAdjustment.this.getClass().getSimpleName();
-      }
-    };
-
+    statistics = pStats;
   }
 
   @Override
-  public Optional<PrecisionAdjustmentResult> prec(AbstractState pState, Precision pPrecision,
-      UnmodifiableReachedSet pStates, Function<AbstractState, AbstractState> pStateProjection, AbstractState pFullState)
-          throws CPAException, InterruptedException {
+  public Optional<PrecisionAdjustmentResult> prec(
+      AbstractState pState,
+      Precision pPrecision,
+      UnmodifiableReachedSet pStates,
+      Function<AbstractState, AbstractState> pStateProjection,
+      AbstractState pFullState)
+      throws CPAException {
 
     CFANode node = AbstractStates.extractLocation(pFullState);
     UnmodifiableSMGState state = (UnmodifiableSMGState) pState;
@@ -106,7 +70,7 @@ public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsPr
       return Optional.of(PrecisionAdjustmentResult.create(pState, pPrecision, Action.CONTINUE));
     }
 
-    totalAbstraction.start();
+    statistics.totalAbstraction.start();
 
     UnmodifiableSMGState result = pState;
     SMGState newState = pState.copyOf();
@@ -164,13 +128,8 @@ public class SMGPrecisionAdjustment implements PrecisionAdjustment, StatisticsPr
       }
     }
 
-    totalAbstraction.stop();
-    abstractions.inc();
+    statistics.totalAbstraction.stop();
+    statistics.abstractions.inc();
     return Optional.of(PrecisionAdjustmentResult.create(result, pPrecision, Action.CONTINUE));
-  }
-
-  @Override
-  public void collectStatistics(Collection<Statistics> pStatsCollection) {
-    pStatsCollection.add(statistics);
   }
 }

@@ -1,31 +1,17 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.pcc.strategy.partialcertificate;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +19,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -52,8 +37,7 @@ public class WeightedGraph implements Iterable<WeightedNode> {
 
 
   public WeightedGraph(PartialReachedSetDirectedGraph pGraph) {
-    if (pGraph == null) { throw new IllegalArgumentException(
-        "Graph may not be null."); }
+    checkArgument(pGraph != null, "Graph may not be null.");
     totalNodeWeight=0;
     numNodes = pGraph.getNumNodes();
     nodes = new WeightedNode[numNodes];
@@ -82,8 +66,7 @@ public class WeightedGraph implements Iterable<WeightedNode> {
    * @param pNumNodes number of nodes it should contain
    */
   public WeightedGraph(int pNumNodes) {
-    if (pNumNodes <= 0) { throw new IllegalArgumentException(
-        "Graph Size may not be 0."); }
+    checkArgument(pNumNodes > 0, "Graph Size may not be 0.");
     numNodes = pNumNodes;
     nodes = new WeightedNode[numNodes];
     outgoingEdges = new HashMap<>(numNodes);
@@ -158,7 +141,7 @@ public class WeightedGraph implements Iterable<WeightedNode> {
   }
 
   public Iterable<WeightedNode> randomIterator() {
-    return new Iterable<WeightedNode>() {
+    return new Iterable<>() {
       @Override
       public Iterator<WeightedNode> iterator() {
         return new WeightedGraphRandomIterator(WeightedGraph.this);

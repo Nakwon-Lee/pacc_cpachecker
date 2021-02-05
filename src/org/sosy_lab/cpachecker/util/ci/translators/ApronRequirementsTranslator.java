@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ci.translators;
 
 import apron.Coeff;
@@ -34,6 +19,7 @@ import apron.Texpr0CstNode;
 import apron.Texpr0DimNode;
 import apron.Texpr0Node;
 import apron.Texpr0UnNode;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
 import gmp.Mpfr;
@@ -70,6 +56,9 @@ public class ApronRequirementsTranslator extends CartesianRequirementsTranslator
 
   @Override
   protected List<String> getVarsInRequirements(final ApronState pRequirement, final @Nullable Collection<String> pRequiredVars) {
+    if (pRequiredVars == null) {
+      return getVarsInRequirements(pRequirement);
+    }
     Collection<String> result = getConvexHullRequiredVars(pRequirement, pRequiredVars);
     stateToRequiredVars = Pair.of(pRequirement, result);
     return new ArrayList<>(result);
@@ -122,16 +111,10 @@ public class ApronRequirementsTranslator extends CartesianRequirementsTranslator
     return result;
   }
 
-
-  private Collection<String> getConvexHullRequiredVars(final ApronState pRequirement,
-      final @Nullable Collection<String> requiredVars) {
-    Set<String> seenRequired = new HashSet<>();
-    Set<String> required;
-    if (requiredVars == null) {
-      required = new HashSet<>();
-    } else {
-      required = new HashSet<>(requiredVars);
-    }
+  private Collection<String> getConvexHullRequiredVars(
+      final ApronState pRequirement, final Collection<String> requiredVars) {
+    Preconditions.checkNotNull(requiredVars);
+    Set<String> required = new HashSet<>(requiredVars);
     List<String> varNames = getAllVarNames(pRequirement);
     Tcons0[] constraints = pRequirement.getApronNativeState().toTcons(pRequirement.getManager().getManager());
     List<Set<String>> constraintVars = new ArrayList<>(constraints.length);
@@ -142,23 +125,18 @@ public class ApronRequirementsTranslator extends CartesianRequirementsTranslator
 
     Iterator<Set<String>> it = constraintVars.iterator();
 
-    int setSize;
     Set<String> intermediate;
 
     while(it.hasNext()) {
       intermediate = it.next();
       if(!Sets.intersection(required, intermediate).isEmpty()) {
-        setSize = seenRequired.size();
-        seenRequired.addAll(intermediate);
-        required.addAll(intermediate);
-
-        if(setSize != seenRequired.size()) {
+        if (required.addAll(intermediate)) {
           it = constraintVars.iterator();
         }
       }
     }
 
-    return seenRequired;
+    return required;
   }
 
   private Collection<String> getAllVarsUsed(final ApronState pRequirement) {

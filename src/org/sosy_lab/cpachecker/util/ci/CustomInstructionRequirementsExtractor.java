@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ci;
 
 import com.google.common.collect.ImmutableSet;
@@ -52,9 +37,18 @@ import org.sosy_lab.cpachecker.util.ci.redundancyremover.RedundantRequirementsRe
 public class CustomInstructionRequirementsExtractor {
 
   @Option(
-      secure = true,
-      description = "Try to remove informations from requirements which is irrelevant for custom instruction behavior")
-  private boolean enableRequirementSlicing = false;
+    secure = true,
+    description =
+        "Try to remove requirements that are covered by another requirment and are, thus, irrelevant for custom instruction behavior"
+  )
+  private boolean removeCoveredRequirements = false;
+
+  @Option(
+    secure = true,
+    description =
+        "Try to remove parts of requirements that are not related to custom instruction and are, thus, irrelevant for custom instruction behavior"
+  )
+  private boolean enableRequirementsSlicing = false;
 
   @Option(
       secure = true,
@@ -102,9 +96,15 @@ public class CustomInstructionRequirementsExtractor {
    */
   public void extractRequirements(final ARGState root, final CustomInstructionApplications cia)
       throws InterruptedException, CPAException {
+    if (dumpCIRequirements == null) {
+      logger.log(
+          Level.WARNING,
+          "Output files for saving requirements for custom instruction not specified.");
+      return;
+    }
     CustomInstructionRequirementsWriter writer =
-        new CustomInstructionRequirementsWriter(dumpCIRequirements,
-            requirementsStateClass, logger, cpa, enableRequirementSlicing);
+        new CustomInstructionRequirementsWriter(
+            dumpCIRequirements, requirementsStateClass, logger, cpa, enableRequirementsSlicing);
     Collection<ARGState> ciStartNodes = getCustomInstructionStartNodes(root, cia);
 
     List<Pair<ARGState, Collection<ARGState>>> requirements = new ArrayList<>(ciStartNodes.size());
@@ -117,7 +117,7 @@ public class CustomInstructionRequirementsExtractor {
               .getOutputVariables()));
     }
 
-    if (enableRequirementSlicing) {
+    if (removeCoveredRequirements) {
       requirements =
           RedundantRequirementsRemover.removeRedundantRequirements(requirements, signatures,
               requirementsStateClass);
@@ -189,7 +189,7 @@ public class CustomInstructionRequirementsExtractor {
   private Collection<ARGState> findEndStatesFor(final ARGState ciStart,
       final CustomInstructionApplications pCustomIA)
       throws InterruptedException, CPAException {
-    ArrayList<ARGState> list = new ArrayList<>();
+    List<ARGState> list = new ArrayList<>();
     Queue<ARGState> queue = new ArrayDeque<>();
     Set<ARGState> visitedNodes = new HashSet<>();
 

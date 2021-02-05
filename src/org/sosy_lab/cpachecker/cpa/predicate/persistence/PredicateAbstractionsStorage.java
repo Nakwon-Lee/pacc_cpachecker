@@ -1,36 +1,20 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.predicate.persistence;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -39,10 +23,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.io.IO;
@@ -85,11 +72,7 @@ public class PredicateAbstractionsStorage {
       return Integer.toString(getId());
     }
 
-    @Override
-    public int hashCode() {
-      // TODO
-      return super.hashCode();
-    }
+    // TODO: equals() and hashCode()?
   }
 
   private static final Pattern NODE_DECLARATION_PATTERN = Pattern.compile("^[0-9]+[ ]*\\(([0-9]+[,]*)*\\)[ ]*(@[0-9]+)$");
@@ -102,8 +85,8 @@ public class PredicateAbstractionsStorage {
 
   private Integer rootAbstractionId = null;
   private ImmutableMap<Integer, AbstractionNode> abstractions = ImmutableMap.of();
-  private ImmutableMultimap<Integer, Integer> abstractionTree = ImmutableMultimap.of();
-  private Set<Integer> reusedAbstractions = Sets.newTreeSet();
+  private ImmutableListMultimap<Integer, Integer> abstractionTree = ImmutableListMultimap.of();
+  private Set<Integer> reusedAbstractions = new TreeSet<>();
 
   public PredicateAbstractionsStorage(Path pFile, LogManager pLogger, FormulaManagerView pFmgr, @Nullable Converter pConverter) throws PredicateParsingFailedException {
     this.fmgr = pFmgr;
@@ -124,8 +107,8 @@ public class PredicateAbstractionsStorage {
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private void parseAbstractionTree() throws IOException, PredicateParsingFailedException {
     Multimap<Integer, Integer> resultTree = LinkedHashMultimap.create();
-    Map<Integer, AbstractionNode> resultAbstractions = Maps.newTreeMap();
-    Set<Integer> abstractionsWithParents = Sets.newTreeSet();
+    Map<Integer, AbstractionNode> resultAbstractions = new TreeMap<>();
+    Set<Integer> abstractionsWithParents = new TreeSet<>();
 
     String source = abstractionsFile.getFileName().toString();
     try (BufferedReader reader =
@@ -139,7 +122,7 @@ public class PredicateAbstractionsStorage {
       String currentLine;
       int currentAbstractionId = -1;
       OptionalInt currentLocationId = OptionalInt.empty();
-      Set<Integer> currentSuccessors = Sets.newTreeSet();
+      Set<Integer> currentSuccessors = new TreeSet<>();
 
       AbstractionsParserState parserState = AbstractionsParserState.EXPECT_NODE_DECLARATION;
       while ((currentLine = reader.readLine()) != null) {
@@ -176,7 +159,7 @@ public class PredicateAbstractionsStorage {
           currentAbstractionId = Integer.parseInt(declarationTokenizer.nextToken());
           while (declarationTokenizer.hasMoreTokens()) {
             String token = declarationTokenizer.nextToken().trim();
-            if (token.length() > 0) {
+            if (!token.isEmpty()) {
               if (token.startsWith("@")) {
                 currentLocationId = OptionalInt.of(Integer.parseInt(token.substring(1)));
               } else {
@@ -225,7 +208,7 @@ public class PredicateAbstractionsStorage {
 
     // Set results
     this.abstractions = ImmutableMap.copyOf(resultAbstractions);
-    this.abstractionTree = ImmutableMultimap.copyOf(resultTree);
+    this.abstractionTree = ImmutableListMultimap.copyOf(resultTree);
   }
 
   private String convert(String str) {
@@ -249,7 +232,7 @@ public class PredicateAbstractionsStorage {
     return abstractions.get(abstractionId);
   }
 
-  public ImmutableMultimap<Integer, Integer> getAbstractionTree() {
+  public ImmutableListMultimap<Integer, Integer> getAbstractionTree() {
     return abstractionTree;
   }
 
@@ -258,7 +241,7 @@ public class PredicateAbstractionsStorage {
   }
 
   public Set<AbstractionNode> getSuccessorAbstractions(Integer ofAbstractionWithId) {
-    Set<AbstractionNode> result = Sets.newHashSet();
+    Set<AbstractionNode> result = new LinkedHashSet<>();
 
     if (abstractionTree != null) {
       for (Integer successorId : abstractionTree.get(ofAbstractionWithId)) {

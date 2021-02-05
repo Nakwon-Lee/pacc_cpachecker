@@ -1,27 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates;
+
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -230,10 +216,7 @@ public class NewtonRefinementManager implements StatisticsProvider {
 
     // Create the list of path
     List<BooleanFormula> pathFormulas =
-        pathLocations
-            .stream()
-            .map(l -> l.getPathFormula().getFormula())
-            .collect(Collectors.toList());
+        transformedImmutableListCopy(pathLocations, l -> l.getPathFormula().getFormula());
 
     assert isFeasible(pFormulas.getFormulas(), pPath) == isFeasible(pathFormulas, pPath);
 
@@ -246,7 +229,7 @@ public class NewtonRefinementManager implements StatisticsProvider {
     }
 
     // Calculate Strongest Post Condition of all pathLocations
-    return calculateStrongestPostCondition(pathLocations, unsatCore, pPath);
+    return calculateStrongestPostCondition(pathLocations, unsatCore);
   }
 
   /**
@@ -269,12 +252,10 @@ public class NewtonRefinementManager implements StatisticsProvider {
 
     // Filter pathlocations to only abstractionstate locations
     Iterator<PathLocation> abstractionLocations =
-        pPathLocations
-            .stream()
+        pPathLocations.stream()
             .filter(l -> l.hasAbstractionState())
-            .collect(Collectors.toList())
+            .collect(ImmutableList.toImmutableList())
             .iterator();
-
 
     BooleanFormula pred = bfmgr.makeTrue();
     for (BooleanFormula pathFormula : pFormulas.getFormulas()) {
@@ -298,14 +279,13 @@ public class NewtonRefinementManager implements StatisticsProvider {
    * @param pPathLocations A list with the necessary information to all path locations
    * @param pUnsatCore An optional holding the unsatisfiable core in the form of a list of Formulas.
    *     If no list of formulas is applied it computes the regular postCondition
-   * @param pPath The path to the Error(Needed for RefinementFailedException)
    * @return A list of Formulas, each Formula represents an assertion at the corresponding
    *     abstraction state, the last formula should be unsatisfiable(representing Error state)
    * @throws InterruptedException In case of interruption
    * @throws RefinementFailedException In case an exception in the solver.
    */
   private List<BooleanFormula> calculateStrongestPostCondition(
-      List<PathLocation> pPathLocations, Optional<List<BooleanFormula>> pUnsatCore, ARGPath pPath)
+      List<PathLocation> pPathLocations, Optional<List<BooleanFormula>> pUnsatCore)
       throws InterruptedException, RefinementFailedException {
     logger.log(Level.FINE, "Calculate Strongest Postcondition for the error trace.");
     stats.postConditionTimer.start();
@@ -330,7 +310,7 @@ public class NewtonRefinementManager implements StatisticsProvider {
           Set<BooleanFormula> pathFormulaElements =
               bfmgr.toConjunctionArgs(pathFormula.getFormula(), true);
           for (BooleanFormula pathFormulaElement : pathFormulaElements) {
-            if (pUnsatCore.get().contains(pathFormulaElement)) {
+            if (pUnsatCore.orElseThrow().contains(pathFormulaElement)) {
               requiredPart.add(pathFormulaElement);
               break;
             }
@@ -461,7 +441,7 @@ public class NewtonRefinementManager implements StatisticsProvider {
     // Try to eliminate the intermediate Variables
     Optional<BooleanFormula> result = qeManager.eliminateQuantifiers(intermediateVars, toExist);
     if (result.isPresent()) {
-      return result.get();
+      return result.orElseThrow();
     } else {
       logger.log(
           Level.FINE, "Quantifier elimination failed, keeping old assignments in predicate.");
@@ -590,7 +570,7 @@ public class NewtonRefinementManager implements StatisticsProvider {
           Optional<BooleanFormula> quantifiedPred =
               qeManager.eliminateQuantifiers(toQuantify, pred);
           if (quantifiedPred.isPresent()) {
-            newPredicates.add(quantifiedPred.get());
+            newPredicates.add(quantifiedPred.orElseThrow());
             stats.noOfQuantifiedFutureLives += toQuantify.size();
           } else {
             // Keep the old predicate as QE is not possible
@@ -715,7 +695,7 @@ public class NewtonRefinementManager implements StatisticsProvider {
      */
     boolean hasAbstractionState() {
       if (hasCorrespondingARGState()) {
-        return PredicateAbstractState.getPredicateState(state.get()).isAbstractionState();
+        return PredicateAbstractState.getPredicateState(state.orElseThrow()).isAbstractionState();
       } else {
         return false;
       }
@@ -723,7 +703,9 @@ public class NewtonRefinementManager implements StatisticsProvider {
 
     @Override
     public String toString() {
-      return (lastEdge != null ? lastEdge.toString() : ("First State: " + state.get().toDOTLabel()))
+      return (lastEdge != null
+              ? lastEdge.toString()
+              : ("First State: " + state.orElseThrow().toDOTLabel()))
           + ", PathFormula: "
           + pathFormula.toString();
     }

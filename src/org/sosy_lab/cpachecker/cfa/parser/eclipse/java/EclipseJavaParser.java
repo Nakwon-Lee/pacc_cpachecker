@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa.parser.eclipse.java;
 
 import com.google.common.base.Splitter;
@@ -37,12 +22,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -60,7 +44,6 @@ import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.ParseResult;
 import org.sosy_lab.cpachecker.cfa.Parser;
 import org.sosy_lab.cpachecker.exceptions.JParserException;
-
 
 /**
  * Wrapper around the JDT Parser and CFA-Builder Implementation.
@@ -80,11 +63,13 @@ class EclipseJavaParser implements Parser {
   @Option(secure=true, name ="java.sourcepath",
       description="Specify the source code path to " +
           "search for java class or interface definitions")
+  // Make sure to keep the option name synchronized with CPAMain#areJavaOptionsSet
   private String javaSourcepath = "";
 
   @Option(secure=true, name ="java.classpath",
       description="Specify the class code path to " +
           "search for java class or interface definitions")
+  // Make sure to keep the option name synchronized with CPAMain#areJavaOptionsSet
   private String javaClasspath = "";
 
   @Option(secure=true, name="java.exportTypeHierarchy",
@@ -106,7 +91,6 @@ class EclipseJavaParser implements Parser {
 
   private final ImmutableList<Path> javaSourcePaths;
   private final ImmutableList<Path> javaClassPaths;
-  private final String[] encodings;
 
   private final List<Path> parsedFiles = new ArrayList<>();
 
@@ -131,9 +115,6 @@ class EclipseJavaParser implements Parser {
     if (javaSourcePaths.isEmpty()) {
       throw new InvalidConfigurationException("No valid Paths could be found.");
     }
-
-    encodings = new String[javaSourcePaths.size()];
-    Arrays.fill(encodings, encoding.name());
   }
 
   private ImmutableList<Path> getJavaPaths(String javaPath) {
@@ -197,7 +178,7 @@ class EclipseJavaParser implements Parser {
 
     for (Path directory : javaSourcePaths) {
       try (Stream<Path> files = getJavaFilesInPath(directory)) {
-        for (Path file : files.collect(Collectors.toList())) {
+        for (Path file : files.collect(ImmutableList.toImmutableList())) {
           CompilationUnit ast = parse(file, IGNORE_METHOD_BODY);
           astsOfFoundFiles.add(new JavaFileAST(file, ast));
         }
@@ -208,7 +189,6 @@ class EclipseJavaParser implements Parser {
   }
 
   @MustBeClosed
-  @SuppressWarnings("StreamResourceLeak") // https://github.com/google/error-prone/issues/893
   private Stream<Path> getJavaFilesInPath(Path mainDirectory) throws IOException {
     return Files.walk(mainDirectory, FileVisitOption.FOLLOW_LINKS)
         .filter(Files::isRegularFile)
@@ -236,6 +216,8 @@ class EclipseJavaParser implements Parser {
   private CompilationUnit parse(Path file, boolean ignoreMethodBody) throws IOException {
     parsedFiles.add(file);
 
+    String[] encodings =
+        Collections.nCopies(javaSourcePaths.size(), encoding.name()).toArray(new String[0]);
     parser.setEnvironment(asStrings(javaClassPaths), asStrings(javaSourcePaths), encodings, false);
     parser.setResolveBindings(true);
     parser.setStatementsRecovery(true);
@@ -289,7 +271,7 @@ class EclipseJavaParser implements Parser {
         if (classFile.isPresent()) {
 
           cfaTimer.stop();
-          CompilationUnit astNext = parse(classFile.get());
+          CompilationUnit astNext = parse(classFile.orElseThrow());
           cfaTimer.start();
 
           //astNext.accept(checker);

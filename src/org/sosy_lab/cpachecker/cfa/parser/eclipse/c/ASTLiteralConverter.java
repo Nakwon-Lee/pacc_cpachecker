@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa.parser.eclipse.c;
 
 import static java.lang.Character.isDigit;
@@ -31,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.stream.Stream;
 import org.eclipse.cdt.core.dom.ast.IASTLiteralExpression;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
@@ -41,7 +27,6 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CIntegerLiteralExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CLiteralExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CStringLiteralExpression;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
-import org.sosy_lab.cpachecker.cfa.types.c.CBasicType;
 import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
@@ -135,18 +120,12 @@ class ASTLiteralConverter {
 
     // Get the suffix that is specified in the literal
     Suffix denotedSuffix = extractDenotedSuffix(pValueStr, pExp);
+    ConstantType type = parseType(pValueStr);
     BigInteger integerValue =
         parseRawIntegerValue(
-            pValueStr.substring(0, pValueStr.length() - denotedSuffix.getLength()), pExp);
+            type, pValueStr.substring(0, pValueStr.length() - denotedSuffix.getLength()), pExp);
 
-    // Compute the integer type that is at least required to fully represent the integer value.
-    // According to section 6.4.4.1 "Integer constants" of the C standard, the
-    // type must not be lower than what is specified in the code (i.e., what is stored in param
-    // 'denotedSuffix' here)
-    ImmutableList<Suffix> suffixCandiates =
-        Arrays.stream(Suffix.values())
-            .filter(x -> x.compareTo(denotedSuffix) >= 0)
-            .collect(ImmutableList.toImmutableList());
+    ImmutableList<Suffix> suffixCandiates = getSuffixCandidates(denotedSuffix, type);
     Suffix actualRequiredSuffix =
         getLeastRepresentedTypeForValue(integerValue, machine, suffixCandiates, pExp);
 
@@ -184,7 +163,11 @@ class ASTLiteralConverter {
     }
 
     if (cFloat.isInfinity()) {
-      return new CFloatLiteralExpression(pFileLoc, pType, adjustPrecision(cFloat, pType, pExp));
+      if (cFloat.isNegative()) {
+        return CFloatLiteralExpression.forNegativeInfinity(pFileLoc, pType);
+      } else {
+        return CFloatLiteralExpression.forPositiveInfinity(pFileLoc, pType);
+      }
     }
 
     try {
@@ -194,37 +177,6 @@ class ASTLiteralConverter {
       throw parseContext.parseError(
           String.format("unable to parse floating point literal (%s)", cFloat.toString()), pExp);
     }
-  }
-
-  private BigDecimal adjustPrecision(CFloat pCFloat, CType pType, IASTLiteralExpression pExp) {
-    // TODO: This method is a temporary hack until 'BigDecimal's are replaced by 'CFloat's in
-    // AFloatLiteralExpression class.
-    // This is necessary because CFloats are already able to return "inf" as a value, however, the
-    // BigDecimal object requires a concrete numerical value instead. The code below thus returns a
-    // placeholder value in the meantime.
-
-    BigDecimal APPROX_INFINITY =
-        BigDecimal.valueOf(Double.MAX_VALUE).add(BigDecimal.valueOf(Double.MAX_VALUE));
-
-    CBasicType basicType = ((CSimpleType) pType).getType();
-    switch (basicType) {
-      case FLOAT:
-      case DOUBLE:
-        if (pCFloat.isInfinity()) {
-          if (pCFloat.isNegative()) {
-            return APPROX_INFINITY.negate();
-          } else {
-            return APPROX_INFINITY;
-          }
-        }
-        break;
-      default:
-        // unsupported operation
-        break;
-    }
-
-    throw parseContext.parseError(
-        String.format("unable to parse floating point literal (%s)", pCFloat.toString()), pExp);
   }
 
   @VisibleForTesting
@@ -249,7 +201,7 @@ class ASTLiteralConverter {
       if (c == 'x' || c == 'X') {
         // something like '\xFF'
         s = s.substring(1); // remove leading x
-        check(s.length() > 0 && s.length() <= 3, "character literal with illegal hex number", e);
+        check(!s.isEmpty() && s.length() <= 3, "character literal with illegal hex number", e);
         try {
           result = (char) Integer.parseInt(s, 16);
           check(result <= 0xFF, "hex escape sequence out of range", e);
@@ -309,19 +261,43 @@ class ASTLiteralConverter {
     return result;
   }
 
-  private BigInteger parseRawIntegerValue(String s, final IASTNode e) {
+  private ConstantType parseType(String pRawValue) {
+    if (pRawValue.startsWith("0x") || pRawValue.startsWith("0X")) {
+      return ConstantType.HEXADECIMAL;
+
+    } else if (pRawValue.startsWith("0b") || pRawValue.startsWith("0B")) {
+      return ConstantType.BINARY;
+
+    } else if (pRawValue.startsWith("0")) {
+      return ConstantType.OCTAL;
+
+    } else {
+      return ConstantType.DECIMAL;
+    }
+  }
+
+  private BigInteger parseRawIntegerValue(ConstantType type, String s, final IASTNode e) {
     BigInteger result;
     try {
-      if (s.startsWith("0x") || s.startsWith("0X")) {
-        // this should be in hex format, remove "0x" from the string
-        s = s.substring(2);
-        result = new BigInteger(s, 16);
-
-      } else if (s.startsWith("0")) {
-        result = new BigInteger(s, 8);
-
-      } else {
-        result = new BigInteger(s, 10);
+      switch (type) {
+        case BINARY:
+          // remove "0b" from the string
+          s = s.substring(2);
+          result = new BigInteger(s, 2);
+          break;
+        case OCTAL:
+          result = new BigInteger(s, 8);
+          break;
+        case DECIMAL:
+          result = new BigInteger(s, 10);
+          break;
+        case HEXADECIMAL:
+          // this is expected to be in hex format, remove "0x" from the string
+          s = s.substring(2);
+          result = new BigInteger(s, 16);
+          break;
+        default:
+          throw parseContext.parseError(String.format("invalid constant type: %s", type.name()), e);
       }
     } catch (NumberFormatException exception) {
       throw parseContext.parseError("invalid number", e);
@@ -358,6 +334,74 @@ class ASTLiteralConverter {
       suffix = suffix == Suffix.L ? Suffix.UL : Suffix.ULL;
     }
     return suffix;
+  }
+
+  /**
+   * Compute the integer type that is at least required to fully represent the integer value.
+   * According to section 6.4.4.1 "Integer constants" of the C standard, the type must not be lower
+   * than what is specified in the code (i.e., what is stored in param 'denotedSuffix' here)
+   *
+   * @param pDenotedSuffix the suffix that is denoted in the program
+   * @param pType the type of the constant, see {@link ConstantType}
+   * @return the list of possible suffixes as specified in the C standard
+   */
+  private ImmutableList<Suffix> getSuffixCandidates(Suffix pDenotedSuffix, ConstantType pType) {
+
+    // For reference, the list of the C standard is copy and pasted below for convenience:
+    /*
+     *  Suffix        |  Decimal Constant            |  Octal or Hexadecimal Constant
+     *  --------------+------------------------------+-------------------------------
+     *  --------------+------------------------------+-------------------------------
+     *  none          |  int                         |  int
+     *                |  long int                    |  unsigned int
+     *                |  long long int               |  long int
+     *                |                              |  unsigned long int
+     *                |                              |  long long int
+     *                |                              |  unsigned long long int
+     *  --------------+------------------------------+-------------------------------
+     * u or U         |  unsigned int                |  unsigned int
+     *                |  unsigned long int           |  unsigned long int
+     *                |  unsigned long long int      |  unsigned long long int
+     *  --------------+------------------------------+-------------------------------
+     * l or L         |  long int                    |  long int
+     *                |  long long int               |  unsigned long int
+     *                |                              |  long long int
+     *                |                              |  unsigned long long int
+     *  --------------+------------------------------+-------------------------------
+     * Both u or U    |  unsigned long int           |  unsigned long int
+     * and l or L     |  unsigned long long int      |  unsigned long long int
+     *  --------------+------------------------------+-------------------------------
+     * ll or LL       |  long long int               |  long long int
+     *                |                              |  unsigned long long int
+     *  --------------+------------------------------+-------------------------------
+     * Both u or U    |  unsigned long long int      |  unsigned long long int
+     * and ll or LL   |                              |
+     */
+
+    Stream<Suffix> stream =
+        Arrays.stream(Suffix.values()).filter(x -> x.compareTo(pDenotedSuffix) >= 0);
+
+    switch (pDenotedSuffix) {
+      case NONE:
+      case L:
+      case LL:
+        if (pType == ConstantType.DECIMAL) {
+          stream = stream.filter(x -> x.isSigned());
+        }
+        break;
+
+      case U:
+      case UL:
+      case ULL:
+        stream = stream.filter(x -> !x.isSigned());
+        break;
+
+      default:
+        throw new CFAGenerationRuntimeException(
+            String.format("Unhandled suffix: %s", pDenotedSuffix.name()));
+    }
+
+    return stream.collect(ImmutableList.toImmutableList());
   }
 
   /**
@@ -398,6 +442,13 @@ class ASTLiteralConverter {
         String.format(
             "Integer value is too large to be represented by the highest possible type (unsigned long long int): %s.",
             pExp));
+  }
+
+  private enum ConstantType {
+    BINARY,
+    OCTAL,
+    DECIMAL,
+    HEXADECIMAL;
   }
 
   private enum Suffix {

@@ -1,31 +1,17 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.arg.witnessexport;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import java.util.ArrayDeque;
@@ -34,9 +20,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import org.sosy_lab.cpachecker.cfa.model.AssumeEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
@@ -69,7 +57,7 @@ enum GraphBuilder {
     public void buildGraph(
         ARGState pRootState,
         Predicate<? super ARGState> pPathStates,
-        Predicate<? super Pair<ARGState, ARGState>> pIsRelevantEdge,
+        final BiPredicate<ARGState, ARGState> pIsRelevantEdge,
         Multimap<ARGState, CFAEdgeWithAssumptions> pValueMap,
         Map<ARGState, CFAEdgeWithAdditionalInfo> pAdditionalInfo,
         Iterable<Pair<ARGState, Iterable<ARGState>>> pARGEdges,
@@ -78,7 +66,7 @@ enum GraphBuilder {
       for (Pair<ARGState, Iterable<ARGState>> argEdges : pARGEdges) {
         ARGState s = argEdges.getFirst();
         if (!s.equals(pRootState)
-            && !s.getParents().stream().anyMatch(p -> pIsRelevantEdge.apply(Pair.of(p, s)))) {
+            && s.getParents().stream().noneMatch(p -> pIsRelevantEdge.test(p, s))) {
           continue;
         }
         String sourceStateNodeId = getId(s);
@@ -112,12 +100,12 @@ enum GraphBuilder {
 
               assert (!(innerEdge instanceof AssumeEdge));
 
-              Iterable<CFAEdgeWithAssumptions> assumptions = pValueMap.get(s);
-              assumptions = Iterables.filter(assumptions, a -> a.getCFAEdge().equals(innerEdge));
+              boolean isAssumptionAvailableForEdge =
+                  Iterables.any(pValueMap.get(s), a -> a.getCFAEdge().equals(innerEdge));
               Optional<Collection<ARGState>> absentStates =
-                  Iterables.isEmpty(assumptions)
-                      ? Optional.empty()
-                      : Optional.of(Collections.singleton(s));
+                  isAssumptionAvailableForEdge
+                      ? Optional.of(Collections.singleton(s))
+                      : Optional.empty();
               pEdgeAppender.appendNewEdge(
                   prevStateId,
                   pseudoStateId,
@@ -132,11 +120,10 @@ enum GraphBuilder {
             edgeToNextState = allEdgeToNextState.get(allEdgeToNextState.size() - 1);
           }
 
-          Optional<Collection<ARGState>> state =
-              Optional.<Collection<ARGState>>of(Collections.singleton(s));
+          Optional<Collection<ARGState>> state = Optional.of(Collections.singleton(s));
 
           // Only proceed with this state if the path states contain the child
-          if (pPathStates.apply(child) && pIsRelevantEdge.apply(Pair.of(s, child))) {
+          if (pPathStates.apply(child) && pIsRelevantEdge.test(s, child)) {
             // Child belongs to the path!
             pEdgeAppender.appendNewEdge(
                 prevStateId,
@@ -151,9 +138,9 @@ enum GraphBuilder {
               AssumeEdge siblingEdge = CFAUtils.getComplimentaryAssumeEdge(assumeEdge);
               boolean addArtificialSinkEdge = true;
               for (ARGState sibling : s.getChildren()) {
-                if (sibling != child
-                    && s.getEdgeToChild(sibling).equals(siblingEdge)
-                    && pIsRelevantEdge.apply(Pair.of(s, sibling))) {
+                if (!Objects.equals(sibling, child)
+                    && siblingEdge.equals(s.getEdgeToChild(sibling))
+                    && pIsRelevantEdge.test(s, sibling)) {
                   addArtificialSinkEdge = false;
                   break;
                 }
@@ -175,6 +162,7 @@ enum GraphBuilder {
 
   },
 
+  @Deprecated
   CFA_FROM_ARG {
 
     @Override
@@ -185,8 +173,8 @@ enum GraphBuilder {
     @Override
     public void buildGraph(
         ARGState pRootState,
-        final Predicate<? super ARGState> pPathStates,
-        final Predicate<? super Pair<ARGState, ARGState>> pIsRelevantEdge,
+        final Predicate<? super ARGState> pIsRelevantState,
+        final BiPredicate<ARGState, ARGState> pIsRelevantEdge,
         Multimap<ARGState, CFAEdgeWithAssumptions> pValueMap,
         Map<ARGState, CFAEdgeWithAdditionalInfo> pAdditionalInfo,
         Iterable<Pair<ARGState, Iterable<ARGState>>> pARGEdges,
@@ -203,7 +191,7 @@ enum GraphBuilder {
       for (final Pair<ARGState, Iterable<ARGState>> edge : pARGEdges) {
         for (ARGState target : edge.getSecond()) {
           // where the successor ARG node is in the set of target path states AND the edge is relevant
-          if (pPathStates.apply(target) && pIsRelevantEdge.apply(Pair.of(edge.getFirst(), target))) {
+          if (pIsRelevantState.apply(target) && pIsRelevantEdge.test(edge.getFirst(), target)) {
             for (CFANode location : AbstractStates.extractLocations(target)) {
               subProgramNodes.add(location);
               states.put(location, target);
@@ -226,7 +214,7 @@ enum GraphBuilder {
             locationStates = states.get(successor);
             tryAddToWaitlist = true;
           } else {
-            locationStates = Collections.<ARGState>emptySet();
+            locationStates = ImmutableSet.of();
           }
           boolean appended = appendEdge(pEdgeAppender, leavingEdge, Optional.of(locationStates), pValueMap);
           if (tryAddToWaitlist && appended && visited.add(successor)) {
@@ -248,8 +236,8 @@ enum GraphBuilder {
     @Override
     public void buildGraph(
         ARGState pRootState,
-        final Predicate<? super ARGState> pPathStates,
-        final Predicate<? super Pair<ARGState, ARGState>> pIsRelevantEdge,
+        final Predicate<? super ARGState> pIsRelevantState,
+        final BiPredicate<ARGState, ARGState> pIsRelevantEdge,
         Multimap<ARGState, CFAEdgeWithAssumptions> pValueMap,
         Map<ARGState, CFAEdgeWithAdditionalInfo> pAdditionalInfo,
         Iterable<Pair<ARGState, Iterable<ARGState>>> pARGEdges,
@@ -266,7 +254,7 @@ enum GraphBuilder {
       for (final Pair<ARGState, Iterable<ARGState>> edge : pARGEdges) {
         for (ARGState target : edge.getSecond()) {
           // where the successor ARG node is in the set of target path states AND the edge is relevant
-          if (pPathStates.apply(target) && pIsRelevantEdge.apply(Pair.of(edge.getFirst(), target))) {
+          if (pIsRelevantState.apply(target) && pIsRelevantEdge.test(edge.getFirst(), target)) {
             for (CFANode location : AbstractStates.extractLocations(target)) {
               subProgramNodes.add(location);
               states.put(location, target);
@@ -338,8 +326,8 @@ enum GraphBuilder {
 
   public abstract void buildGraph(
       ARGState pRootState,
-      Predicate<? super ARGState> pPathStates,
-      Predicate<? super Pair<ARGState, ARGState>> pIsRelevantEdge,
+      Predicate<? super ARGState> pIsRelevantState,
+      BiPredicate<ARGState, ARGState> pIsRelevantEdge,
       Multimap<ARGState, CFAEdgeWithAssumptions> pValueMap,
       Map<ARGState, CFAEdgeWithAdditionalInfo> pAdditionalInfo,
       Iterable<Pair<ARGState, Iterable<ARGState>>> pARGEdges,

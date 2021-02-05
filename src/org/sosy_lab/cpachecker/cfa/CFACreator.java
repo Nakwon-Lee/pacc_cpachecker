@@ -1,29 +1,13 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.io.MoreFiles;
 import java.io.FileNotFoundException;
@@ -44,17 +28,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.zip.GZIPOutputStream;
+import jdk.internal.util.Preconditions;
+import org.graalvm.compiler.options.Option;
 import org.sosy_lab.common.Concurrency;
 import org.sosy_lab.common.ShutdownNotifier;
-import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.FileOption;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.io.IO;
-import org.sosy_lab.common.log.LogManager;
-import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.ast.ADeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.AExpression;
 import org.sosy_lab.cpachecker.cfa.ast.AFunctionCall;
@@ -108,8 +91,6 @@ import org.sosy_lab.cpachecker.util.LiveVariables;
 import org.sosy_lab.cpachecker.util.LoopStructure;
 import org.sosy_lab.cpachecker.util.Pair;
 import org.sosy_lab.cpachecker.util.cwriter.CFAToCTranslator;
-import org.sosy_lab.cpachecker.util.dependencegraph.DependenceGraph;
-import org.sosy_lab.cpachecker.util.dependencegraph.DependenceGraphBuilder;
 import org.sosy_lab.cpachecker.util.statistics.StatisticsUtils;
 import org.sosy_lab.cpachecker.util.variableclassification.VariableClassification;
 import org.sosy_lab.cpachecker.util.variableclassification.VariableClassificationBuilder;
@@ -126,18 +107,35 @@ public class CFACreator {
 
   public static final String VALID_C_FUNCTION_NAME_PATTERN = "[_a-zA-Z][_a-zA-Z0-9]*";
 
-  @Option(secure=true, name="parser.usePreprocessor",
-      description="For C files, run the preprocessor on them before parsing. " +
-                  "Note that all file numbers printed by CPAchecker will refer to the pre-processed file, not the original input file.")
+  @Option(
+      secure = true,
+      name = "parser.usePreprocessor",
+      description =
+          "For C files, run the preprocessor on them before parsing. Note that all line numbers"
+              + " printed by CPAchecker will refer to the pre-processed file, not the original"
+              + " input file.")
   private boolean usePreprocessor = false;
 
-  @Option(secure=true, name="parser.readLineDirectives",
-      description="For C files, read #line preprocessor directives and use their information for outputting line numbers."
-          + " (Always enabled when pre-processing is used.)")
+  @Option(
+      secure = true,
+      name = "parser.useClang",
+      description =
+          "For C files, convert to LLVM IR with clang first and then use the LLVM parser.")
+  private boolean useClang = false;
+
+  @Option(
+      secure = true,
+      name = "parser.readLineDirectives",
+      description =
+          "For C files, read #line preprocessor directives and use their information for"
+              + " outputting line numbers. (Always enabled when pre-processing is used.)")
   private boolean readLineDirectives = false;
 
-  @Option(secure=true, name="analysis.entryFunction", regexp="^" + VALID_C_FUNCTION_NAME_PATTERN + "$",
-      description="entry function")
+  @Option(
+      secure = true,
+      name = "analysis.entryFunction",
+      regexp = "^" + VALID_C_FUNCTION_NAME_PATTERN + "$",
+      description = "entry function")
   private String mainFunctionName = "main";
 
   @Option(secure=true, name="analysis.machineModel",
@@ -192,6 +190,13 @@ public class CFACreator {
       description="file name for call graph as .dot file")
   @FileOption(FileOption.Type.OUTPUT_FILE)
   private Path exportFunctionCallsFile = Paths.get("functionCalls.dot");
+
+  @Option(
+      secure = true,
+      name = "cfa.callgraph.fileUsed",
+      description = "file name for call graph as .dot file")
+  @FileOption(FileOption.Type.OUTPUT_FILE)
+  private Path exportFunctionCallsUsedFile = Paths.get("functionCallsUsed.dot");
 
   @Option(secure=true, name="cfa.file",
       description="export CFA as .dot file")
@@ -265,22 +270,22 @@ public class CFACreator {
   private boolean findLiveVariables = false;
 
   @Option(
-    secure = true,
-    name = "cfa.createDependenceGraph",
-    description = "Whether to create dependence graph for the CFA of the program"
-  )
-  private boolean createDependenceGraph = false;
-
-  @Option(
       secure = true,
       name = "cfa.addLabels",
       description = "Add custom labels to the CFA"
   )
   private boolean addLabels = false;
 
+  @Option(
+    secure = true,
+    description = "Programming language of the input program. If not given explicitly, "
+        + "auto-detection will occur")
+  // keep option name in sync with {@link CPAMain#language}, value might differ
+  private Language language = Language.C;
+
   @Option(secure=true, name="cfa.classifyNodes",
       description="This option enables the computation of a classification of CFA nodes.")
-private boolean classifyNodes = false;
+  private boolean classifyNodes = false;
 
   @Option(
     secure = true,
@@ -302,9 +307,6 @@ private boolean classifyNodes = false;
 
   @Option(secure = true, name = "cfa.scheme", description = "block encoding scheme")
   private BlockScheme scheme = BlockScheme.L;
-
-  @Option(secure=true, description="C, Java, or LLVM IR?")
-  private Language language = Language.C;
 
   private final LogManager logger;
   private final Parser parser;
@@ -383,19 +385,25 @@ private boolean classifyNodes = false;
       parser = Parsers.getJavaParser(logger, config);
       break;
     case C:
-      CParser outerParser =
-          CParser.Factory.getParser(logger, CParser.Factory.getOptions(config), machineModel);
+        CParser outerParser =
+            CParser.Factory.getParser(
+                logger, CParser.Factory.getOptions(config), machineModel, shutdownNotifier);
 
       outerParser =
           new CParserWithLocationMapper(
-              config, logger, outerParser, readLineDirectives || usePreprocessor);
+              config, logger, outerParser, readLineDirectives || usePreprocessor || useClang);
 
       if (usePreprocessor) {
         CPreprocessor preprocessor = new CPreprocessor(config, logger);
         outerParser = new CParserWithPreprocessor(outerParser, preprocessor);
       }
 
-      parser = outerParser;
+      if (useClang) {
+          ClangPreprocessor clang = new ClangPreprocessor(config, logger);
+        parser = LlvmParserWithClang.Factory.getParser(clang, logger, machineModel);
+      } else {
+        parser = outerParser;
+      }
 
       break;
     case LLVM:
@@ -450,7 +458,8 @@ private boolean classifyNodes = false;
   public CFA parseFileAndCreateCFA(List<String> sourceFiles)
           throws InvalidConfigurationException, IOException, ParserException, InterruptedException {
 
-    Preconditions.checkArgument(!sourceFiles.isEmpty(), "At least one source file must be provided!");
+    Preconditions.checkArgument(
+        !sourceFiles.isEmpty(), "At least one source file must be provided!");
 
     stats.totalTime.start();
     try {
@@ -500,7 +509,8 @@ private boolean classifyNodes = false;
 
     // check the CFA of each function
     for (String functionName : cfa.getAllFunctionNames()) {
-      assert CFACheck.check(cfa.getFunctionHead(functionName), cfa.getFunctionNodes(functionName));
+      assert CFACheck.check(
+          cfa.getFunctionHead(functionName), cfa.getFunctionNodes(functionName), machineModel);
     }
     stats.checkTime.stop();
 
@@ -512,7 +522,8 @@ private boolean classifyNodes = false;
     // Check CFA again after post-processings
     stats.checkTime.start();
     for (String functionName : cfa.getAllFunctionNames()) {
-      assert CFACheck.check(cfa.getFunctionHead(functionName), cfa.getFunctionNodes(functionName));
+      assert CFACheck.check(
+          cfa.getFunctionHead(functionName), cfa.getFunctionNodes(functionName), machineModel);
     }
     stats.checkTime.stop();
 
@@ -594,44 +605,26 @@ private boolean classifyNodes = false;
                                                 config));
     }
 
-    Optional<DependenceGraph> depGraph;
-    if (createDependenceGraph) {
-      if (!varClassification.isPresent()) {
-        logger.log(
-            Level.WARNING,
-            "Variable Classification not present. Consider turning this on "
-                + "to improve dependence graph construction.");
-      }
-      try {
-        DependenceGraphBuilder depGraphBuilder =
-            DependenceGraph.builder(cfa, varClassification, config, logger, shutdownNotifier);
-        depGraph = Optional.of(depGraphBuilder.build());
-        depGraphBuilder.collectStatistics(stats.statisticsCollection);
-      } catch (CPAException pE) {
-        throw new CParserException(pE);
-      }
-    } else {
-      depGraph = Optional.empty();
-    }
-
     stats.processingTime.stop();
 
-    final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification, depGraph);
+    final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification);
 
     // check the super CFA starting at the main function
     stats.checkTime.start();
-    assert CFACheck.check(mainFunction, null);
+    assert CFACheck.check(mainFunction, null, machineModel);
     stats.checkTime.stop();
 
     if (((exportCfaFile != null) && (exportCfa || exportCfaPerFunction))
         || ((exportFunctionCallsFile != null) && exportFunctionCalls)
+        || ((exportFunctionCallsUsedFile != null) && exportFunctionCalls)
         || ((serializeCfaFile != null) && serializeCfa)
         || (exportCfaPixelFile != null)
         || (exportCfaToCFile != null && exportCfaToC)) {
       exportCFAAsync(immutableCFA);
     }
 
-    logger.log(Level.FINE, "DONE, CFA for", immutableCFA.getNumberOfFunctions(), "functions created.");
+    logger.log(
+        Level.FINE, "DONE, CFA for", immutableCFA.getNumberOfFunctions(), "functions created.");
 
     return immutableCFA;
   }
@@ -655,11 +648,11 @@ private boolean classifyNodes = false;
    * This method parses the program from the String and builds a CFA for each function. The
    * ParseResult is only a Wrapper for the CFAs of the functions and global declarations.
    */
-  private ParseResult parseToCFAs(final String program) throws ParserException {
+  private ParseResult parseToCFAs(final String program)
+      throws ParserException, InterruptedException {
     final ParseResult parseResult;
 
     parseResult = parser.parseString("test", program);
-
     if (parseResult.isEmpty()) {
       switch (language) {
       case JAVA:
@@ -691,7 +684,8 @@ private boolean classifyNodes = false;
       // programdenotations are separated from each other and a prefix for
       // static variables is generated
       if (language != Language.C) {
-        throw new InvalidConfigurationException("Multiple program files not supported for languages other than C.");
+        throw new InvalidConfigurationException(
+            "Multiple program files not supported for languages other than C.");
       }
 
       parseResult = ((CParser) parser).parseFile(sourceFiles);
@@ -721,7 +715,6 @@ private boolean classifyNodes = false;
   private MutableCFA postProcessingOnMutableCFAs(
       MutableCFA cfa, final List<Pair<ADeclaration, String>> globalDeclarations)
       throws InvalidConfigurationException, CParserException {
-
     // remove all edges which don't have any effect on the program
     if (simplifyCfa) {
       CFASimplifier.simplifyCFA(cfa);
@@ -802,7 +795,8 @@ private boolean classifyNodes = false;
   private FunctionEntryNode getJavaMainMethod(List<String> sourceFiles, Map<String, FunctionEntryNode> cfas)
       throws InvalidConfigurationException {
 
-    Preconditions.checkArgument(sourceFiles.size() == 1, "Multiple input files not supported by 'getJavaMainMethod'");
+    Preconditions.checkArgument(
+        sourceFiles.size() == 1, "Multiple input files not supported by 'getJavaMainMethod'");
     String mainClassName = sourceFiles.get(0);
 
     // try specified function
@@ -823,7 +817,8 @@ private boolean classifyNodes = false;
     mainFunction = cfas.get(mainClassName + JAVA_MAIN_METHOD_CFA_SUFFIX);
 
     if (mainFunction == null) {
-      throw new InvalidConfigurationException("No main method in given main class found, please specify one.");
+      throw new InvalidConfigurationException(
+          "No main method in given main class found, please specify one.");
     }
 
     return mainFunction;
@@ -926,9 +921,10 @@ private boolean classifyNodes = false;
     // we can add new edges between them and then reconnect the nodes
 
     // insert one node to start the series of declarations
-    CFANode cur = new CFANode(firstNode.getFunctionName());
+    CFANode cur = new CFANode(firstNode.getFunction());
     cfa.addNode(cur);
-    final CFAEdge newFirstEdge = new BlankEdge("", FileLocation.DUMMY, firstNode, cur, "INIT GLOBAL VARS");
+    final CFAEdge newFirstEdge =
+        new BlankEdge("", FileLocation.DUMMY, firstNode, cur, "INIT GLOBAL VARS");
     CFACreationUtils.addEdgeUnconditionallyToCFA(newFirstEdge);
 
     // create a series of GlobalDeclarationEdges, one for each declaration
@@ -937,7 +933,7 @@ private boolean classifyNodes = false;
       String rawSignature = p.getSecond();
       assert d.isGlobal();
 
-      CFANode n = new CFANode(cur.getFunctionName());
+      CFANode n = new CFANode(cur.getFunction());
       cfa.addNode(n);
 
       final CFAEdge newEdge;
@@ -1055,7 +1051,7 @@ v.addInitializer(initializer);
     // write the CFA to files (one file per function)
     if (exportCfaPerFunction && exportCfaFile != null) {
       try {
-        Path outdir = exportCfaFile.getParent();
+        Path outdir = exportCfaFile.getParent().resolve("cfa");
         new DOTBuilder2(cfa).writeGraphs(outdir);
       } catch (IOException e) {
         logger.logUserException(Level.WARNING, e,
@@ -1066,7 +1062,17 @@ v.addInitializer(initializer);
 
     if (exportFunctionCalls && exportFunctionCallsFile != null) {
       try (Writer w = IO.openOutputFile(exportFunctionCallsFile, Charset.defaultCharset())) {
-        FunctionCallDumper.dump(w, cfa);
+        FunctionCallDumper.dump(w, cfa, false);
+      } catch (IOException e) {
+        logger.logUserException(Level.WARNING, e,
+            "Could not write functionCalls to dot file");
+        // continue with analysis
+      }
+    }
+
+    if (exportFunctionCalls && exportFunctionCallsUsedFile != null) {
+      try (Writer w = IO.openOutputFile(exportFunctionCallsUsedFile, Charset.defaultCharset())) {
+        FunctionCallDumper.dump(w, cfa, true);
       } catch (IOException e) {
         logger.logUserException(Level.WARNING, e,
             "Could not write functionCalls to dot file");
@@ -1097,7 +1103,7 @@ v.addInitializer(initializer);
 
     if (exportCfaToC && exportCfaToCFile != null) {
       try {
-        String code = new CFAToCTranslator().translateCfa(cfa);
+        String code = new CFAToCTranslator(config).translateCfa(cfa);
         try (Writer writer = IO.openOutputFile(exportCfaToCFile, Charset.defaultCharset())) {
           writer.write(code);
         }

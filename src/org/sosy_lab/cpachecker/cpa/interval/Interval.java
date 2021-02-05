@@ -1,34 +1,22 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.interval;
 
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.math.LongMath.saturatedAdd;
+import static com.google.common.math.LongMath.saturatedMultiply;
+
+import com.google.common.primitives.Longs;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 
-public class Interval implements Serializable{
+public final class Interval implements Serializable {
   private static final long serialVersionUID = 4223098080993616295L;
 
   /**
@@ -75,12 +63,8 @@ public class Interval implements Serializable{
   }
 
   private boolean isSane() {
-    if ((low == null) != (high == null)) {
-      throw new IllegalStateException("invalid empty interval");
-    }
-    if (low != null && low > high) {
-      throw new IllegalStateException("low cannot be larger than high");
-    }
+    checkState((low == null) == (high == null), "invalid empty interval");
+    checkState(low == null || low <= high, "low cannot be larger than high");
 
     return true;
   }
@@ -103,9 +87,6 @@ public class Interval implements Serializable{
     return high;
   }
 
-  /* (non-Javadoc)
-   * @see java.lang.Object#equals(java.lang.Object)
-   */
   @Override
   public boolean equals(Object other) {
     if (other != null && getClass().equals(other.getClass())) {
@@ -115,9 +96,6 @@ public class Interval implements Serializable{
     return false;
   }
 
-  /* (non-Javadoc)
-   * @see java.lang.Object#hashCode()
-   */
   @Override
   public int hashCode() {
     return Objects.hash(low, high);
@@ -332,7 +310,7 @@ public class Interval implements Serializable{
       return EMPTY;
     }
 
-    return new Interval(scalarPlus(low, interval.low), scalarPlus(high, interval.high));
+    return new Interval(saturatedAdd(low, interval.low), saturatedAdd(high, interval.high));
   }
 
   /**
@@ -372,14 +350,14 @@ public class Interval implements Serializable{
    * @return new interval that represents the result of the multiplication of the two intervals
    */
   public Interval times(Interval other) {
-    Long[] values = {
-                      scalarTimes(low, other.low),
-                      scalarTimes(low, other.high),
-                      scalarTimes(high, other.low),
-                      scalarTimes(high, other.high)
+    long[] values = {
+                      saturatedMultiply(low, other.low),
+                      saturatedMultiply(low, other.high),
+                      saturatedMultiply(high, other.low),
+                      saturatedMultiply(high, other.high)
                     };
 
-    return new Interval(Collections.min(Arrays.asList(values)), Collections.max(Arrays.asList(values)));
+    return new Interval(Longs.min(values), Longs.max(values));
   }
 
   /**
@@ -393,14 +371,14 @@ public class Interval implements Serializable{
     if (other.contains(ZERO)) {
       return UNBOUND;
     } else {
-      Long[] values = {
+      long[] values = {
                         low / other.low,
                         low / other.high,
                         high / other.low,
                         high / other.high
                       };
 
-      return new Interval(Collections.min(Arrays.asList(values)), Collections.max(Arrays.asList(values)));
+      return new Interval(Longs.min(values), Longs.max(values));
     }
   }
 
@@ -457,7 +435,7 @@ public class Interval implements Serializable{
    * @return new negated interval
    */
   public Interval negate() {
-    return new Interval(scalarTimes(high, -1L), scalarTimes(low, -1L));
+    return new Interval(saturatedMultiply(high, -1L), saturatedMultiply(low, -1L));
   }
 
   /**
@@ -473,9 +451,6 @@ public class Interval implements Serializable{
     return !isEmpty() && low == Long.MIN_VALUE && high == Long.MAX_VALUE;
   }
 
-  /* (non-Javadoc)
-   * @see java.lang.Object#toString()
-   */
   @Override
   public String toString() {
     return "[" + (low == null ? "" : low) + "; " + (high == null ? "" : high) + "]";
@@ -499,43 +474,5 @@ public class Interval implements Serializable{
    */
   public static Interval createUpperBoundedInterval(Long upperBound) {
     return new Interval(Long.MIN_VALUE, upperBound);
-  }
-
-  /**
-   * This method adds two scalar values and returns their sum, or on overflow Long.MAX_VALUE or Long.MIN_VALUE, respectively.
-   *
-   * @param x the first scalar operand
-   * @param y the second scalar operand
-   * @return the sum of the first and second scalar operand or on overflow Long.MAX_VALUE and Long.MIN_VALUE, respectively.
-   */
-  private static Long scalarPlus(Long x, Long y) {
-    Long result = x + y;
-
-    // both operands are positive but the result is negative
-    if ((Long.signum(x) + Long.signum(y) == 2) && Long.signum(result) == -1) {
-      result = Long.MAX_VALUE;
-    } else  if ((Long.signum(x) + Long.signum(y) == -2) && Long.signum(result) == +1) {
-      result = Long.MIN_VALUE;
-    }
-
-    return result;
-  }
-
-  /**
-   * This method multiplies two scalar values and returns their product, or on overflow Long.MAX_VALUE or Long.MIN_VALUE, respectively.
-   *
-   * @param x the first scalar operand
-   * @param y the second scalar operand
-   * @return the product of the first and second scalar operand or on overflow Long.MAX_VALUE and Long.MIN_VALUE, respectively.
-   */
-  private static Long scalarTimes(Long x, Long y) {
-    Long bound = (Long.signum(x) == Long.signum(y)) ? Long.MAX_VALUE : Long.MIN_VALUE;
-
-    // if overflow occurs, return the respective bound
-    if (x != 0 && ((y > 0 && y > (bound / x)) || (y < 0 && y < (bound / x)))) {
-      return bound;
-    } else {
-      return x * y;
-    }
   }
 }

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates.precisionConverter;
 
 import static org.sosy_lab.java_smt.api.FormulaType.getBitvectorTypeWithSize;
@@ -58,7 +43,6 @@ import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
 import org.sosy_lab.java_smt.api.FormulaType;
-
 
 public class SymbolEncoding {
 
@@ -178,9 +162,7 @@ public class SymbolEncoding {
       }
       for (CFunctionCallEdge edge : edges.filter(CFunctionCallEdge.class)) {
         final List<? extends CParameterDeclaration> params = edge.getSuccessor().getFunctionParameters();
-        for (CParameterDeclaration param : params) {
-          sd.add(param);
-        }
+        sd.addAll(params);
       }
       for (CFunctionReturnEdge edge : edges.filter(CFunctionReturnEdge.class)) {
         Optional<? extends CVariableDeclaration> retVar = edge.getFunctionEntry().getReturnVariable();
@@ -202,8 +184,10 @@ public class SymbolEncoding {
           new Appender() {
             @Override
             public void appendTo(Appendable app) throws IOException {
-              for (String symbol : encodedSymbols.keySet()) {
-                final Type<FormulaType<?>> type = encodedSymbols.get(symbol);
+              for (Map.Entry<String, SymbolEncoding.Type<FormulaType<?>>> entry :
+                  encodedSymbols.entrySet()) {
+                String symbol = entry.getKey();
+                final Type<FormulaType<?>> type = entry.getValue();
                 app.append(symbol + "\t" + type.getReturnType());
                 if (!type.getParameterTypes().isEmpty()) {
                   app.append("\t" + Joiner.on("\t").join(type.getParameterTypes()));
@@ -236,8 +220,8 @@ public class SymbolEncoding {
 
     public List<T> getParameterTypes() { return parameterTypes; }
 
-    public void setSigness(boolean signed) {
-      this.signed = signed;
+    public void setSigness(boolean pSigned) {
+      this.signed = pSigned;
     }
 
     public boolean isSigned() {
@@ -252,7 +236,7 @@ public class SymbolEncoding {
     @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object other) {
-      if (other != null && other instanceof Type) {
+      if (other instanceof Type) {
         Type<T> t = (Type<T>)other;
         return returnType.equals(t.returnType)
             && parameterTypes.equals(t.parameterTypes);

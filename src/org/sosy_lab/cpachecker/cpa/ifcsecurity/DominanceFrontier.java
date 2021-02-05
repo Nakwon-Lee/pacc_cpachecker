@@ -1,29 +1,15 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.ifcsecurity;
 
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.sosy_lab.cpachecker.cfa.CFA;
@@ -44,7 +30,7 @@ public class DominanceFrontier {
 // private int mode;
 // @SuppressWarnings("unused")
 // private Collection<CFANode> nodes;
-  private Map<CFANode,TreeSet<CFANode>> df=new TreeMap<>();
+  private Map<CFANode, NavigableSet<CFANode>> df = new TreeMap<>();
 
   @SuppressWarnings("unused")
   public DominanceFrontier(CFA pCfa, Map<CFANode, CFANode> pDom){
@@ -62,7 +48,7 @@ public class DominanceFrontier {
     //Compute Dominator Frontier
 
     for(CFANode m: cfa.getAllNodes()){
-      TreeSet<CFANode> dfset=new TreeSet<>();
+      NavigableSet<CFANode> dfset = new TreeSet<>();
       for(CFANode r: dominators.keySet()){
         if (!r.equals(exit)) {
           int n=r.getNumLeavingEdges();
@@ -113,7 +99,7 @@ public class DominanceFrontier {
     }
   }
 
-  public Map<CFANode,TreeSet<CFANode>> getDominanceFrontier(){
+  public Map<CFANode, NavigableSet<CFANode>> getDominanceFrontier() {
     return df;
   }
 

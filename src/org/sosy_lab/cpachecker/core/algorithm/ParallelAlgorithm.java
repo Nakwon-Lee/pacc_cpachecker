@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.algorithm;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,8 +19,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -70,7 +55,6 @@ import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.CoreComponentsFactory;
-import org.sosy_lab.cpachecker.core.Specification;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.Precision;
@@ -82,6 +66,7 @@ import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets.AggregatedR
 import org.sosy_lab.cpachecker.core.reachedset.ForwardingReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
+import org.sosy_lab.cpachecker.core.specification.Specification;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CompoundException;
 import org.sosy_lab.cpachecker.util.AbstractStates;
@@ -126,6 +111,8 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
   private final List<ConditionAdjustmentEventSubscriber> conditionAdjustmentEventSubscribers =
       new CopyOnWriteArrayList<>();
 
+  private final ImmutableList<Callable<ParallelAnalysisResult>> analyses;
+
   public ParallelAlgorithm(
       Configuration config,
       LogManager pLogger,
@@ -133,7 +120,7 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
       Specification pSpecification,
       CFA pCfa,
       AggregatedReachedSets pAggregatedReachedSets)
-      throws InvalidConfigurationException {
+      throws InvalidConfigurationException, CPAException, InterruptedException {
     config.inject(this);
 
     stats = new ParallelAlgorithmStatistics(pLogger);
@@ -145,6 +132,13 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
 
     aggregatedReachedSetManager = new AggregatedReachedSetManager();
     aggregatedReachedSetManager.addAggregated(pAggregatedReachedSets);
+
+    ImmutableList.Builder<Callable<ParallelAnalysisResult>> analysesBuilder =
+        ImmutableList.builder();
+    for (AnnotatedValue<Path> p : configFiles) {
+      analysesBuilder.add(createParallelAnalysis(p, ++stats.noOfAlgorithmsUsed));
+    }
+    analyses = analysesBuilder.build();
   }
 
   @Override
@@ -152,11 +146,11 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
     mainEntryNode = AbstractStates.extractLocation(pReachedSet.getFirstState());
     ForwardingReachedSet forwardingReachedSet = (ForwardingReachedSet) pReachedSet;
 
-    ListeningExecutorService exec = listeningDecorator(newFixedThreadPool(configFiles.size()));
-    List<ListenableFuture<ParallelAnalysisResult>> futures = new ArrayList<>();
+    ListeningExecutorService exec = listeningDecorator(newFixedThreadPool(analyses.size()));
 
-    for (AnnotatedValue<Path> p : configFiles) {
-      futures.add(exec.submit(createParallelAnalysis(p, ++stats.noOfAlgorithmsUsed)));
+    List<ListenableFuture<ParallelAnalysisResult>> futures = new ArrayList<>(analyses.size());
+    for (Callable<ParallelAnalysisResult> call : analyses) {
+      futures.add(exec.submit(call));
     }
 
     // shutdown the executor service,
@@ -261,7 +255,8 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
   }
 
   private Callable<ParallelAnalysisResult> createParallelAnalysis(
-      final AnnotatedValue<Path> pSingleConfigFileName, final int analysisNumber) {
+      final AnnotatedValue<Path> pSingleConfigFileName, final int analysisNumber)
+      throws InvalidConfigurationException, CPAException, InterruptedException {
     final Path singleConfigFileName = pSingleConfigFileName.value();
     final boolean supplyReached;
     final boolean supplyRefinableReached;
@@ -273,45 +268,41 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
     final ShutdownManager singleShutdownManager = ShutdownManager.createWithParent(shutdownManager.getNotifier());
 
     final LogManager singleLogger = logger.withComponentName("Parallel analysis " + analysisNumber);
-    final ResourceLimitChecker singleAnalysisOverallLimit;
-    final CoreComponentsFactory coreComponents;
-    try {
-      if (pSingleConfigFileName.annotation().isPresent()) {
-        switch (pSingleConfigFileName.annotation().get()) {
-          case "supply-reached":
-            supplyReached = true;
-            supplyRefinableReached = false;
-            break;
-          case "supply-reached-refinable":
-            supplyReached = false;
-            supplyRefinableReached = true;
-            break;
-          default:
-            throw new InvalidConfigurationException(
-                String.format(
-                    "Annotation %s is not valid for config %s in option parallelAlgorithm.configFiles",
-                    pSingleConfigFileName.annotation(),
-                    pSingleConfigFileName.value()));
-        }
-      } else {
-        supplyReached = false;
-        supplyRefinableReached = false;
+
+    if (pSingleConfigFileName.annotation().isPresent()) {
+      switch (pSingleConfigFileName.annotation().orElseThrow()) {
+        case "supply-reached":
+          supplyReached = true;
+          supplyRefinableReached = false;
+          break;
+        case "supply-reached-refinable":
+          supplyReached = false;
+          supplyRefinableReached = true;
+          break;
+        default:
+          throw new InvalidConfigurationException(
+              String.format(
+                  "Annotation %s is not valid for config %s in option parallelAlgorithm.configFiles",
+                  pSingleConfigFileName.annotation(), pSingleConfigFileName.value()));
       }
-
-      singleAnalysisOverallLimit =
-          ResourceLimitChecker.fromConfiguration(singleConfig, singleLogger, singleShutdownManager);
-
-      coreComponents =
-          new CoreComponentsFactory(
-              singleConfig,
-              singleLogger,
-              singleShutdownManager.getNotifier(),
-              aggregatedReachedSetManager.asView());
-    } catch (InvalidConfigurationException e) {
-      return () -> { throw e; };
+    } else {
+      supplyReached = false;
+      supplyRefinableReached = false;
     }
 
+    final ResourceLimitChecker singleAnalysisOverallLimit =
+        ResourceLimitChecker.fromConfiguration(singleConfig, singleLogger, singleShutdownManager);
+
+    final CoreComponentsFactory coreComponents =
+        new CoreComponentsFactory(
+            singleConfig,
+            singleLogger,
+            singleShutdownManager.getNotifier(),
+            aggregatedReachedSetManager.asView());
+
     final ReachedSet reached = coreComponents.createReachedSet();
+    final ConfigurableProgramAnalysis cpa = coreComponents.createCPA(cfa, specification);
+    final Algorithm algorithm = coreComponents.createAlgorithm(cpa, cfa, specification);
 
     AtomicBoolean terminated = new AtomicBoolean(false);
     StatisticsEntry statisticsEntry =
@@ -323,16 +314,10 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
                     .filter(ThreadCpuTimeLimit.class),
                 null), terminated);
     return () -> {
-      final Algorithm algorithm;
-      final ConfigurableProgramAnalysis cpa;
-
-      cpa = coreComponents.createCPA(cfa, specification);
-
       // TODO global info will not work correctly with parallel analyses
       // as it is a mutable singleton object
       GlobalInfo.getInstance().setUpInfoFromCPA(cpa);
 
-      algorithm = coreComponents.createAlgorithm(cpa, cfa, specification);
       if (algorithm instanceof ConditionAdjustmentEventSubscriber) {
         conditionAdjustmentEventSubscribers.add((ConditionAdjustmentEventSubscriber) algorithm);
       }
@@ -578,7 +563,7 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
   private static class ParallelAlgorithmStatistics implements Statistics {
 
     private final LogManager logger;
-    private final List<StatisticsEntry> allAnalysesStats = Lists.newCopyOnWriteArrayList();
+    private final List<StatisticsEntry> allAnalysesStats = new CopyOnWriteArrayList<>();
     private int noOfAlgorithmsUsed = 0;
     private String successfulAnalysisName = null;
 
@@ -588,7 +573,7 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
 
     public synchronized StatisticsEntry getNewSubStatistics(
         ReachedSet pReached, String pName, @Nullable ThreadCpuTimeLimit pRLimit, AtomicBoolean pTerminated) {
-      Collection<Statistics> subStats = Lists.newCopyOnWriteArrayList();
+      Collection<Statistics> subStats = new CopyOnWriteArrayList<>();
       StatisticsEntry entry = new StatisticsEntry(subStats, pReached, pName, pRLimit, pTerminated);
       allAnalysesStats.add(entry);
       return entry;
@@ -645,7 +630,7 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
     public void writeOutputFiles(Result pResult, UnmodifiableReachedSet pReached) {
       StatisticsEntry successfullAnalysisStats = null;
       for (StatisticsEntry subStats : allAnalysesStats) {
-        if (isSuccessfulAnalysis(subStats.name)) {
+        if (isSuccessfulAnalysis(subStats)) {
           successfullAnalysisStats = subStats;
         } else {
           writeSubOutputFiles(pResult, subStats);
@@ -665,13 +650,21 @@ public class ParallelAlgorithm implements Algorithm, StatisticsProvider {
       }
     }
 
-    private boolean isSuccessfulAnalysis(String pAnalysisName) {
-      return successfulAnalysisName != null && successfulAnalysisName.equals(pAnalysisName);
+    private boolean isSuccessfulAnalysis(StatisticsEntry pStatEntry) {
+      return successfulAnalysisName != null && successfulAnalysisName.equals(pStatEntry.name);
     }
 
     private Result determineAnalysisResult(Result pResult, String pActualAnalysisName) {
       if (successfulAnalysisName != null && !successfulAnalysisName.equals(pActualAnalysisName)) {
-        return Result.UNKNOWN;
+        if (pResult == Result.TRUE) {
+          // we need this to let the invariant analysis write a correctness witness if we use
+          // k-induction. TODO: find a better fix for this mess.
+          return Result.UNKNOWN;
+        } else {
+          // Signal that this analysis is not important for the final verdict:
+          // (especially, do NOT generate a correctness witness)
+          return Result.DONE;
+        }
       }
       return pResult;
     }

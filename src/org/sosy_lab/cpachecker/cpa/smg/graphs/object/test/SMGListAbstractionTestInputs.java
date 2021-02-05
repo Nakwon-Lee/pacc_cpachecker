@@ -1,26 +1,11 @@
-/*
-S *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg.graphs.object.test;
 
 import java.util.ArrayList;
@@ -56,21 +41,22 @@ public final class SMGListAbstractionTestInputs {
     }
   }
 
-  private static SMGValue[][] SUBLISTS_A =
+  private static final SMGValue[][] SUBLISTS_A =
       new SMGValue[][] {{REGION_A, REGION_A}, {REGION_A, REGION_A}};
-  private static SMGValue[][] SUBLISTS_B =
+  private static final SMGValue[][] SUBLISTS_B =
       new SMGValue[][] {
         {newVal(), newVal(), newVal()},
         {newVal(), newVal()},
         {newVal(), newVal()},
         {newVal(), newVal(), newVal()}
       };
-  private static SMGValue[][] SUBLISTS_C = new SMGValue[][] {{}, {}};
-  private static SMGValue[][] SUBLISTS_D = new SMGValue[][] {{newVal()}, {newVal()}};
-  private static SMGValue[][] SUBLISTS_E = new SMGValue[][] {{newVal()}, {}};
-  private static SMGValue[][] SUBLISTS_F = new SMGValue[][] {LIST_EQ_2, LIST_DIFF_2, LIST_EQ_3};
-  private static SMGValue[][] SUBLISTS_G = new SMGValue[][] {LIST_EQ_3, LIST_EQ_3, LIST_EQ_3};
-  private static SMGValue[][] SUBLISTS_H = new SMGValue[LONG_TEST_LIST_LENGTH][1];
+  private static final SMGValue[][] SUBLISTS_C = new SMGValue[][] {{}, {}};
+  private static final SMGValue[][] SUBLISTS_D = new SMGValue[][] {{newVal()}, {newVal()}};
+  private static final SMGValue[][] SUBLISTS_E = new SMGValue[][] {{newVal()}, {}};
+  private static final SMGValue[][] SUBLISTS_F =
+      new SMGValue[][] {LIST_EQ_2, LIST_DIFF_2, LIST_EQ_3};
+  private static final SMGValue[][] SUBLISTS_G = new SMGValue[][] {LIST_EQ_3, LIST_EQ_3, LIST_EQ_3};
+  private static final SMGValue[][] SUBLISTS_H = new SMGValue[LONG_TEST_LIST_LENGTH][1];
 
   static {
     for (int i = 0; i < SUBLISTS_H.length; i++) {
@@ -112,18 +98,16 @@ public final class SMGListAbstractionTestInputs {
 
   public static List<Object[]> getValuesAsTestInputs() {
     return Arrays.asList(
-        new Object[][] {
-          new Object[] {LIST_EQ_2},
-          new Object[] {LIST_DIFF_2},
-          new Object[] {LIST_EQ_3},
-          new Object[] {LIST_DIFF_3},
-          new Object[] {LIST_EQ_4},
-          new Object[] {LIST_DIFF_4},
-          new Object[] {LIST_EQ_5},
-          new Object[] {LIST_DIFF_5},
-          new Object[] {LIST_EQ_X},
-          new Object[] {LIST_DIFF_X}
-        });
+        new Object[] {LIST_EQ_2},
+        new Object[] {LIST_DIFF_2},
+        new Object[] {LIST_EQ_3},
+        new Object[] {LIST_DIFF_3},
+        new Object[] {LIST_EQ_4},
+        new Object[] {LIST_DIFF_4},
+        new Object[] {LIST_EQ_5},
+        new Object[] {LIST_DIFF_5},
+        new Object[] {LIST_EQ_X},
+        new Object[] {LIST_DIFF_X});
   }
 
   public static List<Object[]> getAttachRegionToListTestInputs() {

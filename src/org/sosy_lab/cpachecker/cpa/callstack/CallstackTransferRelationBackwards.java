@@ -1,30 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.callstack;
 
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -87,7 +73,7 @@ public class CallstackTransferRelationBackwards extends CallstackTransferRelatio
       if (pEdge instanceof CFunctionSummaryStatementEdge) {
         if (!shouldGoByFunctionSummaryStatement(e, (CFunctionSummaryStatementEdge) pEdge)) {
           // should go by function call and skip the current edge
-          return Collections.emptySet();
+          return ImmutableSet.of();
         }
         // otherwise use this edge just like a normal edge
       }
@@ -103,17 +89,16 @@ public class CallstackTransferRelationBackwards extends CallstackTransferRelatio
                 Level.WARNING, "Skipping recursive function call from",
                 prevAnalysisFunction, "to", nextAnalysisFunction);
 
-            return Collections.emptySet();
+            return ImmutableSet.of();
           } else {
             logger.log(Level.INFO, "Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line.");
               throw new UnsupportedCodeException("recursion", pEdge);
           }
 
         } else {
-          // BACKWARDS: Build the stack on the function-return edge (add element to the stack)
-          return Collections.singleton(new CallstackState(e,
-              nextAnalysisFunction,
-              correspondingCallNode));
+            // BACKWARDS: Build the stack on the function-return edge (add element to the stack)
+            return ImmutableSet.of(
+                new CallstackState(e, nextAnalysisFunction, correspondingCallNode));
         }
       }
 
@@ -144,7 +129,7 @@ public class CallstackTransferRelationBackwards extends CallstackTransferRelatio
         } else if (e.getCallNode().equals(nextAnalysisLoc)) {
           result = Collections.singleton(nextStackState);
         } else {
-          result = Collections.emptySet();
+          result = ImmutableSet.of();
         }
 
         return result;

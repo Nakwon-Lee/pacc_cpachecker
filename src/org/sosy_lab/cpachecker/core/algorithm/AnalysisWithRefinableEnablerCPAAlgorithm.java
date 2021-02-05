@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.algorithm;
 
 import static com.google.common.collect.FluentIterable.from;
@@ -38,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.sosy_lab.common.ShutdownNotifier;
+import org.sosy_lab.common.annotations.SuppressForbidden;
 import org.sosy_lab.common.collect.PersistentMap;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -192,6 +178,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
   }
 
   @Override
+  @SuppressForbidden("TODO: needs to be fixed")
   public AlgorithmStatus run(ReachedSet pReachedSet) throws CPAException, InterruptedException {
     // delete fake edges from previous run
     logger.log(Level.FINEST, "Clean up from previous run");
@@ -220,8 +207,9 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
         throw new CPAException("Error state not known to analysis with enabler CPA. Cannot continue analysis.");
       }
       Precision precision =  pReachedSet.getPrecision(((ARGState)e.getFailureCause()).getParents().iterator().next());
-      if (e.getFailureCause() != null && !pReachedSet.contains(e.getFailureCause())
-          && ((ARGState) e.getFailureCause()).getParents().size() != 0) {
+      if (e.getFailureCause() != null
+          && !pReachedSet.contains(e.getFailureCause())
+          && !((ARGState) e.getFailureCause()).getParents().isEmpty()) {
         // add element
         pReachedSet.add(e.getFailureCause(), precision);
         // readd parents their may be other siblings in the ARG which are not part of the reached set
@@ -383,9 +371,9 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
 
         CompositeState newComp = new CompositeState(wrappedStates.build());
 
-        assert (pPredecessor.getChildren().size() == 0);
+        assert (pPredecessor.getChildren().isEmpty());
         assert (pPredecessor.getParents().size() == 1);
-        assert (pPredecessor.getCoveredByThis().size() == 0);
+        assert (pPredecessor.getCoveredByThis().isEmpty());
 
         ARGState newPred = new ARGState(newComp, pPredecessor.getParents().iterator().next());
         pPredecessor.removeFromARG();
@@ -438,7 +426,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
     case VALUE:
       Collection<? extends AbstractState> nextFakeStateResult = enablerTransfer
               .getAbstractSuccessorsForEdge(pFakeEnablerState, SingletonPrecision.getInstance(), pAssumeEdge);
-      if (nextFakeStateResult == null || nextFakeStateResult.size() <= 0) {
+      if (nextFakeStateResult == null || nextFakeStateResult.isEmpty()) {
         logger.log(Level.INFO,
                 "Adding error explaining condition makes path infeasible, enabler knows of infeasibility of error, but still try to exclude path");
         return pFakeEnablerState;
@@ -451,7 +439,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
   }
 
   private CFANode createFakeEdge(final CExpression pAssumeExpr, final CFANode pPredecessor) {
-    CFANode successor = new CFANode(pPredecessor.getFunctionName());
+    CFANode successor = new CFANode(pPredecessor.getFunction());
     CAssumeEdge assumeEdge =
         new CAssumeEdge(
             pAssumeExpr.toASTString(),
@@ -485,7 +473,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
 
   private Precision buildInitialPrecision(Collection<Precision> precisions, Precision initialPrecision)
       throws InterruptedException, RefinementFailedException {
-    if (precisions.size()==0) {
+    if (precisions.isEmpty()) {
       return initialPrecision;
     }
 
@@ -596,7 +584,7 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
       if (lessPrecise.size() == morePrecise.size() && lessPrecise.equals(morePrecise)) { return false; }
 
       // build conjunction of predicates
-      ArrayList<BooleanFormula> list = new ArrayList<>(Math.max(lessPrecise.size(), morePrecise.size()));
+      List<BooleanFormula> list = new ArrayList<>(Math.max(lessPrecise.size(), morePrecise.size()));
       for (AbstractionPredicate abs : lessPrecise) {
         list.add(abs.getSymbolicAtom());
       }
@@ -624,8 +612,10 @@ public class AnalysisWithRefinableEnablerCPAAlgorithm implements Algorithm, Stat
       return false;
     }
     // check lists in reverse order for short-circuiting
-    List<CFANode> edges1 = Lists.transform(path1.asStatesList().reverse(), AbstractStates.EXTRACT_LOCATION);
-    List<CFANode> edges2 = Lists.transform(path2.asStatesList().reverse(), AbstractStates.EXTRACT_LOCATION);
+    List<CFANode> edges1 =
+        Lists.transform(path1.asStatesList().reverse(), AbstractStates::extractLocation);
+    List<CFANode> edges2 =
+        Lists.transform(path2.asStatesList().reverse(), AbstractStates::extractLocation);
     return edges1.equals(edges2);
   }
 

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.waitlist;
 
 import com.google.common.base.Preconditions;
@@ -91,16 +76,6 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
 
   @Override
   public void add(AbstractState pState) {
-    /*
-    //DEBUG
-    ARGState tARGState = AbstractStates.extractStateByType(pState, ARGState.class);
-    assert tARGState != null : "extractStateByType is failed! (ARGState)";
-    if (tARGState.getBlkDepth()==0){
-      System.out.println("What?!");
-    }
-    //GUBED
-     *
-     */
 
     K key = getSortKey(pState);
     Waitlist localWaitlist = waitlist.get(key);
@@ -143,49 +118,10 @@ public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements
   }
 
   @Override
-  //DEBUG
-  //originally final method but I modify it as non-final
-  //GUBED
-  public AbstractState pop() {
+  public final AbstractState pop() {
     popCount.inc();
-    Entry<K, Waitlist> highestEntry = null;
-    /*
-    //DEBUG
 
-    if (this instanceof CallstackSortedWaitlist){
-      if (waitlist.size() > 0){
-        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
-          System.out.print(entry.getValue().getClass().getName());
-          System.out.println(" "+entry.getValue().size()+"  key: "+entry.getKey());
-          }
-        }
-    }
-
-    boolean check = true;
-
-    if (this instanceof DynamicSortedWaitlist){
-      if (waitlist.size() > 0){
-        for (Entry<K, Waitlist> entry : waitlist.entrySet()){
-          K key = entry.getKey();
-          if (key instanceof SimpleSearchInfo){
-            SimpleSearchInfo skey = (SimpleSearchInfo) key;
-            if (skey.getInfos().get("isAbsSt")==0){
-              check = false;
-            }
-          }
-        }
-      }
-    }
-
-    if (check){
-      System.out.println("good! only AbsSts");
-    }
-
-    //GUBED
-     * * */
-
-
-    highestEntry = waitlist.lastEntry();
+    Entry<K, Waitlist> highestEntry = waitlist.lastEntry();
     Waitlist localWaitlist = highestEntry.getValue();
     assert !localWaitlist.isEmpty();
     AbstractState result = localWaitlist.pop();

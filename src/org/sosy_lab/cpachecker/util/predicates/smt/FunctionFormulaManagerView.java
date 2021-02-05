@@ -1,32 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates.smt;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.FluentIterable.from;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import java.util.Arrays;
@@ -37,7 +21,6 @@ import org.sosy_lab.java_smt.api.FunctionDeclaration;
 import org.sosy_lab.java_smt.api.FunctionDeclarationKind;
 import org.sosy_lab.java_smt.api.UFManager;
 
-
 public class FunctionFormulaManagerView extends BaseManagerView implements UFManager {
 
   private final UFManager manager;
@@ -45,7 +28,7 @@ public class FunctionFormulaManagerView extends BaseManagerView implements UFMan
   FunctionFormulaManagerView(FormulaWrappingHandler pWrappingHandler,
       UFManager pManager) {
     super(pWrappingHandler);
-    this.manager = pManager;
+    this.manager = checkNotNull(pManager);
   }
 
   @Immutable
@@ -143,16 +126,7 @@ public class FunctionFormulaManagerView extends BaseManagerView implements UFMan
   @Override
   public <T extends Formula> T declareAndCallUF(
       String name, FormulaType<T> pReturnType, List<Formula> pArgs) {
-
-    List<FormulaType<?>> argTypes = from(pArgs).
-      transform(
-          new Function<Formula, FormulaType<?>>() {
-            @Override
-            public FormulaType<?> apply(Formula pArg0) {
-              return getFormulaType(pArg0);
-            }}).toList();
-
-
+    List<FormulaType<?>> argTypes = transformedImmutableListCopy(pArgs, this::getFormulaType);
     FunctionDeclaration<T> func = declareUF(name, pReturnType, argTypes);
     return callUF(func, pArgs);
   }

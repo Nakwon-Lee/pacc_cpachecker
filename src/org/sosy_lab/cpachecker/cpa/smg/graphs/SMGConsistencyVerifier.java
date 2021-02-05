@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg.graphs;
 
 import com.google.common.collect.Queues;
@@ -83,14 +68,16 @@ final class SMGConsistencyVerifier {
 
     // Verify that the value found in values is the one returned by getNullValue()
     if (SMGZeroValue.INSTANCE != null_value) {
-      pLogger.log(Level.SEVERE, "SMG inconsistent: null value in values set not returned by getNullValue()");
+      pLogger.log(
+          Level.SEVERE,
+          "SMG inconsistent: null value in values set not returned by getNullValue()");
       return false;
     }
 
     // Verify that NULL object has no value
     SMGEdgeHasValueFilter filter = SMGEdgeHasValueFilter.objectFilter(SMGNullObject.INSTANCE);
 
-    if (! pSmg.getHVEdges(filter).isEmpty()) {
+    if (!pSmg.getHVEdges(filter).isEmpty()) {
       pLogger.log(Level.SEVERE, "SMG inconsistent: null object has some value");
       return false;
     }
@@ -127,7 +114,7 @@ final class SMGConsistencyVerifier {
       // Verify that the HasValue edge set for this invalid object is empty
       SMGEdgeHasValueFilter filter = SMGEdgeHasValueFilter.objectFilter(obj);
 
-      if (pSmg.getHVEdges(filter).size() > 0) {
+      if (!pSmg.getHVEdges(filter).isEmpty()) {
         pLogger.log(Level.SEVERE, "SMG inconsistent: invalid object has a HVEdge");
         return false;
       }
@@ -152,7 +139,7 @@ final class SMGConsistencyVerifier {
     SMGEdgeHasValueFilter filter = SMGEdgeHasValueFilter.objectFilter(pObject);
 
     for (SMGEdgeHasValue hvEdge : pSmg.getHVEdges(filter)) {
-      if ((hvEdge.getOffset() + hvEdge.getSizeInBits(pSmg.getMachineModel())) > pObject.getSize()) {
+      if ((hvEdge.getOffset() + hvEdge.getSizeInBits()) > pObject.getSize()) {
         pLogger.log(Level.SEVERE, "SMG inconistent: field exceedes boundary of the object");
         pLogger.log(Level.SEVERE, "Object: ", pObject);
         pLogger.log(Level.SEVERE, "Field: ", hvEdge);
@@ -195,15 +182,13 @@ final class SMGConsistencyVerifier {
 
       // Verify that the object assigned to the edge exists in the SMG
       if (!pSmg.getObjects().contains(edge.getObject())) {
-        pLogger.log(Level.SEVERE, "SMG inconsistent: Edge from a nonexistent object");
-        pLogger.log(Level.SEVERE, "Edge :", edge);
+        pLogger.log(Level.SEVERE, "SMG inconsistent: Edge from a nonexistent object:", edge);
         return false;
       }
 
       // Verify that the value assigned to the edge exists in the SMG
       if (! pSmg.getValues().contains(edge.getValue())) {
-        pLogger.log(Level.SEVERE, "SMG inconsistent: Edge to a nonexistent value");
-        pLogger.log(Level.SEVERE, "Edge :", edge);
+        pLogger.log(Level.SEVERE, "SMG inconsistent: Edge to a nonexistent value:", edge);
         return false;
       }
 

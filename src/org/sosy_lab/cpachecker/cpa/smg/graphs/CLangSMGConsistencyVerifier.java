@@ -1,28 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg.graphs;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,6 +17,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cpa.smg.CLangStackFrame;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValueFilter;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGNullObject;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGObject;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGRegion;
@@ -61,7 +50,7 @@ public class CLangSMGConsistencyVerifier {
   private static boolean verifyDisjunctHeapAndGlobal(
       LogManager pLogger, UnmodifiableCLangSMG pSmg) {
     Map<String, SMGRegion> globals = pSmg.getGlobalObjects();
-    Set<SMGObject> heap = pSmg.getHeapObjects();
+    Set<SMGObject> heap = pSmg.getHeapObjects().asSet();
 
     boolean toReturn = Collections.disjoint(globals.values(), heap);
 
@@ -84,12 +73,15 @@ public class CLangSMGConsistencyVerifier {
     for (CLangStackFrame frame : pSmg.getStackFrames()) {
       stack.addAll(frame.getAllObjects());
     }
-    Set<SMGObject> heap = pSmg.getHeapObjects();
+    Set<SMGObject> heap = pSmg.getHeapObjects().asSet();
 
     boolean toReturn = Collections.disjoint(stack, heap);
 
     if (! toReturn) {
-      pLogger.log(Level.SEVERE, "CLangSMG inconsistent, heap and stack objects are not disjoint: " + Sets.intersection(stack, heap));
+      pLogger.log(
+          Level.SEVERE,
+          "CLangSMG inconsistent, heap and stack objects are not disjoint: "
+              + Sets.intersection(stack, heap));
     }
 
     return toReturn;
@@ -120,7 +112,7 @@ public class CLangSMGConsistencyVerifier {
   }
 
   /**
-   * Verifies that heap, global and stack union is equal to the set of all objects
+   * Verifies that heap, global and stack union is equal to the set of all valid objects
    *
    * @param pLogger Logger to log the message
    * @param pSmg SMG to check
@@ -129,22 +121,35 @@ public class CLangSMGConsistencyVerifier {
   private static boolean verifyStackGlobalHeapUnion(LogManager pLogger, UnmodifiableCLangSMG pSmg) {
     Set<SMGObject> object_union = new HashSet<>();
 
-    object_union.addAll(pSmg.getHeapObjects());
+    Iterables.addAll(object_union, pSmg.getHeapObjects());
     object_union.addAll(pSmg.getGlobalObjects().values());
 
     for (CLangStackFrame frame : pSmg.getStackFrames()) {
       object_union.addAll(frame.getAllObjects());
     }
 
-    boolean toReturn =
-        object_union.containsAll(pSmg.getObjects().asSet())
-            && pSmg.getObjects().asSet().containsAll(object_union);
-
-    if (! toReturn) {
-      pLogger.log(Level.SEVERE, "CLangSMG inconsistent: union of stack, heap and global object is not the same set as the set of SMG objects");
+    if (!object_union.containsAll(pSmg.getValidObjects())) {
+      pLogger.log(
+          Level.SEVERE,
+          "CLangSMG inconsistent: union of stack, heap and global object "
+              + "contains less objects than the set of SMG objects. Missing object:",
+          Sets.difference(pSmg.getValidObjects(), object_union));
+      return false;
     }
 
-    return toReturn;
+    // TODO: Require workaround for free heap objects
+    if (!pSmg.getValidObjects()
+        .addAndCopy(SMGNullObject.INSTANCE)
+        .containsAll(pSmg.getGlobalObjects().values())) {
+      pLogger.log(
+          Level.SEVERE,
+          "CLangSMG inconsistent: union of stack, heap and global object "
+              + "contains more objects than the set of SMG objects. Additional object:",
+          Sets.difference(object_union, pSmg.getObjects().asSet()));
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -159,7 +164,8 @@ public class CLangSMGConsistencyVerifier {
     // Verify that there is no NULL object in global scope
     for (SMGObject obj: pSmg.getGlobalObjects().values()) {
       if (obj == SMGNullObject.INSTANCE) {
-        pLogger.log(Level.SEVERE, "CLangSMG inconsistent: null object in global object set [" + obj + "]");
+        pLogger.log(
+            Level.SEVERE, "CLangSMG inconsistent: null object in global object set [" + obj + "]");
         return false;
       }
     }
@@ -169,7 +175,13 @@ public class CLangSMGConsistencyVerifier {
     for (SMGObject obj: pSmg.getHeapObjects()) {
       if (obj == SMGNullObject.INSTANCE) {
         if (firstNull != null) {
-          pLogger.log(Level.SEVERE, "CLangSMG inconsistent: second null object in heap object set [first=" + firstNull + ", second=" + obj +"]" );
+          pLogger.log(
+              Level.SEVERE,
+              "CLangSMG inconsistent: second null object in heap object set [first="
+                  + firstNull
+                  + ", second="
+                  + obj
+                  + "]");
           return false;
         } else {
           firstNull = obj;
@@ -181,7 +193,8 @@ public class CLangSMGConsistencyVerifier {
     for (CLangStackFrame frame: pSmg.getStackFrames()) {
       for (SMGObject obj: frame.getAllObjects()) {
         if (obj == SMGNullObject.INSTANCE) {
-          pLogger.log(Level.SEVERE, "CLangSMG inconsistent: null object in stack object set [" + obj + "]");
+          pLogger.log(
+              Level.SEVERE, "CLangSMG inconsistent: null object in stack object set [" + obj + "]");
           return false;
         }
       }
@@ -208,8 +221,12 @@ public class CLangSMGConsistencyVerifier {
 
     for (String label: pSmg.getGlobalObjects().keySet()) {
       String globalLabel = globals.get(label).getLabel();
-      if (! globalLabel.equals(label)) {
-        pLogger.log(Level.SEVERE,  "CLangSMG inconsistent: label [" + label + "] points to an object with label [" + pSmg.getGlobalObjects().get(label).getLabel() + "]");
+      if (!globalLabel.equals(label)) {
+        pLogger.logf(
+            Level.SEVERE,
+            "CLangSMG inconsistent: label [%s] points to an object with label [%s]",
+            label,
+            pSmg.getGlobalObjects().get(label).getLabel());
         return false;
       }
     }
@@ -230,10 +247,41 @@ public class CLangSMGConsistencyVerifier {
     for (CLangStackFrame frame : pSmg.getStackFrames()) {
       for (SMGObject object : frame.getAllObjects()) {
         if (stack_objects.contains(object)) {
-          pLogger.log(Level.SEVERE, "CLangSMG inconsistent: object [" + object + "] present multiple times in the stack");
+          pLogger.log(
+              Level.SEVERE,
+              "CLangSMG inconsistent: object [" + object + "] present multiple times in the stack");
           return false;
         }
         stack_objects.add(object);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Verify pointers: each pointer should have correct size
+   *
+   * @param pLogger Logger to log the message
+   * @param pSmg the current smg
+   * @return True if pSmg is consistent w.r.t. this criteria. False otherwise.
+   */
+  private static boolean verifyPointersSize(LogManager pLogger, UnmodifiableCLangSMG pSmg) {
+
+    for (SMGEdgePointsTo ptEdge : pSmg.getPTEdges()) {
+      if (!ptEdge.getValue().isZero()) {
+        SMGEdgeHasValueFilter filter = SMGEdgeHasValueFilter.valueFilter(ptEdge.getValue());
+        for (SMGEdgeHasValue hvEdge : pSmg.getHVEdges(filter)) {
+          if (hvEdge.getSizeInBits() != pSmg.getSizeofPtrInBits()) {
+            pLogger.log(
+                Level.SEVERE,
+                "CLangSMG inconsistent: pointer ["
+                    + ptEdge.toString()
+                    + "] is stored with wrong size by hvEdge "
+                    + hvEdge.toString());
+            return false;
+          }
+        }
       }
     }
 
@@ -264,10 +312,13 @@ public class CLangSMGConsistencyVerifier {
         verifyDisjunctGlobalAndStack(pLogger, pSmg),
         pLogger,
         "Checking CLangSMG consistency: global and stack objects are disjunct");
-    toReturn = toReturn && verifyCLangSMGProperty(
-        verifyStackGlobalHeapUnion(pLogger, pSmg),
-        pLogger,
-        "Checking CLangSMG consistency: global, stack and heap object union contains all objects in SMG");
+    toReturn =
+        toReturn
+            && verifyCLangSMGProperty(
+                verifyStackGlobalHeapUnion(pLogger, pSmg),
+                pLogger,
+                "Checking CLangSMG consistency: global, stack and heap object union contains all"
+                    + " objects in SMG");
     toReturn = toReturn && verifyCLangSMGProperty(
         verifyNullObjectCLangProperties(pLogger, pSmg),
         pLogger,
@@ -280,6 +331,12 @@ public class CLangSMGConsistencyVerifier {
         verifyStackNamespaces(pLogger, pSmg),
         pLogger,
         "Checking CLangSMG consistency: stack namespace");
+    toReturn =
+        toReturn
+            && verifyCLangSMGProperty(
+                verifyPointersSize(pLogger, pSmg),
+                pLogger,
+                "Checking CLangSMG consistency: pointer size");
 
     pLogger.log(Level.FINEST, "Ending consistency check of a CLangSMG");
 

@@ -1,31 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.Iterables;
-import java.util.Set;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.sosy_lab.common.configuration.Configuration;
@@ -34,6 +19,7 @@ import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.cfa.types.c.CPointerType;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.CLangSMG;
+import org.sosy_lab.cpachecker.cpa.smg.graphs.SMGHasValueEdges;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValue;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgeHasValueFilter;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.edge.SMGEdgePointsTo;
@@ -59,7 +45,12 @@ public class SMGAbstractionManagerTest {
       if (next != null) {
         SMGValue address = SMGKnownSymValue.of();
         SMGEdgePointsTo pt = new SMGEdgePointsTo(address, next, 0);
-        hv = new SMGEdgeHasValue(CPointerType.POINTER_TO_VOID, 64, node, address);
+        hv =
+            new SMGEdgeHasValue(
+                smg.getMachineModel().getSizeofInBits(CPointerType.POINTER_TO_VOID),
+                64,
+                node,
+                address);
         smg.addValue(address);
         smg.addPointsToEdge(pt);
       } else {
@@ -70,7 +61,12 @@ public class SMGAbstractionManagerTest {
     }
 
     SMGValue address = SMGKnownSymValue.of();
-    SMGEdgeHasValue hv = new SMGEdgeHasValue(CPointerType.POINTER_TO_VOID, 64, globalVar, address);
+    SMGEdgeHasValue hv =
+        new SMGEdgeHasValue(
+            smg.getMachineModel().getSizeofInBits(CPointerType.POINTER_TO_VOID),
+            64,
+            globalVar,
+            address);
     SMGEdgePointsTo pt = new SMGEdgePointsTo(address, next, 0);
     smg.addGlobalObject(globalVar);
     smg.addValue(address);
@@ -85,11 +81,11 @@ public class SMGAbstractionManagerTest {
     manager.execute();
 
     SMGRegion globalVar = smg.getObjectForVisibleVariable("pointer");
-    Set<SMGEdgeHasValue> hvs = smg.getHVEdges(SMGEdgeHasValueFilter.objectFilter(globalVar));
-    Assert.assertEquals(1, hvs.size());
+    SMGHasValueEdges hvs = smg.getHVEdges(SMGEdgeHasValueFilter.objectFilter(globalVar));
+    assertThat(hvs).hasSize(1);
     SMGEdgeHasValue hv = Iterables.getOnlyElement(hvs);
     SMGEdgePointsTo pt = smg.getPointer(hv.getValue());
     SMGObject segment = pt.getObject();
-    Assert.assertTrue(segment.isAbstract());
+    assertThat(segment.isAbstract()).isTrue();
   }
 }

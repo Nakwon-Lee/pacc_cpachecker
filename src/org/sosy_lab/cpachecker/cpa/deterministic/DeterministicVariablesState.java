@@ -1,52 +1,36 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.deterministic;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.FluentIterable.from;
 
+import com.google.common.base.Equivalence.Wrapper;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
 import org.sosy_lab.cpachecker.cfa.ast.ASimpleDeclaration;
 import org.sosy_lab.cpachecker.core.defaults.LatticeAbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.util.LiveVariables;
 
-import com.google.common.base.Equivalence.Wrapper;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
 public class DeterministicVariablesState implements LatticeAbstractState<DeterministicVariablesState>, Graphable {
 
   private final Set<Wrapper<ASimpleDeclaration>> deterministicVariables;
 
   DeterministicVariablesState() {
-    deterministicVariables = Sets.newHashSet();
+    deterministicVariables = new HashSet<>();
   }
 
   DeterministicVariablesState(final Set<Wrapper<ASimpleDeclaration>> pDeterministicVariables) {
@@ -65,7 +49,7 @@ public class DeterministicVariablesState implements LatticeAbstractState<Determi
       return this;
     }
 
-    Set<Wrapper<ASimpleDeclaration>> newState = Sets.newHashSet(deterministicVariables);
+    Set<Wrapper<ASimpleDeclaration>> newState = new HashSet<>(deterministicVariables);
     newState.add(pDeterministicVariable);
 
     return new DeterministicVariablesState(newState);
@@ -79,7 +63,7 @@ public class DeterministicVariablesState implements LatticeAbstractState<Determi
       return this;
     }
 
-    Set<Wrapper<ASimpleDeclaration>> newState = Sets.newHashSet(deterministicVariables);
+    Set<Wrapper<ASimpleDeclaration>> newState = new HashSet<>(deterministicVariables);
     newState.addAll(pDeterministicVariables);
 
     return new DeterministicVariablesState(newState);
@@ -92,7 +76,7 @@ public class DeterministicVariablesState implements LatticeAbstractState<Determi
       return this;
     }
 
-    Set<Wrapper<ASimpleDeclaration>> newState = Sets.newHashSet(deterministicVariables);
+    Set<Wrapper<ASimpleDeclaration>> newState = new HashSet<>(deterministicVariables);
     newState.remove(pNonDeterministicVariable);
 
     return new DeterministicVariablesState(newState);
@@ -101,7 +85,7 @@ public class DeterministicVariablesState implements LatticeAbstractState<Determi
   DeterministicVariablesState removeDeterministicVariables(Collection<Wrapper<ASimpleDeclaration>> pNonDeterministicVariables) {
     checkNotNull(pNonDeterministicVariables);
 
-    Set<Wrapper<ASimpleDeclaration>> newState = Sets.newHashSet(deterministicVariables);
+    Set<Wrapper<ASimpleDeclaration>> newState = new HashSet<>(deterministicVariables);
     newState.removeAll(pNonDeterministicVariables);
 
     return new DeterministicVariablesState(newState);

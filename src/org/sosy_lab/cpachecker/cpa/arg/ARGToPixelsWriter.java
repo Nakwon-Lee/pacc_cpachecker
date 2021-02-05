@@ -1,36 +1,20 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.arg;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.ImmutableIntArray;
 import java.awt.Color;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.List;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.util.Pair;
@@ -70,18 +54,17 @@ public class ARGToPixelsWriter extends GraphToPixelsWriter<ARGState> {
 
   private static class ARGLevel extends SimpleGraphLevel {
 
-    private List<Integer> targetIndices;
-    private List<Integer> highlightIndices;
-    private List<Integer> notExpandedIndices;
-    private List<Integer> coveredIndices;
+    private final ImmutableIntArray targetIndices;
+    private final ImmutableIntArray highlightIndices;
+    private final ImmutableIntArray notExpandedIndices;
+    private final ImmutableIntArray coveredIndices;
 
     private ARGLevel(
         int pWidth,
-        List<Integer> pTargets,
-        List<Integer> pNotExpanded,
-        List<Integer> pHighlights,
-        List<Integer> pCovered
-    ) {
+        ImmutableIntArray pTargets,
+        ImmutableIntArray pNotExpanded,
+        ImmutableIntArray pHighlights,
+        ImmutableIntArray pCovered) {
       super(pWidth);
       targetIndices = checkNotNull(pTargets);
       notExpandedIndices = checkNotNull(pNotExpanded);
@@ -90,8 +73,8 @@ public class ARGToPixelsWriter extends GraphToPixelsWriter<ARGState> {
     }
 
     @Override
-    public Collection<Pair<List<Integer>, Color>> getGroups() {
-      Deque<Pair<List<Integer>, Color>> groups = new ArrayDeque<>(4);
+    public Collection<Pair<ImmutableIntArray, Color>> getGroups() {
+      Deque<Pair<ImmutableIntArray, Color>> groups = new ArrayDeque<>(4);
       if (!highlightIndices.isEmpty()) {
         groups.add(Pair.of(highlightIndices, COLOR_HIGHLIGHT));
       }
@@ -115,7 +98,7 @@ public class ARGToPixelsWriter extends GraphToPixelsWriter<ARGState> {
         color = COLOR_TARGET;
       } else if (!highlightIndices.isEmpty()) {
         color = COLOR_HIGHLIGHT;
-      } else if (notExpandedIndices.size() > coveredIndices.size()) {
+      } else if (notExpandedIndices.length() > coveredIndices.length()) {
         color = COLOR_NOTEXPANDED;
       } else if (!coveredIndices.isEmpty()) {
         color = COLOR_COVERED;
@@ -133,10 +116,10 @@ public class ARGToPixelsWriter extends GraphToPixelsWriter<ARGState> {
     public static class Builder implements GraphLevel.Builder<ARGState> {
 
       private int width = 0;
-      private ImmutableList.Builder<Integer> targets = ImmutableList.builder();
-      private ImmutableList.Builder<Integer> notExpanded = ImmutableList.builder();
-      private ImmutableList.Builder<Integer> highlights = ImmutableList.builder();
-      private ImmutableList.Builder<Integer> covered = ImmutableList.builder();
+      private final ImmutableIntArray.Builder targets = ImmutableIntArray.builder();
+      private final ImmutableIntArray.Builder notExpanded = ImmutableIntArray.builder();
+      private final ImmutableIntArray.Builder highlights = ImmutableIntArray.builder();
+      private final ImmutableIntArray.Builder covered = ImmutableIntArray.builder();
 
       @Override
       public ARGLevel build() {

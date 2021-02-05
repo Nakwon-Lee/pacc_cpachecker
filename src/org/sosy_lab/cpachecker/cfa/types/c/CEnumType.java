@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa.types.c;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -37,6 +22,7 @@ import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
 import org.sosy_lab.cpachecker.cfa.ast.c.CAstNodeVisitor;
 import org.sosy_lab.cpachecker.cfa.ast.c.CSimpleDeclaration;
 import org.sosy_lab.cpachecker.cfa.ast.c.CSimpleDeclarationVisitor;
+import org.sosy_lab.cpachecker.cfa.types.Type;
 
 public final class CEnumType implements CComplexType {
 
@@ -140,8 +126,9 @@ public final class CEnumType implements CComplexType {
         final FileLocation pFileLocation,
         final String pName,
         final String pQualifiedName,
+        final @Nullable CType pType,
         final @Nullable Long pValue) {
-      super(pFileLocation, CNumericTypes.SIGNED_INT, pName);
+      super(pFileLocation, pType, pName);
 
       checkNotNull(pName);
       value = pValue;
@@ -189,6 +176,11 @@ public final class CEnumType implements CComplexType {
     }
 
     @Override
+    public void setType(Type pType) {
+      super.setType(checkNotNull(pType));
+    }
+
+    @Override
     public String getQualifiedName() {
       return qualifiedName;
     }
@@ -209,8 +201,7 @@ public final class CEnumType implements CComplexType {
 
     @Override
     public String toASTString() {
-      return getQualifiedName().replace("::", "__")
-          + (hasValue() ? " = " + String.valueOf(value) : "");
+      return getQualifiedName().replace("::", "__") + (hasValue() ? " = " + value : "");
     }
 
     @Override

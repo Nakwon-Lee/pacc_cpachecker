@@ -1,29 +1,15 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.value.symbolic.type;
 
-import org.junit.Assert;
+import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.Test;
 import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
@@ -60,8 +46,8 @@ public class SymbolicExpressionTest {
         PROMOTED_OP_TYPE,
         PROMOTED_OP_TYPE);
 
-    Assert.assertTrue(add1.equals(add2));
-    Assert.assertFalse(add1.equals(sub1));
+    assertThat(add1).isEqualTo(add2);
+    assertThat(add1).isNotEqualTo(sub1);
   }
 
   @SuppressWarnings({ "EqualsBetweenInconvertibleTypes", "unlikely-arg-type" })
@@ -71,7 +57,7 @@ public class SymbolicExpressionTest {
     NegationExpression neg2 = new NegationExpression(CONSTANT_OP1, POINTER_TYPE);
     PointerExpression ptr = new PointerExpression(CONSTANT_OP1, POINTER_TYPE);
 
-    Assert.assertTrue(neg1.equals(neg2));
-    Assert.assertFalse(neg1.equals(ptr));
+    assertThat(neg1).isEqualTo(neg2);
+    assertThat(neg1).isNotEqualTo(ptr);
   }
 }

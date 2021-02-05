@@ -1,29 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.pixelexport;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.Iterators;
 import java.util.Iterator;
@@ -76,8 +61,8 @@ public class GraphToPixelsWriterTest extends GraphToPixelsWriter<DummyNode> {
     GraphStructure result = getStructure(root);
 
     int nLevels = Iterators.size(result.iterator());
-    assertEquals(1, nLevels);
-    assertEquals(result.iterator().next().getWidth(), 1);
+    assertThat(nLevels).isEqualTo(1);
+    assertThat(result.iterator().next().getWidth()).isEqualTo(1);
   }
 
   /*
@@ -88,7 +73,7 @@ public class GraphToPixelsWriterTest extends GraphToPixelsWriter<DummyNode> {
   public void getStructureTest2() {
     DummyNode root = new DummyNode();
     root.addChild(root);
-    DummyNode nodes[] = new DummyNode[6];
+    DummyNode[] nodes = new DummyNode[6];
     for (int i = 0; i < 6; i++) {
       nodes[i] = new DummyNode();
     }
@@ -106,12 +91,12 @@ public class GraphToPixelsWriterTest extends GraphToPixelsWriter<DummyNode> {
     GraphStructure result = getStructure(root);
 
     int nLevels = Iterators.size(result.iterator());
-    assertEquals(4, nLevels);
+    assertThat(nLevels).isEqualTo(4);
 
-    int expectedNodesPerLayer[] = {1, 2, 1, 3};
+    int[] expectedNodesPerLayer = {1, 2, 1, 3};
     Iterator<GraphLevel> actualLevels = result.iterator();
-    for (int i = 0; i < expectedNodesPerLayer.length; i++) {
-      assertEquals(expectedNodesPerLayer[i], actualLevels.next().getWidth());
+    for (int expectedNodes : expectedNodesPerLayer) {
+      assertThat(actualLevels.next().getWidth()).isEqualTo(expectedNodes);
     }
   }
 }

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.algorithm.termination.lasso_analysis.construction;
 
 import static org.sosy_lab.cpachecker.core.algorithm.termination.lasso_analysis.construction.LassoBuilder.TERMINATION_AUX_VARS_PREFIX;
@@ -29,6 +14,7 @@ import static org.sosy_lab.java_smt.api.FunctionDeclarationKind.UF;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,6 +27,7 @@ import org.sosy_lab.java_smt.api.Formula;
 import org.sosy_lab.java_smt.api.FormulaManager;
 import org.sosy_lab.java_smt.api.FormulaType;
 import org.sosy_lab.java_smt.api.FunctionDeclaration;
+import org.sosy_lab.java_smt.api.FunctionDeclarationKind;
 import org.sosy_lab.java_smt.api.visitors.DefaultFormulaVisitor;
 import org.sosy_lab.java_smt.api.visitors.TraversalProcess;
 
@@ -84,7 +71,7 @@ class NonLinearMultiplicationElimination extends BooleanFormulaTransformationVis
         FormulaManagerView pFmgrView, FormulaManager pFmgr) {
       fmgrView = pFmgrView;
       fmgr = pFmgr;
-      additionalAxioms = Lists.newArrayList();
+      additionalAxioms = new ArrayList<>();
     }
 
     public Collection<BooleanFormula> getAdditionalAxioms() {
@@ -129,6 +116,17 @@ class NonLinearMultiplicationElimination extends BooleanFormulaTransformationVis
             }
 
             @Override
+            public TraversalProcess visitFunction(
+                Formula pFormula,
+                List<Formula> pArgs,
+                FunctionDeclaration<?> pFunctionDeclaration) {
+              if (pFunctionDeclaration.getKind().equals(FunctionDeclarationKind.UMINUS)) {
+                return TraversalProcess.CONTINUE;
+              }
+              return TraversalProcess.ABORT;
+            }
+
+            @Override
             public TraversalProcess visitConstant(Formula pFormula, Object pValue) {
               return TraversalProcess.CONTINUE;
             }
@@ -154,7 +152,7 @@ class NonLinearMultiplicationElimination extends BooleanFormulaTransformationVis
               formulaType,
               TERMINATION_AUX_VARS_PREFIX + "MULT_AUX_VAR_" + ID_GENERATOR.getFreshId());
 
-      List<BooleanFormula> cases = Lists.newArrayList();
+      List<BooleanFormula> cases = new ArrayList<>();
       Formula one = fmgrView.makeNumber(formulaType, 1);
       Formula minusOne = fmgrView.makeNumber(formulaType, -1);
       Formula zero = fmgrView.makeNumber(formulaType, 0);

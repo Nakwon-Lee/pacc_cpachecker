@@ -1,28 +1,14 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.flowdep;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -35,7 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.log.LogManagerWithoutDuplicates;
@@ -149,12 +134,8 @@ class FlowDependenceTransferRelation
       MemoryLocation varName = e.getKey();
       Set<DefinitionPoint> points = e.getValue();
 
-      Collection<ProgramDefinitionPoint> defPoints =
-          points
-              .stream()
-              .filter(x -> x instanceof ProgramDefinitionPoint)
-              .map(p -> (ProgramDefinitionPoint) p)
-              .collect(Collectors.toList());
+      FluentIterable<ProgramDefinitionPoint> defPoints =
+          FluentIterable.from(points).filter(ProgramDefinitionPoint.class);
 
       normalized.putAll(varName, defPoints);
     }
@@ -295,7 +276,7 @@ class FlowDependenceTransferRelation
     if (pointees == null) {
       pointees = new HashSet<>();
       if (pVarClassification.isPresent()) {
-        Set<String> addressedVars = pVarClassification.get().getAddressedVariables();
+        Set<String> addressedVars = pVarClassification.orElseThrow().getAddressedVariables();
         for (String v : addressedVars) {
           MemoryLocation m = MemoryLocation.valueOf(v);
           pointees.add(m);
@@ -407,7 +388,7 @@ class FlowDependenceTransferRelation
         computeReachDefState(oldComposite, pPrecision, pCfaEdge);
 
     if (nextComposite.isPresent()) {
-      CompositeState newReachDefState = nextComposite.get();
+      CompositeState newReachDefState = nextComposite.orElseThrow();
       Pair<ReachingDefState, PointerState> oldReachDefAndPointerState = oldState.unwrap();
       ReachingDefState oldReachDefState = oldReachDefAndPointerState.getFirst();
       PointerState oldPointerState = oldReachDefAndPointerState.getSecond();
@@ -472,7 +453,7 @@ class FlowDependenceTransferRelation
       return ImmutableSet.of(nextState);
 
     } else {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
   }
 
@@ -638,7 +619,7 @@ class FlowDependenceTransferRelation
       } else if (pLhs instanceof CArraySubscriptExpression) {
         return ((CArraySubscriptExpression) pLhs).getSubscriptExpression().accept(this);
       } else {
-        return Collections.emptySet();
+        return ImmutableSet.of();
       }
     }
 
@@ -668,7 +649,7 @@ class FlowDependenceTransferRelation
     @Override
     public Set<MemoryLocation> visit(CFieldDesignator pFieldDesignator)
         throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
@@ -690,7 +671,7 @@ class FlowDependenceTransferRelation
       if (idDeclaration instanceof CVariableDeclaration || idDeclaration instanceof CParameterDeclaration) {
         return Collections.singleton(MemoryLocation.valueOf(idDeclaration.getQualifiedName()));
       } else {
-        return Collections.emptySet();
+        return ImmutableSet.of();
       }
     }
 
@@ -754,27 +735,27 @@ class FlowDependenceTransferRelation
 
     @Override
     public Set<MemoryLocation> visit(CCharLiteralExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
     public Set<MemoryLocation> visit(CFloatLiteralExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
     public Set<MemoryLocation> visit(CIntegerLiteralExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
     public Set<MemoryLocation> visit(CStringLiteralExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
     public Set<MemoryLocation> visit(CTypeIdExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
@@ -784,7 +765,7 @@ class FlowDependenceTransferRelation
 
     @Override
     public Set<MemoryLocation> visit(CImaginaryLiteralExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
@@ -794,17 +775,17 @@ class FlowDependenceTransferRelation
 
     @Override
     public Set<MemoryLocation> visit(CFunctionDeclaration pDecl) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
     public Set<MemoryLocation> visit(CComplexTypeDeclaration pDecl) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
     public Set<MemoryLocation> visit(CTypeDefDeclaration pDecl) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
@@ -813,7 +794,7 @@ class FlowDependenceTransferRelation
       if (init != null) {
         return init.accept(this);
       } else {
-        return Collections.emptySet();
+        return ImmutableSet.of();
       }
     }
 
@@ -824,7 +805,7 @@ class FlowDependenceTransferRelation
 
     @Override
     public Set<MemoryLocation> visit(CEnumerator pDecl) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
@@ -834,7 +815,7 @@ class FlowDependenceTransferRelation
       if (ret.isPresent()) {
         return ret.get().accept(this);
       } else {
-        return Collections.emptySet();
+        return ImmutableSet.of();
       }
     }
   }

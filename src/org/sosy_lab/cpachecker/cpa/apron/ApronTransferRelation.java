@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.apron;
 
 import apron.DoubleScalar;
@@ -508,7 +493,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
         || (!truthAssumption && !result)) {
       return Collections.singleton(state);
     } else {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
   }
 
@@ -526,7 +511,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     if ((value != 0) == truthAssumption) {
       return Collections.singleton(pState);
     } else {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
   }
 
@@ -659,9 +644,8 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
 
       state = state.makeAssignment(assignedVarName, right);
 
-
-    // g(b), do nothing
     } else if (exprOnSummary instanceof CFunctionCallStatement) {
+      // g(b), do nothing
 
     } else {
       throw new UnrecognizedCodeException("on function return", cfaEdge, exprOnSummary);
@@ -817,7 +801,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     } else if (left instanceof CFieldReference) {
       variableName = ((CFieldReference) left).getFieldOwner().toASTString();
     } else {
-      variableName = ((CIdExpression) left).toASTString();
+      variableName = left.toASTString();
     }
 
     if (!isGlobal(left)) {
@@ -869,7 +853,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
    */
   @Override
   protected Set<ApronState> handleFunctionSummaryEdge(CFunctionSummaryEdge cfaEdge) throws CPATransferException {
-    return Collections.emptySet();
+    return ImmutableSet.of();
   }
 
   /**
@@ -880,7 +864,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
 
     @Override
     protected Set<Texpr0Node> visitDefault(CExpression pExp) throws CPATransferException {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
 
     @Override
@@ -897,7 +881,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
           case BINARY_XOR:
           case SHIFT_LEFT:
           case SHIFT_RIGHT:
-            return Collections.emptySet();
+            return ImmutableSet.of();
           case MODULO:
             returnCoefficients.add(new Texpr0BinNode(Texpr0BinNode.OP_MOD, leftCoeffs, rightCoeffs));
             break;
@@ -1030,8 +1014,10 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
     public Set<Texpr0Node> visit(CIdExpression e) throws CPATransferException {
       MemoryLocation varName = buildVarName(e, functionName);
       Integer varIndex = state.getVariableIndexFor(varName);
-      if (varIndex == -1) { return Collections.emptySet(); }
-      return Collections.singleton((Texpr0Node)new Texpr0DimNode(varIndex));
+      if (varIndex == -1) {
+        return ImmutableSet.of();
+      }
+      return Collections.singleton(new Texpr0DimNode(varIndex));
     }
 
     @Override
@@ -1058,7 +1044,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
       case AMPER:
       case SIZEOF:
       case TILDE:
-        return Collections.emptySet();
+        return ImmutableSet.of();
 
       case MINUS:
         Set<Texpr0Node> returnCoefficients = new HashSet<>();
@@ -1083,7 +1069,7 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
           Scalar inf = Scalar.create();
           inf.setInfty(-1);
           Interval interval = new Interval(inf, sup);
-          return Collections.singleton((Texpr0Node)new Texpr0CstNode(interval));
+              return Collections.singleton(new Texpr0CstNode(interval));
             }
           case "__VERIFIER_nondet_uint":
             {
@@ -1091,16 +1077,16 @@ public class ApronTransferRelation extends ForwardingTransferRelation<Collection
           Scalar sup = Scalar.create();
           sup.setInfty(1);
           interval.setSup(sup);
-          return Collections.singleton((Texpr0Node)new Texpr0CstNode(interval));
+              return Collections.singleton(new Texpr0CstNode(interval));
             }
           case "__VERIFIER_nondet_bool":
             {
           Interval interval = new Interval(0, 1);
-          return Collections.singleton((Texpr0Node)new Texpr0CstNode(interval));
+              return Collections.singleton(new Texpr0CstNode(interval));
             }
         }
       }
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
   }
 

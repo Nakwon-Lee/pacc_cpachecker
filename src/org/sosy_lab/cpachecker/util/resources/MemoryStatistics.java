@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.resources;
 
 import com.google.common.base.Joiner;
@@ -41,6 +26,7 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.RuntimeErrorException;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.common.time.TimeSpan;
 
@@ -121,6 +107,7 @@ public class MemoryStatistics implements Runnable {
   private long sumProcess = 0;
 
   private long count = 0;
+  private long errorCount = 0;
 
   private final MemoryMXBean memory;
 
@@ -155,7 +142,7 @@ public class MemoryStatistics implements Runnable {
       }
     }
 
-    pools = poolList.toArray(new MemoryPoolMXBean[poolList.size()]);
+    pools = poolList.toArray(new MemoryPoolMXBean[0]);
     sumHeapAllocatedPerPool = new long[pools.length];
     maxHeapAllocatedPerPool = new long[pools.length];
   }
@@ -166,7 +153,17 @@ public class MemoryStatistics implements Runnable {
       count++;
 
       // get Java heap usage
-      MemoryUsage currentHeap = memory.getHeapMemoryUsage();
+      final MemoryUsage currentHeap;
+      try {
+        currentHeap = memory.getHeapMemoryUsage();
+      } catch (IllegalArgumentException e) {
+        // Java 11 produces this with msg "committed = 3146776576 should be < max = 3145728000":
+        // https://bugs.openjdk.java.net/browse/JDK-8207200
+        // It is just about statistics, so we do not care if it happens from time to time,
+        // but we want to see if it happens often and makes our statistics unreliable.
+        errorCount++;
+        continue;
+      }
       long currentHeapUsed = currentHeap.getUsed();
       maxHeap = Math.max(maxHeap, currentHeapUsed);
       sumHeap += currentHeapUsed;
@@ -176,7 +173,13 @@ public class MemoryStatistics implements Runnable {
       sumHeapAllocated += currentHeapAllocated;
 
       // get Java non-heap usage
-      MemoryUsage currentNonHeap = memory.getNonHeapMemoryUsage();
+      final MemoryUsage currentNonHeap;
+      try {
+        currentNonHeap = memory.getNonHeapMemoryUsage();
+      } catch (IllegalArgumentException e) {
+        errorCount++; // cf. above
+        continue;
+      }
       long currentNonHeapUsed = currentNonHeap.getUsed();
       maxNonHeap = Math.max(maxNonHeap, currentNonHeapUsed);
       sumNonHeap += currentNonHeapUsed;
@@ -198,6 +201,8 @@ public class MemoryStatistics implements Runnable {
           maxProcess = Math.max(maxProcess, memUsed);
           sumProcess += memUsed;
 
+        } catch (RuntimeErrorException e) {
+          throw ManagementUtils.handleRuntimeErrorException(e);
         } catch (JMException e) {
           logger.logDebugException(e, "Querying memory size failed");
           osMbean = null;
@@ -230,6 +235,13 @@ public class MemoryStatistics implements Runnable {
       } else {
         nonHeapPeak += peak;
       }
+    }
+
+    if (errorCount > 0) {
+      out.println(
+          String.format(
+              "Memory-statistics error count: %d (memory statistics might be unreliable)",
+              errorCount));
     }
 
     out.println("Used heap memory:             " + formatMem(maxHeap) + " max; " + formatMem(sumHeap/count) + " avg; " + formatMem(heapPeak) + " peak");

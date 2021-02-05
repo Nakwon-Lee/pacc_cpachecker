@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.value;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -29,6 +14,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,16 +27,33 @@ import java.util.Set;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.collect.PathCopyingPersistentTreeMap;
 import org.sosy_lab.common.collect.PersistentMap;
+import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.ast.FileLocation;
+import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpression.BinaryOperator;
+import org.sosy_lab.cpachecker.cfa.ast.c.CBinaryExpressionBuilder;
+import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CFloatLiteralExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CIdExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CIntegerLiteralExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CVariableDeclaration;
+import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.cfa.types.MachineModel;
 import org.sosy_lab.cpachecker.cfa.types.Type;
+import org.sosy_lab.cpachecker.cfa.types.c.CBitFieldType;
+import org.sosy_lab.cpachecker.cfa.types.c.CElaboratedType;
+import org.sosy_lab.cpachecker.cfa.types.c.CEnumType;
+import org.sosy_lab.cpachecker.cfa.types.c.CEnumType.CEnumerator;
 import org.sosy_lab.cpachecker.cfa.types.c.CNumericTypes;
 import org.sosy_lab.cpachecker.cfa.types.c.CSimpleType;
+import org.sosy_lab.cpachecker.cfa.types.c.CStorageClass;
 import org.sosy_lab.cpachecker.cfa.types.c.CType;
+import org.sosy_lab.cpachecker.cfa.types.c.CTypes;
 import org.sosy_lab.cpachecker.core.defaults.LatticeAbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractQueryableState;
+import org.sosy_lab.cpachecker.core.interfaces.ExpressionTreeReportingState;
 import org.sosy_lab.cpachecker.core.interfaces.FormulaReportingState;
 import org.sosy_lab.cpachecker.core.interfaces.Graphable;
 import org.sosy_lab.cpachecker.core.interfaces.PseudoPartitionable;
@@ -62,6 +65,10 @@ import org.sosy_lab.cpachecker.cpa.value.type.NumericValue;
 import org.sosy_lab.cpachecker.cpa.value.type.Value;
 import org.sosy_lab.cpachecker.exceptions.InvalidQueryException;
 import org.sosy_lab.cpachecker.exceptions.UnrecognizedCodeException;
+import org.sosy_lab.cpachecker.util.expressions.ExpressionTree;
+import org.sosy_lab.cpachecker.util.expressions.ExpressionTreeFactory;
+import org.sosy_lab.cpachecker.util.expressions.ExpressionTrees;
+import org.sosy_lab.cpachecker.util.expressions.LeafExpression;
 import org.sosy_lab.cpachecker.util.predicates.smt.BitvectorFormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.FloatingPointFormulaManagerView;
 import org.sosy_lab.cpachecker.util.predicates.smt.FormulaManagerView;
@@ -74,8 +81,8 @@ import org.sosy_lab.java_smt.api.FloatingPointFormula;
 import org.sosy_lab.java_smt.api.FormulaType;
 import org.sosy_lab.java_smt.api.FormulaType.FloatingPointType;
 
-public class ValueAnalysisState
-    implements AbstractQueryableState, FormulaReportingState,
+public final class ValueAnalysisState
+    implements AbstractQueryableState, FormulaReportingState, ExpressionTreeReportingState,
         ForgetfulState<ValueAnalysisInformation>, Serializable, Graphable,
         LatticeAbstractState<ValueAnalysisState>, PseudoPartitionable {
 
@@ -91,6 +98,14 @@ public class ValueAnalysisState
    * the map that keeps the name of variables and their constant values (concrete and symbolic ones)
    */
   private PersistentMap<MemoryLocation, ValueAndType> constantsMap;
+
+  /**
+   * hashCode needs to be updated with every change of {@link #constantsMap}.
+   *
+   * @see java.util.Map#hashCode()
+   * @see java.util.Map.Entry#hashCode()
+   */
+  private int hashCode = 0;
 
   private final @Nullable MachineModel machineModel;
 
@@ -111,10 +126,18 @@ public class ValueAnalysisState
       PersistentMap<MemoryLocation, ValueAndType> pConstantsMap) {
     machineModel = pMachineModel;
     constantsMap = checkNotNull(pConstantsMap);
+    hashCode = constantsMap.hashCode();
+  }
+
+  private ValueAnalysisState(ValueAnalysisState state) {
+    machineModel = state.machineModel;
+    constantsMap = checkNotNull(state.constantsMap);
+    hashCode = state.hashCode;
+    assert hashCode == constantsMap.hashCode();
   }
 
   public static ValueAnalysisState copyOf(ValueAnalysisState state) {
-    return new ValueAnalysisState(state.machineModel, state.constantsMap);
+    return new ValueAnalysisState(state);
   }
 
   /**
@@ -124,23 +147,30 @@ public class ValueAnalysisState
    * @param value value to be assigned.
    */
   void assignConstant(String variableName, Value value) {
-    if (blacklist.contains(MemoryLocation.valueOf(variableName))) {
-      return;
-    }
-
     addToConstantsMap(MemoryLocation.valueOf(variableName), value, null);
   }
 
   private void addToConstantsMap(
       final MemoryLocation pMemLoc, final Value pValue, final @Nullable Type pType) {
+
+    if (blacklist.contains(pMemLoc)
+        || (pMemLoc.isReference() && blacklist.contains(pMemLoc.getReferenceStart()))) {
+      return;
+    }
+
     Value valueToAdd = pValue;
 
     if (valueToAdd instanceof SymbolicValue) {
       valueToAdd = ((SymbolicValue) valueToAdd).copyForLocation(pMemLoc);
     }
 
-    constantsMap =
-        constantsMap.putAndCopy(pMemLoc, new ValueAndType(checkNotNull(valueToAdd), pType));
+    ValueAndType valueAndType = new ValueAndType(checkNotNull(valueToAdd), pType);
+    ValueAndType oldValueAndType = constantsMap.get(pMemLoc);
+    if (oldValueAndType != null) {
+      hashCode -= (pMemLoc.hashCode() ^ oldValueAndType.hashCode());
+    }
+    constantsMap = constantsMap.putAndCopy(pMemLoc, valueAndType);
+    hashCode += (pMemLoc.hashCode() ^ valueAndType.hashCode());
   }
 
   /**
@@ -151,10 +181,6 @@ public class ValueAnalysisState
    * @param pType the type of <code>value</code>.
    */
   public void assignConstant(MemoryLocation pMemoryLocation, Value value, Type pType) {
-    if (blacklist.contains(pMemoryLocation)) {
-      return;
-    }
-
     addToConstantsMap(pMemoryLocation, value, pType);
   }
 
@@ -213,6 +239,7 @@ public class ValueAnalysisState
 
     ValueAndType value = constantsMap.get(pMemoryLocation);
     constantsMap = constantsMap.removeAndCopy(pMemoryLocation);
+    hashCode -= (pMemoryLocation.hashCode() ^ value.hashCode());
 
     PersistentMap<MemoryLocation, ValueAndType> valueAssignment = PathCopyingPersistentTreeMap.of();
     valueAssignment = valueAssignment.putAndCopy(pMemoryLocation, value);
@@ -407,12 +434,14 @@ public class ValueAnalysisState
     }
 
     ValueAnalysisState otherElement = (ValueAnalysisState) other;
-    return otherElement.constantsMap.equals(constantsMap);
+    // hashCode is used as optimization: about 20% speedup when using many SingletonSets
+    return otherElement.hashCode == hashCode && otherElement.constantsMap.equals(constantsMap);
   }
 
   @Override
   public int hashCode() {
-    return constantsMap.hashCode();
+    assert hashCode == constantsMap.hashCode();
+    return hashCode;
   }
 
   @Override
@@ -657,23 +686,6 @@ public class ValueAnalysisState
     return difference;
   }
 
-  /**
-   * This method returns the set of tracked variables by this state.
-   *
-   * @return the set of tracked variables by this state
-   */
-  @Deprecated
-  public Set<String> getTrackedVariableNames() {
-    Set<String> result = new HashSet<>();
-
-    for (MemoryLocation loc : constantsMap.keySet()) {
-      result.add(loc.getAsSimpleString());
-    }
-
-    // no copy necessary, fresh instance of set
-    return Collections.unmodifiableSet(result);
-  }
-
   @Override
   public Set<MemoryLocation> getTrackedMemoryLocations() {
     // no copy necessary, set is immutable
@@ -695,43 +707,6 @@ public class ValueAnalysisState
 
   public ValueAnalysisInformation getInformation() {
     return new ValueAnalysisInformation(constantsMap);
-  }
-
-  @Deprecated
-  public Set<MemoryLocation> getMemoryLocationsOnStack(String pFunctionName) {
-    Set<MemoryLocation> result = new HashSet<>();
-
-    for (MemoryLocation memoryLocation : constantsMap.keySet()) {
-      if (memoryLocation.isOnFunctionStack() && memoryLocation.getFunctionName().equals(pFunctionName)) {
-        result.add(memoryLocation);
-      }
-    }
-
-    // Doesn't need a copy, Memory Location is Immutable
-    return Collections.unmodifiableSet(result);
-  }
-
-  @Deprecated
-  public Set<MemoryLocation> getGlobalMemoryLocations() {
-    Set<MemoryLocation> result = new HashSet<>();
-
-    for (MemoryLocation memoryLocation : constantsMap.keySet()) {
-      if (!memoryLocation.isOnFunctionStack()) {
-        result.add(memoryLocation);
-      }
-    }
-
-    // Doesn't need a copy, Memory Location is Immutable
-    return Collections.unmodifiableSet(result);
-  }
-
-  @Deprecated
-  public void forgetValuesWithIdentifier(String pIdentifier) {
-    for (MemoryLocation memoryLocation : constantsMap.keySet()) {
-      if (memoryLocation.getIdentifier().equals(pIdentifier)) {
-        constantsMap = constantsMap.removeAndCopy(memoryLocation);
-      }
-    }
   }
 
   /** If there was a recursive function, we have wrong values for scoped variables in the returnState.
@@ -784,6 +759,101 @@ public class ValueAnalysisState
     return this;
   }
 
+  @Override
+  public ExpressionTree<Object> getFormulaApproximation(
+      FunctionEntryNode pFunctionScope, CFANode pLocation) {
+
+    if (machineModel == null) {
+      return ExpressionTrees.getTrue();
+    }
+
+    //TODO: Get real logger
+    CBinaryExpressionBuilder builder =
+        new CBinaryExpressionBuilder(machineModel, LogManager.createNullLogManager());
+    ExpressionTreeFactory<Object> factory = ExpressionTrees.newFactory();
+    List<ExpressionTree<Object>> result = new ArrayList<>();
+
+    for (Entry<MemoryLocation, ValueAndType> entry : constantsMap.entrySet()) {
+      NumericValue num = entry.getValue().getValue().asNumericValue();
+      if (num != null) {
+        MemoryLocation memoryLocation = entry.getKey();
+        Type type = entry.getValue().getType();
+        if (!memoryLocation.isReference()
+            && memoryLocation.isOnFunctionStack(pFunctionScope.getFunctionName())
+            && type instanceof CType
+            && CTypes.isArithmeticType((CType) type)) {
+          CType cType = (CType) type;
+          if (cType instanceof CBitFieldType) {
+            cType = ((CBitFieldType) cType).getType();
+          }
+          if (cType instanceof CElaboratedType) {
+            cType = ((CElaboratedType) cType).getRealType();
+          }
+          assert cType != null && CTypes.isArithmeticType(cType);
+          String id = memoryLocation.getIdentifier();
+          if (!pFunctionScope.getReturnVariable().isPresent()
+              || !id.equals(pFunctionScope.getReturnVariable().get().getName())) {
+            FileLocation loc =
+                pLocation.getNumEnteringEdges() > 0
+                    ? pLocation.getEnteringEdge(0).getFileLocation()
+                    : pFunctionScope.getFileLocation();
+            CVariableDeclaration decl =
+                new CVariableDeclaration(
+                    loc,
+                    false,
+                    CStorageClass.AUTO,
+                    cType,
+                    id,
+                    id,
+                    memoryLocation.getAsSimpleString(),
+                    null);
+            CExpression var = new CIdExpression(loc, decl);
+            CExpression val = null;
+            if (cType instanceof CSimpleType) {
+              CSimpleType simpleType = (CSimpleType) type;
+              if (simpleType.getType().isIntegerType()) {
+                long value = num.getNumber().longValue();
+                val = new CIntegerLiteralExpression(loc, simpleType, BigInteger.valueOf(value));
+              } else if (simpleType.getType().isFloatingPointType()) {
+                double value = num.getNumber().doubleValue();
+                if (((Double) value).isNaN() || ((Double) value).isInfinite()) {
+                  // Cannot represent this here
+                  continue;
+                }
+                val = new CFloatLiteralExpression(loc, simpleType, BigDecimal.valueOf(value));
+              } else {
+                throw new AssertionError("Unexpected type: " + simpleType);
+              }
+            } else if (cType instanceof CEnumType) {
+              CEnumType enumType = (CEnumType) cType;
+              Long value = num.getNumber().longValue();
+              for (CEnumerator enumerator : enumType.getEnumerators()) {
+                if (enumerator.getValue() == value) {
+                  val = new CIdExpression(loc, enumerator);
+                  break;
+                }
+              }
+              if(val == null) {
+                val = new CIntegerLiteralExpression(loc, enumType, BigInteger.valueOf(value));
+              }
+            } else {
+              // disabled since this blocks too many programs for which plenty other information
+              // would be available, so just skip the current variable
+
+              // throw new AssertionError("Unknown arithmetic type: " + cType);
+
+              continue;
+            }
+            CBinaryExpression exp =
+                builder.buildBinaryExpressionUnchecked(var, val, BinaryOperator.EQUALS);
+            result.add(LeafExpression.of(exp));
+          }
+        }
+      }
+    }
+    return factory.and(result);
+  }
+
   public static class ValueAndType implements Serializable {
     private static final long serialVersionUID = 1L;
     private final Value value;
@@ -804,6 +874,9 @@ public class ValueAnalysisState
 
     @Override
     public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
       if (!(o instanceof ValueAndType)) {
         return false;
       }

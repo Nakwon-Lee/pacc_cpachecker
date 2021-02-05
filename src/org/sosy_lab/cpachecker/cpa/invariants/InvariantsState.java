@@ -1,28 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.invariants;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.FluentIterable.from;
 
@@ -34,7 +20,6 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.ibm.icu.math.BigDecimal;
 import java.math.BigInteger;
@@ -88,6 +73,7 @@ import org.sosy_lab.cpachecker.cpa.invariants.formula.InvariantsFormulaManager;
 import org.sosy_lab.cpachecker.cpa.invariants.formula.IsLinearVisitor;
 import org.sosy_lab.cpachecker.cpa.invariants.formula.LogicalAnd;
 import org.sosy_lab.cpachecker.cpa.invariants.formula.LogicalNot;
+import org.sosy_lab.cpachecker.cpa.invariants.formula.Mod2AbstractionVisitor;
 import org.sosy_lab.cpachecker.cpa.invariants.formula.Multiply;
 import org.sosy_lab.cpachecker.cpa.invariants.formula.NumeralFormula;
 import org.sosy_lab.cpachecker.cpa.invariants.formula.PartialEvaluator;
@@ -361,8 +347,7 @@ public class InvariantsState implements AbstractState,
     TypeInfo typeInfo = BitVectorInfo.from(machineModel, variableType);
     NumeralFormula<CompoundInterval> value =
         tools.compoundIntervalFormulaManager.cast(typeInfo, pValue);
-    for (Map.Entry<MemoryLocation, NumeralFormula<CompoundInterval>> entry : this.environment.entrySet()) {
-      MemoryLocation memoryLocation = entry.getKey();
+    for (MemoryLocation memoryLocation : this.environment.keySet()) {
       TypeInfo varTypeInfo = BitVectorInfo.from(machineModel, getType(memoryLocation));
       if (memoryLocation.getAsSimpleString().startsWith(pMemoryLocation.getAsSimpleString() + "->")
           || memoryLocation.getAsSimpleString().startsWith(pMemoryLocation.getAsSimpleString() + ".")) {
@@ -445,7 +430,7 @@ public class InvariantsState implements AbstractState,
           variableTypes,
           abstractionState,
           newEnvironment,
-          Collections.emptySet(),
+          ImmutableSet.of(),
           overflowDetected,
           includeTypeInformation,
           overapproximatesUnsupportedFeature);
@@ -541,7 +526,7 @@ public class InvariantsState implements AbstractState,
             variableTypes,
             abstractionState,
             resultEnvironment,
-            Collections.emptySet(),
+            ImmutableSet.of(),
             overflowDetected,
             includeTypeInformation,
             overapproximatesUnsupportedFeature);
@@ -556,6 +541,23 @@ public class InvariantsState implements AbstractState,
           complement = oddTemplate;
         } else if (assumption.equals(oddTemplate)) {
           complement = evenTemplate;
+        } else {
+          additionalAssumptions.add(assumption.accept(replaceVisitor));
+          if (pValue instanceof Variable) {
+            additionalAssumptions.add(assumption.accept(new ReplaceVisitor<>(pValue, variable)));
+            Mod2AbstractionVisitor.Type t =
+                pValue.accept(
+                    new Mod2AbstractionVisitor(
+                        tools.compoundIntervalManagerFactory,
+                        evaluationVisitor,
+                        environment,
+                        assumptions));
+            if (t == Mod2AbstractionVisitor.Type.EVEN) {
+              additionalAssumptions.add(instantiateModTemplate(variable, 2, 0));
+            } else if (t == Mod2AbstractionVisitor.Type.ODD) {
+              additionalAssumptions.add(instantiateModTemplate(variable, 2, 1));
+            }
+          }
         }
         if (complement != null) {
           if (preservesOrSwitchesMod2(variable, pValue, true)) {
@@ -564,11 +566,17 @@ public class InvariantsState implements AbstractState,
           } else if (preservesOrSwitchesMod2(variable, pValue, false)) {
             additionalAssumptions.add(complement);
             result = result.assume(complement);
+          } else if (pValue instanceof Variable) {
+            Variable<CompoundInterval> assignedVariable = (Variable<CompoundInterval>) pValue;
+            if (definitelyImplies(
+                assumption.accept(new ReplaceVisitor<>(variable, assignedVariable)))) {
+              additionalAssumptions.add(assumption);
+            } else {
+              additionalAssumptions.add(assumption.accept(replaceVisitor));
+            }
           } else {
             additionalAssumptions.add(assumption.accept(replaceVisitor));
           }
-        } else {
-          additionalAssumptions.add(assumption.accept(replaceVisitor));
         }
       }
       result = result.addAssumptions(additionalAssumptions);
@@ -648,7 +656,7 @@ public class InvariantsState implements AbstractState,
         variableTypes,
         abstractionState,
         NonRecursiveEnvironment.of(tools.compoundIntervalManagerFactory),
-        Collections.emptySet(),
+        ImmutableSet.of(),
         overflowDetected,
         includeTypeInformation,
         overapproximatesUnsupportedFeature);
@@ -711,6 +719,14 @@ public class InvariantsState implements AbstractState,
     }
 
     NonRecursiveEnvironment resultEnvironment = environment;
+    Set<BooleanFormula<CompoundInterval>> resultAssumptions = new HashSet<>();
+    final CollectFormulasVisitor<CompoundInterval> variableCollectionVisitor =
+        new CollectFormulasVisitor<>(Predicates.instanceOf(Variable.class));
+    for (BooleanFormula<CompoundInterval> assumption : assumptions) {
+      if (Collections.disjoint(assumption.accept(variableCollectionVisitor), toClear)) {
+        resultAssumptions.add(assumption);
+      }
+    }
 
     Iterator<Variable<CompoundInterval>> toClearIterator = toClear.iterator();
     while (toClearIterator.hasNext()) {
@@ -765,7 +781,7 @@ public class InvariantsState implements AbstractState,
             variableTypes,
             abstractionState,
             resultEnvironment,
-            Collections.emptySet(),
+            resultAssumptions,
             overflowDetected,
             includeTypeInformation,
             overapproximatesUnsupportedFeature);
@@ -788,11 +804,12 @@ public class InvariantsState implements AbstractState,
   }
 
   /**
-   * We build an interval formula like <code>A <= X <= B</code> for each known memory location.
+   * We build an interval formula like <code>{@code A <= X <= B}</code> for each known memory
+   * location.
    *
    * <p>Please note that we already try to simplify the interval, i.e., if X has type 'signed int',
-   * we return TRUE instead of <code>MIN_INT <= X <= MAX_INT</code> , because this is trivially
-   * satisfied.
+   * we return TRUE instead of <code>{@code MIN_INT <= X <= MAX_INT}</code> , because this is
+   * trivially satisfied.
    */
   private Iterable<BooleanFormula<CompoundInterval>> getTypeInformationAsAssumptions() {
     List<BooleanFormula<CompoundInterval>> assumptionsIntervals = new ArrayList<>();
@@ -1069,7 +1086,7 @@ public class InvariantsState implements AbstractState,
       }
     }
 
-    final Set<MemoryLocation> safePointers = Sets.newHashSet();
+    final Set<MemoryLocation> safePointers = new HashSet<>();
     isInvalidVar =
         Predicates.or(
             isInvalidVar,
@@ -1212,8 +1229,8 @@ public class InvariantsState implements AbstractState,
       }
       if (!evaluated.isSingleton()) {
         // Try and find a variable referring to this variable
-        Set<Variable<CompoundInterval>> visited = Sets.newHashSet();
-        Queue<Variable<CompoundInterval>> waitlist = Queues.newArrayDeque();
+        Set<Variable<CompoundInterval>> visited = new HashSet<>();
+        Queue<Variable<CompoundInterval>> waitlist = new ArrayDeque<>();
         visited.add((Variable<CompoundInterval>) pFormula);
         waitlist.addAll(visited);
         while (!waitlist.isEmpty()) {
@@ -1481,13 +1498,35 @@ public class InvariantsState implements AbstractState,
             variableTypes,
             abstractionState,
             resEnv,
-            Collections.emptySet(),
+            ImmutableSet.of(),
             overflowDetected,
             includeTypeInformation,
             overapproximatesUnsupportedFeature);
 
+    if (pPrecision.shouldUseMod2Template()) {
+      for (Map.Entry<MemoryLocation, NumeralFormula<CompoundInterval>> entry : toDo.entrySet()) {
+        MemoryLocation memoryLocation = entry.getKey();
+        NumeralFormula<CompoundInterval> newValueFormula = entry.getValue();
+        TypeInfo typeInfo = entry.getValue().getTypeInfo();
+        Mod2AbstractionVisitor.Type t =
+            newValueFormula.accept(
+                new Mod2AbstractionVisitor(
+                    tools.compoundIntervalManagerFactory,
+                    tools.evaluationVisitor,
+                    environment,
+                    assumptions));
+        Variable<CompoundInterval> variable =
+            InvariantsFormulaManager.INSTANCE.asVariable(typeInfo, memoryLocation);
+        if (t == Mod2AbstractionVisitor.Type.EVEN) {
+          result = result.assume(instantiateModTemplate(variable, 2, 0));
+        } else if (t == Mod2AbstractionVisitor.Type.ODD) {
+          result = result.assume(instantiateModTemplate(variable, 2, 1));
+        }
+      }
+    }
+
     Set<BooleanFormula<CompoundInterval>> additionalAssumptions =
-        additionalHints.isEmpty() ? Collections.emptySet() : new HashSet<>();
+        additionalHints.isEmpty() ? ImmutableSet.of() : new HashSet<>();
 
     for (BooleanFormula<CompoundInterval> hint :
         FluentIterable.from(Sets.union(pWideningHints, additionalHints))
@@ -1511,9 +1550,7 @@ public class InvariantsState implements AbstractState,
 
   private BooleanFormula<CompoundInterval> instantiateModTemplate(
       Variable<CompoundInterval> pDividend, int pDivisor, int pRemainder) {
-    if (pDivisor < 2) {
-      throw new IllegalArgumentException("Divisor must be greater than 1.");
-    }
+    checkArgument(pDivisor >= 2, "Divisor must be greater than 1.");
     if (pRemainder < 0 || pRemainder >= pDivisor) {
       throw new IllegalArgumentException(
           String.format("The remainder must be between 0 and %d.", pDivisor - 1));
@@ -1560,8 +1597,7 @@ public class InvariantsState implements AbstractState,
         Set<MemoryLocation> todo = new HashSet<>();
 
         // Join the easy ones first (both values equal or one value top)
-        for (Map.Entry<MemoryLocation, NumeralFormula<CompoundInterval>> entry : state1.environment.entrySet()) {
-          MemoryLocation memoryLocation = entry.getKey();
+        for (MemoryLocation memoryLocation : state1.environment.keySet()) {
           NumeralFormula<CompoundInterval> rightFormula = state2.environment.get(memoryLocation);
           if (rightFormula != null) {
             NumeralFormula<CompoundInterval> leftFormula =
@@ -1603,7 +1639,7 @@ public class InvariantsState implements AbstractState,
 
       Set<BooleanFormula<CompoundInterval>> commonAssumptions;
       if (assumptions.isEmpty() && pState2.assumptions.isEmpty()) {
-        commonAssumptions = Collections.emptySet();
+        commonAssumptions = ImmutableSet.of();
       } else {
         commonAssumptions = new HashSet<>(Sets.intersection(assumptions, pState2.assumptions));
         for (BooleanFormula<CompoundInterval> assumption :
@@ -1664,7 +1700,7 @@ public class InvariantsState implements AbstractState,
 
   private Set<Variable<CompoundInterval>> getVariables(final Predicate<MemoryLocation> pMemoryLocationPredicate) {
     final Set<Variable<CompoundInterval>> result = new HashSet<>();
-    Predicate<NumeralFormula<CompoundInterval>> pCondition = new Predicate<NumeralFormula<CompoundInterval>>() {
+    Predicate<NumeralFormula<CompoundInterval>> pCondition = new Predicate<>() {
 
       @Override
       public boolean apply(NumeralFormula<CompoundInterval> pFormula) {

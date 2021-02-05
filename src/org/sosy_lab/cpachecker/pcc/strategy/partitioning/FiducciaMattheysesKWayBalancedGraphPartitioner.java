@@ -1,33 +1,19 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.pcc.strategy.partitioning;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -39,6 +25,7 @@ import org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.PartialReachedSet
 import org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.WeightedGraph;
 import org.sosy_lab.cpachecker.pcc.strategy.partitioning.FiducciaMattheysesOptimzerFactory.OptimizationCriteria;
 import org.sosy_lab.cpachecker.pcc.strategy.partitioning.GlobalGraphPartitionerHeuristicFactory.GlobalPartitioningHeuristics;
+
 /**
  * Implementation of a greedy FM/KL graph partitioning algorithm mainly based on
  * the ideas in http://glaros.dtc.umn.edu/gkhome/node/82; For framework the option of a node cut applied as well
@@ -97,8 +84,9 @@ public class FiducciaMattheysesKWayBalancedGraphPartitioner
   @Override
   public List<Set<Integer>> computePartitioning(int pNumPartitions, WeightedGraph wGraph)
       throws InterruptedException {
-    if (pNumPartitions <= 0 || wGraph == null) { throw new IllegalArgumentException(
-        "Partitioniong must contain at most 1 partition. Graph may not be null."); }
+    checkArgument(
+        pNumPartitions > 0 && wGraph != null,
+        "Partitioniong must contain at most 1 partition. Graph may not be null.");
     if (pNumPartitions == 1) { //1-partitioning easy special case (Each node in the same partition)
       return wGraph.getGraphAsOnePartition();
     }
@@ -126,9 +114,6 @@ public class FiducciaMattheysesKWayBalancedGraphPartitioner
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitioningRefiner#refinePartitioning(java.util.List, org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.PartialReachedSetDirectedGraph, int)
-   */
   @Override
   public int refinePartitioning(List<Set<Integer>> partitioning,
       PartialReachedSetDirectedGraph pGraph, int numPartitions) {
@@ -136,9 +121,6 @@ public class FiducciaMattheysesKWayBalancedGraphPartitioner
     return refinePartitioning(partitioning, wGraph, numPartitions);
   }
 
-  /* (non-Javadoc)
-   * @see org.sosy_lab.cpachecker.pcc.strategy.partitioning.PartitioningRefiner#refinePartitioning(java.util.List, org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.WeightedGraph, int)
-   */
   @Override
   public int refinePartitioning(List<Set<Integer>> partitioning,
       WeightedGraph wGraph, int numPartitions) {

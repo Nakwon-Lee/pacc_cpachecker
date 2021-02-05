@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ltl;
 
 import com.google.common.collect.ImmutableList;
@@ -72,7 +57,7 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
 
   @Override
   public LtlFormula visitProperty(PropertyContext ctx) {
-    // For a valid syntax, the context-param has to provide the following expressions in the given
+    // For a valid syntax, the ctx-param has to provide the following expressions in the exact
     // order: CHECK LPAREN initFunction COMMA ltlProperty RPAREN EOF
     throwException_When_InvalidChildCount(ctx.getChildCount(), 7);
 
@@ -90,7 +75,6 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
   public LtlFormula visitFormula(FormulaContext ctx) {
     // Contains formula + EOF
     throwException_When_InvalidChildCount(ctx.getChildCount(), 2);
-
     return visit(ctx.getChild(0));
   }
 
@@ -98,7 +82,6 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
   public LtlFormula visitExpression(ExpressionContext ctx) {
     // Contains an orExpression only
     throwException_When_InvalidChildCount(ctx.getChildCount(), 1);
-
     return visit(ctx.getChild(0));
   }
 
@@ -107,8 +90,7 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
     // Contains a disjunction of conjunctions
     if (ctx.getChildCount() == 0) {
       throw new RuntimeException(
-          String.format(
-              "Invalid input provided. Expected at least 1 child-node in param 'ctx', however, nothing could be found"));
+          "Invalid input provided. Expected at least 1 child-node in param 'ctx', however, nothing could be found");
     }
 
     ImmutableList.Builder<LtlFormula> builder = ImmutableList.builder();
@@ -125,8 +107,7 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
       }
     }
 
-    ImmutableList<LtlFormula> list = builder.build();
-    return Disjunction.of(list);
+    return Disjunction.of(builder.build());
   }
 
   @Override
@@ -134,8 +115,7 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
     // Contains a conjunction of binaryExpressions
     if (ctx.getChildCount() == 0) {
       throw new RuntimeException(
-          String.format(
-              "Invalid input provided. Expected at least 1 child-node in param 'ctx', however, nothing could be found"));
+          "Invalid input provided. Expected at least 1 child-node in param 'ctx', however, nothing could be found");
     }
 
     ImmutableList.Builder<LtlFormula> builder = ImmutableList.builder();
@@ -152,8 +132,7 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
       }
     }
 
-    ImmutableList<LtlFormula> list = builder.build();
-    return Conjunction.of(list);
+    return Conjunction.of(builder.build());
   }
 
   @Override
@@ -247,7 +226,8 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
       throw new RuntimeException(
           String.format(
               "Invalid input provided. Expected %d child-nodes in param 'ctx', however, %d were found",
-              5, ctx.getChildCount()));
+              5,
+              ctx.getChildCount()));
     }
 
     // Don't actually parse the quoted string -- only retrieve it and use CParserUtils-class
@@ -284,6 +264,7 @@ public class LtlFormulaTreeVisitor extends LtlGrammarParserBaseVisitor<LtlFormul
     throw new RuntimeException(
         String.format(
             "Invalid input provided. Expected %d child-nodes in param 'ctx', however, %d were found",
-            pExpected, pActual));
+            pExpected,
+            pActual));
   }
 }

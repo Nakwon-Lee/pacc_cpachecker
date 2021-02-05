@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2013  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.local;
 
 import static com.google.common.collect.FluentIterable.from;
@@ -103,7 +88,7 @@ public class LocalTransferRelation
   )
   private Set<String> conservationOfSharedness = ImmutableSet.of();
 
-  private Map<String, Integer> allocateInfo;
+  private final Map<String, Integer> allocateInfo;
 
   public LocalTransferRelation(Configuration config) throws InvalidConfigurationException {
     config.inject(this);
@@ -150,6 +135,9 @@ public class LocalTransferRelation
       CFunctionCall summaryExpr,
       String callerFunctionName)
       throws HandleCodeException {
+
+    // NOTE! getFunctionName() return inner function name!
+
     CFunctionCall exprOnSummary = cfaEdge.getSummaryEdge().getExpression();
     LocalState newElement = state.getClonedPreviousState();
 
@@ -164,18 +152,31 @@ public class LocalTransferRelation
       // return id is handled internally
       assign(newElement, leftId, dereference, assignExp.getRightHandSide());
     }
+
     // Update the outer parameters:
     CFunctionSummaryEdge sEdge = cfaEdge.getSummaryEdge();
     CFunctionEntryNode entry = sEdge.getFunctionEntry();
     String funcName = entry.getFunctionName();
-    if (!isAllocatedFunction(funcName)) {
-      List<String> paramNames = entry.getFunctionParameterNames();
-      List<CExpression> arguments =
-          sEdge.getExpression().getFunctionCallExpression().getParameterExpressions();
-      List<CParameterDeclaration> parameterTypes = entry.getFunctionDefinition().getParameters();
+    assert funcName.equals(getFunctionName());
 
-      extractIdentifiers(arguments, paramNames, parameterTypes, funcName, getFunctionName())
-          .forEach(p -> completeAssign(newElement, p.getFirst(), p.getThird(), p.getSecond()));
+
+    int allocParameter = isParameterAllocatedFunction(funcName) ? allocateInfo.get(funcName) : 0;
+    List<String> paramNames = entry.getFunctionParameterNames();
+    List<CExpression> arguments =
+        sEdge.getExpression().getFunctionCallExpression().getParameterExpressions();
+    List<CParameterDeclaration> parameterTypes = entry.getFunctionDefinition().getParameters();
+
+    List<Triple<AbstractIdentifier, LocalVariableIdentifier, Integer>> toProcess =
+        extractIdentifiers(arguments, paramNames, parameterTypes, callerFunctionName, funcName);
+
+    for (int i = 0; i < toProcess.size(); i++) {
+      Triple<AbstractIdentifier, LocalVariableIdentifier, Integer> pairId = toProcess.get(i);
+      // Note, index starts from in configuration
+      if (allocParameter > 0 && allocParameter == i + 1) {
+        completeSet(newElement, pairId.getFirst(), pairId.getThird(), DataType.LOCAL);
+      } else {
+        completeAssign(newElement, pairId.getFirst(), pairId.getThird(), pairId.getSecond());
+      }
     }
     return newElement;
   }
@@ -245,7 +246,7 @@ public class LocalTransferRelation
           }
         }
       }
-      if (init != null && init instanceof CInitializerExpression) {
+      if (init instanceof CInitializerExpression) {
         assign(newState, id, deref, ((CInitializerExpression) init).getExpression());
       } else if (!decl.isGlobal() && type instanceof CArrayType) {
         // Uninitialized arrays (int a[2]) are pointed to local memory
@@ -263,25 +264,9 @@ public class LocalTransferRelation
     String funcName = right.getFunctionNameExpression().toASTString();
     boolean isConservativeFunction = conservationOfSharedness.contains(funcName);
 
-    if (isAllocatedFunction(funcName)) {
-      Integer num = allocateInfo.get(funcName);
-      if (num == null) {
-        // Means that we use pattern
-        num = 0;
-      }
-      if (num == 0) {
-        // local data are returned from function
-        pSuccessor.set(leftId, DataType.LOCAL);
-      } else if (num > 0) {
-        num = allocateInfo.get(funcName);
-        if (num > 0) {
-          // local data are transmitted, as function parameters. F.e., allocate(&pointer);
-          CExpression parameter = right.getParameterExpressions().get(num - 1);
-          // TODO How it works?
-          AbstractIdentifier rightId = createId(parameter, dereference);
-          pSuccessor.set(rightId, DataType.LOCAL);
-        }
-      }
+    if (isAllocatedFunction(funcName) && allocateInfo.get(funcName) == 0) {
+      // local data are returned from function
+      pSuccessor.set(leftId, DataType.LOCAL);
       return true;
 
     } else if (isConservativeFunction) {
@@ -403,7 +388,7 @@ public class LocalTransferRelation
 
   private void alias(
       LocalState pSuccessor, AbstractIdentifier leftId, AbstractIdentifier rightId) {
-    if (leftId.isGlobal()) {
+    if (leftId.isGlobal() && !pSuccessor.checkIsAlwaysLocal(leftId)) {
       // Variable is global, not memory location!
       // So, we should set the type of 'right' to global
       pSuccessor.set(rightId, DataType.GLOBAL);
@@ -452,5 +437,10 @@ public class LocalTransferRelation
 
   private boolean isAllocatedFunction(String funcName) {
     return allocate.contains(funcName) || from(allocatePattern).anyMatch(funcName::contains);
+  }
+
+  private boolean isParameterAllocatedFunction(String funcName) {
+    return allocateInfo.containsKey(funcName)
+        && allocateInfo.get(funcName) > 0;
   }
 }

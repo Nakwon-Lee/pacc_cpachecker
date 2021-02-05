@@ -1,32 +1,17 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.smg.join;
+
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
-import java.util.Set;
-import org.junit.Assert;
 import org.junit.Test;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
@@ -46,6 +31,7 @@ import org.sosy_lab.cpachecker.cpa.smg.graphs.object.SMGObjectKind;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.sll.SMGSingleLinkedList;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.sll.SMGSingleLinkedListCandidate;
 import org.sosy_lab.cpachecker.cpa.smg.graphs.object.sll.TestHelpers;
+import org.sosy_lab.cpachecker.cpa.smg.util.PersistentSet;
 
 public class SMGJoinSubSMGsForAbstractionTest {
 
@@ -71,43 +57,50 @@ public class SMGJoinSubSMGsForAbstractionTest {
     SMGEdgeHasValue root =
         TestHelpers.createGlobalList(smg, SEGMENT_LENGTH, NODE_SIZE, OFFSET, "pointer");
     SMGObject firstObject = smg.getPointer(root.getValue()).getObject();
-    Assert.assertSame(SMGObjectKind.REG, firstObject.getKind());
+    assertThat(firstObject.getKind()).isSameInstanceAs(SMGObjectKind.REG);
 
     SMGSingleLinkedListCandidate candidate =
         new SMGSingleLinkedListCandidate(
-            firstObject, OFFSET, 0, CPointerType.POINTER_TO_VOID, MachineModel.LINUX32);
+            firstObject,
+            OFFSET,
+            0,
+            smg.getMachineModel().getSizeofInBits(CPointerType.POINTER_TO_VOID).longValueExact(),
+            MachineModel.LINUX32);
 
     long nfo = candidate.getShape().getNfo();
     SMGEdgeHasValue nextEdge =
         Iterables.getOnlyElement(
-            smg.getHVEdges(SMGEdgeHasValueFilter.objectFilter(firstObject).filterAtOffset(nfo)));
+            smg.getHVEdges(
+                SMGEdgeHasValueFilter.objectFilter(firstObject)
+                    .filterAtOffset(nfo)
+                    .filterWithoutSize()));
     SMGObject secondObject = smg.getObjectPointedBy(nextEdge.getValue());
-    Assert.assertSame(SMGObjectKind.REG, secondObject.getKind());
+    assertThat(secondObject.getKind()).isSameInstanceAs(SMGObjectKind.REG);
 
     SMGJoinSubSMGsForAbstraction join =
         new SMGJoinSubSMGsForAbstraction(smg, firstObject, secondObject, candidate, smgState);
 
-    Assert.assertTrue(join.isDefined());
-    Assert.assertSame(SMGJoinStatus.EQUAL, join.getStatus());
+    assertThat(join.isDefined()).isTrue();
+    assertThat(join.getStatus()).isSameInstanceAs(SMGJoinStatus.EQUAL);
 
-    Assert.assertTrue(join.getNonSharedObjectsFromSMG1().contains(firstObject));
-    Assert.assertFalse(join.getNonSharedObjectsFromSMG1().contains(secondObject));
-    Assert.assertTrue(join.getNonSharedObjectsFromSMG2().contains(secondObject));
-    Assert.assertFalse(join.getNonSharedObjectsFromSMG2().contains(firstObject));
+    assertThat(join.getNonSharedObjectsFromSMG1()).contains(firstObject);
+    assertThat(join.getNonSharedObjectsFromSMG1()).doesNotContain(secondObject);
+    assertThat(join.getNonSharedObjectsFromSMG2()).contains(secondObject);
+    assertThat(join.getNonSharedObjectsFromSMG2()).doesNotContain(firstObject);
 
     SMGObject joinResult = join.getNewAbstractObject();
-    Assert.assertTrue(joinResult.isAbstract());
-    Assert.assertSame(SMGObjectKind.SLL, joinResult.getKind());
+    assertThat(joinResult.isAbstract()).isTrue();
+    assertThat(joinResult.getKind()).isSameInstanceAs(SMGObjectKind.SLL);
 
     SMGSingleLinkedList resultSll = (SMGSingleLinkedList) joinResult;
-    Assert.assertEquals(2, resultSll.getMinimumLength());
+    assertThat(resultSll.getMinimumLength()).isEqualTo(2);
 
     UnmodifiableCLangSMG resultSMG = join.getResultSMG();
-    Set<SMGObject> resultHeapObjects = resultSMG.getHeapObjects();
-    Assert.assertTrue(resultHeapObjects.contains(joinResult));
-    Assert.assertTrue(resultHeapObjects.contains(firstObject));
-    Assert.assertTrue(resultHeapObjects.contains(secondObject));
+    PersistentSet<SMGObject> resultHeapObjects = resultSMG.getHeapObjects();
+    assertThat(resultHeapObjects.contains(joinResult)).isTrue();
+    assertThat(resultHeapObjects.contains(firstObject)).isTrue();
+    assertThat(resultHeapObjects.contains(secondObject)).isTrue();
 
-    Assert.assertTrue(SMGUtils.getPointerToThisObject(resultSll, resultSMG).isEmpty());
+    assertThat(SMGUtils.getPointerToThisObject(resultSll, resultSMG)).isEmpty();
   }
 }

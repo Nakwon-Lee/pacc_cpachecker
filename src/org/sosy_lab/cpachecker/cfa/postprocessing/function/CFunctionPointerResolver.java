@@ -1,29 +1,15 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa.postprocessing.function;
 
 import static com.google.common.collect.FluentIterable.from;
+import static org.sosy_lab.common.collect.Collections3.transformedImmutableListCopy;
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
 import com.google.common.base.Functions;
@@ -33,7 +19,6 @@ import com.google.common.collect.Sets;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -217,9 +202,9 @@ public class CFunctionPointerResolver implements StatisticsProvider {
       }
       Set<String> addressedFunctions = varCollector.getCollectedFunctions();
       candidateFunctions =
-          from(Sets.intersection(addressedFunctions, cfa.getAllFunctionNames()))
-              .transform(Functions.forMap(cfa.getAllFunctions()))
-              .toList();
+          transformedImmutableListCopy(
+              Sets.intersection(addressedFunctions, cfa.getAllFunctionNames()),
+              Functions.forMap(cfa.getAllFunctions()));
 
       if (logger.wouldBeLogged(Level.ALL)) {
         logger.log(
@@ -353,10 +338,10 @@ public class CFunctionPointerResolver implements StatisticsProvider {
           decl = ((CIdExpression) expression).getDeclaration();
         }
         if (decl == null) {
-          funcs = Collections.emptySet();
+          funcs = ImmutableSet.of();
         } else if (decl instanceof CDeclaration && ((CDeclaration) decl).isGlobal()) {
           // TODO means, that our heuristics missed something
-          funcs = Collections.emptySet();
+          funcs = ImmutableSet.of();
         }
       } else {
         funcs = from(funcs).filter(f -> matchedFuncs.contains(f.getFunctionName())).toSet();

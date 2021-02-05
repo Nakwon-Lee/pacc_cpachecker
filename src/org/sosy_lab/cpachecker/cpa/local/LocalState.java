@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2013  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.local;
 
 import static com.google.common.collect.FluentIterable.from;
@@ -40,7 +25,7 @@ import org.sosy_lab.cpachecker.util.identifiers.AbstractIdentifier;
 import org.sosy_lab.cpachecker.util.identifiers.ConstantIdentifier;
 import org.sosy_lab.cpachecker.util.identifiers.SingleIdentifier;
 
-public class LocalState implements LatticeAbstractState<LocalState> {
+public final class LocalState implements LatticeAbstractState<LocalState> {
 
   public static enum DataType {
     LOCAL,
@@ -75,16 +60,20 @@ public class LocalState implements LatticeAbstractState<LocalState> {
     alwaysLocalData = localData;
   }
 
+  private LocalState(LocalState state, ImmutableSet<String> localData) {
+    this(new HashMap<>(), state, localData);
+  }
+
   public static LocalState createInitialLocalState(Set<String> localData) {
-    return new LocalState(new HashMap<>(), null, ImmutableSet.copyOf(localData));
+    return new LocalState(null, ImmutableSet.copyOf(localData));
   }
 
   public static LocalState createInitialLocalState(LocalState state) {
-    return new LocalState(new HashMap<>(), null, state.alwaysLocalData);
+    return new LocalState(null, state.alwaysLocalData);
   }
 
   public static LocalState createNextLocalState(LocalState state) {
-    return new LocalState(new HashMap<>(), state, state.alwaysLocalData);
+    return new LocalState(state, state.alwaysLocalData);
   }
 
   public LocalState getClonedPreviousState() {
@@ -103,7 +92,7 @@ public class LocalState implements LatticeAbstractState<LocalState> {
     return this.clone(rootState.previousState);
   }
 
-  private boolean checkIsAlwaysLocal(AbstractIdentifier name) {
+  public boolean checkIsAlwaysLocal(AbstractIdentifier name) {
     if (name instanceof SingleIdentifier) {
       return alwaysLocalData.contains(((SingleIdentifier) name).getName());
     }

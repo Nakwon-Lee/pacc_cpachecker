@@ -1,34 +1,18 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.pcc.util;
 
 import com.google.common.collect.Maps;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -40,6 +24,7 @@ import java.util.zip.ZipInputStream;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.ConfigurationBuilder;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
+import org.sosy_lab.common.io.IO;
 import org.sosy_lab.cpachecker.exceptions.ValidationConfigurationConstructionFailed;
 import org.sosy_lab.cpachecker.pcc.strategy.AbstractStrategy;
 
@@ -101,7 +86,7 @@ public class ValidationConfigurationBuilder {
 
         if (prop.contains("cpa") || prop.equals("pcc.strategy")
             || prop.equals("analysis.restartAfterUnknown")) {
-          value = line.substring(eqSignPos + 1, line.length()).trim();
+          value = line.substring(eqSignPos + 1).trim();
           relevantPropertyEntries.put(prop, value);
         }
 
@@ -112,16 +97,27 @@ public class ValidationConfigurationBuilder {
 
 
   private void clearProofCreationOptions(final ConfigurationBuilder pConfigBuilder) {
-    String[] options = { "pcc.proofgen.doPCC", "pcc.proofFile", "pcc.resultcheck.writeProof",
-        "pcc.sliceProof", "pcc.resultcheck.checkerConfig", "pcc.collectValueAnalysisStateInfo",
-        "pcc.partial.certificateType", "pcc.partitioning.useGraphSizeToComputePartitionNumber",
-        "pcc.partitioning.partitioningStrategy", "pcc.partitioning.multilevel.refinementHeuristic",
-        "pcc.partitioning.bestfirst.balancePrecision", "pcc.partitioning.bestfirst.chosenFunction",
-        "pcc.partitioning.fm.balanceCriterion", "pcc.partitioning.fm.initialPartitioningStrategy",
-        "pcc.partitioning.kwayfm.balancePrecision", "pcc.partitioning.kwayfm.globalHeuristic",
-        "pcc.partitioning.kwayfm.optimizationCriterion", "pcc.partitioning.maxNumElemsPerPartition",
-        "pcc.partitioning.multilevel.matchingGenerator",
-        "pcc.partitioning.multilevel.globalHeuristic"
+    String[] options = {
+      "pcc.proofgen.doPCC",
+      "pcc.proofFile",
+      "pcc.resultcheck.writeProof",
+      "pcc.sliceProof",
+      "pcc.resultcheck.checkerConfig",
+      "pcc.collectValueAnalysisStateInfo",
+      "pcc.partial.certificateType",
+      "pcc.partitioning.useGraphSizeToComputePartitionNumber",
+      "pcc.partitioning.partitioningStrategy",
+      "pcc.partitioning.multilevel.refinementHeuristic",
+      "pcc.partitioning.bestfirst.balancePrecision",
+      "pcc.partitioning.bestfirst.chosenFunction",
+      "pcc.partitioning.fm.balanceCriterion",
+      "pcc.partitioning.fm.initialPartitioningStrategy",
+      "pcc.partitioning.kwayfm.balancePrecision",
+      "pcc.partitioning.kwayfm.globalHeuristic",
+      "pcc.partitioning.kwayfm.optimizationCriterion",
+      "pcc.partitioning.maxNumElemsPerPartition",
+      "pcc.partitioning.multilevel.matchingGenerator",
+      "pcc.partitioning.multilevel.globalHeuristic"
     };
 
     for (String option : options) {
@@ -232,9 +228,8 @@ public class ValidationConfigurationBuilder {
 
       Path valConfig = Files.createTempFile("pcc-check-config", "properties");
 
-      try (ObjectInputStream in = new ObjectInputStream(zis);
-          PrintStream out = new PrintStream(new FileOutputStream(valConfig.toFile()), false, "UTF-8")) {
-        out.print(in.readObject());
+      try (ObjectInputStream in = new ObjectInputStream(zis)) {
+        IO.writeFile(valConfig, StandardCharsets.UTF_8, in.readObject());
       } catch (ClassNotFoundException e) {
         throw new IOException("Failed to read configuration");
       }

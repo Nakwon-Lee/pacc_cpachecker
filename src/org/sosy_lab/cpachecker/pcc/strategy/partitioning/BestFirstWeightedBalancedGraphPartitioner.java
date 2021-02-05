@@ -1,31 +1,23 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.pcc.strategy.partitioning;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
-
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.logging.Level;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.configuration.Option;
@@ -37,13 +29,6 @@ import org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.PartialReachedSet
 import org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.WeightedGraph;
 import org.sosy_lab.cpachecker.pcc.strategy.partialcertificate.WeightedNode;
 import org.sosy_lab.cpachecker.pcc.strategy.partitioning.BestFirstEvaluationFunctionFactory.BestFirstEvaluationFunctions;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.logging.Level;
 
 /**
  * Compute a greedy graph partitioning in best-first-manner
@@ -94,11 +79,8 @@ public class BestFirstWeightedBalancedGraphPartitioner implements WeightedBalanc
         BestFirstEvaluationFunctionFactory.createEvaluationFunction(function);
   }
 
-  /**
-   * Store the node together with its exploration priority
-   * Use this type within PriorityQueue
-   */
-  private static class NodePriority implements Comparable<NodePriority> {
+  /** Store the node together with its exploration priority Use this type within PriorityQueue */
+  private static final class NodePriority implements Comparable<NodePriority> {
 
     private final WeightedNode node;
     private final int priority;
@@ -114,7 +96,6 @@ public class BestFirstWeightedBalancedGraphPartitioner implements WeightedBalanc
     }
 
     public NodePriority(WeightedNode pNode, int pPriority) {
-      super();
       node = pNode;
       priority = pPriority;
     }
@@ -162,8 +143,9 @@ public class BestFirstWeightedBalancedGraphPartitioner implements WeightedBalanc
   @Override
   public List<Set<Integer>> computePartitioning(int pNumPartitions,
       PartialReachedSetDirectedGraph pGraph) throws InterruptedException {
-    if (pNumPartitions <= 0 || pGraph == null) { throw new IllegalArgumentException(
-        "Partitioniong must contain at least 1 partition. Graph may not be null."); }
+    checkArgument(
+        pNumPartitions > 0 && pGraph != null,
+        "Partitioniong must contain at least 1 partition. Graph may not be null.");
     WeightedGraph wGraph = new WeightedGraph(pGraph); //Transform into weighted graph
     return computePartitioning(pNumPartitions, wGraph);
   }
@@ -171,8 +153,9 @@ public class BestFirstWeightedBalancedGraphPartitioner implements WeightedBalanc
   @Override
   public List<Set<Integer>> computePartitioning(int pNumPartitions,
       WeightedGraph wGraph) throws InterruptedException {
-    if (pNumPartitions <= 0 || wGraph == null) { throw new IllegalArgumentException(
-        "Partitioniong must contain at least 1 partition. Graph may not be null."); }
+    checkArgument(
+        pNumPartitions > 0 && wGraph != null,
+        "Partitioniong must contain at least 1 partition. Graph may not be null.");
 
     logger.log(Level.FINE,
         String.format(

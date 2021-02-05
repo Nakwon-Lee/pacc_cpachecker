@@ -1,29 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.invariants.formula;
 
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -32,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -47,7 +35,8 @@ import org.sosy_lab.cpachecker.util.states.MemoryLocation;
 
 public class CompoundIntervalFormulaManager {
 
-  private static final Map<MemoryLocation, NumeralFormula<CompoundInterval>> EMPTY_ENVIRONMENT = Collections.emptyMap();
+  private static final ImmutableMap<MemoryLocation, NumeralFormula<CompoundInterval>>
+      EMPTY_ENVIRONMENT = ImmutableMap.of();
 
   private static final CollectVarsVisitor<CompoundInterval> COLLECT_VARS_VISITOR = new CollectVarsVisitor<>();
 
@@ -158,7 +147,8 @@ public class CompoundIntervalFormulaManager {
     if (pFormula instanceof Collection<?>) {
       return definitelyImplies((Collection<BooleanFormula<CompoundInterval>>) pFormulas, pFormula, true, newMap, false, pDisableOverflowCheck);
     }
-    return definitelyImplies(FluentIterable.from(pFormulas).toSet(), pFormula, true, newMap, false, pDisableOverflowCheck);
+    return definitelyImplies(
+        ImmutableSet.copyOf(pFormulas), pFormula, true, newMap, false, pDisableOverflowCheck);
   }
 
   /**
@@ -196,7 +186,7 @@ public class CompoundIntervalFormulaManager {
     for (BooleanFormula<CompoundInterval> formula : formulas) {
       Collection<BooleanFormula<CompoundInterval>> disjunctions = formula.accept(SPLIT_DISJUNCTIONS_VISITOR);
       if (disjunctions.size() > 1) {
-        ArrayList<BooleanFormula<CompoundInterval>> newFormulas = new ArrayList<>(formulas);
+        List<BooleanFormula<CompoundInterval>> newFormulas = new ArrayList<>(formulas);
         Map<MemoryLocation, NumeralFormula<CompoundInterval>> newBaseEnvironment = new HashMap<>(pInformationBaseEnvironment);
         newFormulas.remove(formula);
         for (BooleanFormula<CompoundInterval> disjunctivePart : disjunctions) {
@@ -227,7 +217,7 @@ public class CompoundIntervalFormulaManager {
 
   public boolean definitelyImplies(final Map<MemoryLocation, NumeralFormula<CompoundInterval>> pCompleteEnvironment,
       final BooleanFormula<CompoundInterval> pFormula) {
-    return definitelyImplies(Collections.<BooleanFormula<CompoundInterval>>emptyList(), pCompleteEnvironment, pFormula, false);
+    return definitelyImplies(ImmutableList.of(), pCompleteEnvironment, pFormula, false);
   }
 
   public boolean definitelyImplies(
@@ -1092,9 +1082,9 @@ public class CompoundIntervalFormulaManager {
     if (pFormulas.isEmpty() || pConstantPart.containsAllPossibleValues()) {
       return asConstant(pInfo, pConstantPart);
     }
-    NumeralFormula<CompoundInterval> result = null;
+
     Iterator<NumeralFormula<CompoundInterval>> atomicUnionPartsIterator = pFormulas.iterator();
-    result = atomicUnionPartsIterator.next();
+    NumeralFormula<CompoundInterval> result = atomicUnionPartsIterator.next();
     while (atomicUnionPartsIterator.hasNext()) {
       result = InvariantsFormulaManager.INSTANCE.union(result, atomicUnionPartsIterator.next());
     }

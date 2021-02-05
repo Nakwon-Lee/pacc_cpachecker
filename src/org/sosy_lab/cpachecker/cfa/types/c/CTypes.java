@@ -1,27 +1,14 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cfa.types.c;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.base.Equivalence;
 import java.util.Iterator;
@@ -309,7 +296,7 @@ public final class CTypes {
         OptionalInt lengthB = arrayB.getLengthAsInt();
 
         if (lengthA.isPresent() && lengthB.isPresent()) {
-          if (lengthA.getAsInt() == lengthB.getAsInt()) {
+          if (lengthA.orElseThrow() == lengthB.orElseThrow()) {
             return true;
           }
         } else {
@@ -460,9 +447,7 @@ public final class CTypes {
 
     @Override
     public CFunctionType visit(CFunctionType t) {
-      if (constValue) {
-        throw new IllegalArgumentException("Cannot create const function type, this is undefined");
-      }
+      checkArgument(!constValue, "Cannot create const function type, this is undefined");
       return t;
     }
 
@@ -532,9 +517,7 @@ public final class CTypes {
 
     @Override
     public CFunctionType visit(CFunctionType t) {
-      if (volatileValue) {
-        throw new IllegalArgumentException("Cannot create const function type, this is undefined");
-      }
+      checkArgument(!volatileValue, "Cannot create const function type, this is undefined");
       return t;
     }
 

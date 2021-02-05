@@ -1,3 +1,12 @@
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+// SPDX-FileCopyrightText: 2014-2017 Université Grenoble Alpes
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.policyiteration;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -10,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,10 +28,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.UniqueIdGenerator;
@@ -130,9 +140,6 @@ public class PolicyIterationManager {
   @Option(secure=true, description="Generate new templates using polyhedra convex hull")
   private boolean generateTemplatesUsingConvexHull = false;
 
-  @Option(secure=true, description="Use caching optimization solver")
-  private boolean useCachingOptSolver = false;
-
   @Option(secure=true, description="Compute abstraction for larger templates "
       + "using decomposition")
   private boolean computeAbstractionByDecomposition = false;
@@ -160,7 +167,7 @@ public class PolicyIterationManager {
   private final ValueDeterminationManager vdfmgr;
   private final PolicyIterationStatistics statistics;
   private final FormulaLinearizationManager linearizationManager;
-  private final PolyhedraWideningManager pwm;
+  @Nullable private final PolyhedraWideningManager pwm;
   private final StateFormulaConversionManager stateFormulaConversionManager;
   private final RCNFManager rcnfManager;
   private final TemplatePrecision initialPrecision;
@@ -178,14 +185,12 @@ public class PolicyIterationManager {
       ValueDeterminationManager pValueDeterminationFormulaManager,
       PolicyIterationStatistics pStatistics,
       FormulaLinearizationManager pLinearizationManager,
-      PolyhedraWideningManager pPwm,
       StateFormulaConversionManager pStateFormulaConversionManager,
       TemplateToFormulaConversionManager pTemplateToFormulaConversionManager,
       TemplatePrecision pPrecision)
       throws InvalidConfigurationException {
     templateToFormulaConversionManager = pTemplateToFormulaConversionManager;
     pConfig.inject(this, PolicyIterationManager.class);
-    pwm = pPwm;
     stateFormulaConversionManager = pStateFormulaConversionManager;
     fmgr = pFormulaManager;
     cfa = pCfa;
@@ -199,6 +204,9 @@ public class PolicyIterationManager {
     linearizationManager = pLinearizationManager;
     rcnfManager = new RCNFManager(pConfig);
     initialPrecision = pPrecision;
+
+    pwm =
+        generateTemplatesUsingConvexHull ? new PolyhedraWideningManager(statistics, logger) : null;
   }
 
   /**
@@ -211,9 +219,9 @@ public class PolicyIterationManager {
   private final UniqueIdGenerator locationIDGenerator = new UniqueIdGenerator();
 
   /**
+   * Returns initial state for the analysis, assuming the first node is {@code pNode}.
+   *
    * @param pNode Initial node.
-   * @return Initial state for the analysis, assuming the first node
-   * is {@code pNode}.
    */
   public PolicyState getInitialState(CFANode pNode) {
     return PolicyAbstractedState.empty(
@@ -247,11 +255,9 @@ public class PolicyIterationManager {
     return Collections.singleton(out);
   }
 
-  /**
-   * Pre-abstraction strengthening.
-   */
+  /** Pre-abstraction strengthening. */
   Collection<? extends AbstractState> strengthen(
-      PolicyIntermediateState pState, List<AbstractState> pOtherStates)
+      PolicyIntermediateState pState, Iterable<AbstractState> pOtherStates)
       throws CPATransferException, InterruptedException {
 
     // Collect assumptions.
@@ -354,7 +360,8 @@ public class PolicyIterationManager {
 
         // Emulate large-step (join followed by value-determination) on the
         // resulting abstraction at the same location.
-        outState = emulateLargeStep(abstraction, sibling.get(), inputPrecision, extraInvariant);
+        outState =
+            emulateLargeStep(abstraction, sibling.orElseThrow(), inputPrecision, extraInvariant);
       } else {
         outState = abstraction;
       }
@@ -370,8 +377,7 @@ public class PolicyIterationManager {
    * <p>Injecting new invariants might force us to re-compute the abstraction.
    */
   public Optional<AbstractState> strengthen(
-      PolicyState pState, TemplatePrecision pPrecision,
-      List<AbstractState> pOtherStates)
+      PolicyState pState, TemplatePrecision pPrecision, Iterable<AbstractState> pOtherStates)
       throws CPAException, InterruptedException {
     if (!pState.isAbstract()) {
       return Optional.of(pState);
@@ -379,17 +385,15 @@ public class PolicyIterationManager {
 
     // Strengthening only runs on abstracted states.
     PolicyAbstractedState aState = pState.asAbstracted();
-    PolicyIntermediateState iState = aState.getGeneratingState().get();
+    PolicyIntermediateState iState = aState.getGeneratingState().orElseThrow();
 
     // We re-perform abstraction and value determination.
     BooleanFormula strengthening =
-        bfmgr.and(
-            pOtherStates
-                .stream()
-                .map(state -> AbstractStates.extractReportedFormulas(fmgr, state))
-                .filter(state -> !bfmgr.isTrue(state))
-                .collect(Collectors.toList())
-        );
+        Streams.stream(pOtherStates)
+            .map(state -> AbstractStates.extractReportedFormulas(fmgr, state))
+            .filter(state -> !bfmgr.isTrue(state))
+            .collect(bfmgr.toConjunction());
+
     if (bfmgr.isTrue(strengthening) && !delayAbstractionUntilStrengthen) {
 
       // No interesting strengthening.
@@ -417,7 +421,8 @@ public class PolicyIterationManager {
       // Emulate large-step (join followed by value-determination) on the
       // resulting abstraction at the same location.
       outState =
-          emulateLargeStep(abstraction, aState.getSibling().get(), pPrecision, strengthening);
+          emulateLargeStep(
+              abstraction, aState.getSibling().orElseThrow(), pPrecision, strengthening);
     } else {
       outState = abstraction;
     }
@@ -430,7 +435,7 @@ public class PolicyIterationManager {
   private int getLocationID(Optional<PolicyAbstractedState> sibling, CFANode node) {
     int locationID;
     if (sibling.isPresent()) {
-      locationID = sibling.get().getLocationID();
+      locationID = sibling.orElseThrow().getLocationID();
     } else {
       locationID = getFreshLocationID();
       logger.log(Level.INFO, "Generating new location ID", locationID, " for node ", node);
@@ -485,7 +490,7 @@ public class PolicyIterationManager {
               + "unfeasible at node " + newState.getNode());
         }
       }
-      out = element.get();
+      out = element.orElseThrow();
     }
 
     return out;
@@ -500,7 +505,7 @@ public class PolicyIterationManager {
       PolicyIntermediateState oldState
   ) throws InterruptedException {
 
-    Preconditions.checkState(newState.getNode() == oldState.getNode());
+    Preconditions.checkState(Objects.equals(newState.getNode(), oldState.getNode()));
 
     if (!newState.getBackpointerState().equals(oldState.getBackpointerState())) {
 
@@ -535,7 +540,7 @@ public class PolicyIterationManager {
       final TemplatePrecision precision,
       Map<Template, PolicyBound> updated,
       BooleanFormula extraInvariant) {
-    Preconditions.checkState(newState.getNode() == oldState.getNode());
+    Preconditions.checkState(Objects.equals(newState.getNode(), oldState.getNode()));
     Preconditions.checkState(
         newState.getLocationID() == oldState.getLocationID());
 
@@ -559,7 +564,7 @@ public class PolicyIterationManager {
         continue;
       }
       PolicyBound mergedBound;
-      if (newValue.get().getBound().compareTo(oldValue.get().getBound()) > 0) {
+      if (newValue.orElseThrow().getBound().compareTo(oldValue.orElseThrow().getBound()) > 0) {
         TemplateUpdateEvent updateEvent = TemplateUpdateEvent.of(
             newState.getLocationID(), template);
 
@@ -570,16 +575,23 @@ public class PolicyIterationManager {
               "at", newState.getNode(), "was reached, widening to infinity.");
           continue;
         }
-        mergedBound = newValue.get();
+        mergedBound = newValue.orElseThrow();
         updated.put(template, mergedBound);
 
-        logger.log(Level.FINE, "Updating template", template, "at",
+        logger.log(
+            Level.FINE,
+            "Updating template",
+            template,
+            "at",
             newState.getNode(),
-            "to", newValue.get().getBound(),
-            "(was: ", oldValue.get().getBound(), ")");
+            "to",
+            newValue.orElseThrow().getBound(),
+            "(was: ",
+            oldValue.orElseThrow().getBound(),
+            ")");
         statistics.templateUpdateCounter.add(updateEvent);
       } else {
-        mergedBound = oldValue.get();
+        mergedBound = oldValue.orElseThrow();
       }
       newAbstraction.put(template, mergedBound);
     }
@@ -665,9 +677,9 @@ public class PolicyIterationManager {
 
         Optional<Rational> value = optEnvironment.upper(handle, EPSILON);
 
-        if (value.isPresent() &&
-            !templateToFormulaConversionManager.isOverflowing(template, value.get())) {
-          Rational v = value.get();
+        if (value.isPresent()
+            && !templateToFormulaConversionManager.isOverflowing(template, value.orElseThrow())) {
+          Rational v = value.orElseThrow();
           logger.log(Level.FINE, "Updating", template, "to value", v);
           newAbstraction.put(template, mergedBound.updateValueFromValueDetermination(v));
         } else {
@@ -686,13 +698,9 @@ public class PolicyIterationManager {
     return Optional.of(stateWithUpdates.withNewAbstraction(newAbstraction));
   }
 
-  /**
-   * @return Whether the <code>state</code> is unreachable.
-   */
+  /** Return whether the <code>state</code> is unreachable. */
   private boolean isUnreachable(
-      PolicyIntermediateState state,
-      BooleanFormula extraInvariant,
-      boolean pIsTarget)
+      PolicyIntermediateState state, BooleanFormula extraInvariant, boolean pIsTarget)
       throws CPAException, InterruptedException {
     BooleanFormula startConstraints =
         stateFormulaConversionManager.getStartConstraintsWithExtraInvariant(state);
@@ -746,13 +754,13 @@ public class PolicyIterationManager {
           (template.getKind() == Kind.NEG_LOWER_BOUND ||
               template.getKind() == Kind.NEG_SUM_LOWER_BOUND);
       if ((bound.isPresent()
-              && !templateToFormulaConversionManager.isOverflowing(template, bound.get()))
+              && !templateToFormulaConversionManager.isOverflowing(template, bound.orElseThrow()))
           || unsignedAndLower) {
         Rational boundValue;
         if (bound.isPresent() && unsignedAndLower) {
-          boundValue = Rational.max(bound.get(), Rational.ZERO);
+          boundValue = Rational.max(bound.orElseThrow(), Rational.ZERO);
         } else if (bound.isPresent()){
-          boundValue = bound.get();
+          boundValue = bound.orElseThrow();
         } else {
           boundValue = Rational.ZERO;
         }
@@ -830,7 +838,7 @@ public class PolicyIterationManager {
 
     final Map<Template, PolicyBound> abstraction = new HashMap<>();
 
-    try (OptimizationProverEnvironment optEnvironment = newOptProver()) {
+    try (OptimizationProverEnvironment optEnvironment = solver.newOptEnvironment()) {
 
       optEnvironment.push();
       optEnvironment.addConstraint(startConstraints);
@@ -917,7 +925,7 @@ public class PolicyIterationManager {
                 template, precision, optEnvironment, bound, annotatedFormula,
                 p, generatorState, objective);
             if (policyBound.isPresent()) {
-              abstraction.put(template, policyBound.get());
+              abstraction.put(template, policyBound.orElseThrow());
             }
 
             logger.log(Level.FINE, "Got bound: ", bound);
@@ -951,14 +959,6 @@ public class PolicyIterationManager {
         extraInvariant,
         Optional.of(generatorState),
         pSibling);
-  }
-
-  private OptimizationProverEnvironment newOptProver() {
-    if (useCachingOptSolver) {
-      return solver.newCachedOptEnvironment();
-    } else {
-      return solver.newOptEnvironment();
-    }
   }
 
   private PolicyBound updatePolicyBoundDependencies(
@@ -1081,20 +1081,14 @@ public class PolicyIterationManager {
     ));
   }
 
-
   /**
-   * @param supportingLemmas Closure computation should be done with respect
-   *                         to those variables.
+   * Compute a subset of {@code input}, which exactly preserves the state-space with respect to all
+   * variables in {@code vars}.
    *
-   * @return Subset {@code input},
-   * which exactly preserves the state-space with respect to all variables in
-   * {@code vars}.
+   * @param supportingLemmas Closure computation should be done with respect to those variables.
    */
   private Set<BooleanFormula> computeRelevantSubset(
-      Set<BooleanFormula> input,
-      Set<BooleanFormula> supportingLemmas,
-      Set<String> vars
-  ) {
+      Set<BooleanFormula> input, Set<BooleanFormula> supportingLemmas, Set<String> vars) {
     final Set<String> closure = relatedClosure(
         Sets.union(input, supportingLemmas), vars);
 
@@ -1105,13 +1099,12 @@ public class PolicyIterationManager {
   }
 
   /**
+   * Return set of variables contained in the closure.
+   *
    * @param input Set of lemmas.
    * @param vars Vars to perform the closure with respect to.
-   * @return Set of variables contained in the closure.
    */
-  private Set<String> relatedClosure(
-      Set<BooleanFormula> input,
-      Set<String> vars) {
+  private Set<String> relatedClosure(Set<BooleanFormula> input, Set<String> vars) {
     Set<String> related = new HashSet<>(vars);
     while (true) {
       boolean modified = false;
@@ -1195,14 +1188,13 @@ public class PolicyIterationManager {
   }
 
   /**
+   * Check whether to compute the abstraction when creating a new state associated with <code>node
+   * </code>.
+   *
    * @param totalState Encloses all other parallel states.
-   * @return Whether to compute the abstraction when creating a new
-   * state associated with <code>node</code>.
    */
   private boolean shouldPerformAbstraction(
-      PolicyIntermediateState iState,
-      AbstractState totalState
-  ) {
+      PolicyIntermediateState iState, AbstractState totalState) {
 
     CFANode node = iState.getNode();
 
@@ -1220,7 +1212,7 @@ public class PolicyIterationManager {
         LoopBoundState loopState =
             AbstractStates.extractStateByType(totalState, LoopBoundState.class);
 
-        return (cfa.getAllLoopHeads().get().contains(node)
+        return (cfa.getAllLoopHeads().orElseThrow().contains(node)
             && (loopState == null || loopState.isLoopCounterAbstracted()));
       case MERGE:
         return node.getNumEnteringEdges() > 1;
@@ -1268,7 +1260,7 @@ public class PolicyIterationManager {
           if (!genState.isPresent()) {
             return Optional.empty();
           }
-          a = genState.get().getBackpointerState();
+          a = genState.orElseThrow().getBackpointerState();
         }
 
       } else {
@@ -1305,31 +1297,23 @@ public class PolicyIterationManager {
     return joinIntermediateStates(state1.asIntermediate(), state2.asIntermediate());
   }
 
-  /**
-   * @return state1 <= state2
-   */
+  /** Return {@code state1 <= state2} */
   private boolean isLessOrEqualIntermediate(
-      PolicyIntermediateState state1,
-      PolicyIntermediateState state2) {
+      PolicyIntermediateState state1, PolicyIntermediateState state2) {
     return state1.isMergedInto(state2)
         || (state1.getPathFormula().getFormula().equals(state2.getPathFormula().getFormula())
             && isLessOrEqualAbstracted(state1.getBackpointerState(), state2.getBackpointerState()));
   }
 
-  /**
-   * @return state1 <= state2
-   */
+  /** Return {@code state1 <= state2} */
   private boolean isLessOrEqualAbstracted(
-      PolicyAbstractedState aState1,
-      PolicyAbstractedState aState2
-  ) {
+      PolicyAbstractedState aState1, PolicyAbstractedState aState2) {
     for (Entry<Template, PolicyBound> e : aState2) {
       Template t = e.getKey();
       PolicyBound bound2 = e.getValue();
 
       Optional<PolicyBound> bound1 = aState1.getBound(t);
-      if (!bound1.isPresent()
-          || bound1.get().getBound().compareTo(bound2.getBound()) >= 1) {
+      if (!bound1.isPresent() || bound1.orElseThrow().getBound().compareTo(bound2.getBound()) > 0) {
         return false;
       }
     }

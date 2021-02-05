@@ -1,33 +1,18 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ci.translators;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Truth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Before;
@@ -100,8 +85,7 @@ public class TranslatorTest {
     Truth.assertThat(listOfIndependentRequirements).containsExactly("(= var1@1 3)", "(= |fun::varC| -5)");
 
     listOfIndependentRequirements =
-        vReqTransTest.getListOfIndependentRequirements(
-            vStateTest, ssaTest, Collections.emptyList());
+        vReqTransTest.getListOfIndependentRequirements(vStateTest, ssaTest, ImmutableList.of());
     Truth.assertThat(listOfIndependentRequirements).isEmpty();
 
     Collection<String> requiredVars = new ArrayList<>();
@@ -130,8 +114,7 @@ public class TranslatorTest {
 
     // Test method getListOfIndependentRequirements()
     List<String> listOfIndepententReq =
-        sReqTransTest.getListOfIndependentRequirements(
-            sStateTest, ssaTest, Collections.emptyList());
+        sReqTransTest.getListOfIndependentRequirements(sStateTest, ssaTest, ImmutableList.of());
     Truth.assertThat(listOfIndepententReq).isEmpty();
 
     listOfIndepententReq = sReqTransTest.getListOfIndependentRequirements(sStateTest, ssaTest, null);
@@ -189,8 +172,7 @@ public class TranslatorTest {
     Truth.assertThat(listOfIndependentRequirements).containsExactlyElementsIn(content);
 
     listOfIndependentRequirements =
-        iReqTransTest.getListOfIndependentRequirements(
-            iStateTest, ssaTest, Collections.emptyList());
+        iReqTransTest.getListOfIndependentRequirements(iStateTest, ssaTest, ImmutableList.of());
     Truth.assertThat(listOfIndependentRequirements).isEmpty();
 
     Collection<String> requiredVars = new ArrayList<>();
@@ -206,12 +188,7 @@ public class TranslatorTest {
 
     // Test method writeVarDefinition()
     List<String> varDefinition =
-        CartesianRequirementsTranslator.writeVarDefinition(
-            Arrays.asList(varNames), ssaTest, Collections.emptyList());
-    Truth.assertThat(varDefinition).isEmpty();
-
-    varDefinition =
-        CartesianRequirementsTranslator.writeVarDefinition(Arrays.asList(varNames), ssaTest, null);
+        CartesianRequirementsTranslator.writeVarDefinition(Arrays.asList(varNames), ssaTest);
     content = new ArrayList<>();
     content.add("(declare-fun var1@1 () Int)");
     content.add("(declare-fun var2 () Int)");
@@ -221,18 +198,9 @@ public class TranslatorTest {
     content.add("(declare-fun |fun::varC| () Int)");
     Truth.assertThat(varDefinition).containsExactlyElementsIn(content);
 
-    varDefinition =
-        CartesianRequirementsTranslator.writeVarDefinition(
-            Arrays.asList(varNames), ssaTest, requiredVars);
-    List<String> content2 = new ArrayList<>();
-    content2.add("(declare-fun var1@1 () Int)");
-    content2.add("(declare-fun var3@1 () Int)");
-    content2.add("(declare-fun |fun::varB@1| () Int)");
-    Truth.assertThat(varDefinition).containsExactlyElementsIn(content2);
-
     // Test method convertToFormula()
     Pair<List<String>, String> convertedToFormula =
-        iReqTransTest.convertToFormula(iStateTest, ssaTest, Collections.emptyList());
+        iReqTransTest.convertToFormula(iStateTest, ssaTest, ImmutableList.of());
     Truth.assertThat(convertedToFormula.getFirst()).isEmpty();
     String s = "(define-fun req () Bool true)";
     Truth.assertThat(convertedToFormula.getSecond()).isEqualTo(s);
@@ -243,6 +211,11 @@ public class TranslatorTest {
     Truth.assertThat(convertedToFormula.getSecond()).isEqualTo(s);
 
     convertedToFormula = iReqTransTest.convertToFormula(iStateTest, ssaTest, requiredVars);
+    List<String> content2 = new ArrayList<>();
+    content2.add("(declare-fun var1@1 () Int)");
+    content2.add("(declare-fun var3@1 () Int)");
+    content2.add("(declare-fun |fun::varB@1| () Int)");
+
     Truth.assertThat(convertedToFormula.getFirst()).containsExactlyElementsIn(content2);
     s = "(define-fun req () Bool (and (>= |fun::varB@1| 8)(and (<= var1@1 5)(<= var3@1 -2))))";
     Truth.assertThat(convertedToFormula.getSecond()).isEqualTo(s);

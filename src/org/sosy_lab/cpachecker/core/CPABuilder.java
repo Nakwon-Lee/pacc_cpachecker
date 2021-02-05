@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core;
 
 import com.google.common.base.Preconditions;
@@ -34,6 +19,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import org.sosy_lab.common.Classes;
@@ -49,6 +35,7 @@ import org.sosy_lab.cpachecker.core.interfaces.CPAFactory;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.reachedset.AggregatedReachedSets;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetFactory;
+import org.sosy_lab.cpachecker.core.specification.Specification;
 import org.sosy_lab.cpachecker.cpa.automaton.Automaton;
 import org.sosy_lab.cpachecker.cpa.automaton.ControlAutomatonCPA;
 import org.sosy_lab.cpachecker.cpa.composite.CompositeCPA;
@@ -116,12 +103,19 @@ public class CPABuilder {
       factory.set(cfa, CFA.class);
       factory.set(pAggregatedReachedSets, AggregatedReachedSets.class);
       factory.set(automaton, Automaton.class);
+      factory.setShutdownNotifier(shutdownNotifier);
 
       cpas.add(factory.createInstance());
     }
 
-    return buildCPAs(
+    ConfigurableProgramAnalysis cpa =
+        buildCPAs(
         cpaName, CPA_OPTION_NAME, usedAliases, cpas, cfa, specification, pAggregatedReachedSets);
+    if (!cpas.isEmpty()) {
+      throw new InvalidConfigurationException(
+          "Option specification gave specification automata, but no CompositeCPA was used");
+    }
+    return cpa;
   }
 
   private ConfigurableProgramAnalysis buildCPAs(
@@ -142,6 +136,18 @@ public class CPABuilder {
 
     if (!usedAliases.add(cpaAlias)) {
       throw new InvalidConfigurationException("Alias " + cpaAlias + " used twice for a CPA.");
+    }
+
+    // shortcut for a ControlAutomatonCPA which was already instantiated, but is wrapped in a
+    // cpa other than CompositeCPA (such as e.g. an AbstractSingleWrapperCPA)
+    if (cpaAlias.equals(ControlAutomatonCPA.class.getSimpleName())) {
+      Optional<ConfigurableProgramAnalysis> first =
+          cpas.stream().filter(x -> x instanceof ControlAutomatonCPA).findFirst();
+      if (first.isPresent()) {
+        ConfigurableProgramAnalysis cpa = first.orElseThrow();
+        cpas.remove(cpa);
+        return cpa;
+      }
     }
 
     // first get instance of appropriate factory
@@ -177,9 +183,6 @@ public class CPABuilder {
             specification,
             pAggregatedReachedSets);
 
-    if (cpas != null && !cpas.isEmpty()) {
-      throw new InvalidConfigurationException("Option specification gave specification automata, but no CompositeCPA was used");
-    }
     if (optionName.equals(CPA_OPTION_NAME)
         && cpaClass.equals(CompositeCPA.class)
         && !hasChildren) {
@@ -345,7 +348,7 @@ public class CPABuilder {
                 currentChildCpaName,
                 childrenOptionName,
                 usedAliases,
-                null,
+                cpas,
                 cfa,
                 specification,
                 pAggregatedReachedSets));

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.waitlist;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -44,10 +29,9 @@ import org.sosy_lab.cpachecker.util.globalinfo.GlobalInfo;
  * returns one of these successors at random.
  */
 @SuppressFBWarnings(
-  value = "BC_BAD_CAST_TO_CONCRETE_COLLECTION",
-  justification = "warnings is only because of casts introduced by generics"
-)
-@SuppressWarnings("JdkObsolete")
+    value = "BC_BAD_CAST_TO_CONCRETE_COLLECTION",
+    justification = "warnings is only because of casts introduced by generics")
+@SuppressWarnings({"checkstyle:IllegalType", "JdkObsolete"})
 public class RandomPathWaitlist extends AbstractWaitlist<LinkedList<AbstractState>> {
 
   private static final long serialVersionUID = 1L;
@@ -104,11 +88,11 @@ public class RandomPathWaitlist extends AbstractWaitlist<LinkedList<AbstractStat
     s.writeObject(parent.getNodeNumber());
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("UnusedVariable") // parameter is required by API
   private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
     s.defaultReadObject();
     Integer nodeNumber = (Integer) s.readObject();
-    CFAInfo cfaInfo = GlobalInfo.getInstance().getCFAInfo().get();
+    CFAInfo cfaInfo = GlobalInfo.getInstance().getCFAInfo().orElseThrow();
     parent = nodeNumber == null ? null : cfaInfo.getNodeByNodeNumber(nodeNumber);
   }
 }

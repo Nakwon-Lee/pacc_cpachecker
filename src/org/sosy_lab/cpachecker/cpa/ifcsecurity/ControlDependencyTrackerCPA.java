@@ -1,30 +1,15 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.ifcsecurity;
 
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.NavigableSet;
 import java.util.logging.Level;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
@@ -63,10 +48,8 @@ public class ControlDependencyTrackerCPA implements ConfigurableProgramAnalysis 
   @SuppressWarnings("unused")
   private CFA cfa;
 
-  /**
-   * Internal Variable: Control Dependencies
-   */
-  private Map<CFANode, TreeSet<CFANode>> rcd;
+  /** Internal Variable: Control Dependencies */
+  private Map<CFANode, NavigableSet<CFANode>> rcd;
 
   @Option(
       secure = true,
@@ -106,17 +89,17 @@ public class ControlDependencyTrackerCPA implements ConfigurableProgramAnalysis 
 
     DominanceFrontier domfron = new DominanceFrontier(cfa, postdominators);
     domfron.execute();
-    Map<CFANode, TreeSet<CFANode>> df = domfron.getDominanceFrontier();
+    Map<CFANode, NavigableSet<CFANode>> df = domfron.getDominanceFrontier();
     logger.log(Level.FINE, "Dominance Frontier");
     logger.log(Level.FINE, df);
 
     ControlDependenceComputer cdcom = new ControlDependenceComputer(cfa, df);
     cdcom.execute();
-    Map<CFANode, TreeSet<CFANode>> cd = cdcom.getControlDependency();
+    Map<CFANode, NavigableSet<CFANode>> cd = cdcom.getControlDependency();
     logger.log(Level.FINE, "Control Dependency");
     logger.log(Level.FINE, cd);
 
-    Map<CFANode, TreeSet<CFANode>> recd = cdcom.getReversedControlDependency();
+    Map<CFANode, NavigableSet<CFANode>> recd = cdcom.getReversedControlDependency();
     logger.log(Level.FINE, "Reversed Control Dependency");
     logger.log(Level.FINE, recd);
     this.rcd = recd;

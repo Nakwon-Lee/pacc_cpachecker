@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.variableclassification;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -38,7 +23,6 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -150,7 +134,8 @@ public class VariableClassificationBuilder implements StatisticsProvider {
 
   public static class VariableClassificationStatistics implements Statistics {
 
-    private final StatTimer variableClassificationTimer = new StatTimer("Time for var class.");
+    private final StatTimer variableClassificationTimer =
+        new StatTimer("Time for classifying variables");
     private final StatTimer collectTimer = new StatTimer("Time for collecting variables");
     private final StatTimer dependencyTimer = new StatTimer("Time for solving dependencies");
     private final StatTimer hierarchyTimer = new StatTimer("Time for building hierarchy");
@@ -314,34 +299,32 @@ public class VariableClassificationBuilder implements StatisticsProvider {
 
   private void dumpDomainTypeStatistics(Path pDomainTypeStatisticsFile, VariableClassification vc) {
     try (Writer w = IO.openOutputFile(pDomainTypeStatisticsFile, Charset.defaultCharset())) {
-      try (PrintWriter p = new PrintWriter(w)) {
-        Object[][] statMapping = {
-              {"intBoolVars",           vc.getIntBoolVars().size()},
-              {"intEqualVars",          vc.getIntEqualVars().size()},
-              {"intAddVars",            vc.getIntAddVars().size()},
-              {"allVars",               allVars.size()},
-              {"intBoolVarsRelevant",   countNumberOfRelevantVars(vc.getIntBoolVars())},
-              {"intEqualVarsRelevant",  countNumberOfRelevantVars(vc.getIntEqualVars())},
-              {"intAddVarsRelevant",    countNumberOfRelevantVars(vc.getIntAddVars())},
-              {"allVarsRelevant",       countNumberOfRelevantVars(allVars)}
-        };
-        // Write header
-        for (int col=0; col<statMapping.length; col++) {
-          p.print(statMapping[col][0]);
-          if (col != statMapping.length-1) {
-            p.print("\t");
-          }
+      Object[][] statMapping = {
+        {"intBoolVars", vc.getIntBoolVars().size()},
+        {"intEqualVars", vc.getIntEqualVars().size()},
+        {"intAddVars", vc.getIntAddVars().size()},
+        {"allVars", allVars.size()},
+        {"intBoolVarsRelevant", countNumberOfRelevantVars(vc.getIntBoolVars())},
+        {"intEqualVarsRelevant", countNumberOfRelevantVars(vc.getIntEqualVars())},
+        {"intAddVarsRelevant", countNumberOfRelevantVars(vc.getIntAddVars())},
+        {"allVarsRelevant", countNumberOfRelevantVars(allVars)}
+      };
+      // Write header
+      for (int col = 0; col < statMapping.length; col++) {
+        w.write(String.valueOf(statMapping[col][0]));
+        if (col != statMapping.length - 1) {
+          w.write("\t");
         }
-        p.print("\n");
-        // Write data
-        for (int col=0; col<statMapping.length; col++) {
-          p.print(statMapping[col][1]);
-          if (col != statMapping.length-1) {
-            p.print("\t");
-          }
-        }
-        p.print("\n");
       }
+      w.write("\n");
+      // Write data
+      for (int col = 0; col < statMapping.length; col++) {
+        w.write(String.valueOf(statMapping[col][1]));
+        if (col != statMapping.length - 1) {
+          w.write("\t");
+        }
+      }
+      w.write("\n");
     } catch (IOException e) {
       logger.logUserException(Level.WARNING, e, "Could not write variable classification statistics to file");
     }

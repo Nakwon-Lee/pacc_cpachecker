@@ -1,30 +1,16 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.callstack;
 
 import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -43,7 +29,6 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionCallEdge;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
-import org.sosy_lab.cpachecker.cfa.postprocessing.global.CFACloner;
 import org.sosy_lab.cpachecker.core.AnalysisDirection;
 import org.sosy_lab.cpachecker.core.defaults.SingleEdgeTransferRelation;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -90,9 +75,7 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         AExpression functionNameExp = ((AFunctionCall)edge.getStatement()).getFunctionCallExpression().getFunctionNameExpression();
         if (functionNameExp instanceof AIdExpression) {
           String functionName = ((AIdExpression)functionNameExp).getName();
-              if (options
-                  .getUnsupportedFunctions()
-                  .contains(CFACloner.extractFunctionName(functionName))) {
+              if (options.getUnsupportedFunctions().contains(functionName)) {
             throw new UnsupportedCodeException(functionName, edge, edge.getStatement());
           }
         }
@@ -101,7 +84,7 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
       if (pEdge instanceof CFunctionSummaryStatementEdge) {
         if (!shouldGoByFunctionSummaryStatement(e, (CFunctionSummaryStatementEdge) pEdge)) {
           // should go by function call and skip the current edge
-          return Collections.emptySet();
+          return ImmutableSet.of();
         }
         // otherwise use this edge just like a normal edge
       }
@@ -112,18 +95,12 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         final String calledFunction = succ.getFunctionName();
         final CFANode callerNode = pred;
 
-          if (options
-              .getUnsupportedFunctions()
-              .contains(CFACloner.extractFunctionName(calledFunction))) {
-            throw new UnsupportedCodeException(calledFunction, pEdge);
-          }
-
         if (hasRecursion(e, calledFunction)) {
           if (skipRecursiveFunctionCall(e, (FunctionCallEdge)pEdge)) {
             // skip recursion, don't enter function
             logger.logOnce(Level.WARNING, "Skipping recursive function call from",
                 pred.getFunctionName(), "to", calledFunction);
-            return Collections.emptySet();
+            return ImmutableSet.of();
           } else {
             // recursion is unsupported
             logger.log(Level.INFO, "Recursion detected, aborting. To ignore recursion, add -skipRecursion to the command line.");
@@ -145,27 +122,33 @@ public class CallstackTransferRelation extends SingleEdgeTransferRelation {
         final CallstackState returnElement;
 
           assert calledFunction.equals(e.getCurrentFunction())
-              || isWildcardState(e, AnalysisDirection.FORWARD);
+                  || isWildcardState(e, AnalysisDirection.FORWARD)
+              : String.format(
+                  "not in scope of called function \"%s\" when leaving function \"%s\" in state \"%s\"",
+                  calledFunction, e.getCurrentFunction(), e);
 
           if (isWildcardState(e, AnalysisDirection.FORWARD)) {
             returnElement = new CallstackState(null, callerFunction, e.getCallNode());
 
-        } else {
-          if (!callNode.equals(e.getCallNode())) {
-            // this is not the right return edge
-            return Collections.emptySet();
-          }
+          } else {
+            if (!callNode.equals(e.getCallNode())) {
+              // this is not the right return edge
+              return ImmutableSet.of();
+            }
 
-          // we are in a function return:
-          //    remove the current function from the stack;
-          //    the new abstract state is the predecessor state in the stack
-          returnElement = e.getPreviousState();
+            // we are in a function return:
+            //    remove the current function from the stack;
+            //    the new abstract state is the predecessor state in the stack
+            returnElement = e.getPreviousState();
 
             assert callerFunction.equals(returnElement.getCurrentFunction())
-                || isWildcardState(returnElement, AnalysisDirection.FORWARD);
-        }
+                    || isWildcardState(returnElement, AnalysisDirection.FORWARD)
+                : String.format(
+                    "calling function \"%s\" not available after function return into function scope \"%s\" in state \"%s\"",
+                    callerFunction, returnElement.getCurrentFunction(), returnElement);
+          }
 
-        return Collections.singleton(returnElement);
+          return Collections.singleton(returnElement);
       }
 
     default:

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.pcc.strategy.arg;
 
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
@@ -45,13 +30,13 @@ import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.core.Specification;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
 import org.sosy_lab.cpachecker.core.reachedset.HistoryForwardingReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSet;
 import org.sosy_lab.cpachecker.core.reachedset.ReachedSetFactory;
 import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
+import org.sosy_lab.cpachecker.core.specification.Specification;
 import org.sosy_lab.cpachecker.cpa.PropertyChecker.PropertyCheckerCPA;
 import org.sosy_lab.cpachecker.cpa.arg.ARGState;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
@@ -106,8 +91,7 @@ public class ARG_CMCStrategy extends AbstractStrategy {
 
     int index = 0;
     for (ReachedSet partialReached : partialReachedSets) {
-      if (partialReached.getFirstState() == null
-          || !(partialReached.getFirstState() instanceof ARGState)
+      if (!(partialReached.getFirstState() instanceof ARGState)
           || (extractLocation(partialReached.getFirstState()) == null)) {
         logger.log(Level.SEVERE, "Proof cannot be generated because checked property not known to be true.");
         roots = null;
@@ -156,6 +140,7 @@ public class ARG_CMCStrategy extends AbstractStrategy {
     return checkAndReadSequentially();
   }
 
+  @SuppressWarnings("Finally") // not really better doable without switching to Closer
   private boolean checkAndReadSequentially() {
     try {
       final ReachedSetFactory factory = new ReachedSetFactory(globalConfig, logger);
@@ -217,12 +202,12 @@ public class ARG_CMCStrategy extends AbstractStrategy {
             streams.getSecond().close();
             streams.getFirst().close();
           } catch (IOException e) {
+            throw new AssertionError(e);
           }
         }
       }
 
-      return incompleteStates.size() == 0 && roots.length > 0;
-
+      return incompleteStates.isEmpty() && roots.length > 0;
 
     } catch (InvalidConfigurationException e1) {
       logger.log(Level.SEVERE, "Cannot create reached sets for partial ARG checking", e1);
@@ -230,7 +215,7 @@ public class ARG_CMCStrategy extends AbstractStrategy {
     }
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "Finally"}) // not really better doable without switching to Closer
   private boolean checkAndReadInterleaved() throws InterruptedException, CPAException {
     final ConfigurableProgramAnalysis[] cpas = new ConfigurableProgramAnalysis[roots.length];
     try {
@@ -279,6 +264,7 @@ public class ARG_CMCStrategy extends AbstractStrategy {
                 streams.getSecond().close();
                 streams.getFirst().close();
               } catch (IOException e) {
+                throw new AssertionError(e);
               }
             }
           }
@@ -325,7 +311,7 @@ public class ARG_CMCStrategy extends AbstractStrategy {
           logger.log(Level.INFO, "Checking of partial ARG ", i, " finished");
         }
 
-        return checkResult.get() && incompleteStates.size() == 0 && roots.length > 0;
+        return checkResult.get() && incompleteStates.isEmpty() && roots.length > 0;
 
       } catch (InvalidConfigurationException e) {
         logger.log(Level.SEVERE, "Could not set up a configuration for partial ARG checking");

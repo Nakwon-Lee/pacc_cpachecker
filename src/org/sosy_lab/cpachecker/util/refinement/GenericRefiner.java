@@ -1,35 +1,21 @@
-/*
- * CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2015  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.refinement;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.errorprone.annotations.ForOverride;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import org.sosy_lab.common.configuration.Configuration;
@@ -96,6 +82,15 @@ public abstract class GenericRefiner<S extends ForgetfulState<?>, I extends Inte
   @Option(secure = true, description="store all refined paths")
   private boolean storeAllRefinedPaths = false;
 
+  @Option(
+      secure = true,
+      description =
+          "completely disable the tracking of found error paths in the refiner, "
+              + "i.e., disable the detection of repeated counterexamples")
+  // tracking repeated counterexamples is useful for developing new approaches.
+  // however, they should (in an ideal world) never occur in an analysis.
+  private boolean disableErrorPathTracking = false;
+
   @Option(secure = true, description="whether or not to add assumptions to counterexamples,"
       + " e.g., for supporting counterexample checks")
   private boolean addAssumptionsToCex = true;
@@ -110,21 +105,21 @@ public abstract class GenericRefiner<S extends ForgetfulState<?>, I extends Inte
 
   private final PathExtractor pathExtractor;
 
-  private Set<Integer> previousErrorPathIds = Sets.newHashSet();
+  private Set<Integer> previousErrorPathIds = new HashSet<>();
 
   // statistics
   private final StatCounter refinementCounter = new StatCounter("Number of refinements");
   private final StatInt numberOfTargets = new StatInt(StatKind.SUM, "Number of targets found");
   private final StatTimer refinementTime = new StatTimer("Time for completing refinement");
 
-  public GenericRefiner(
+  protected GenericRefiner(
       final FeasibilityChecker<S> pFeasibilityChecker,
       final PathInterpolator<I> pPathInterpolator,
       final InterpolantManager<S, I> pInterpolantManager,
       final PathExtractor pPathExtractor,
       final Configuration pConfig,
-      final LogManager pLogger
-  ) throws InvalidConfigurationException {
+      final LogManager pLogger)
+      throws InvalidConfigurationException {
 
     pConfig.inject(this, GenericRefiner.class);
 
@@ -136,6 +131,10 @@ public abstract class GenericRefiner<S extends ForgetfulState<?>, I extends Inte
   }
 
   private boolean madeProgress(ARGPath path) {
+    if (disableErrorPathTracking) {
+      return true;
+    }
+
     boolean progress = (previousErrorPathIds.isEmpty() || !previousErrorPathIds.contains(obtainErrorPathId(path)));
 
     if (!storeAllRefinedPaths) {
@@ -247,7 +246,7 @@ public abstract class GenericRefiner<S extends ForgetfulState<?>, I extends Inte
       throws CPAException, InterruptedException {
 
     // if the first state of the error path is the root, the interpolant cannot be to weak
-    if (errorPath.getFirstState() == root) {
+    if (Objects.equals(errorPath.getFirstState(), root)) {
       return false;
     }
 

@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.pcc.strategy.parallel;
 
 import static org.sosy_lab.cpachecker.util.AbstractStates.extractLocation;
@@ -103,8 +88,8 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
     logger.log(Level.INFO, "Proof check algorithm started");
     try {
 
-      StateCheckingHelper helper[] = new StateCheckingHelper[numThreads - 1];
-      Thread helperThreads[] = new Thread[numThreads - 1];
+      StateCheckingHelper[] helper = new StateCheckingHelper[numThreads - 1];
+      Thread[] helperThreads = new Thread[numThreads - 1];
       CyclicBarrier barrier = new CyclicBarrier(numThreads);
       CommonResult result = new CommonResult(numThreads);
 
@@ -122,7 +107,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
       Block block;
       BAMARGBlockStartState bamState;
       Collection<ARGState> returnNodes;
-      ArrayList<ARGState> partialReturnNodes = new ArrayList<>();
+      List<ARGState> partialReturnNodes = new ArrayList<>();
       List<ARGState> argStates;
       int numElems;
       for (int i = 0; i < args.length - 2; i++) {
@@ -217,14 +202,12 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
       current = toVisit.pop();
 
       if (current.isCovered()) {
-        if (!seen.contains(current.getCoveringState())) {
-          seen.add(current.getCoveringState());
+        if (seen.add(current.getCoveringState())) {
           toVisit.add(current.getCoveringState());
         }
       } else {
         for (ARGState state : current.getChildren()) {
-          if (!seen.contains(state)) {
-            seen.add(state);
+          if (seen.add(state)) {
             toVisit.add(state);
           }
         }
@@ -279,8 +262,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
   }
 
   private boolean correctReachedSetFormatForProof(UnmodifiableReachedSet pReached) {
-    if (pReached.getFirstState() == null
-        || !(pReached.getFirstState() instanceof ARGState)
+    if (!(pReached.getFirstState() instanceof ARGState)
         || (extractLocation(pReached.getFirstState()) == null)) {
       logger.log(Level.SEVERE, "Proof cannot be generated because checked property not known to be true.");
       return false;
@@ -322,8 +304,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
       current = toVisit.pop();
 
       if (current.isCovered()) {
-        if (!seen.contains(current.getCoveringState())) {
-          seen.add(current.getCoveringState());
+        if (seen.add(current.getCoveringState())) {
           toVisit.add(current.getCoveringState());
         }
       } else {
@@ -335,8 +316,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
         }
 
         for (ARGState state : current.getChildren()) {
-          if (!seen.contains(state)) {
-            seen.add(state);
+          if (seen.add(state)) {
             toVisit.add(state);
           }
         }
@@ -366,8 +346,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
       current = toVisit.pop();
 
       if (current.isCovered()) {
-        if (!seen.contains(current.getCoveringState())) {
-          seen.add(current.getCoveringState());
+        if (seen.add(current.getCoveringState())) {
           toVisit.add(current.getCoveringState());
         }
       } else {
@@ -382,8 +361,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
         }
 
         for (ARGState state : current.getChildren()) {
-          if (!seen.contains(state)) {
-            seen.add(state);
+          if (seen.add(state)) {
             toVisit.add(state);
           }
         }
@@ -398,11 +376,11 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
     ARGState[] result = new ARGState[pMap.size() + 1];
 
     int nextPos = 0, size = 0;
-    ArrayList<Integer> deleteEdges = new ArrayList<>();
-    ArrayList<BAMARGBlockStartState> consider = new ArrayList<>(pMap.keySet());
+    List<Integer> deleteEdges = new ArrayList<>();
+    List<BAMARGBlockStartState> consider = new ArrayList<>(pMap.keySet());
     BitSet set;
 
-    while (consider.size() > 0) {
+    while (!consider.isEmpty()) {
       if (size == consider.size()) {
         logger.log(Level.WARNING, "Cannot topology sort ARGs for blocks due to recursion.");
         return new ARGState[1];
@@ -468,7 +446,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
     @Override
     public void run() {
       int end;
-      ArrayList<ARGState> returnNodes = new ArrayList<>();
+      List<ARGState> returnNodes = new ArrayList<>();
       boolean fail = false;
       try {
         do {
@@ -511,7 +489,7 @@ public class ARGProofCheckerParallelStrategy extends SequentialReadStrategy {
     private boolean success = true;
     private int max;
     private int numSetResults;
-    private ArrayList<ARGState> returnNodes;
+    private List<ARGState> returnNodes;
 
     public CommonResult(int maxParticipants) {
       max = maxParticipants;

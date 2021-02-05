@@ -1,35 +1,20 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2017  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.statistics;
 
-import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multiset.Entry;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.function.BiFunction;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Thread-safe implementation of numerical statistics.
@@ -38,24 +23,36 @@ import java.util.function.BiFunction;
  */
 public class StatHist extends AbstractStatValue {
 
-  private final Multiset<Long> hist = ConcurrentHashMultiset.create();
+  protected final Multiset<Long> hist = HashMultiset.create();
 
   public StatHist(String pTitle) {
     super(StatKind.AVG, pTitle);
   }
 
   public int getTimesWithValue(Long value) {
-    return hist.count(value);
+    synchronized (hist) {
+      return hist.count(value);
+    }
   }
 
   public void insertValue(long pNewValue) {
-    hist.add(pNewValue);
+    synchronized (hist) {
+      hist.add(pNewValue);
+    }
+  }
+
+  public void insertValue(long pNewValue, int occurrences) {
+    synchronized (hist) {
+      hist.add(pNewValue, occurrences);
+    }
   }
 
   @Override
   public String toString() {
-    return String.format(
-        "%s (cnt=%d, avg=%.2f, dev=%.2f)", hist, hist.size(), getAvg(), getStdDeviation());
+    synchronized (hist) {
+      return String.format(
+          "%s (cnt=%d, avg=%.2f, dev=%.2f)", hist, hist.size(), getAvg(), getStdDeviation());
+    }
   }
 
   public double getStdDeviation() {
@@ -79,8 +76,7 @@ public class StatHist extends AbstractStatValue {
   /** returns the element at position floor(size/2). */
   public long getMean() {
     synchronized (hist) {
-      List<Long> values = new ArrayList<>(hist.elementSet());
-      Collections.sort(values);
+      ImmutableList<Long> values = ImmutableList.sortedCopyOf(hist.elementSet());
       int i = 0;
       int middle = (hist.size() + 1) / 2;
       for (long value : values) { // sorted
@@ -94,33 +90,49 @@ public class StatHist extends AbstractStatValue {
     }
   }
 
-  /** returns the maximum value, or MIN_INT if no value is available. */
+  /** returns the maximum value, or Long.MIN_VALUE if no value is available. */
   public long getMax() {
-    return reduce(Math::max, Long.MIN_VALUE);
+    synchronized (hist) {
+      return hist.isEmpty() ? Long.MIN_VALUE : Collections.max(hist.elementSet());
+    }
   }
 
-  /** returns the minimum value, or MAX_INT if no value is available. */
+  /** returns the minimum value, or Long.MAX_VALUE if no value is available. */
   public long getMin() {
-    return reduce(Math::min, Long.MAX_VALUE);
+    synchronized (hist) {
+      return hist.isEmpty() ? Long.MAX_VALUE : Collections.min(hist.elementSet());
+    }
   }
 
   /** returns the sum of all values, or 0 if no value is available. */
   public double getSum() {
-    return reduce((res, e) -> (res + e * hist.count(e)), 0.0);
-  }
-
-  private <T> T reduce(BiFunction<T, Long, T> f, T neutral) {
     synchronized (hist) {
-      T result = neutral;
-      for (Entry<Long> e : hist.entrySet()) {
-        result = f.apply(result, e.getElement());
-      }
-      return result;
+      return hist.entrySet()
+          .stream()
+          .mapToDouble(e -> ((double) e.getElement()) * e.getCount())
+          .sum();
     }
   }
 
   @Override
   public int getUpdateCount() {
-    return hist.size();
+    synchronized (hist) {
+      return hist.size();
+    }
+  }
+
+  public void mergeWith(StatHist other) {
+    // copy data to avoid a possible deadlock from locking hist and other hist.
+    Map<Long, Integer> countMap = new LinkedHashMap<>();
+    synchronized (other.hist) {
+      for (Long e : other.hist.elementSet()) {
+        countMap.put(e, other.hist.count(e));
+      }
+    }
+    synchronized (hist) {
+      for (java.util.Map.Entry<Long, Integer> e : countMap.entrySet()) {
+        hist.add(e.getKey(), e.getValue());
+      }
+    }
   }
 }

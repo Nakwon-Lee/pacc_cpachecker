@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -34,6 +19,7 @@ import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.util.CFAUtils;
+import org.sosy_lab.cpachecker.util.statistics.StatCounter;
 
 /**
  * This class implements the blk operator from the paper
@@ -99,15 +85,14 @@ public class BlockOperator {
   private ImmutableSet<CFANode> explicitAbstractionNodes = null;
   private ImmutableSet<CFANode> loopHeads = null;
 
-  public int numBlkEntryFunctionHeads = 0;
-  public int numBlkFunctionHeads = 0;
-  public int numBlkFunctions = 0;
-  public int numBlkLoops = 0;
-  public int numBlkExplicit = 0;
-  public int numBlkJoins = 0;
-  public int numBlkBranch = 0;
-  public int numBlkThreshold = 0;
-  public int numBlkExit = 0;
+  public StatCounter numBlkEntryFunctionHeads = new StatCounter("");
+  public StatCounter numBlkFunctionHeads = new StatCounter("");
+  public StatCounter numBlkFunctions = new StatCounter("");
+  public StatCounter numBlkLoops = new StatCounter("");
+  public StatCounter numBlkJoins = new StatCounter("");
+  public StatCounter numBlkBranch = new StatCounter("");
+  public StatCounter numBlkThreshold = new StatCounter("");
+  public StatCounter numBlkExit = new StatCounter("");
 
   /**
    * Check whether an abstraction should be computed.
@@ -125,7 +110,6 @@ public class BlockOperator {
 
     if (alwaysAtExplicitNodes && explicitAbstractionNodes != null
         && explicitAbstractionNodes.contains(loc)) {
-      numBlkExplicit++;
       return true;
     }
 
@@ -135,42 +119,42 @@ public class BlockOperator {
     }
 
     if (alwaysAtFunctions && isFunctionCall(loc)) {
-      numBlkFunctions++;
+      numBlkFunctions.inc();
       return true;
     }
 
     if (alwaysAtEntryFunctionHead && isFirstLocationInMainFunctionBody(loc)) {
-      numBlkEntryFunctionHeads++;
+      numBlkEntryFunctionHeads.inc();
       return true;
     }
 
     if (alwaysAtFunctionHeads && isFunctionHead(loc)) {
-      numBlkFunctionHeads++;
+      numBlkFunctionHeads.inc();
       return true;
     }
 
     if (alwaysAtFunctionCallNodes && isBeforeFunctionCall(loc)) {
-      numBlkFunctionHeads++;
+      numBlkFunctionHeads.inc();
       return true;
     }
 
     if (alwaysAtLoops && isLoopHead(loc)) {
-      numBlkLoops++;
+      numBlkLoops.inc();
       return true;
     }
 
     if (alwaysAtJoin && isJoinNode(loc)) {
-      numBlkJoins++;
+      numBlkJoins.inc();
       return true;
     }
 
     if (alwaysAtBranch && isBranchNode(loc)) {
-      numBlkBranch++;
+      numBlkBranch.inc();
       return true;
     }
 
     if (alwaysAtProgramExit && isProgramExit(loc)) {
-      numBlkExit++;
+      numBlkExit.inc();
       return true;
     }
 
@@ -178,21 +162,21 @@ public class BlockOperator {
       if (isThresholdFulfilled(thresholdValue)) {
 
         if (alwaysAfterThreshold) {
-          numBlkThreshold++;
+          numBlkThreshold.inc();
           return true;
 
         } else if (absOnFunction && isFunctionCall(loc)) {
-          numBlkThreshold++;
-          numBlkFunctions++;
+          numBlkThreshold.inc();
+          numBlkFunctions.inc();
           return true;
 
         } else if (absOnLoop && isLoopHead(loc)) {
-          numBlkThreshold++;
-          numBlkLoops++;
+          numBlkThreshold.inc();
+          numBlkLoops.inc();
           return true;
         } else if (absOnJoin && isJoinNode(loc)) {
-          numBlkThreshold++;
-          numBlkJoins++;
+          numBlkThreshold.inc();
+          numBlkJoins.inc();
           return true;
         }
       }
@@ -204,12 +188,12 @@ public class BlockOperator {
       // For compatibility reasons, act as if blk.alwaysAtFunctions / blk.alwaysAtLoops
       // was instead specified.
       if (absOnFunction && isFunctionCall(loc)) {
-        numBlkFunctions++;
+        numBlkFunctions.inc();
         return true;
       }
 
       if (absOnLoop && isLoopHead(loc)) {
-        numBlkLoops++;
+        numBlkLoops.inc();
         return true;
       }
     }
@@ -265,7 +249,7 @@ public class BlockOperator {
   public void setCFA(CFA cfa) {
     if (absOnLoop || alwaysAtLoops) {
       if (cfa.getAllLoopHeads().isPresent()) {
-        loopHeads = cfa.getAllLoopHeads().get();
+        loopHeads = cfa.getAllLoopHeads().orElseThrow();
       }
     }
   }

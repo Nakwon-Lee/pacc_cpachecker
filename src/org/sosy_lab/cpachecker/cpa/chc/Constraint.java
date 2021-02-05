@@ -1,37 +1,23 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.chc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import jpl.Term;
 
 public class Constraint {
 
-  private ArrayList<Term> cns = null;
-  private Map<String,Term> vars = null;
+  private List<Term> cns = null;
+  private Map<String, Term> vars = null;
 
   public Constraint() {
     cns = new ArrayList<>();
@@ -43,22 +29,22 @@ public class Constraint {
     this.vars = new HashMap<>(cn.getVars());
   }
 
-  public Constraint(ArrayList<Term> cns, HashMap<String,Term> vars) {
+  public Constraint(List<Term> cns, Map<String, Term> vars) {
     this.cns = cns;
     this.vars = vars;
   }
 
-  public Constraint(ArrayList<Term> cns) {
+  public Constraint(List<Term> cns) {
     this.cns = cns;
     vars = new HashMap<>();
   }
 
-  public Constraint(ArrayList<Term> cns, ArrayList<Term> vars) {
+  public Constraint(List<Term> cns, List<Term> vars) {
     this.cns = cns;
     createHashMap(vars);
   }
 
-  public Constraint(Term cn, ArrayList<Term> vars) {
+  public Constraint(Term cn, List<Term> vars) {
     cns = new ArrayList<>();
     cns.add(cn);
     createHashMap(vars);
@@ -92,7 +78,7 @@ public class Constraint {
       }
   }
 
-  public ArrayList<Term> getConstraint() {
+  public List<Term> getConstraint() {
     return cns;
   }
 
@@ -109,7 +95,7 @@ public class Constraint {
     if (cns == null) {
       return true;
     } else {
-      if ( cns.size() != 0 ) {
+      if (!cns.isEmpty()) {
         if (cns.get(0).toString().equals("false")) {
           return true;
         }
@@ -139,7 +125,7 @@ public class Constraint {
     cns.addAll(cn.getConstraint());
   }
 
-  public Constraint setConstraint(ArrayList<Term> cns) {
+  public Constraint setConstraint(List<Term> cns) {
     this.cns = cns;
     return this;
   }
@@ -148,7 +134,7 @@ public class Constraint {
     vars = new HashMap<>();
   }
 
-  private void createHashMap(ArrayList<Term> varTerms) {
+  private void createHashMap(List<Term> varTerms) {
     vars = new HashMap<>();
     for (Term v : varTerms) {
       vars.put(ConstraintManager.var2CVar(v.name()),v);

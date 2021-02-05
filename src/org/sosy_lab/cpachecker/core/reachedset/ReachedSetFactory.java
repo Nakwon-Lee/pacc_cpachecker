@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.core.reachedset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,21 +23,19 @@ import org.sosy_lab.cpachecker.core.waitlist.BlockWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.BranchBasedWeightedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DepthBasedWeightedWaitlist;
-import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedAllRandomWaitlist;
-import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedRandomWaitlist;
-import org.sosy_lab.cpachecker.core.waitlist.DynamicSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopIterationSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.PostorderSortedWaitlist;
-import org.sosy_lab.cpachecker.core.waitlist.RandomWaitlistSeed;
 import org.sosy_lab.cpachecker.core.waitlist.ReversePostorderSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.SMGSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ThreadingSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist;
 import org.sosy_lab.cpachecker.core.waitlist.Waitlist.WaitlistFactory;
+import org.sosy_lab.cpachecker.core.waitlist.WeightedRandomWaitlist;
 import org.sosy_lab.cpachecker.cpa.automaton.AutomatonVariableWaitlist;
 import org.sosy_lab.cpachecker.cpa.usage.UsageReachedSet;
+import org.sosy_lab.cpachecker.cpa.usage.storage.UsageConfiguration;
 
 @Options(prefix="analysis")
 public class ReachedSetFactory {
@@ -217,14 +200,20 @@ public class ReachedSetFactory {
   )
   private ReachedSetType reachedSet = ReachedSetType.PARTITIONED;
 
-  private final Configuration config;
+  @Option(
+      secure = true,
+      name = "reachedSet.withStatistics",
+      description = "track more statistics about the reachedset")
+  private boolean withStatistics = false;
+
   private @Nullable BlockConfiguration blockConfig;
+  private @Nullable UsageConfiguration usageConfig;
+  private WeightedRandomWaitlist.@Nullable WaitlistOptions weightedWaitlistOptions;
   private final LogManager logger;
 
   public ReachedSetFactory(Configuration pConfig, LogManager pLogger)
       throws InvalidConfigurationException {
     pConfig.inject(this);
-    this.config = pConfig;
     this.logger = checkNotNull(pLogger);
 
     if (useBlocks) {
@@ -232,79 +221,29 @@ public class ReachedSetFactory {
     } else {
       blockConfig = null;
     }
+    if (reachedSet == ReachedSetType.USAGE) {
+      usageConfig = new UsageConfiguration(pConfig);
+    } else {
+      usageConfig = null;
+    }
+    if (useWeightedDepthOrder || useWeightedBranchOrder) {
+      weightedWaitlistOptions = new WeightedRandomWaitlist.WaitlistOptions(pConfig);
+    } else {
+      weightedWaitlistOptions = null;
+    }
   }
 
   public ReachedSet create() {
     WaitlistFactory waitlistFactory = traversalMethod;
-    //WaitlistFactory waitlistFactory = Waitlist.TraversalMethod.RANDOM_PATH;
-    /*
-    if (traversalMethod == TraversalMethod.DYNAMIC){
-      assert nOfVars > 0 : "if Dynamic search, nOfVars must be bigger than zero";
-      assert searchFormClass != null : "searchFormClass must not be null";
-      waitlistFactory = DynamicWaitlist.factory(nOfVars, searchFormClass);
-    }
-    */
-
-    /*
-    if (useCloneable){
-      if (useAutomatonInformation) {
-        waitlistFactory = AutomatonMatchesWaitlistCloneable.factory(waitlistFactory);
-        waitlistFactory = AutomatonFailedMatchesWaitlist.factory(waitlistFactory);
-      }
-      if (useReversePostorder) {
-        waitlistFactory = ReversePostorderSortedWaitlist.factory(waitlistFactory);
-      }
-      if (usePostorder) {
-        waitlistFactory = PostorderSortedWaitlist.factory(waitlistFactory);
-      }
-      if (useLoopstack) {
-        waitlistFactory = LoopstackSortedWaitlist.factory(waitlistFactory);
-      }
-      if (useCallstack) {
-        waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
-      }
-      if (useExplicitInformation) {
-        waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
-      }
-      if (byAutomatonVariable != null) {
-        waitlistFactory = AutomatonVariableWaitlist.factory(waitlistFactory, byAutomatonVariable);
-      }
-
-      switch (reachedSet) {
-      case PARTITIONED:
-        return new PartitionedReachedSet(waitlistFactory);
-
-      case LOCATIONMAPPED:
-        return new LocationMappedReachedSet(waitlistFactory);
-
-      case NORMAL:
-      default:
-        return new DefaultReachedSet(waitlistFactory);
-      }
-    }else{*/
-
-    if (dynamicWaitlist) {
-      waitlistFactory = DynamicSortedWaitlist.factory(waitlistFactory, config);
-    }
-
-    if (dynamicWaitlistRandom) {
-      waitlistFactory = DynamicSortedRandomWaitlist.factory(waitlistFactory, config);
-    }
-
-    if (dynamicWaitlistAllRandom) {
-      waitlistFactory = DynamicSortedAllRandomWaitlist.factory(waitlistFactory, config);
-    }
-
-    if (pureRandomWaitlist) {
-      waitlistFactory = RandomWaitlistSeed.factory(config);
-    }
 
     if (useWeightedDepthOrder) {
-      waitlistFactory = DepthBasedWeightedWaitlist.factory(waitlistFactory, config);
+      waitlistFactory =
+          DepthBasedWeightedWaitlist.factory(waitlistFactory, weightedWaitlistOptions);
     }
 
     if (useWeightedBranchOrder) {
-      waitlistFactory = BranchBasedWeightedWaitlist.factory(waitlistFactory, config);
+      waitlistFactory =
+          BranchBasedWeightedWaitlist.factory(waitlistFactory, weightedWaitlistOptions);
     }
 
     if (useAutomatonInformation) {
@@ -348,22 +287,29 @@ public class ReachedSetFactory {
       waitlistFactory = BlockWaitlist.factory(waitlistFactory, blockConfig, logger);
     }
 
-   switch (reachedSet) {
-   case PARTITIONED:
-     return new PartitionedReachedSet(waitlistFactory);
-
-	case PSEUDOPARTITIONED:
-      return new PseudoPartitionedReachedSet(waitlistFactory);
-
-   case LOCATIONMAPPED:
-     return new LocationMappedReachedSet(waitlistFactory);
-
+    ReachedSet reached;
+    switch (reachedSet) {
+    case PARTITIONED:
+        reached = new PartitionedReachedSet(waitlistFactory);
+        break;
+    case PSEUDOPARTITIONED:
+        reached = new PseudoPartitionedReachedSet(waitlistFactory);
+        break;
+    case LOCATIONMAPPED:
+        reached = new LocationMappedReachedSet(waitlistFactory);
+        break;
     case USAGE:
-      return new UsageReachedSet(waitlistFactory, config, logger);
-
+        reached = new UsageReachedSet(waitlistFactory, usageConfig, logger);
+        break;
     case NORMAL:
     default:
-      return new DefaultReachedSet(waitlistFactory);
+        reached = new DefaultReachedSet(waitlistFactory);
     }
+
+    if (withStatistics) {
+      reached = new StatisticsReachedSet(reached);
+    }
+
+    return reached;
   }
 }

@@ -1,42 +1,29 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.predicates.smt;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.sosy_lab.cpachecker.util.statistics.StatisticsWriter.writingStatisticsTo;
 import static org.sosy_lab.java_smt.api.SolverContext.ProverOptions.GENERATE_UNSAT_CORE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.common.configuration.Configuration;
@@ -60,6 +47,8 @@ import org.sosy_lab.java_smt.api.ProverEnvironment;
 import org.sosy_lab.java_smt.api.SolverContext;
 import org.sosy_lab.java_smt.api.SolverContext.ProverOptions;
 import org.sosy_lab.java_smt.api.SolverException;
+import org.sosy_lab.java_smt.delegate.statistics.SolverStatistics;
+import org.sosy_lab.java_smt.delegate.statistics.StatisticsSolverContext;
 
 /**
  * Encapsulation of an SMT solver.
@@ -96,6 +85,13 @@ public final class Solver implements AutoCloseable {
   description="Extract and cache unsat cores for satisfiability checking")
   private boolean cacheUnsatCores = true;
 
+  @Option(
+      secure = true,
+      description =
+          "whether CPAchecker's logger should be used as logger for the solver, "
+              + "otherwise nothing is logged from the solver.")
+  private boolean enableLoggingInSolver = false;
+
   private final @Nullable UFCheckingProverOptions ufCheckingProverOptions;
 
   private final FormulaManagerView fmgr;
@@ -104,7 +100,7 @@ public final class Solver implements AutoCloseable {
   private final SolverContext solvingContext;
   private final SolverContext interpolatingContext;
 
-  private final Map<BooleanFormula, Boolean> unsatCache = Maps.newHashMap();
+  private final Map<BooleanFormula, Boolean> unsatCache = new HashMap<>();
 
   /**
    * More complex unsat cache, grouped by an arbitrary key.
@@ -127,9 +123,20 @@ public final class Solver implements AutoCloseable {
   public int trivialSatChecks = 0;
   public int cachedSatChecks = 0;
 
-  private Solver(SolverContextFactory pSolverFactory, Configuration config, LogManager pLogger)
+  private Solver(
+      Configuration config,
+      LogManager pLogger,
+      ShutdownNotifier shutdownNotifier)
       throws InvalidConfigurationException {
     config.inject(this);
+
+    if (enableLoggingInSolver) {
+      logger = pLogger;
+    } else {
+      logger = LogManager.createNullLogManager();
+    }
+
+    SolverContextFactory solverFactory = new SolverContextFactory(config, logger, shutdownNotifier);
 
     if (solver.equals(interpolationSolver)) {
       // If interpolationSolver is not null, we use SeparateInterpolatingProverEnvironment
@@ -138,11 +145,11 @@ public final class Solver implements AutoCloseable {
       interpolationSolver = null;
     }
 
-    solvingContext = pSolverFactory.generateContext(solver);
+    solvingContext = solverFactory.generateContext(solver);
 
     // Instantiate another SMT solver for interpolation if requested.
     if (interpolationSolver != null) {
-      interpolatingContext = pSolverFactory.generateContext(interpolationSolver);
+      interpolatingContext = solverFactory.generateContext(interpolationSolver);
     } else {
       interpolatingContext = solvingContext;
     }
@@ -152,7 +159,6 @@ public final class Solver implements AutoCloseable {
         pLogger
     );
     bfmgr = fmgr.getBooleanFormulaManager();
-    logger = pLogger;
 
     if (checkUFs) {
       ufCheckingProverOptions = new UFCheckingProverOptions(config);
@@ -210,9 +216,15 @@ public final class Solver implements AutoCloseable {
    * Load and instantiate an SMT solver. The returned instance should be closed by calling {@link
    * #close} when it is not used anymore.
    */
-  @SuppressWarnings("deprecation")
   public static Solver create(
       Configuration config, LogManager logger, ShutdownNotifier shutdownNotifier)
+      throws InvalidConfigurationException {
+    return new Solver(adjustConfigForSolver(config), logger, shutdownNotifier);
+  }
+
+  /** Adjust config by overriding defaults of some JavaSMT options */
+  @SuppressWarnings("deprecation")
+  public static Configuration adjustConfigForSolver(Configuration config)
       throws InvalidConfigurationException {
     if (!config.hasProperty(SOLVER_OPTION_NON_LINEAR_ARITHMETIC)) {
       // Set a default for solver.nonLinearArithmetic, because with JavaSMT's default CPAchecker
@@ -221,14 +233,32 @@ public final class Solver implements AutoCloseable {
       // solvers unfair, and at least small experiments showed no benefit in practice
       // (if non-linear arithmetic is useful, it would be better to use bitvectors than linear
       // approximation anyway).
-      config =
-          Configuration.builder()
-              .copyFrom(config)
-              .setOption(SOLVER_OPTION_NON_LINEAR_ARITHMETIC, "APPROXIMATE_ALWAYS")
-              .build();
+      return Configuration.builder()
+          .copyFrom(config)
+          .setOption(SOLVER_OPTION_NON_LINEAR_ARITHMETIC, "APPROXIMATE_ALWAYS")
+          .build();
     }
-    SolverContextFactory factory = new SolverContextFactory(config, logger, shutdownNotifier);
-    return new Solver(factory, config, logger);
+    return config;
+  }
+
+  /**
+   * Load and instantiate an SMT solver. The returned instance should be closed by calling {@link
+   * #close} when it is not used anymore.
+   *
+   * <p>Important: If possible, always use {@link Solver#create(Configuration, LogManager,
+   * ShutdownNotifier)} and refrain from using this method.
+   *
+   * <p>Important: Refrain from calling this method and instead always try to use {@link
+   * Solver#create(Configuration, LogManager, ShutdownNotifier)} first.
+   */
+  public static Solver create(
+      SolverContextFactory pSolverFactory,
+      Solvers pSolver,
+      SolverContext pSolverContext,
+      Configuration pConfig,
+      LogManager pLogger)
+      throws InvalidConfigurationException {
+    return new Solver(pSolverFactory, pSolver, pSolverContext, pConfig, pLogger);
   }
 
   /**
@@ -237,6 +267,41 @@ public final class Solver implements AutoCloseable {
    */
   public FormulaManagerView getFormulaManager() {
     return fmgr;
+  }
+
+  /**
+   * Return the underlying {@link FormulaManagerView} that can be used for creating and manipulating
+   * formulas.
+   */
+  public void printStatistics(PrintStream pOut) {
+    if (solvingContext instanceof StatisticsSolverContext) {
+      final SolverStatistics stats =
+          ((StatisticsSolverContext) solvingContext).getSolverStatistics();
+      pOut.println();
+      writingStatisticsTo(pOut).put("Statistics about operations", "")
+          .beginLevel()
+          .put("Number of boolean operations", stats.getNumberOfBooleanOperations())
+          .put("Number of numeric operations", stats.getNumberOfNumericOperations())
+          .put("Number of FP operations", stats.getNumberOfFPOperations())
+          .put("Number of BV operations", stats.getNumberOfBVOperations())
+          .put("Number of array operations", stats.getNumberOfArrayOperations())
+          .endLevel()
+          .put("Statistics about queries", "")
+          .beginLevel()
+          .put("Number of push queries", stats.getNumberOfPushQueries())
+          .put("Number of addConstraint queries", stats.getNumberOfAddConstraintQueries())
+          .put("Number of pop queries", stats.getNumberOfPopQueries())
+          .put("Number of model queries", stats.getNumberOfModelQueries())
+          .put("Number of isUnsat queries", stats.getNumberOfIsUnsatQueries())
+          .put("Sum time for isUnsat queries", stats.getSumTimeOfIsUnsatQueries().formatAs(TimeUnit.SECONDS))
+          .put("Max time for isUnsat queries", stats.getMaxTimeOfIsUnsatQueries().formatAs(TimeUnit.SECONDS))
+          .put("Number of interpolation queries", stats.getNumberOfInterpolationQueries())
+          .put("Sum time for itp queries", stats.getSumTimeOfInterpolationQueries().formatAs(TimeUnit.SECONDS))
+          .put("Max time for itp queries", stats.getMaxTimeOfInterpolationQueries().formatAs(TimeUnit.SECONDS))
+          .put("Number of allSat queries", stats.getNumberOfAllSatQueries())
+          .put("Sum time for allSat queries", stats.getSumTimeOfAllSatQueries().formatAs(TimeUnit.SECONDS))
+          .put("Max time for allSat queries", stats.getMaxTimeOfAllSatQueries().formatAs(TimeUnit.SECONDS));
+    }
   }
 
   /**
@@ -306,13 +371,6 @@ public final class Solver implements AutoCloseable {
         solvingContext.newOptimizationProverEnvironment(ProverOptions.GENERATE_MODELS);
     environment = new OptimizationProverEnvironmentView(environment, fmgr);
     return environment;
-  }
-
-  public OptimizationProverEnvironment newCachedOptEnvironment() {
-    throw new UnsupportedOperationException("Java-SMT does not support cached prover enviroments.");
-    // OptimizationProverEnvironment environment = solvingContext.newCachedOptimizationProverEnvironment();
-    // environment = new OptimizationProverEnvironmentView(environment, fmgr);
-    // return environment;
   }
 
   /**
@@ -398,7 +456,7 @@ public final class Solver implements AutoCloseable {
       stored = new HashMap<>(stored);
     }
 
-    ProverOptions opts[];
+    ProverOptions[] opts;
     if (cacheUnsatCores) {
       opts = new ProverOptions[]{GENERATE_UNSAT_CORE};
     } else {

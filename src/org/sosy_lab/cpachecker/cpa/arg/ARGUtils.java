@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2014  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
-*/
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.arg;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -36,16 +21,15 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Verify;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.common.graph.Traverser;
 import java.io.IOException;
@@ -65,7 +49,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.cpachecker.cfa.DummyCFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.AssumeEdge;
@@ -121,7 +104,7 @@ public class ARGUtils {
 
     for (AbstractState e : pReached) {
       ARGState state = AbstractStates.extractStateByType(e, ARGState.class);
-      if (state.getParents().isEmpty()) {
+      if (state != null && state.getParents().isEmpty()) {
         result.add(state);
       }
     }
@@ -150,11 +133,7 @@ public class ARGUtils {
     while (!waitlist.isEmpty()) {
       ARGState current = waitlist.pop();
       List<ARGState> children =
-          current
-              .getChildren()
-              .stream()
-              .filter(Predicates.in(pRelevantStates))
-              .collect(Collectors.toList());
+          from(current.getChildren()).filter(Predicates.in(pRelevantStates)).toList();
       if (children.size() > 2) {
         return true;
       } else if (children.size() == 2) {
@@ -230,8 +209,8 @@ public class ARGUtils {
 
     boolean lastTransitionIsDifferent = false;
     while (!currentARGState.getParents().isEmpty()) {
-      List<ARGState> potentialParents = Lists.newArrayList();
-      potentialParents.addAll(currentARGState.getParents());
+      List<ARGState> potentialParents = new ArrayList<>(currentARGState.getParents());
+
       if (!tracePrefixesToAvoid.isEmpty()) {
         potentialParents.addAll(currentARGState.getCoveredByThis());
       }
@@ -285,7 +264,6 @@ public class ARGUtils {
     states.add(currentARGState);
     seenElements.add(currentARGState);
     Deque<ARGState> backTrackPoints = new ArrayDeque<>();
-    Deque<Set<ARGState>> backTrackSeenElements = new ArrayDeque<>();
     Deque<List<ARGState>> backTrackOptions = new ArrayDeque<>();
 
     while (!pIsStart.apply(currentARGState)) {
@@ -299,15 +277,13 @@ public class ARGUtils {
 
       if (seenElements.contains(parentElement)) {
         // Backtrack
-        if (backTrackPoints.isEmpty()) {
-          throw new IllegalArgumentException("No ARG path from the target state to a root state.");
-        }
+        checkArgument(
+            !backTrackPoints.isEmpty(), "No ARG path from the target state to a root state.");
         ARGState backTrackPoint = backTrackPoints.pop();
         ListIterator<ARGState> stateIterator = states.listIterator(states.size());
         while (stateIterator.hasPrevious() && !stateIterator.previous().equals(backTrackPoint)) {
           stateIterator.remove();
         }
-        seenElements = backTrackSeenElements.pop();
         List<ARGState> options = backTrackOptions.pop();
         for (ARGState parent : backTrackPoint.getParents()) {
           if (!options.contains(parent)) {
@@ -328,7 +304,6 @@ public class ARGUtils {
           if (!options.isEmpty()) {
             backTrackPoints.push(currentARGState);
             backTrackOptions.push(options);
-            backTrackSeenElements.push(new HashSet<>(seenElements));
           }
         }
 
@@ -417,7 +392,7 @@ public class ARGUtils {
 
     List<ARGState> states = new ArrayList<>();
     ARGState currentElement = root;
-    while (currentElement.getChildren().size() > 0) {
+    while (!currentElement.getChildren().isEmpty()) {
       states.add(currentElement);
       currentElement = currentElement.getChildren().iterator().next();
     }
@@ -425,22 +400,23 @@ public class ARGUtils {
     return new ARGPath(states);
   }
 
-  private static final Predicate<CFANode> IS_RELEVANT_LOCATION =
-      pInput ->
-          pInput.isLoopStart()
-              || pInput instanceof FunctionEntryNode
-              || pInput instanceof FunctionExitNode;
+  private static final boolean isRelevantLocation(CFANode pInput) {
+    return pInput.isLoopStart()
+        || pInput instanceof FunctionEntryNode
+        || pInput instanceof FunctionExitNode;
+  }
 
-  private static final Predicate<Iterable<CFANode>> CONTAINS_RELEVANT_LOCATION =
-      nodes -> Iterables.any(nodes, IS_RELEVANT_LOCATION);
+  private static final boolean containsRelevantLocation(Iterable<CFANode> nodes) {
+    return Iterables.any(nodes, ARGUtils::isRelevantLocation);
+  }
 
   private static final Predicate<AbstractState> AT_RELEVANT_LOCATION =
-      Predicates.compose(CONTAINS_RELEVANT_LOCATION, AbstractStates::extractLocations);
+      Predicates.compose(ARGUtils::containsRelevantLocation, AbstractStates::extractLocations);
 
   @SuppressWarnings("unchecked")
   public static final Predicate<ARGState> RELEVANT_STATE =
       Predicates.or(
-          AbstractStates.IS_TARGET_STATE,
+          AbstractStates::isTargetState,
           AT_RELEVANT_LOCATION,
           pInput -> !pInput.wasExpanded(),
           ARGState::shouldBeHighlighted);
@@ -508,8 +484,8 @@ public class ARGUtils {
     ARGPathBuilder builder = ARGPath.builder();
     ARGState currentElement = root;
     while (!currentElement.isTarget()) {
-      Set<ARGState> children = Sets.newHashSet(currentElement.getChildren());
-      Set<ARGState> childrenInArg = Sets.intersection(children, arg).immutableCopy();
+      final ImmutableSet<ARGState> childrenInArg =
+          from(currentElement.getChildren()).filter(arg::contains).toSet();
 
       ARGState child;
       CFAEdge edge;
@@ -534,8 +510,9 @@ public class ARGUtils {
         ARGState trueChild = null;
         ARGState falseChild = null;
 
-        CFANode loc = AbstractStates.extractLocation(currentElement);
-        if (!leavingEdges(loc).allMatch(Predicates.instanceOf(AssumeEdge.class))) {
+          Iterable<CFANode> locs = AbstractStates.extractLocations(currentElement);
+          if (Iterables.any(
+              locs, loc -> !leavingEdges(loc).allMatch(Predicates.instanceOf(AssumeEdge.class)))) {
           throw new IllegalArgumentException("ARG branches where there is no AssumeEdge!");
         }
 
@@ -575,9 +552,7 @@ public class ARGUtils {
         throw new IllegalArgumentException("ARG splits with more than two branches!");
       }
 
-      if (!arg.contains(child)) {
-        throw new IllegalArgumentException("ARG and direction information from solver disagree!");
-      }
+      checkArgument(arg.contains(child), "ARG and direction information from solver disagree!");
 
       builder.add(currentElement, edge);
       currentElement = child;
@@ -608,9 +583,8 @@ public class ARGUtils {
 
     ARGPath result = getPathFromBranchingInformation(root, arg, branchingInformation);
 
-    if (result.getLastState() != target) {
-      throw new IllegalArgumentException("ARG target path reached the wrong target state!");
-    }
+    checkArgument(
+        result.getLastState().equals(target), "ARG target path reached the wrong target state!");
 
     return result;
   }
@@ -628,12 +602,12 @@ public class ARGUtils {
    * @return The children with covered states transparently replaced.
    */
   public static Collection<ARGState> getUncoveredChildrenView(final ARGState s) {
-    return new AbstractCollection<ARGState>() {
+    return new AbstractCollection<>() {
 
       @Override
       public Iterator<ARGState> iterator() {
 
-        return new UnmodifiableIterator<ARGState>() {
+        return new UnmodifiableIterator<>() {
           private final Iterator<ARGState> children = s.getChildren().iterator();
 
           @Override
@@ -678,10 +652,12 @@ public class ARGUtils {
 
     for (ARGState e : from(pReached).transform(toState(ARGState.class))) {
       assert e != null : "Reached set contains abstract state without ARGState.";
-      assert !e.isDestroyed() : "Reached set contains destroyed ARGState, which should have been removed.";
+      assert !e.isDestroyed()
+          : "Reached set contains destroyed ARGState, which should have been removed.";
 
       for (ARGState parent : e.getParents()) {
-        assert parent.getChildren().contains(e) : "Reference from parent to child is missing in ARG";
+        assert parent.getChildren().contains(e)
+            : "Reference from parent to child is missing in ARG";
         assert pReached.contains(parent) : "Referenced parent is missing in reached";
       }
 
@@ -725,7 +701,7 @@ public class ARGUtils {
 
     ARGState rootState = pPaths.iterator().next().getFirstState();
 
-    Multimap<ARGState, CFAEdgeWithAssumptions> valueMap = ImmutableMultimap.of();
+    Multimap<ARGState, CFAEdgeWithAssumptions> valueMap = ImmutableListMultimap.of();
 
     if (pCounterExample != null && pCounterExample.isPreciseCounterExample()) {
       valueMap = pCounterExample.getExactVariableValues();
@@ -781,7 +757,7 @@ public class ARGUtils {
   public static void producePathAutomaton(Appendable sb, ARGState pRootState,
       Set<ARGState> pPathStates, String name, @Nullable CounterexampleInfo pCounterExample) throws IOException {
 
-    Multimap<ARGState, CFAEdgeWithAssumptions> valueMap = ImmutableMultimap.of();
+    Multimap<ARGState, CFAEdgeWithAssumptions> valueMap = ImmutableListMultimap.of();
 
     if (pCounterExample != null && pCounterExample.isPreciseCounterExample()) {
       valueMap = pCounterExample.getExactVariableValues();
@@ -792,7 +768,7 @@ public class ARGUtils {
 
     int multiEdgeCount = 0; // see below
 
-    for (ARGState s : Ordering.natural().immutableSortedCopy(pPathStates)) {
+    for (ARGState s : ImmutableList.sortedCopyOf(pPathStates)) {
 
       sb.append("STATE USEFIRST ARG" + s.getStateId() + " :\n");
 
@@ -831,7 +807,14 @@ public class ARGUtils {
 
             // inner part (without first and last edge)
             for (; i < allEdges.size() - 1; i++) {
-              sb.append("STATE USEFIRST ARG" + child.getStateId() + "_" + i + "_" + multiEdgeCount + " :\n");
+              sb.append(
+                  "STATE USEFIRST ARG"
+                      + child.getStateId()
+                      + "_"
+                      + i
+                      + "_"
+                      + multiEdgeCount
+                      + " :\n");
               sb.append("    MATCH \"");
               escape(allEdges.get(i).getRawStatement(), sb);
               sb.append("\" -> ");
@@ -841,7 +824,14 @@ public class ARGUtils {
 
             // last edge connecting it with the real successor
             edge = allEdges.get(i);
-            sb.append("STATE USEFIRST ARG" + child.getStateId() + "_" + i + "_" + multiEdgeCount + " :\n");
+            sb.append(
+                "STATE USEFIRST ARG"
+                    + child.getStateId()
+                    + "_"
+                    + i
+                    + "_"
+                    + multiEdgeCount
+                    + " :\n");
           }
 
           handleMatchCase(sb, edge);
@@ -897,7 +887,7 @@ public class ARGUtils {
     CFANode inLoopNode = null;
     CFANode inFunctionNode = null;
 
-    ImmutableList<ARGState> sortedStates = Ordering.natural().immutableSortedCopy(pPathStates);
+    ImmutableList<ARGState> sortedStates = ImmutableList.sortedCopyOf(pPathStates);
 
     Deque<String> sortedFunctionOccurrence = new ArrayDeque<>();
     for (ARGState s : sortedStates) {
@@ -1006,7 +996,14 @@ public class ARGUtils {
 
                 // inner part (without first and last edge)
                 for (; i < allEdges.size() - 1; i++) {
-                  sb.append("STATE USEFIRST ARG" + child.getStateId() + "_" + i + "_" + multiEdgeCount + " :\n");
+                  sb.append(
+                      "STATE USEFIRST ARG"
+                          + child.getStateId()
+                          + "_"
+                          + i
+                          + "_"
+                          + multiEdgeCount
+                          + " :\n");
                   sb.append("    MATCH \"");
                   escape(allEdges.get(i).getRawStatement(), sb);
                   sb.append("\" -> ");
@@ -1016,7 +1013,14 @@ public class ARGUtils {
 
                 // last edge connecting it with the real successor
                 edge = allEdges.get(i);
-                sb.append("STATE USEFIRST ARG" + child.getStateId() + "_" + i + "_" + multiEdgeCount + " :\n");
+                sb.append(
+                    "STATE USEFIRST ARG"
+                        + child.getStateId()
+                        + "_"
+                        + i
+                        + "_"
+                        + multiEdgeCount
+                        + " :\n");
               }
 
               handleMatchCase(sb, edge);
@@ -1110,7 +1114,7 @@ public class ARGUtils {
           CFANode sumEdgeSuccessor = sumEdge.getSuccessor();
 
           // only continue if we do not meet the loophead again
-          if (sumEdgeSuccessor != loopHead) {
+          if (!sumEdgeSuccessor.equals(loopHead)) {
             nodesToHandle.offer(sumEdgeSuccessor);
           }
 
@@ -1141,7 +1145,7 @@ public class ARGUtils {
           handleMatchCase(sb, edge);
 
           // we are still in the loop, so we do not need to handle special cases
-          if (stillInLoop && edgeSuccessor != loopHead) {
+          if (stillInLoop && !edgeSuccessor.equals(loopHead)) {
             handleGotoNode(sb, edgeSuccessor, false);
 
             nodesToHandle.offer(edgeSuccessor);
@@ -1204,7 +1208,7 @@ public class ARGUtils {
                                                        CFANode loopHead, CFANode successor) throws IOException {
 
     // depending on successor add the transition for going out of the loop
-    if (successor == loopHead) {
+    if (successor.equals(loopHead)) {
       handleGotoArg(sb, intoLoopState);
     } else {
       handleGotoNode(sb, successor, false);
@@ -1309,7 +1313,7 @@ public class ARGUtils {
 
     // We should not claim that the counterexample is precise unless we have one unique path
     Set<ARGState> states = path.getStateSet();
-    if (states.stream().allMatch(s -> s.getParents().stream().allMatch(p -> states.contains(p)))) {
+    if (states.stream().allMatch(s -> states.containsAll(s.getParents()))) {
       CFAPathWithAssumptions assignments =
           CFAPathWithAssumptions.of(path, pCPA, pAssumptionToEdgeAllocator);
       if (!assignments.isEmpty()) {
@@ -1319,7 +1323,45 @@ public class ARGUtils {
     return Optional.of(CounterexampleInfo.feasibleImprecise(path, additionalInfo));
   }
 
-  public static Set<ARGState> getNonCoveredStatesInSubgraph(ARGState pRoot) {
-    return Sets.filter(pRoot.getSubgraph(), s -> !s.isCovered());
+  public static FluentIterable<ARGState> getNonCoveredStatesInSubgraph(ARGState pRoot) {
+    return pRoot.getSubgraph().filter(s -> !s.isCovered());
+  }
+
+  /**
+   * Returns all possible paths from the given state to the root of the ARG.
+   */
+  public static Set<ARGPath> getAllPaths(final ReachedSet pReachedSet, final ARGState pStart) {
+    ARGState root = AbstractStates.extractStateByType(pReachedSet.getFirstState(), ARGState.class);
+    List<ARGState> states = new ArrayList<>();
+    ImmutableSet.Builder<ARGPath> results = ImmutableSet.builder();
+    List<List<ARGState>> paths = new ArrayList<>();
+
+    states.add(pStart);
+    paths.add(states);
+
+    // This is assuming from each node there is a way to go to the start
+    // Loop until all paths reached the root
+    while (!paths.isEmpty()) {
+      // Expand currently considered path
+      List<ARGState> curPath = paths.remove(paths.size() - 1);
+      Preconditions.checkNotNull(curPath);
+      // If there is no more to expand - add this path and continue
+      if (curPath.get(curPath.size() - 1) == root) {
+        results.add(new ARGPath(Lists.reverse(curPath)));
+
+        continue;
+      }
+
+      // Add all parents of currently first state on the current path
+      for (ARGState parentElement : curPath.get(curPath.size() - 1).getParents()) {
+        ImmutableList.Builder<ARGState> tmp =
+            ImmutableList.builderWithExpectedSize(curPath.size() + 1);
+        tmp.addAll(curPath);
+
+        tmp.add(parentElement);
+        paths.add(tmp.build());
+      }
+    }
+    return results.build();
   }
 }

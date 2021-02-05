@@ -1,26 +1,11 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2018  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.util.ltl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -43,12 +28,13 @@ import org.sosy_lab.cpachecker.util.ltl.generated.LtlLexer;
 
 /**
  * Class to transform ltl-formulas (either given as plain string or in a file) into strongly typed
- * {@link LtlFormula}s. These formulas can be either given in plain ltl syntax, or a syntax as
- * specified as in the rules for the SVComp (see <a
- * href="https://sv-comp.sosy-lab.org/2018/rules.php">rules for SVComp 2018</a>).
+ * {@link LtlFormula}s. These formulas can be either given in plain ltl syntax, or instead as a
+ * syntax as specified in the rules for the SVComp (see
+ * <a href="https://sv-comp.sosy-lab.org/2018/rules.php">rules for SVComp 2018</a>).
  *
- * <p>Examples for property-files can be found <a
- * href="https://github.com/ultimate-pa/ultimate/tree/dev/trunk/examples/LTL/svcomp17format/ltl-eca">
+ * <p>
+ * Examples for property-files can be found <a href=
+ * "https://github.com/ultimate-pa/ultimate/tree/dev/trunk/examples/LTL/svcomp17format/ltl-eca">
  * within the ultimate-repository</a>
  */
 public abstract class LtlParser extends LtlGrammarParserBaseVisitor<LtlFormula> {
@@ -60,7 +46,7 @@ public abstract class LtlParser extends LtlGrammarParserBaseVisitor<LtlFormula> 
   }
 
   /**
-   * Parses a ltl property provided as a string and transforms that into a {@link LtlFormula}.
+   * Parse a ltl property given as string and transform it into a {@link LtlFormula}.
    *
    * @param pRaw the ltl property in valid ltl syntax
    * @return a {@link LabelledFormula} containing the {@link LtlFormula} and its atomic propositions
@@ -72,13 +58,13 @@ public abstract class LtlParser extends LtlGrammarParserBaseVisitor<LtlFormula> 
   }
 
   /**
-   * Parses a ltl property from a file into a {@link LtlFormula}. The property is required to be in
-   * SVComp-format (i.e. <code>CHECK( init( FUNCTION ), LTL( FORMULA )) )</code>, where FORMULA is a
-   * valid ltl property and FUNCTION a valid function name for code written in C.
+   * Parse a ltl property from a file into a {@link LtlFormula}. The property is required to be in
+   * SVComp-format (i.e., <code>CHECK( init( FUNCTION ), LTL( FORMULA )) )</code>, where FORMULA is
+   * a valid ltl property and FUNCTION a valid function name for code written in C.
    *
    * @param pPath path to a file containing a ltl property in valid SVComp syntax.
    * @return a {@link LabelledFormula} which contains the {@link LtlFormula} and its atomic
-   *     propositions
+   *         propositions
    * @throws LtlParseException if the syntax of the ltl-property is invalid.
    */
   public static LabelledFormula parseSpecificationFromFile(Path pPath) throws LtlParseException {

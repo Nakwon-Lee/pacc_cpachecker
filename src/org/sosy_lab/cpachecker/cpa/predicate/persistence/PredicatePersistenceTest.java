@@ -1,32 +1,18 @@
-/*
- *  CPAchecker is a tool for configurable software verification.
- *  This file is part of CPAchecker.
- *
- *  Copyright (C) 2007-2016  Dirk Beyer
- *  All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *
- *  CPAchecker web page:
- *    http://cpachecker.sosy-lab.org
- */
+// This file is part of CPAchecker,
+// a tool for configurable software verification:
+// https://cpachecker.sosy-lab.org
+//
+// SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.sosy_lab.cpachecker.cpa.predicate.persistence;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.truth.Truth;
+import com.google.common.base.Splitter;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,20 +62,19 @@ public class PredicatePersistenceTest extends SolverViewBasedTest0 {
     assertThatAllParenthesesAreClosed(assertFormula);
 
     for (String declaration : declarationFormulas) {
-      if (!(declaration.startsWith("(define-fun ")
-          || declaration.startsWith("(declare-fun ")
-          || declaration.startsWith("(set-info ")
-          || declaration.startsWith("(set-logic "))) {
-        Truth.assert_().fail("Unexpected statement in <%s>", declaration);
-      }
+      String statement = Splitter.on(' ').split(declaration).iterator().next();
+      assertWithMessage("Statement of %s", declaration)
+          .that(statement)
+          .isAnyOf("(define-fun", "(declare-fun", "(set-info", "(set-logic");
+
       assertThat(declaration).endsWith(")");
       assertThatAllParenthesesAreClosed(declaration);
     }
   }
 
   private void assertThatAllParenthesesAreClosed(String formula) {
-    assertThat(CharMatcher.anyOf(")").countIn(formula))
-        .named("number of closing parentheses")
+    assertWithMessage("number of closing parentheses")
+        .that(CharMatcher.anyOf(")").countIn(formula))
         .isEqualTo(CharMatcher.anyOf("(").countIn(formula));
   }
 }
