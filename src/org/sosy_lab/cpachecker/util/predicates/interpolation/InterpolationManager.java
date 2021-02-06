@@ -204,10 +204,6 @@ public final class InterpolationManager {
   private final LoopStructure loopStructure;
   private final VariableClassification variableClassification;
 
-  //DEBUG
-  private boolean useFC = false;
-  //GUBED
-
   public InterpolationManager(
       PathFormulaManager pPmgr,
       Solver pSolver,
@@ -263,43 +259,6 @@ public final class InterpolationManager {
       default:
         throw new AssertionError("unknown interpolation strategy");
     }
-  }
-
-  public InterpolationManager(
-      PathFormulaManager pPmgr,
-      Solver pSolver,
-      Optional<LoopStructure> pLoopStructure,
-      Optional<VariableClassification> pVarClassification,
-      Configuration config,
-      ShutdownNotifier pShutdownNotifier,
-      LogManager pLogger, boolean pFC) throws InvalidConfigurationException {
-    config.inject(this, InterpolationManager.class);
-
-    logger = pLogger;
-    shutdownNotifier = pShutdownNotifier;
-    fmgr = pSolver.getFormulaManager();
-    bfmgr = fmgr.getBooleanFormulaManager();
-    pmgr = pPmgr;
-    solver = pSolver;
-    loopStructure = pLoopStructure.orElse(null);
-    variableClassification = pVarClassification.orElse(null);
-
-    if (itpTimeLimit.isEmpty()) {
-      executor = null;
-    } else {
-      // important to use daemon threads here, because we never have the chance to stop the executor
-      executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
-    }
-
-    if (reuseInterpolationEnvironment) {
-      interpolator = new Interpolator<>();
-    } else {
-      interpolator = null;
-    }
-
-    //DEBUG
-    useFC = pFC;
-    //GUBED
   }
 
   /**
