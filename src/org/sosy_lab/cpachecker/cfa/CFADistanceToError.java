@@ -32,6 +32,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.cfa.ast.AStatement;
+import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
+import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCall;
+import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallStatement;
 import org.sosy_lab.cpachecker.cfa.model.AStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
@@ -39,6 +42,7 @@ import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
+import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 
@@ -53,10 +57,22 @@ public final class CFADistanceToError {
 
     for (CFANode anode : pcfa.getAllNodes()) {
       boolean thisweight = false;
-      Iterator<CFANode> successors = CFAUtils.successorsOf(anode).iterator();
+
+      Iterator<CFANode> successors = CFAUtils.allSuccessorsOf(anode).iterator();
       while (successors.hasNext()) {
         CFANode successor = successors.next();
-        CFAEdge edge = anode.getEdgeTo(successor);
+        CFAEdge edge = null;
+        if (successor.getEnteringSummaryEdge() != null) {
+          CFAEdge tedge = successor.getEnteringSummaryEdge();
+          if(tedge.getPredecessor().equals(anode)) {
+            edge = successor.getEnteringSummaryEdge();
+          }
+        }
+
+        if(edge==null) {
+          edge = anode.getEdgeTo(successor);
+        }
+
         CFAEdgeType edgetype = edge.getEdgeType();
 
         switch (pScheme) {
@@ -81,12 +97,22 @@ public final class CFADistanceToError {
           edgeWeights.put(edge, 0);
         }
 
-        if (edgetype == CFAEdgeType.StatementEdge) {
-          if (edge instanceof CFunctionSummaryStatementEdge) {
-            continue;
+        if (edgetype == CFAEdgeType.CallToReturnEdge) {
+
+          CFunctionSummaryEdge summaryedge = (CFunctionSummaryEdge) edge;
+          CFunctionCall funccall = summaryedge.getExpression();
+          CFunctionCallExpression callexpr = funccall.getFunctionCallExpression();
+          CExpression expr = callexpr.getFunctionNameExpression();
+          String errorfunname = expr.toQualifiedASTString();
+
+          if (errorindi.equals(errorfunname)) {
+            errorEdges.add(edge);
           }
+
+        } else if (edgetype == CFAEdgeType.StatementEdge) {
           AStatementEdge stmtedge = (AStatementEdge) edge;
           AStatement stmt = stmtedge.getStatement();
+
           if (stmt instanceof CFunctionCallStatement) {
             CFunctionCallStatement cfcstmt = (CFunctionCallStatement) stmt;
             String errorfunname =
@@ -103,7 +129,8 @@ public final class CFADistanceToError {
 
     if (errorEdges.size() != 1) {
       throw new InvalidConfigurationException(
-          "error distance can take programs with only one error location");
+          "error distance can take programs with only one error location : "
+              + String.valueOf(errorEdges.size()));
     }
   }
 
