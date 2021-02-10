@@ -44,7 +44,6 @@ import org.sosy_lab.cpachecker.core.specification.Specification;
 import org.sosy_lab.cpachecker.cpa.predicate.persistence.PredicateAbstractionsStorage;
 import org.sosy_lab.cpachecker.exceptions.CPAException;
 import org.sosy_lab.cpachecker.exceptions.CPATransferException;
-import org.sosy_lab.cpachecker.util.blocking.BlockedABElbprime;
 import org.sosy_lab.cpachecker.util.blocking.BlockedCFAReducer;
 import org.sosy_lab.cpachecker.util.blocking.interfaces.BlockComputer;
 import org.sosy_lab.cpachecker.util.predicates.AbstractionManager;
@@ -166,12 +165,7 @@ public class PredicateCPA
       BlockComputer blockComputer = new BlockedCFAReducer(config, logger);
       blk.setExplicitAbstractionNodes(blockComputer.computeAbstractionNodes(cfa));
     }
-    // DEBUG
-    if (enableCustomBlock) {
-      BlockComputer ABElbprime = new BlockedABElbprime(config);
-      blk.setExplicitAbstractionNodes(ABElbprime.computeAbstractionNodes(cfa));
-    }
-    // GUBED
+
     blk.setCFA(cfa);
 
     solver = Solver.create(config, logger, pShutdownNotifier);

@@ -17,14 +17,12 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.configuration.Option;
 import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
@@ -99,36 +97,6 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   private final PredicateAbstractionManager predAbsMgr;
   private final ImpactUtility impact;
 
-  private static int numOfAffectedStates = 0;
-
-  //DEBUG
-  @Option(secure=true, name="modifc", description="FC is modified or not")
-  boolean modifiedFC = false;
-  @Option(secure=true, name="limit", description="how many attempts are conducted?")
-  int pAttemptslimit = 3;
-  Comparator<AbstractState> pComp = new FCComparator();
-  //GUBED
-
-  public static int getNumOfAffectedStates(){
-    return numOfAffectedStates;
-  }
-
-  public int getAttemptedFC(){
-    return stats.attemptedForcedCoverings;
-  }
-
-  public void setAttemptedFC(int pInt){
-    stats.attemptedForcedCoverings = pInt;
-  }
-
-  public int getSuccesfullFC(){
-    return stats.successfulForcedCoverings;
-  }
-
-  public void setSuccesfullFC(int pInt){
-    stats.successfulForcedCoverings = pInt;
-  }
-
   public PredicateForcedCovering(Configuration config, LogManager pLogger,
       ConfigurableProgramAnalysis pCpa) throws InvalidConfigurationException {
     logger = pLogger;
@@ -149,14 +117,10 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
                                                    predicateCpa.getCfa().getVarClassification(),
                                                    config,
                                                    predicateCpa.getShutdownNotifier(),
-                                                   pLogger,true);
+        pLogger);
     fmgr = predicateCpa.getSolver().getFormulaManager();
     predAbsMgr = predicateCpa.getPredicateManager();
     impact = new ImpactUtility(config, fmgr, predAbsMgr);
-
-    //DEBUG
-    config.inject(this);
-    //GUBED
   }
 
   @Override
@@ -184,56 +148,10 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     ARGReachedSet arg = new ARGReachedSet(pReached, argCpa);
 
     List<ARGState> parentList = getAbstractionPathTo(argState);
-
-    //DEBUG
-    int attempts = 0;
-    int attemptslimit;
-    if(modifiedFC){
-      attemptslimit = pAttemptslimit;
-    }else{
-      attemptslimit = Integer.MAX_VALUE;
-    }
-    //GUBED
-
-    //DEBUG
-    assert pState instanceof ARGState : "Forced covering: state is not an ARGState";
-    Collection<AbstractState> pReachedColl = pReached.getReached(pState);
-    List<AbstractState> pReachedList = new ArrayList<>(pReachedColl);
-    if(modifiedFC){
-      Collections.sort(pReachedList,pComp);
-    }
-    //GUBED
-
-    /*
-    //DEBUG
-    try{
-      File file = new File("numofcoveringcandies.txt");
-
-      FileWriter fw = new FileWriter(file, true);
-
-      fw.write(Integer.toString(pReachedList.size()));
-      fw.write(", ");
-      fw.flush();
-
-      fw.close();
-    }catch(Exception e){
-      e.printStackTrace();
-    }
-    //GUBED
-     *
-     */
-
-    for (final AbstractState coveringCandidate : pReachedList) {
+    for (final AbstractState coveringCandidate : pReached.getReached(pState)) {
       if (pState == coveringCandidate) {
         continue;
       }
-
-      //DEBUG
-      if(attempts > attemptslimit){
-        break;
-      }
-      attempts++;
-      //GUBED
 
       if (stop.stop(argState, Collections.singleton(coveringCandidate), pPrecision)
           || argState.isCovered()) {
@@ -244,9 +162,6 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
       if (stop.isForcedCoveringPossible(pState, coveringCandidate, pPrecision)) {
         stats.attemptedForcedCoverings++;
-        //DEBUG
-        //System.out.println("attempting forced covering: "+ stats.attemptedForcedCoverings);
-        //GUBED
         logger.log(Level.ALL, "Candidate for forced-covering is", coveringCandidate);
 
         // A) find common parent of argState and coveringCandidate
@@ -289,15 +204,11 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
 
         if (!interpolantInfo.isSpurious()) {
           logger.log(Level.FINER, "Forced covering unsuccessful.");
-
-          continue; // forced covering is not possible
+          continue; // forced covering not possible
         }
 
 
         stats.successfulForcedCoverings++;
-        //DEBUG
-        //System.out.println("successed forced covering: "+ stats.successfulForcedCoverings);
-        //GUBED
         logger.log(Level.FINER, "Forced covering successful.");
 
         List<BooleanFormula> interpolants = interpolantInfo.getInterpolants();
@@ -311,29 +222,10 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         // This is always the abstraction of the abstraction state before the "current" one.
         AbstractionFormula lastAbstraction = getPredicateState(commonParent).getAbstractionFormula();
 
-        //DEBUG
-        ARGState infeasiblePartOfART = null;
-        //GUBED
-
         // D) update ARG
         for (Pair<BooleanFormula, ARGState> interpolationPoint : Pair.zipList(interpolants, path)) {
           BooleanFormula itp = interpolationPoint.getFirst();
           ARGState element = interpolationPoint.getSecond();
-
-          //DEBUG
-
-          if (bfmgr.isTrue(itp)) {
-            // do nothing
-            continue;
-          }
-
-          if (bfmgr.isFalse(itp)) {
-            // we have reached the part of the path that is infeasible
-            infeasiblePartOfART = element;
-            break;
-          }
-
-          //GUBED
 
           boolean stateChanged;
           try {
@@ -342,29 +234,12 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
           } catch (SolverException e) {
             throw new CPAException("Solver failure", e);
           }
-
           if (stateChanged) {
-            numOfAffectedStates++;
             arg.removeCoverageOf(element);
           }
 
           lastAbstraction = getPredicateState(element).getAbstractionFormula();
         }
-
-        //DEBUG
-        if (infeasiblePartOfART != null){
-          arg.removeInfeasiblePartofARG(infeasiblePartOfART);
-          /*
-          System.out.println("Cut the infeasible part during FC");
-          */
-          return true;
-          }
-        //GUBED
-
-        //DEBUG
-        //System.out.println("removed coverage count: "+ARGReachedSet.getRemovedCoverageCount());
-        //System.out.println("num of affected states: "+numOfAffectedStates);
-        //GUBED
 
         // For debugging, run stop operator on this element.
         // However, ARGStopSep may return false although it is covered,
@@ -378,6 +253,7 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
         } else {
           assert argState.getCoveringState() == coveringCandidate;
         }
+
         return true;
       }
     }
@@ -424,19 +300,4 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
   public void collectStatistics(Collection<Statistics> pStatsCollection) {
     pStatsCollection.add(stats);
   }
-
-  //DEBUG
-  private static class FCComparator implements Comparator<AbstractState> {
-
-    @Override
-    public int compare(AbstractState pO1, AbstractState pO2) {
-      assert pO1 instanceof ARGState : "FCComparator: AbstractState is not an ARGState";
-      assert pO2 instanceof ARGState : "FCComparator: AbstractState is not an ARGState";
-      ARGState pAO1 = (ARGState)pO1;
-      ARGState pAO2 = (ARGState)pO2;
-      return pAO1.compareTo(pAO2);
-    }
-
-  }
-  //GUBED
 }
