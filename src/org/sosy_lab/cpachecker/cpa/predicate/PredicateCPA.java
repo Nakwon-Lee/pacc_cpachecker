@@ -81,12 +81,6 @@ public class PredicateCPA
   @Option(secure=true, name="enableBlockreducer", description="Enable the possibility to precompute explicit abstraction locations.")
   private boolean enableBlockreducer = false;
 
-  @Option(
-    secure = true,
-    name = "enableCustomBlock",
-    description = "Enable the possibility to precompute explicit abstraction locations (Custom).")
-  private boolean enableCustomBlock = false;
-
   @Option(secure=true, name="merge", values={"SEP", "ABE"}, toUppercase=true,
       description="which merge operator to use for predicate cpa (usually ABE should be used)")
   private String mergeType = "ABE";

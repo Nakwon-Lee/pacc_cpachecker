@@ -38,9 +38,7 @@ public class AlgorithmWithPropertyCheck implements Algorithm, StatisticsProvider
   public AlgorithmStatus run(ReachedSet pReachedSet) throws CPAException, InterruptedException {
     logger.log(Level.INFO, "Start analysis.");
 
-    AlgorithmStatus result = null;
-
-    result = analysis.run(pReachedSet);
+    AlgorithmStatus result = analysis.run(pReachedSet);
 
     if (result.isSound()) {
       logger.log(Level.INFO, "Start property checking.");

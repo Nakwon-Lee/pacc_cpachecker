@@ -24,7 +24,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -126,7 +125,7 @@ public final class CFADistanceToError {
       reached.add(node);
       reached.add(errnode);
 
-      nodequeue.put(0, new LinkedList<>(List.of(node)));
+      nodequeue.put(0, new ArrayDeque<>(List.of(node)));
 
       while(!nodequeue.isEmpty()) {
 
@@ -157,7 +156,7 @@ public final class CFADistanceToError {
           if (nodequeue.containsKey(thisweight)) {
             nodequeue.get(thisweight).add(predecessor);
           } else {
-            nodequeue.put(thisweight, new LinkedList<>(List.of(predecessor)));
+            nodequeue.put(thisweight, new ArrayDeque<>(List.of(predecessor)));
           }
           reached.add(predecessor);
         }
@@ -190,7 +189,7 @@ public final class CFADistanceToError {
 
     exit.setRelDistanceId(0);
     reached.add(exit);
-    nodequeue.put(0, new LinkedList<>(List.of(exit)));
+    nodequeue.put(0, new ArrayDeque<>(List.of(exit)));
 
     while (!nodequeue.isEmpty()) {
       Queue<CFANode> firstentryqueue = nodequeue.firstEntry().getValue();
@@ -249,7 +248,7 @@ public final class CFADistanceToError {
         } else {
           nodequeue.put(
               currnode.getRelDistanceId() + thisweight,
-              new LinkedList<>(List.of(predecessor)));
+              new ArrayDeque<>(List.of(predecessor)));
         }
         reached.add(predecessor);
       }

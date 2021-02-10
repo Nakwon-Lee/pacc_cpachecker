@@ -285,10 +285,6 @@ public class CFACreator {
   // keep option name in sync with {@link CPAMain#language}, value might differ
   private Language language = Language.C;
 
-  @Option(secure=true, name="cfa.classifyNodes",
-      description="This option enables the computation of a classification of CFA nodes.")
-  private boolean classifyNodes = false;
-
   @Option(
     secure = true,
     name = "cfa.onlyoneerrorloc",
