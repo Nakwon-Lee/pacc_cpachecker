@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import org.sosy_lab.common.configuration.Configuration;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
-import org.sosy_lab.common.configuration.Options;
 import org.sosy_lab.common.log.LogManager;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
@@ -58,8 +57,6 @@ import org.sosy_lab.java_smt.api.SolverException;
  * {@link PredicateAbstractState}s and tries to strengthen them the
  * necessary amount by using interpolation.
  */
-
-@Options(prefix="fc")
 public class PredicateForcedCovering implements ForcedCovering, StatisticsProvider {
 
   private static final class FCStatistics implements Statistics {
@@ -67,9 +64,6 @@ public class PredicateForcedCovering implements ForcedCovering, StatisticsProvid
     private int attemptedForcedCoverings = 0;
     private int successfulForcedCoverings = 0;
     private int wasAlreadyCovered = 0;
-
-    //DEBUG
-    //GUBED
 
     @Override
     public String getName() {
