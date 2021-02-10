@@ -14,16 +14,13 @@ SPDX-License-Identifier: Apache-2.0
 
 <benchmark tool="cpachecker" timelimit="15 min" memlimit="8000 MB" cpuCores="4">
 
-  <option name="-svcomp21-bam-bnb"/>
-  <option name="-disable-java-assertions"/>
+  <option name="-generateCFA-dist"/>
   <option name="-heap">7000M</option>
 
-  <rundefinition name="test-DMC">
-    <tasks name="test-ntdriver">
-      <includesfile>../sv-benchmarks/c/ntdrivers.set</includesfile>
-      <propertyfile>../sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
+  <rundefinition name="SV-COMP21_no-overflow">
+    <tasks name="SoftwareSystems-uthash-NoOverflows">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-uthash-NoOverflows.set</includesfile>
+      <propertyfile>../sv-benchmarks/c/properties/no-overflow.prp</propertyfile>
     </tasks>
   </rundefinition>
-
- 
 </benchmark>

@@ -58,6 +58,12 @@ public class CFANode implements Comparable<CFANode>, Serializable {
   // reverse postorder sort id, smaller if it appears later in sorting
   private int reversePostorderId = 0;
 
+  // DEBUG
+  // distance sort id
+  private int absdistanceId = Integer.MAX_VALUE;
+  private int reldistanceId = Integer.MAX_VALUE;
+  // GUBED
+
   /** This method provides a simple way to generate a function. */
   @VisibleForTesting
   public static CFANode newDummyCFANode(String dummyName) {
@@ -74,20 +80,6 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     nodeNumber = idGenerator.getFreshId();
   }
 
-  // DEBUG
-  // control distance to error locations
-  private List<Integer> distancetoerr = new ArrayList<>();
-  private List<Integer> distancetoend = new ArrayList<>();
-
-  private boolean initvisit = false;
-  private boolean calcvisit = false;
-  private boolean initvisit2 = false;
-  private boolean calcvisit2 = false;
-
-  // is this node encoded?
-  private boolean isencoded = false;
-  // GUBED
-
   public int getNodeNumber() {
     return nodeNumber;
   }
@@ -99,6 +91,24 @@ public class CFANode implements Comparable<CFANode>, Serializable {
   public void setReversePostorderId(int pId) {
     reversePostorderId = pId;
   }
+
+  // DEBUG
+  public int getAbsDistanceId() {
+    return absdistanceId;
+  }
+
+  public void setAbsDistanceId(int pId) {
+    absdistanceId = pId;
+  }
+
+  public int getRelDistanceId() {
+    return reldistanceId;
+  }
+
+  public void setRelDistanceId(int pId) {
+    reldistanceId = pId;
+  }
+  // GUBED
 
   public void addLeavingEdge(CFAEdge pNewLeavingEdge) {
     checkArgument(
@@ -302,70 +312,6 @@ public class CFANode implements Comparable<CFANode>, Serializable {
     leavingEdges = new ArrayList<>(1);
     enteringEdges = new ArrayList<>(1);
   }
-
-  // DEBUG
-
-  public int getDistancetoerr(int idx) {
-    assert calcvisit : "dist to err is not calculated";
-    return distancetoerr.get(idx);
-  }
-
-  public List<Integer> getDistancetoerrList() {
-    return distancetoerr;
-  }
-
-  public void setDistancetoerr(int idx, int pDistancetoerr) {
-    assert initvisit : "CFANode is not visited by forward search";
-    distancetoerr.set(idx, pDistancetoerr);
-    calcvisit = true;
-  }
-
-  public void initDistancetoerr(int plen) {
-    for (int i = 0; i < plen; i++) {
-      distancetoerr.add(Integer.MAX_VALUE);
-    }
-    initvisit = true;
-  }
-
-  public boolean getInitVisit() {
-    return initvisit;
-  }
-
-  public boolean getIsEncoded() {
-    return isencoded;
-  }
-
-  public void setIsEncoded(boolean pIsencoded) {
-    isencoded = pIsencoded;
-  }
-
-  public int getDistancetoend(int idx) {
-    assert calcvisit2 : "dist to end is not calculated";
-    return distancetoend.get(idx);
-  }
-
-  public List<Integer> getDistancetoendList() {
-    return distancetoend;
-  }
-
-  public void setDistancetoend(int idx, int pDistancetoend) {
-    assert initvisit2 : "CFANode is not visited by forward search";
-    distancetoend.set(idx, pDistancetoend);
-    calcvisit2 = true;
-  }
-
-  public void initDistancetoend(int plen) {
-    for (int i = 0; i < plen; i++) {
-      distancetoend.add(Integer.MAX_VALUE);
-    }
-    initvisit2 = true;
-  }
-
-  public boolean getInitVisit2() {
-    return initvisit2;
-  }
-
-   //GUBED
 
   public void addOutOfScopeVariables(Collection<CSimpleDeclaration> pOutOfScopeVariables) {
     if (outOfScopeVariables == null) { // lazy

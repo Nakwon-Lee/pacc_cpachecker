@@ -291,6 +291,12 @@ public class CFACreator {
 
   @Option(
     secure = true,
+    name = "cfa.onlyoneerrorloc",
+    description = "This option restricts analysis for programs with only one error location.")
+  private boolean onlyoneerrorloc = false;
+
+  @Option(
+    secure = true,
     name = "cfa.distancetoError",
     description = "This option enables the computation of distance to error locations for each CFA node.")
   private boolean distancetoError = false;
@@ -299,16 +305,10 @@ public class CFACreator {
     secure = true,
     name = "cfa.errorloc",
     description = "This option is the name of error loc.")
-  private String errorlocindi;
+  private String errorlocindi = "reach_error";
 
-  @Option(
-    secure = true,
-    name = "cfa.distancetoEnd",
-    description = "This option enables the computation of distance to end locations for each CFA node.")
-  private boolean distancetoEnd = false;
-
-  @Option(secure = true, name = "cfa.scheme", description = "block encoding scheme")
-  private BlockScheme scheme = BlockScheme.L;
+  @Option(secure = true, name = "cfa.distancescheme", description = "what distance criteria used")
+  private DistanceScheme scheme = DistanceScheme.Loopheads;
 
   private final LogManager logger;
   private final Parser parser;
@@ -325,10 +325,6 @@ public class CFACreator {
     private final Timer exportTime = new Timer();
     private final List<Statistics> statisticsCollection;
     private final LogManager logger;
-
-    // DEBUG
-    private int nofbranches;
-    //GUBED
 
     private CFACreatorStatistics(LogManager pLogger) {
       logger = pLogger;
@@ -348,7 +344,6 @@ public class CFACreator {
       out.println("    Time for AST to CFA:      " + conversionTime);
       out.println("    Time for CFA sanity check:" + checkTime);
       out.println("    Time for post-processing: " + processingTime);
-      out.println("    Number of branches:          " + nofbranches);
 
       if (exportTime.getNumberOfIntervals() > 0) {
         out.println("    Time for CFA export:      " + exportTime);
@@ -559,26 +554,16 @@ public class CFACreator {
 
     // (currently no such post-processings exist)
 
-    CFANoBranches nobrancheir = new CFANoBranches();
-    stats.nofbranches = nobrancheir.getNoBranches(cfa.getMainFunction());
+    if (onlyoneerrorloc) {
+      CFADistanceToError.findErrorLocations(cfa, errorlocindi, scheme);
+    }
 
     if (distancetoError) {
-      CFADistanceToError errorfinder = new CFADistanceToError();
-      errorfinder.findErrorLocations2(cfa, errorlocindi, scheme);
-      errorfinder.initiationDistToError2(cfa);
-      errorfinder.calcDistanceToError2();
-      // System.out.print(errorfinder.toStringDistErr(cfa.getMainFunction()));
+      CFADistanceToError.calcAbsDistanceToError();
+      CFADistanceToError.calcRelDistanceToError(cfa);
     }
 
-    if (distancetoEnd) {
-      CFADistanceToEnd endfinder = new CFADistanceToEnd();
-      endfinder.findEndLocations(cfa.getMainFunction());
-      endfinder.initiationDistToEnd(cfa.getMainFunction());
-      endfinder.calcDistanceToEnd2();
-      // System.out.print(endfinder.toStringDistEnd(cfa.getMainFunction()));
-    }
-
-    logger.log(Level.FINE, "After calculating distance to errors (ends)");
+    logger.log(Level.FINE, "After calculating distance to errors");
 
 
     // SIXTH, get information about the CFA,
