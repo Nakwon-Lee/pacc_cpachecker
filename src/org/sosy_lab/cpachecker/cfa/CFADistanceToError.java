@@ -195,6 +195,8 @@ public final class CFADistanceToError {
 
   public static void calcRelDistanceToError(CFA pcfa) {
 
+    // Multimap<String, String> depmap = FunctionCallDumper.findfunctioncalls(pcfa);
+
     Set<String> functionnames = Set.copyOf(pcfa.getAllFunctionNames());
 
     Iterator<String> fnamesit = functionnames.iterator();

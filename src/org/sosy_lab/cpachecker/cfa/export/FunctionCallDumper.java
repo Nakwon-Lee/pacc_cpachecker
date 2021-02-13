@@ -249,4 +249,15 @@ public class FunctionCallDumper {
       return TraversalProcess.CONTINUE;
     }
   }
+
+  public static Multimap<String, String> findfunctioncalls(final CFA pCfa) {
+
+    // get all function calls
+    final CFAFunctionCallFinder finder = new CFAFunctionCallFinder(pCfa);
+    for (final FunctionEntryNode entryNode : pCfa.getAllFunctionHeads()) {
+      CFATraversal.dfs().ignoreFunctionCalls().traverseOnce(entryNode, finder);
+    }
+
+    return finder.functionCalls;
+  }
 }
