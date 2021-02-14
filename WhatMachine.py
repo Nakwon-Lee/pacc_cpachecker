@@ -15,17 +15,10 @@ def main():
 	for arun in runs:
 		tasks = arun.findall('tasks')
 		for task in tasks:
+			task.set('name','oneerrlabel-' + args[2])
 			includes = task.findall('includesfile')
 			for include in includes:
-				print(include.text)
-				filestr = include.text
-				tokens = filestr.split('-')
-				newstr = ''
-				for i in range(len(tokens)-1):
-					newstr = newstr + tokens[i] + '-'
-				newstr = newstr + machinenum + '.set'
-				print(newstr)
-				include.text = newstr
+				include.text = '../sv-benchmarks/c/oneerrlabel-' + args[2] + '.set'
 
 	# if len(args) == 4:
 	# 	rundefs = root.findall('rundefinition')
@@ -42,7 +35,7 @@ def main():
 
 	#dump(root)
 
-	ElementTree(root).write(args[1])
+	ElementTree(root).write(args[3])
 
 def indent(elem, level=0):
     i = '\n' + level*'  '

@@ -1,4 +1,4 @@
-extern void __VERIFIER_error(void);
+extern void reach_error();
 
 int main(void){
 	int a=1;
@@ -15,8 +15,7 @@ int main(void){
 	while(i<1){
 		a=a+b;
 		if(a<b){
-		ERROR:	__VERIFIER_error();
-			goto ERROR;
+			errorFn();
 		}
 		i = incOne(i);
 	}
@@ -43,10 +42,10 @@ int main(void){
 }
 
 int incOne(int a){
-	if (a==1){
-		return incOne2(a);
+	if(a<1){
+		return incOne(a+1);
 	}else{
-		return a + 1;
+		return a;
 	}
 }
 
@@ -71,6 +70,5 @@ int incTwo(int a){
 }
 
 void errorFn(void){
-ERROR:	__VERIFIER_error();
-	goto ERROR;	
+ERROR: {reach_error();}	
 }

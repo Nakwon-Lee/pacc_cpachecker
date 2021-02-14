@@ -388,27 +388,6 @@ analysis.summaryEdges = false
 # analysis can go through the function
 analysis.threadOperationsTransform = false
 
-# the name of using searchformula
-analysis.traversal.TS.searchformula = no default value
-
-# the seed for random
-analysis.traversal.TSAR.randoSeed = 0
-
-# the probability of random selection (Abs only)
-analysis.traversal.TSAR.randomProb = 0
-
-# the name of using searchformula
-analysis.traversal.TSAR.searchformula = no default value
-
-# the seed for random
-analysis.traversal.TSR.randoSeed = 0
-
-# the probability of random selection (Abs only)
-analysis.traversal.TSR.randomProb = 0
-
-# the name of using searchformula
-analysis.traversal.TSR.searchformula = no default value
-
 # Patterns for detecting block starts (ldv_ like functions)
 analysis.traversal.blockFunctionPatterns = {"ldv_%_instance_%"}
 
@@ -447,7 +426,6 @@ analysis.traversal.random.exponent = 1
 
 # Seed for random values.
 analysis.traversal.random.seed = 0
-analysis.traversal.randwaitlist.seed = 0
 
 # handle abstract states with more automaton matches first? (only if
 # AutomatonCPA enabled)
@@ -653,12 +631,6 @@ bdd.sylvan.threads = 0
 # sequentialize all accesses to the BDD library.
 bdd.synchronizeLibraryAccess = false
 
-# calculate abstractions always at loop heads?
-blockABElbprime.allowLoopHeads = true
-
-# This option is the name of error loc.
-blockABElbprime.errorloc = no default value
-
 # Allow reduction of function entries; calculate abstractions always at
 # function entries?
 blockreducer.allowReduceFunctionEntries = true
@@ -796,19 +768,16 @@ cfa.checkNullPointers = false
 # pointer dereferences or to have separate nodes for each dereference
 cfa.checkNullPointers.singleTargetPerFunction = true
 
-# This option enables the computation of a classification of CFA nodes.
-cfa.classifyNodes = false
-
-# This option enables the computation of distance to end locations for each
-# CFA node.
-cfa.distancetoEnd = false
+# what distance criteria used
+cfa.distancescheme = Loopheads
+  enum:     [Statements, Basicblocks, Loopheads]
 
 # This option enables the computation of distance to error locations for each
 # CFA node.
 cfa.distancetoError = false
 
 # This option is the name of error loc.
-cfa.errorloc = no default value
+cfa.errorloc = "reach_error"
 
 # When a function pointer array element is written with a variable as index,
 # create a series of if-else edges with explicit indizes instead.
@@ -846,14 +815,13 @@ cfa.initializeAllVariables = false
 # create c code which is not the same as the original one
 cfa.moveDeclarationsToFunctionStart = false
 
+# This option restricts analysis for programs with only one error location.
+cfa.onlyoneerrorloc = false
+
 # Export CFA as pixel graphic to the given file name. The suffix is added
 # corresponding to the value of option pixelgraphic.export.formatIf set to
 # 'null', no pixel graphic is exported.
 cfa.pixelGraphicFile = "cfaPixel"
-
-# block encoding scheme
-cfa.scheme = L
-  enum:     [L, LF]
 
 # export CFA as .ser file (dump Java objects)
 cfa.serialize = false
@@ -2163,10 +2131,6 @@ cpa.predicate.direction = FORWARD
 # Enable the possibility to precompute explicit abstraction locations.
 cpa.predicate.enableBlockreducer = false
 
-# Enable the possibility to precompute explicit abstraction locations
-# (Custom).
-cpa.predicate.enableCustomBlock = false
-
 # Theory to use as backend for bitvectors. If different from BITVECTOR, the
 # specified theory is used to approximate bitvectors. This can be used for
 # solvers that do not support bitvectors, or for increased performance.
@@ -3417,12 +3381,6 @@ faultLocalization.by_traceformula.maxsat.ban = ""
 # which algorithm to use
 faultLocalization.by_traceformula.type = UNSAT
   enum:     [UNSAT, MAXSAT, MAXORG, ERRINV]
-
-# how many attempts are conducted?
-fc.limit = 3
-
-# FC is modified or not
-fc.modifc = false
 
 # Configuration for programs containing more than @Option adressedRatio
 # addressed vars.
