@@ -35,15 +35,21 @@ public class DistanceState
     implements AbstractStateWithLocation, AbstractQueryableState, Partitionable, Serializable {
   private static final long serialVersionUID = -801176497691618779L;
   private transient CFANode distanceNode;
-  private int distance;
+  private final int distance;
+  private final int calldist;
 
-  DistanceState(CFANode pDistanceNode, int pDistance) {
+  DistanceState(CFANode pDistanceNode, int pCalldist, int pDistance) {
     distanceNode = pDistanceNode;
     distance = pDistance;
+    calldist = pCalldist;
   }
 
   public int getDistance() {
     return distance;
+  }
+
+  public int getCalldist() {
+    return calldist;
   }
 
   @Override

@@ -22,22 +22,22 @@ public class DistanceStateFactory {
 
   public DistanceState getInitState(CFANode node) {
     int absdistance = checkNotNull(node).getAbsDistanceId();
-    return createDistanceState(node, absdistance);
+    return createDistanceState(node, 0, absdistance);
   }
 
-  public DistanceState getState(CFANode node, int currdist) {
+  public DistanceState getState(CFANode node, int calldist) {
 
     int absdistance = checkNotNull(node).getAbsDistanceId();
-    int reldistance = checkNotNull(node).getRelDistanceId() + currdist;
+    int reldistance = checkNotNull(node).getRelDistanceId() + calldist;
 
     if (absdistance <= reldistance) {
-      return createDistanceState(node, absdistance);
+      return createDistanceState(node, calldist, absdistance);
     } else {
-      return createDistanceState(node, reldistance);
+      return createDistanceState(node, calldist, reldistance);
     }
   }
 
-  private DistanceState createDistanceState(CFANode node, int distance) {
-    return new DistanceState(node, distance);
+  private DistanceState createDistanceState(CFANode node, int calldist, int distance) {
+    return new DistanceState(node, calldist, distance);
   }
 }

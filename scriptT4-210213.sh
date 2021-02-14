@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {16..42}
+for i in {31..37}
 do
 	sudo benchexec cpa-bam-bnb-$i.xml
 	

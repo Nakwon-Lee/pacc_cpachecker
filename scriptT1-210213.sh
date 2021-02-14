@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {85..99}
+for i in {95..99}
 do
 	sudo swapoff -a
 	sudo benchexec cpa-bam-bnb-$i.xml

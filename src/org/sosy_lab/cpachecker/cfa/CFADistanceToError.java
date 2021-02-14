@@ -19,6 +19,7 @@
  */
 package org.sosy_lab.cpachecker.cfa;
 
+import com.google.common.collect.Multimap;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCall;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallExpression;
 import org.sosy_lab.cpachecker.cfa.ast.c.CFunctionCallStatement;
+import org.sosy_lab.cpachecker.cfa.export.FunctionCallDumper;
 import org.sosy_lab.cpachecker.cfa.model.AStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
@@ -195,17 +197,52 @@ public final class CFADistanceToError {
 
   public static void calcRelDistanceToError(CFA pcfa) {
 
-    // Multimap<String, String> depmap = FunctionCallDumper.findfunctioncalls(pcfa);
-
-    Set<String> functionnames = Set.copyOf(pcfa.getAllFunctionNames());
-
-    Iterator<String> fnamesit = functionnames.iterator();
-    while (fnamesit.hasNext()) {
-      String currname = fnamesit.next();
-      if (functiondist.containsKey(currname)) {
-        continue;
+    Multimap<String, String> depmap = FunctionCallDumper.findfunctioncalls(pcfa);
+    Set<String> headlessfuncs = new HashSet<>();
+    for (String callee : depmap.values()) {
+      if (pcfa.getFunctionHead(callee) == null) {
+        headlessfuncs.add(callee);
       }
-      functiondist.put(currname, calcRelDistForSingleFunction(pcfa, currname));
+    }
+    Set<String> callernames = new HashSet<>(depmap.keySet());
+    for (String caller : callernames) {
+      for (String callee : headlessfuncs) {
+        depmap.remove(caller, callee);
+      }
+    }
+
+    Set<String> functionnames = new HashSet<>(pcfa.getAllFunctionNames());
+    while (!depmap.isEmpty()) {
+      String currfunction = null;
+      for (String caller : functionnames) {
+        if (!depmap.containsKey(caller)) {
+          currfunction = caller;
+          break;
+        }
+        if (depmap.get(caller).size() == 1 && depmap.get(caller).contains(caller)) {
+          currfunction = caller;
+          break;
+        }
+      }
+
+      if (!functiondist.containsKey(currfunction)) {
+        functiondist.put(currfunction, calcRelDistForSingleFunction(pcfa, currfunction));
+
+        functionnames.remove(currfunction);
+        Set<String> rmarray = new HashSet<>();
+        Iterator<String> depit = depmap.keySet().iterator();
+        while (depit.hasNext()) {
+          String fname = depit.next();
+          if (depmap.get(fname).contains(currfunction)) {
+            rmarray.add(fname);
+          }
+        }
+        for (String rmfunc : rmarray) {
+          depmap.remove(rmfunc, currfunction);
+        }
+      } else {
+        assert false;
+      }
     }
   }
 
@@ -262,6 +299,9 @@ public final class CFADistanceToError {
           if (functiondist.containsKey(edgefunction)) {
             thisweight = functiondist.get(edgefunction);
           } else {
+
+            assert false;
+
             thisweight = calcRelDistForSingleFunction(pcfa, edgefunction);
             functiondist.put(edgefunction, thisweight);
           }
