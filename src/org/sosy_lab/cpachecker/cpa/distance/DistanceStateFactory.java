@@ -10,34 +10,32 @@ package org.sosy_lab.cpachecker.cpa.distance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.sosy_lab.common.configuration.Configuration;
-import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 
 public class DistanceStateFactory {
 
-  public DistanceStateFactory(Configuration config) throws InvalidConfigurationException {
-    config.inject(this);
+  public DistanceStateFactory() {
   }
 
   public DistanceState getInitState(CFANode node) {
     int absdistance = checkNotNull(node).getAbsDistanceId();
-    return createDistanceState(node, 0, absdistance);
+    return createDistanceState(node, 0, null, absdistance);
   }
 
-  public DistanceState getState(CFANode node, int calldist) {
+  public DistanceState getState(CFANode node, int calldist, DistanceState callstate) {
 
     int absdistance = checkNotNull(node).getAbsDistanceId();
     int reldistance = checkNotNull(node).getRelDistanceId() + calldist;
 
     if (absdistance <= reldistance) {
-      return createDistanceState(node, calldist, absdistance);
+      return createDistanceState(node, calldist, callstate, absdistance);
     } else {
-      return createDistanceState(node, calldist, reldistance);
+      return createDistanceState(node, calldist, callstate, reldistance);
     }
   }
 
-  private DistanceState createDistanceState(CFANode node, int calldist, int distance) {
-    return new DistanceState(node, calldist, distance);
+  private DistanceState
+      createDistanceState(CFANode node, int calldist, DistanceState callstate, int distance) {
+    return new DistanceState(node, calldist, callstate, distance);
   }
 }

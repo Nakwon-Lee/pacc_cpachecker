@@ -36,10 +36,7 @@ import org.sosy_lab.cpachecker.util.statistics.StatKind;
  */
 public abstract class AbstractSortedWaitlist<K extends Comparable<K>> implements Waitlist {
 
-  //DEBUG
-  private final WaitlistFactory wrappedWaitlist;
-  //protected final WaitlistFactory wrappedWaitlist;
-  //GUBED
+  protected final WaitlistFactory wrappedWaitlist;
 
   // invariant: all entries in this map are non-empty
   private final NavigableMap<K, Waitlist> waitlist;

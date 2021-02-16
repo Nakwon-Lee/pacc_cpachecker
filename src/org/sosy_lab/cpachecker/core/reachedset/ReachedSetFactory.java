@@ -23,6 +23,7 @@ import org.sosy_lab.cpachecker.core.waitlist.BlockWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.BranchBasedWeightedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DepthBasedWeightedWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.DistanceSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopIterationSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopstackSortedWaitlist;
@@ -110,6 +111,14 @@ public class ReachedSetFactory {
 
   @Option(
     secure = true,
+    name = "traversal.useDistance",
+    description = "Use an implementation of distance strategy that allows to select "
+        + "a secondary strategy that is used if there are two states with the same distance. "
+        + "The secondary strategy is selected with 'analysis.traversal.order'.")
+  private boolean useDistance = false;
+
+  @Option(
+    secure = true,
     name = "traversal.useExplicitInformation",
     description =
         "handle more abstract states (with less information) first? (only for ExplicitCPA)"
@@ -164,27 +173,6 @@ public class ReachedSetFactory {
         "use blocks and set resource limits for its traversal, blocks are handled in DFS order"
   )
   private boolean useBlocks = false;
-
-  @Option(secure = true, name = "traversal.dynamic", description = "use dynamicsortedwaitlist")
-  boolean dynamicWaitlist = false;
-
-  @Option(
-    secure = true,
-    name = "traversal.dynamicR",
-    description = "use dynamicsortedwaitlistRandom")
-  boolean dynamicWaitlistRandom = false;
-
-  @Option(
-    secure = true,
-    name = "traversal.dynamicAR",
-    description = "use dynamicsortedwaitlistAllRandom")
-  boolean dynamicWaitlistAllRandom = false;
-
-  @Option(
-    secure = true,
-    name = "traversal.purerand",
-    description = "use pure random waitlist")
-  boolean pureRandomWaitlist = false;
 
   @Option(
     secure = true,
@@ -270,6 +258,9 @@ public class ReachedSetFactory {
     }
     if (useCallstack) {
       waitlistFactory = CallstackSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useDistance) {
+        waitlistFactory = DistanceSortedWaitlist.factory(waitlistFactory);
       }
     if (useExplicitInformation) {
       waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);

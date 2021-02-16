@@ -304,7 +304,7 @@ public class CFACreator {
   private String errorlocindi = "reach_error";
 
   @Option(secure = true, name = "cfa.distancescheme", description = "what distance criteria used")
-  private DistanceScheme scheme = DistanceScheme.Loopheads;
+  private DistanceScheme scheme = DistanceScheme.LOOPHEADS;
 
   private final LogManager logger;
   private final Parser parser;
@@ -555,8 +555,8 @@ public class CFACreator {
     }
 
     if (distancetoError) {
-      CFADistanceToError.calcAbsDistanceToError();
       CFADistanceToError.calcRelDistanceToError(cfa);
+      CFADistanceToError.calcAbsDistanceToError();
     }
 
     logger.log(Level.FINE, "After calculating distance to errors");

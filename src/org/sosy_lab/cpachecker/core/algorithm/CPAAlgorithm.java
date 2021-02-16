@@ -305,9 +305,6 @@ public class CPAAlgorithm implements Algorithm, StatisticsProvider {
 
         if (stop) {
           // TODO: remove state from reached set?
-			//DEBUG
-            //continue;
-			//GUBED
           return false;
         }
       } finally {

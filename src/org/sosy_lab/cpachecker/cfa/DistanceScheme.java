@@ -9,8 +9,7 @@
 package org.sosy_lab.cpachecker.cfa;
 
 public enum DistanceScheme {
-  Statements,
-  Basicblocks,
-  Loopheads
-  ;
+  STATEMENTS,
+  BASICBLOCKS,
+  LOOPHEADS
 }

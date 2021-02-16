@@ -78,15 +78,15 @@ public final class CFADistanceToError {
         CFAEdgeType edgetype = edge.getEdgeType();
 
         switch (pScheme) {
-          case Statements:
+          case STATEMENTS:
             thisweight = true;
             break;
-          case Basicblocks:
+          case BASICBLOCKS:
             if (edgetype == CFAEdgeType.AssumeEdge) {
               thisweight = true;
             }
             break;
-          case Loopheads:
+          case LOOPHEADS:
             if (anode.isLoopStart()) {
               thisweight = true;
             }
@@ -164,23 +164,17 @@ public final class CFADistanceToError {
           nodequeue.pollFirstEntry();
         }
 
-        Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
-
-        while (predecessors.hasNext()) {
-          CFANode predecessor = predecessors.next();
-          CFAEdge preedge = predecessor.getEdgeTo(currnode);
-          CFAEdgeType preedgetype = preedge.getEdgeType();
+        if (currnode.getEnteringSummaryEdge() != null) {
+          CFAEdge preedge = currnode.getEnteringSummaryEdge();
+          CFANode predecessor = preedge.getPredecessor();
 
           if (reached.contains(predecessor)) {
             continue;
           }
-          if (preedgetype == CFAEdgeType.StatementEdge) {
-            if (preedge instanceof CFunctionSummaryStatementEdge) {
-              continue;
-            }
-          }
 
-          int thisweight = currnode.getAbsDistanceId() + edgeWeights.get(preedge);
+          String predfunc = ((FunctionSummaryEdge) preedge).getFunctionEntry().getFunctionName();
+
+          int thisweight = currnode.getAbsDistanceId() + functiondist.get(predfunc);
           predecessor.setAbsDistanceId(thisweight);
           if (nodequeue.containsKey(thisweight)) {
             nodequeue.get(thisweight).add(predecessor);
@@ -188,6 +182,32 @@ public final class CFADistanceToError {
             nodequeue.put(thisweight, new ArrayDeque<>(List.of(predecessor)));
           }
           reached.add(predecessor);
+        } else {
+          Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
+
+          while (predecessors.hasNext()) {
+            CFANode predecessor = predecessors.next();
+            CFAEdge preedge = predecessor.getEdgeTo(currnode);
+            CFAEdgeType preedgetype = preedge.getEdgeType();
+
+            if (reached.contains(predecessor)) {
+              continue;
+            }
+            if (preedgetype == CFAEdgeType.StatementEdge) {
+              if (preedge instanceof CFunctionSummaryStatementEdge) {
+                continue;
+              }
+            }
+
+            int thisweight = currnode.getAbsDistanceId() + edgeWeights.get(preedge);
+            predecessor.setAbsDistanceId(thisweight);
+            if (nodequeue.containsKey(thisweight)) {
+              nodequeue.get(thisweight).add(predecessor);
+            } else {
+              nodequeue.put(thisweight, new ArrayDeque<>(List.of(predecessor)));
+            }
+            reached.add(predecessor);
+          }
         }
       }
 
