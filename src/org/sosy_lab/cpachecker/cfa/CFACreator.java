@@ -555,7 +555,7 @@ public class CFACreator {
     }
 
     if (distancetoError) {
-      CFADistanceToError.calcRelDistanceToError(cfa);
+      CFADistanceToError.calcRelDistanceToError(cfa, scheme);
       CFADistanceToError.calcAbsDistanceToError();
     }
 

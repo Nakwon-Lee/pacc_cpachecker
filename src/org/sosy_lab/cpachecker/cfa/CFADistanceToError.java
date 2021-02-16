@@ -215,7 +215,7 @@ public final class CFADistanceToError {
     }
   }
 
-  public static void calcRelDistanceToError(CFA pcfa) {
+  public static void calcRelDistanceToError(CFA pcfa, DistanceScheme pScheme) {
 
     Multimap<String, String> depmap = FunctionCallDumper.findfunctioncalls(pcfa);
     Set<String> headlessfuncs = new HashSet<>();
@@ -246,7 +246,7 @@ public final class CFADistanceToError {
       }
 
       if (!functiondist.containsKey(currfunction)) {
-        functiondist.put(currfunction, calcRelDistForSingleFunction(pcfa, currfunction));
+        functiondist.put(currfunction, calcRelDistForSingleFunction(pcfa, currfunction, pScheme));
 
         functionnames.remove(currfunction);
         Set<String> rmarray = new HashSet<>();
@@ -266,7 +266,7 @@ public final class CFADistanceToError {
     }
   }
 
-  private static int calcRelDistForSingleFunction(CFA pcfa, String pFname) {
+  private static int calcRelDistForSingleFunction(CFA pcfa, String pFname, DistanceScheme pScheme) {
 
     Set<CFANode> reached = new HashSet<>();
     NavigableMap<Integer, Queue<CFANode>> nodequeue = new TreeMap<>();
@@ -322,12 +322,39 @@ public final class CFADistanceToError {
 
             assert false;
 
-            thisweight = calcRelDistForSingleFunction(pcfa, edgefunction);
+            thisweight = calcRelDistForSingleFunction(pcfa, edgefunction, pScheme);
             functiondist.put(edgefunction, thisweight);
           }
 
         }else {
           preedge = predecessor.getEdgeTo(currnode);
+
+          if (!edgeWeights.containsKey(preedge)) {
+            CFAEdgeType edgetype = preedge.getEdgeType();
+            boolean tweight = false;
+            switch (pScheme) {
+              case STATEMENTS:
+                tweight = true;
+                break;
+              case BASICBLOCKS:
+                if (edgetype == CFAEdgeType.AssumeEdge) {
+                  tweight = true;
+                }
+                break;
+              case LOOPHEADS:
+                if (predecessor.isLoopStart()) {
+                  tweight = true;
+                }
+                break;
+            }
+
+            if (tweight) {
+              edgeWeights.put(preedge, 1);
+            } else {
+              edgeWeights.put(preedge, 0);
+            }
+          }
+
           thisweight = edgeWeights.get(preedge);
         }
 
