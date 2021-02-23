@@ -21,12 +21,14 @@ package org.sosy_lab.cpachecker.cfa;
 
 import com.google.common.collect.Multimap;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Queue;
 import java.util.Set;
@@ -239,30 +241,73 @@ public final class CFADistanceToError {
           currfunction = caller;
           break;
         }
-        if (depmap.get(caller).size() == 1 && depmap.get(caller).contains(caller)) {
-          currfunction = caller;
-          break;
-        }
       }
 
-      if (!functiondist.containsKey(currfunction)) {
-        functiondist.put(currfunction, calcRelDistForSingleFunction(pcfa, currfunction, pScheme));
+      if (currfunction == null) {
+        boolean resolved = false;
+        List<Set<String>> recursions =
+            recursionDetection(depmap, pcfa.getMainFunction().getFunctionName());
+        for (int i = 0; i < recursions.size(); i++) {
+          Set<String> currset = recursions.get(i);
+          // find a function with the smallest length of base case
+          NavigableMap<Integer, Deque<String>> basecaselen = new TreeMap<>();
+          for (String currfunc : currset) {
+            int thisdist = calcRelBaseDistForSingleFunction(pcfa, currfunc, pScheme);
+            if (thisdist > 0) {
+              if (basecaselen.containsKey(thisdist)) {
+                basecaselen.get(thisdist).add(currfunc);
+              } else {
+                basecaselen.put(thisdist, new ArrayDeque<>(List.of(currfunc)));
+              }
+            }
+          }
 
-        functionnames.remove(currfunction);
-        Set<String> rmarray = new HashSet<>();
-        Iterator<String> depit = depmap.keySet().iterator();
-        while (depit.hasNext()) {
-          String fname = depit.next();
-          if (depmap.get(fname).contains(currfunction)) {
-            rmarray.add(fname);
+          if (!basecaselen.isEmpty()) {
+            resolved = true;
+            Entry<Integer, Deque<String>> tempcurrent = basecaselen.firstEntry();
+
+            if (!functiondist.containsKey(tempcurrent.getValue().peek())) {
+              functiondist.put(tempcurrent.getValue().peek(), tempcurrent.getKey());
+
+              Set<String> rmarray = new HashSet<>();
+              Iterator<String> depit = depmap.keySet().iterator();
+              while (depit.hasNext()) {
+                String fname = depit.next();
+                if (depmap.get(fname).contains(tempcurrent.getValue().peek())) {
+                  rmarray.add(fname);
+                }
+              }
+
+              for (String rmfunc : rmarray) {
+                depmap.remove(rmfunc, tempcurrent.getValue().peek());
+              }
+            }
           }
         }
-        for (String rmfunc : rmarray) {
-          depmap.remove(rmfunc, currfunction);
+
+        if (!resolved) {
+          assert false : "non-resolvable recursion";
         }
-      } else {
-        assert false;
+
+        continue;
       }
+
+      functiondist.put(currfunction, calcRelDistForSingleFunction(pcfa, currfunction, pScheme));
+
+      functionnames.remove(currfunction);
+      Set<String> rmarray = new HashSet<>();
+      Iterator<String> depit = depmap.keySet().iterator();
+      while (depit.hasNext()) {
+        String fname = depit.next();
+        if (depmap.get(fname).contains(currfunction)) {
+          rmarray.add(fname);
+        }
+      }
+
+      for (String rmfunc : rmarray) {
+        depmap.remove(rmfunc, currfunction);
+      }
+
     }
   }
 
@@ -311,19 +356,11 @@ public final class CFADistanceToError {
           String edgefunction =
               ((FunctionSummaryEdge) preedge).getFunctionEntry().getFunctionName();
 
-          // recursion check
-          if (pFname.equals(edgefunction)) {
-            continue;
-          }
-
           if (functiondist.containsKey(edgefunction)) {
             thisweight = functiondist.get(edgefunction);
           } else {
-
-            assert false;
-
-            thisweight = calcRelDistForSingleFunction(pcfa, edgefunction, pScheme);
-            functiondist.put(edgefunction, thisweight);
+            thisweight = Integer.MAX_VALUE;
+            assert false : "function with no precomputed dist";
           }
 
         }else {
@@ -371,6 +408,150 @@ public final class CFADistanceToError {
     }
 
     return pcfa.getFunctionHead(pFname).getRelDistanceId();
+  }
+
+  private static int
+      calcRelBaseDistForSingleFunction(CFA pcfa, String pFname, DistanceScheme pScheme) {
+
+    Set<CFANode> reached = new HashSet<>();
+    NavigableMap<Integer, Queue<CFANode>> nodequeue = new TreeMap<>();
+
+    FunctionExitNode exit = pcfa.getFunctionHead(pFname).getExitNode();
+
+    exit.setRelDistanceId(0);
+    reached.add(exit);
+    nodequeue.put(0, new ArrayDeque<>(List.of(exit)));
+
+    while (!nodequeue.isEmpty()) {
+      Queue<CFANode> firstentryqueue = nodequeue.firstEntry().getValue();
+      CFANode currnode = firstentryqueue.poll();
+      if (firstentryqueue.isEmpty()) {
+        nodequeue.pollFirstEntry();
+      }
+
+      if (currnode.equals(pcfa.getFunctionHead(pFname))) {
+        return pcfa.getFunctionHead(pFname).getRelDistanceId();
+      }
+
+      Iterator<CFANode> predecessors = CFAUtils.allPredecessorsOf(currnode).iterator();
+
+      while (predecessors.hasNext()) {
+        CFANode predecessor = predecessors.next();
+
+        if (reached.contains(predecessor)) {
+          continue;
+        }
+        if (!currnode.getFunctionName().equals(predecessor.getFunctionName())) {
+          continue;
+        }
+
+        CFAEdge preedge;
+        int thisweight;
+
+        if (predecessor.getLeavingSummaryEdge() != null) {
+          preedge = predecessor.getLeavingSummaryEdge();
+          CFAEdge tedge = currnode.getEnteringSummaryEdge();
+          assert preedge.equals(tedge);
+
+          String edgefunction =
+              ((FunctionSummaryEdge) preedge).getFunctionEntry().getFunctionName();
+
+          if (functiondist.containsKey(edgefunction)) {
+            thisweight = functiondist.get(edgefunction);
+          } else {
+            continue;
+          }
+
+        } else {
+
+          preedge = predecessor.getEdgeTo(currnode);
+
+          if (!edgeWeights.containsKey(preedge)) {
+            CFAEdgeType edgetype = preedge.getEdgeType();
+            boolean tweight = false;
+            switch (pScheme) {
+              case STATEMENTS:
+                tweight = true;
+                break;
+              case BASICBLOCKS:
+                if (edgetype == CFAEdgeType.AssumeEdge) {
+                  tweight = true;
+                }
+                break;
+              case LOOPHEADS:
+                if (predecessor.isLoopStart()) {
+                  tweight = true;
+                }
+                break;
+            }
+            if (tweight) {
+              edgeWeights.put(preedge, 1);
+            } else {
+              edgeWeights.put(preedge, 0);
+            }
+          }
+
+          thisweight = edgeWeights.get(preedge);
+        }
+
+        predecessor.setRelDistanceId(currnode.getRelDistanceId() + thisweight);
+        if (nodequeue.containsKey(currnode.getRelDistanceId() + thisweight)) {
+          nodequeue.get(currnode.getRelDistanceId() + thisweight).add(predecessor);
+        } else {
+          nodequeue.put(
+              currnode.getRelDistanceId() + thisweight,
+              new ArrayDeque<>(List.of(predecessor)));
+        }
+        reached.add(predecessor);
+      }
+    }
+
+    return -1;
+  }
+
+  private static List<Set<String>>
+      recursionDetection(final Multimap<String, String> functionCalls, final String mainFunction) {
+    List<Set<String>> retset = new ArrayList<>();
+    Deque<Deque<String>> worklist = new ArrayDeque<>();
+    Deque<String> currstack = new ArrayDeque<>();
+    Set<String> visited = new HashSet<>();
+    currstack.push("dummystring");
+    worklist.push(new ArrayDeque<>(List.of(mainFunction)));
+
+    while (!worklist.isEmpty()) {
+
+      String nextFunction = worklist.peek().pop();
+
+      if (currstack.contains(nextFunction)) {
+        // recursion detected
+        retset.add(new HashSet<String>());
+        Iterator<String> recit = currstack.iterator();
+        while (recit.hasNext()) {
+          String topfunc = recit.next();
+          if (!topfunc.equals(nextFunction)) {
+            retset.get(retset.size() - 1).add(topfunc);
+          } else {
+            break;
+          }
+        }
+        retset.get(retset.size() - 1).add(nextFunction);
+
+      } else {
+        if (visited.add(nextFunction)) {
+          if (functionCalls.containsKey(nextFunction)) {
+            worklist.push(new ArrayDeque<>(functionCalls.get(nextFunction)));
+            currstack.push(nextFunction);
+          }
+        }
+      }
+
+      while (!worklist.isEmpty() && worklist.peek().isEmpty()) {
+        worklist.pop();
+        currstack.pop();
+      }
+    }
+
+    return retset;
   }
 
   public static String toStringAbsDist(CFANode prootnode) {

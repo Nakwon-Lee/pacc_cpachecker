@@ -19,7 +19,7 @@ public class DistanceStateFactory {
 
   public DistanceState getInitState(CFANode node) {
     int absdistance = checkNotNull(node).getAbsDistanceId();
-    return createDistanceState(node, 0, null, absdistance);
+    return createDistanceState(node, Integer.MAX_VALUE, null, absdistance);
   }
 
   public DistanceState getState(CFANode node, int calldist, DistanceState callstate) {

@@ -2,12 +2,12 @@
 
 for i in {70..84}
 do
-	sudo swapoff -a
-	sudo benchexec cpa-lpa-sbe-$i.xml
+	# sudo swapoff -a
+	# sudo benchexec cpa-lpa-sbe-$i.xml
 	
-	sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
-	sudo cp results/cpa-lpa-sbe* resultsbkup/
-	sudo rm results/cpa-lpa-sbe*
+	# sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
+	# sudo cp results/cpa-lpa-sbe* resultsbkup/
+	# sudo rm results/cpa-lpa-sbe*
 	
 	sudo swapoff -a
 	sudo benchexec cpa-lpa-dmc-bb-$i.xml
@@ -20,12 +20,12 @@ done
 
 for i in {14..15}
 do
-	sudo swapoff -a
-	sudo benchexec cpa-lpa-sbe-$i.xml
+	# sudo swapoff -a
+	# sudo benchexec cpa-lpa-sbe-$i.xml
 	
-	sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
-	sudo cp results/cpa-lpa-sbe* resultsbkup/
-	sudo rm results/cpa-lpa-sbe*
+	# sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
+	# sudo cp results/cpa-lpa-sbe* resultsbkup/
+	# sudo rm results/cpa-lpa-sbe*
 	
 	sudo swapoff -a
 	sudo benchexec cpa-lpa-dmc-bb-$i.xml
@@ -38,12 +38,12 @@ done
 
 for i in {41..42}
 do
-	sudo swapoff -a
-	sudo benchexec cpa-lpa-sbe-$i.xml
+	# sudo swapoff -a
+	# sudo benchexec cpa-lpa-sbe-$i.xml
 	
-	sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
-	sudo cp results/cpa-lpa-sbe* resultsbkup/
-	sudo rm results/cpa-lpa-sbe*
+	# sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
+	# sudo cp results/cpa-lpa-sbe* resultsbkup/
+	# sudo rm results/cpa-lpa-sbe*
 	
 	sudo swapoff -a
 	sudo benchexec cpa-lpa-dmc-bb-$i.xml
@@ -54,12 +54,12 @@ do
 	
 done
 
-sudo swapoff -a
-sudo benchexec cpa-lpa-sbe-94.xml
+# sudo swapoff -a
+# sudo benchexec cpa-lpa-sbe-94.xml
 
-sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
-sudo cp results/cpa-lpa-sbe* resultsbkup/
-sudo rm results/cpa-lpa-sbe*
+# sudo sftp -b kresultup spiralftp@spiral.kaist.ac.kr
+# sudo cp results/cpa-lpa-sbe* resultsbkup/
+# sudo rm results/cpa-lpa-sbe*
 
 sudo swapoff -a
 sudo benchexec cpa-lpa-dmc-bb-94.xml
