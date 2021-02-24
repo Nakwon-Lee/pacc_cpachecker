@@ -11,6 +11,7 @@ package org.sosy_lab.cpachecker.cpa.distance;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.util.OverflowSafeCalc;
 
 public class DistanceStateFactory {
 
@@ -25,7 +26,7 @@ public class DistanceStateFactory {
   public DistanceState getState(CFANode node, int calldist, DistanceState callstate) {
 
     int absdistance = checkNotNull(node).getAbsDistanceId();
-    int reldistance = checkNotNull(node).getRelDistanceId() + calldist;
+    int reldistance = OverflowSafeCalc.add(checkNotNull(node).getRelDistanceId(), calldist);
 
     if (absdistance <= reldistance) {
       return createDistanceState(node, calldist, callstate, absdistance);

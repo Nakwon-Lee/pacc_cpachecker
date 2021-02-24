@@ -49,6 +49,7 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
 import org.sosy_lab.cpachecker.util.CFAUtils;
+import org.sosy_lab.cpachecker.util.OverflowSafeCalc;
 
 public final class CFADistanceToError {
 
@@ -138,7 +139,7 @@ public final class CFADistanceToError {
     }
   }
 
-  public static void calcAbsDistanceToError() {
+  public static void calcAbsDistanceToError(DistanceScheme pScheme) {
 
     int i = 0;
     for (CFAEdge edge : errorEdges) {
@@ -176,7 +177,11 @@ public final class CFADistanceToError {
 
           String predfunc = ((FunctionSummaryEdge) preedge).getFunctionEntry().getFunctionName();
 
-          int thisweight = currnode.getAbsDistanceId() + functiondist.get(predfunc);
+          assert functiondist.containsKey(predfunc) : "No precomputed dist of the given function";
+
+          int thisweight =
+              OverflowSafeCalc.add(currnode.getAbsDistanceId(), functiondist.get(predfunc));
+
           predecessor.setAbsDistanceId(thisweight);
           if (nodequeue.containsKey(thisweight)) {
             nodequeue.get(thisweight).add(predecessor);
@@ -201,7 +206,34 @@ public final class CFADistanceToError {
               }
             }
 
-            int thisweight = currnode.getAbsDistanceId() + edgeWeights.get(preedge);
+            if (!edgeWeights.containsKey(preedge)) {
+              CFAEdgeType edgetype = preedge.getEdgeType();
+              boolean tweight = false;
+              switch (pScheme) {
+                case STATEMENTS:
+                  tweight = true;
+                  break;
+                case BASICBLOCKS:
+                  if (edgetype == CFAEdgeType.AssumeEdge) {
+                    tweight = true;
+                  }
+                  break;
+                case LOOPHEADS:
+                  if (predecessor.isLoopStart()) {
+                    tweight = true;
+                  }
+                  break;
+              }
+
+              if (tweight) {
+                edgeWeights.put(preedge, 1);
+              } else {
+                edgeWeights.put(preedge, 0);
+              }
+            }
+
+            int thisweight =
+                OverflowSafeCalc.add(currnode.getAbsDistanceId(), edgeWeights.get(preedge));
             predecessor.setAbsDistanceId(thisweight);
             if (nodequeue.containsKey(thisweight)) {
               nodequeue.get(thisweight).add(predecessor);
@@ -234,7 +266,7 @@ public final class CFADistanceToError {
     }
 
     Set<String> functionnames = new HashSet<>(pcfa.getAllFunctionNames());
-    while (!depmap.isEmpty()) {
+    while (depmap.containsKey(pcfa.getMainFunction().getFunctionName())) {
       String currfunction = null;
       for (String caller : functionnames) {
         if (!depmap.containsKey(caller)) {
@@ -309,6 +341,12 @@ public final class CFADistanceToError {
       }
 
     }
+
+    Iterator<String> fnameit = functionnames.iterator();
+    while (fnameit.hasNext()) {
+      String fname = fnameit.next();
+      functiondist.put(fname, Integer.MAX_VALUE);
+    }
   }
 
   private static int calcRelDistForSingleFunction(CFA pcfa, String pFname, DistanceScheme pScheme) {
@@ -360,7 +398,7 @@ public final class CFADistanceToError {
             thisweight = functiondist.get(edgefunction);
           } else {
             thisweight = Integer.MAX_VALUE;
-            assert false : "function with no precomputed dist";
+            assert false : "function with no precomputed dist in RelDistforSinglefunction";
           }
 
         }else {
@@ -395,12 +433,13 @@ public final class CFADistanceToError {
           thisweight = edgeWeights.get(preedge);
         }
 
-        predecessor.setRelDistanceId(currnode.getRelDistanceId() + thisweight);
-        if (nodequeue.containsKey(currnode.getRelDistanceId() + thisweight)) {
-          nodequeue.get(currnode.getRelDistanceId() + thisweight).add(predecessor);
+        int nextdist = OverflowSafeCalc.add(currnode.getRelDistanceId(), thisweight);
+        predecessor.setRelDistanceId(nextdist);
+        if (nodequeue.containsKey(nextdist)) {
+          nodequeue.get(nextdist).add(predecessor);
         } else {
           nodequeue.put(
-              currnode.getRelDistanceId() + thisweight,
+              nextdist,
               new ArrayDeque<>(List.of(predecessor)));
         }
         reached.add(predecessor);
@@ -494,12 +533,14 @@ public final class CFADistanceToError {
           thisweight = edgeWeights.get(preedge);
         }
 
-        predecessor.setRelDistanceId(currnode.getRelDistanceId() + thisweight);
-        if (nodequeue.containsKey(currnode.getRelDistanceId() + thisweight)) {
-          nodequeue.get(currnode.getRelDistanceId() + thisweight).add(predecessor);
+        int nextdist = OverflowSafeCalc.add(currnode.getRelDistanceId(), thisweight);
+
+        predecessor.setRelDistanceId(nextdist);
+        if (nodequeue.containsKey(nextdist)) {
+          nodequeue.get(nextdist).add(predecessor);
         } else {
           nodequeue.put(
-              currnode.getRelDistanceId() + thisweight,
+              nextdist,
               new ArrayDeque<>(List.of(predecessor)));
         }
         reached.add(predecessor);
