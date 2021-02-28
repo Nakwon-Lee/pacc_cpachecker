@@ -23,6 +23,7 @@ import org.sosy_lab.cpachecker.core.waitlist.BlockWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.BranchBasedWeightedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.CallstackSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DepthBasedWeightedWaitlist;
+import org.sosy_lab.cpachecker.core.waitlist.DistanceBAMSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.DistanceSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.ExplicitSortedWaitlist;
 import org.sosy_lab.cpachecker.core.waitlist.LoopIterationSortedWaitlist;
@@ -116,6 +117,14 @@ public class ReachedSetFactory {
         + "a secondary strategy that is used if there are two states with the same distance. "
         + "The secondary strategy is selected with 'analysis.traversal.order'.")
   private boolean useDistance = false;
+
+  @Option(
+    secure = true,
+    name = "traversal.useDistanceBAM",
+    description = "Use an implementation of distance strategy that allows to select "
+        + "a secondary strategy that is used if there are two states with the same distance. "
+        + "The secondary strategy is selected with 'analysis.traversal.order'.")
+  private boolean useDistanceBAM = false;
 
   @Option(
     secure = true,
@@ -261,6 +270,9 @@ public class ReachedSetFactory {
       }
       if (useDistance) {
         waitlistFactory = DistanceSortedWaitlist.factory(waitlistFactory);
+      }
+      if (useDistanceBAM) {
+        waitlistFactory = DistanceBAMSortedWaitlist.factory(waitlistFactory);
       }
     if (useExplicitInformation) {
       waitlistFactory = ExplicitSortedWaitlist.factory(waitlistFactory);
