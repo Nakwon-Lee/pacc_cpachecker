@@ -285,7 +285,7 @@ public final class CFADistanceToError {
           NavigableMap<Integer, Deque<String>> basecaselen = new TreeMap<>();
           for (String currfunc : currset) {
             int thisdist = calcRelBaseDistForSingleFunction(pcfa, currfunc, pScheme);
-            if (thisdist > 0) {
+            if (thisdist >= 0) {
               if (basecaselen.containsKey(thisdist)) {
                 basecaselen.get(thisdist).add(currfunc);
               } else {

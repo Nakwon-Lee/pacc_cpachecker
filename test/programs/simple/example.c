@@ -43,7 +43,7 @@ int main(void){
 
 int incOne(int a){
 	if(a<1){
-		return incOne(a+1);
+		return incOne2(a);
 	}else{
 		return a;
 	}
