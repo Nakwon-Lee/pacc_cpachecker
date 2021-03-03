@@ -44,6 +44,7 @@ import org.sosy_lab.cpachecker.cfa.model.AStatementEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdge;
 import org.sosy_lab.cpachecker.cfa.model.CFAEdgeType;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
@@ -78,29 +79,15 @@ public final class CFADistanceToError {
           edge = anode.getEdgeTo(successor);
         }
 
-        CFAEdgeType edgetype = edge.getEdgeType();
-
-        switch (pScheme) {
-          case STATEMENTS:
-            thisweight = true;
-            break;
-          case BASICBLOCKS:
-            if (edgetype == CFAEdgeType.AssumeEdge) {
-              thisweight = true;
-            }
-            break;
-          case LOOPHEADS:
-            if (anode.isLoopStart()) {
-              thisweight = true;
-            }
-            break;
-        }
+        thisweight = isEdgeWeighted(anode, edge, pScheme);
 
         if (thisweight) {
           edgeWeights.put(edge, 1);
         } else {
           edgeWeights.put(edge, 0);
         }
+
+        CFAEdgeType edgetype = edge.getEdgeType();
 
         if (edgetype == CFAEdgeType.CallToReturnEdge) {
 
@@ -207,23 +194,8 @@ public final class CFADistanceToError {
             }
 
             if (!edgeWeights.containsKey(preedge)) {
-              CFAEdgeType edgetype = preedge.getEdgeType();
-              boolean tweight = false;
-              switch (pScheme) {
-                case STATEMENTS:
-                  tweight = true;
-                  break;
-                case BASICBLOCKS:
-                  if (edgetype == CFAEdgeType.AssumeEdge) {
-                    tweight = true;
-                  }
-                  break;
-                case LOOPHEADS:
-                  if (predecessor.isLoopStart()) {
-                    tweight = true;
-                  }
-                  break;
-              }
+
+              boolean tweight = isEdgeWeighted(predecessor, preedge, pScheme);
 
               if (tweight) {
                 edgeWeights.put(preedge, 1);
@@ -405,23 +377,8 @@ public final class CFADistanceToError {
           preedge = predecessor.getEdgeTo(currnode);
 
           if (!edgeWeights.containsKey(preedge)) {
-            CFAEdgeType edgetype = preedge.getEdgeType();
-            boolean tweight = false;
-            switch (pScheme) {
-              case STATEMENTS:
-                tweight = true;
-                break;
-              case BASICBLOCKS:
-                if (edgetype == CFAEdgeType.AssumeEdge) {
-                  tweight = true;
-                }
-                break;
-              case LOOPHEADS:
-                if (predecessor.isLoopStart()) {
-                  tweight = true;
-                }
-                break;
-            }
+
+            boolean tweight = isEdgeWeighted(predecessor, preedge, pScheme);
 
             if (tweight) {
               edgeWeights.put(preedge, 1);
@@ -506,23 +463,9 @@ public final class CFADistanceToError {
           preedge = predecessor.getEdgeTo(currnode);
 
           if (!edgeWeights.containsKey(preedge)) {
-            CFAEdgeType edgetype = preedge.getEdgeType();
-            boolean tweight = false;
-            switch (pScheme) {
-              case STATEMENTS:
-                tweight = true;
-                break;
-              case BASICBLOCKS:
-                if (edgetype == CFAEdgeType.AssumeEdge) {
-                  tweight = true;
-                }
-                break;
-              case LOOPHEADS:
-                if (predecessor.isLoopStart()) {
-                  tweight = true;
-                }
-                break;
-            }
+
+            boolean tweight = isEdgeWeighted(predecessor, preedge, pScheme);
+
             if (tweight) {
               edgeWeights.put(preedge, 1);
             } else {
@@ -593,6 +536,36 @@ public final class CFADistanceToError {
     }
 
     return retset;
+  }
+
+  private static boolean isEdgeWeighted(CFANode pPred, CFAEdge pEdge, DistanceScheme pScheme) {
+    boolean tweight = false;
+    CFAEdgeType edgetype = pEdge.getEdgeType();
+    switch (pScheme) {
+      case STATEMENTS:
+        tweight = true;
+        break;
+      case BASICBLOCKS:
+        if (edgetype == CFAEdgeType.AssumeEdge) {
+          tweight = true;
+        }
+        break;
+      case LOOPHEADS:
+        if (pPred.isLoopStart()) {
+          tweight = true;
+        }
+        break;
+      case LOOPSANDFUNCS:
+        if (pPred.isLoopStart()) {
+          tweight = true;
+        }
+        if (pPred instanceof FunctionEntryNode || pPred.getEnteringSummaryEdge() != null) {
+          tweight = true;
+        }
+        break;
+    }
+
+    return tweight;
   }
 
   public static String toStringAbsDist(CFANode prootnode) {

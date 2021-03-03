@@ -11,5 +11,6 @@ package org.sosy_lab.cpachecker.cfa;
 public enum DistanceScheme {
   STATEMENTS,
   BASICBLOCKS,
-  LOOPHEADS
+  LOOPHEADS,
+  LOOPSANDFUNCS
 }
