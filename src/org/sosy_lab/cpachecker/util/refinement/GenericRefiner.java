@@ -135,12 +135,14 @@ public abstract class GenericRefiner<S extends ForgetfulState<?>, I extends Inte
       return true;
     }
 
-    boolean progress = (previousErrorPathIds.isEmpty() || !previousErrorPathIds.contains(obtainErrorPathId(path)));
+    int currid = obtainErrorPathId(path);
+
+    boolean progress = (previousErrorPathIds.isEmpty() || !previousErrorPathIds.contains(currid));
 
     if (!storeAllRefinedPaths) {
       previousErrorPathIds.clear();
     }
-    previousErrorPathIds.add(obtainErrorPathId(path));
+    previousErrorPathIds.add(currid);
 
     return progress;
   }

@@ -2,5 +2,5 @@
 
 for i in {0..99}
 do
-	python3 xmlforbenchgen.py cpa-bam-dbb-X.xml $i cpa-bam-dbb-$i.xml
+	python3 xmlforbenchgen.py cpa-bam-dst-X.xml $i cpa-bam-dst-$i.xml
 done
