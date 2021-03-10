@@ -667,14 +667,14 @@ class MainCPAStatistics implements Statistics {
                   .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
                   .getMax())
           .put(
-              "Avg nodes per function",
+              "Avg edges per function",
               cfa.getAllFunctionHeads()
                   .stream()
                   .mapToInt(node -> node.getFunctionEdges().get().size())
                   .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
                   .getAverage())
           .put(
-              "StdDev nodes per function",
+              "StdDev edges per function",
               cfa.getAllFunctionHeads()
                   .stream()
                   .mapToInt(node -> node.getFunctionEdges().get().size())
