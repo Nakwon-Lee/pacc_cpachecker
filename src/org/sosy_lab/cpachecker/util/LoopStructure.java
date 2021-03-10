@@ -15,12 +15,15 @@ import static org.sosy_lab.cpachecker.util.CFAUtils.leavingEdges;
 
 import com.google.common.collect.Comparators;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.ArrayDeque;
@@ -359,8 +362,16 @@ public final class LoopStructure implements Serializable {
 
   private ImmutableSet<String> collectLoopCondVars() {
     // Get all variables that are used in exit-conditions
-    return from(loops.values())
-        .transform(Loop::getOutgoingEdges)
+    FluentIterable<ImmutableSet<CFAEdge>> aussumeiter =
+        from(loops.values())
+            .transform(Loop::getOutgoingEdges);
+    Multiset<CFAEdge> edgeset = HashMultiset.create();
+    for (ImmutableSet<CFAEdge> aset : aussumeiter) {
+      for (CFAEdge aedge : aset) {
+        edgeset.add(aedge);
+      }
+    }
+    return from(edgeset)
         .filter(CAssumeEdge.class)
         .transform(CAssumeEdge::getExpression)
         .transformAndConcat(CFAUtils::getVariableNamesOfExpression)
