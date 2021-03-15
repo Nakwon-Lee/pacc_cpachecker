@@ -288,7 +288,8 @@ public class CFACreator {
   @Option(
     secure = true,
     name = "cfa.onlyoneerrorloc",
-    description = "This option restricts analysis for programs with only one error location.")
+    description = "This option restricts analysis for programs with at least "
+        + "one pre-defined error location.")
   private boolean onlyoneerrorloc = false;
 
   @Option(
@@ -552,6 +553,7 @@ public class CFACreator {
 
     if (onlyoneerrorloc) {
       CFADistanceToError.findErrorLocations(cfa, errorlocindi, scheme);
+      CFADistanceToError.collectStatistics(stats.statisticsCollection);
     }
 
     if (distancetoError) {

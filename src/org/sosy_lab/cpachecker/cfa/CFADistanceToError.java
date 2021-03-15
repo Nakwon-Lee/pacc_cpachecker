@@ -20,8 +20,10 @@
 package org.sosy_lab.cpachecker.cfa;
 
 import com.google.common.collect.Multimap;
+import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +35,7 @@ import java.util.NavigableMap;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.cfa.ast.AStatement;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
@@ -49,6 +52,9 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
+import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
+import org.sosy_lab.cpachecker.core.interfaces.Statistics;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.OverflowSafeCalc;
 
@@ -57,6 +63,25 @@ public final class CFADistanceToError {
   private static Set<CFAEdge> errorEdges = new HashSet<>();
   private static Map<CFAEdge, Integer> edgeWeights = new HashMap<>();
   private static Map<String, Integer> functiondist = new HashMap<>();
+  private static CFADistanceToErrorStatistics stats;
+
+  public CFADistanceToError() {
+    stats = new CFADistanceToErrorStatistics();
+  }
+
+  private static class CFADistanceToErrorStatistics implements Statistics {
+
+    @Override
+    public void printStatistics(PrintStream pOut, Result pResult, UnmodifiableReachedSet pReached) {
+      pOut.println("  Number of error edges :" + errorEdges.size());
+    }
+
+    @Override
+    public @Nullable String getName() {
+      return "CFADistanceToErrorStatistics";
+    }
+
+  }
 
   public static void findErrorLocations(CFA pcfa, String errorindi, DistanceScheme pScheme)
       throws InvalidConfigurationException {
@@ -119,23 +144,19 @@ public final class CFADistanceToError {
       }
     }
 
-    if (errorEdges.size() != 1) {
+    if (errorEdges.size() < 1) {
       throw new InvalidConfigurationException(
-          "error distance can take programs with only one error location : "
+          "error distance can take programs with at least one error location : "
               + String.valueOf(errorEdges.size()));
     }
   }
 
   public static void calcAbsDistanceToError(DistanceScheme pScheme) {
 
-    int i = 0;
+    Set<CFANode> reached = new HashSet<>();
+    NavigableMap<Integer, Queue<CFANode>> nodequeue = new TreeMap<>();
+
     for (CFAEdge edge : errorEdges) {
-
-      System.out.println("Start erroredge " + i);
-
-      Set<CFANode> reached = new HashSet<>();
-      NavigableMap<Integer, Queue<CFANode>> nodequeue = new TreeMap<>();
-
       CFANode errnode = edge.getSuccessor();
       errnode.setAbsDistanceId(0);
       CFANode node = edge.getPredecessor();
@@ -145,30 +166,68 @@ public final class CFADistanceToError {
       reached.add(errnode);
 
       nodequeue.put(0, new ArrayDeque<>(List.of(node)));
+    }
 
-      while(!nodequeue.isEmpty()) {
+    while (!nodequeue.isEmpty()) {
 
-        Queue<CFANode> firstentryqueue = nodequeue.firstEntry().getValue();
-        CFANode currnode = firstentryqueue.poll();
-        if (firstentryqueue.isEmpty()) {
-          nodequeue.pollFirstEntry();
+      Queue<CFANode> firstentryqueue = nodequeue.firstEntry().getValue();
+      CFANode currnode = firstentryqueue.poll();
+      if (firstentryqueue.isEmpty()) {
+        nodequeue.pollFirstEntry();
+      }
+
+      if (currnode.getEnteringSummaryEdge() != null) {
+        CFAEdge preedge = currnode.getEnteringSummaryEdge();
+        CFANode predecessor = preedge.getPredecessor();
+
+        if (reached.contains(predecessor)) {
+          continue;
         }
 
-        if (currnode.getEnteringSummaryEdge() != null) {
-          CFAEdge preedge = currnode.getEnteringSummaryEdge();
-          CFANode predecessor = preedge.getPredecessor();
+        String predfunc = ((FunctionSummaryEdge) preedge).getFunctionEntry().getFunctionName();
+
+        assert functiondist.containsKey(predfunc) : "No precomputed dist of the given function";
+
+        int thisweight =
+            OverflowSafeCalc.add(currnode.getAbsDistanceId(), functiondist.get(predfunc));
+
+        predecessor.setAbsDistanceId(thisweight);
+        if (nodequeue.containsKey(thisweight)) {
+          nodequeue.get(thisweight).add(predecessor);
+        } else {
+          nodequeue.put(thisweight, new ArrayDeque<>(List.of(predecessor)));
+        }
+        reached.add(predecessor);
+      } else {
+        Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
+
+        while (predecessors.hasNext()) {
+          CFANode predecessor = predecessors.next();
+          CFAEdge preedge = predecessor.getEdgeTo(currnode);
+          CFAEdgeType preedgetype = preedge.getEdgeType();
 
           if (reached.contains(predecessor)) {
             continue;
           }
+          if (preedgetype == CFAEdgeType.StatementEdge) {
+            if (preedge instanceof CFunctionSummaryStatementEdge) {
+              continue;
+            }
+          }
 
-          String predfunc = ((FunctionSummaryEdge) preedge).getFunctionEntry().getFunctionName();
+          if (!edgeWeights.containsKey(preedge)) {
 
-          assert functiondist.containsKey(predfunc) : "No precomputed dist of the given function";
+            boolean tweight = isEdgeWeighted(predecessor, preedge, pScheme);
+
+            if (tweight) {
+              edgeWeights.put(preedge, 1);
+            } else {
+              edgeWeights.put(preedge, 0);
+            }
+          }
 
           int thisweight =
-              OverflowSafeCalc.add(currnode.getAbsDistanceId(), functiondist.get(predfunc));
-
+              OverflowSafeCalc.add(currnode.getAbsDistanceId(), edgeWeights.get(preedge));
           predecessor.setAbsDistanceId(thisweight);
           if (nodequeue.containsKey(thisweight)) {
             nodequeue.get(thisweight).add(predecessor);
@@ -176,48 +235,8 @@ public final class CFADistanceToError {
             nodequeue.put(thisweight, new ArrayDeque<>(List.of(predecessor)));
           }
           reached.add(predecessor);
-        } else {
-          Iterator<CFANode> predecessors = CFAUtils.predecessorsOf(currnode).iterator();
-
-          while (predecessors.hasNext()) {
-            CFANode predecessor = predecessors.next();
-            CFAEdge preedge = predecessor.getEdgeTo(currnode);
-            CFAEdgeType preedgetype = preedge.getEdgeType();
-
-            if (reached.contains(predecessor)) {
-              continue;
-            }
-            if (preedgetype == CFAEdgeType.StatementEdge) {
-              if (preedge instanceof CFunctionSummaryStatementEdge) {
-                continue;
-              }
-            }
-
-            if (!edgeWeights.containsKey(preedge)) {
-
-              boolean tweight = isEdgeWeighted(predecessor, preedge, pScheme);
-
-              if (tweight) {
-                edgeWeights.put(preedge, 1);
-              } else {
-                edgeWeights.put(preedge, 0);
-              }
-            }
-
-            int thisweight =
-                OverflowSafeCalc.add(currnode.getAbsDistanceId(), edgeWeights.get(preedge));
-            predecessor.setAbsDistanceId(thisweight);
-            if (nodequeue.containsKey(thisweight)) {
-              nodequeue.get(thisweight).add(predecessor);
-            } else {
-              nodequeue.put(thisweight, new ArrayDeque<>(List.of(predecessor)));
-            }
-            reached.add(predecessor);
-          }
         }
       }
-
-      i++;
     }
   }
 
@@ -626,5 +645,9 @@ public final class CFADistanceToError {
       }
     }
     return retstr;
+  }
+
+  public static void collectStatistics(Collection<Statistics> pStatsCollection) {
+    pStatsCollection.add(stats);
   }
 }

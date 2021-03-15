@@ -12,43 +12,27 @@ import java.util.IntSummaryStatistics;
 
 public class IntStatistics extends IntSummaryStatistics {
   private double sumOfSquare = 0.0d;
-  private double sumOfSquareCompensation; // Low order bits of sum
-  private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
 
   @Override
   public void accept(int value) {
     super.accept(value);
     double squareValue = value * value;
-    simpleSumOfSquare += squareValue;
-    sumOfSquareWithCompensation(squareValue);
+    sumOfSquare += squareValue;
   }
 
   public IntStatistics combine(IntStatistics other) {
     super.combine(other);
-    simpleSumOfSquare += other.simpleSumOfSquare;
-    sumOfSquareWithCompensation(other.sumOfSquare);
-    sumOfSquareWithCompensation(other.sumOfSquareCompensation);
+    sumOfSquare += other.sumOfSquare;
     return this;
   }
 
-  private void sumOfSquareWithCompensation(double value) {
-    double tmp = value - sumOfSquareCompensation;
-    double velvel = sumOfSquare + tmp; // Little wolf of rounding error
-    sumOfSquareCompensation = (velvel - sumOfSquare) - tmp;
-    sumOfSquare = velvel;
-  }
-
   public double getSumOfSquare() {
-    double tmp = sumOfSquare + sumOfSquareCompensation;
-    if (Double.isNaN(tmp) && Double.isInfinite(simpleSumOfSquare)) {
-      return simpleSumOfSquare;
-    }
-    return tmp;
+    return sumOfSquare;
   }
 
   public final double getStandardDeviation() {
     return getCount() > 0
-        ? Math.sqrt((getSumOfSquare() / getCount()) - Math.pow(getAverage(), 2))
+        ? Math.sqrt(Math.abs((getSumOfSquare() / getCount()) - Math.pow(getAverage(), 2)))
         : 0.0d;
   }
 }
