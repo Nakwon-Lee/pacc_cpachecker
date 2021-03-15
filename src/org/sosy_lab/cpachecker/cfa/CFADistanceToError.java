@@ -20,10 +20,8 @@
 package org.sosy_lab.cpachecker.cfa;
 
 import com.google.common.collect.Multimap;
-import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +33,6 @@ import java.util.NavigableMap;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.configuration.InvalidConfigurationException;
 import org.sosy_lab.cpachecker.cfa.ast.AStatement;
 import org.sosy_lab.cpachecker.cfa.ast.c.CExpression;
@@ -52,9 +49,6 @@ import org.sosy_lab.cpachecker.cfa.model.FunctionExitNode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryEdge;
 import org.sosy_lab.cpachecker.cfa.model.c.CFunctionSummaryStatementEdge;
-import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
-import org.sosy_lab.cpachecker.core.interfaces.Statistics;
-import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 import org.sosy_lab.cpachecker.util.CFAUtils;
 import org.sosy_lab.cpachecker.util.OverflowSafeCalc;
 
@@ -63,25 +57,6 @@ public final class CFADistanceToError {
   private static Set<CFAEdge> errorEdges = new HashSet<>();
   private static Map<CFAEdge, Integer> edgeWeights = new HashMap<>();
   private static Map<String, Integer> functiondist = new HashMap<>();
-  private static CFADistanceToErrorStatistics stats;
-
-  public CFADistanceToError() {
-    stats = new CFADistanceToErrorStatistics();
-  }
-
-  private static class CFADistanceToErrorStatistics implements Statistics {
-
-    @Override
-    public void printStatistics(PrintStream pOut, Result pResult, UnmodifiableReachedSet pReached) {
-      pOut.println("  Number of error edges :" + errorEdges.size());
-    }
-
-    @Override
-    public @Nullable String getName() {
-      return "CFADistanceToErrorStatistics";
-    }
-
-  }
 
   public static void findErrorLocations(CFA pcfa, String errorindi, DistanceScheme pScheme)
       throws InvalidConfigurationException {
@@ -645,9 +620,5 @@ public final class CFADistanceToError {
       }
     }
     return retstr;
-  }
-
-  public static void collectStatistics(Collection<Statistics> pStatsCollection) {
-    pStatsCollection.add(stats);
   }
 }

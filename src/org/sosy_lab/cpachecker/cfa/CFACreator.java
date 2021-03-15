@@ -553,7 +553,6 @@ public class CFACreator {
 
     if (onlyoneerrorloc) {
       CFADistanceToError.findErrorLocations(cfa, errorlocindi, scheme);
-      CFADistanceToError.collectStatistics(stats.statisticsCollection);
     }
 
     if (distancetoError) {
