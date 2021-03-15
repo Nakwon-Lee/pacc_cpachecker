@@ -5,7 +5,7 @@ from xml.etree.ElementTree import ElementTree, Element, parse, dump
 def main():
 	args = sys.argv
 	xmltree = parse(args[1])
-	machinenum = args[2]
+	machinenum = args[3]
 	root = xmltree.getroot()
 	indent(root)
 	#dump(root)
@@ -15,10 +15,10 @@ def main():
 	for arun in runs:
 		tasks = arun.findall('tasks')
 		for task in tasks:
-			task.set('name','oneerrlabel-' + args[2])
+			task.set('name', args[2] + args[3])
 			includes = task.findall('includesfile')
 			for include in includes:
-				include.text = '../sv-benchmarks/c/oneerrlabel-' + args[2] + '.set'
+				include.text = '../sv-benchmarks/c/' + args[2] + args[3] + '.set'
 
 	# if len(args) == 4:
 	# 	rundefs = root.findall('rundefinition')
@@ -35,7 +35,7 @@ def main():
 
 	#dump(root)
 
-	ElementTree(root).write(args[3])
+	ElementTree(root).write(args[4])
 
 def indent(elem, level=0):
     i = '\n' + level*'  '
