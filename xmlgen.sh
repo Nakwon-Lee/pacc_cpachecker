@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {0..39}
+for i in {0..99}
 do
-	python3 xmlforbenchgen.py cpa-bmr-dbb-X.xml oneerrlabel- $i cpa-bmr-dbb-$i.xml
+	python3 xmlforbenchgen.py cpa-lpa-mbb-X.xml oneerrlabel- $i cpa-lpa-mbb-$i.xml
 done
