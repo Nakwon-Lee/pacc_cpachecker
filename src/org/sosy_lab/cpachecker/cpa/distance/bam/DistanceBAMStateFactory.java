@@ -8,9 +8,14 @@
 
 package org.sosy_lab.cpachecker.cpa.distance.bam;
 
+import java.io.PrintStream;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
+import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
+import org.sosy_lab.cpachecker.core.interfaces.Statistics;
+import org.sosy_lab.cpachecker.core.reachedset.UnmodifiableReachedSet;
 
-public class DistanceBAMStateFactory {
+public class DistanceBAMStateFactory implements Statistics {
 
   private static final FixedSizeDistanceBAMStateMap calldistmap =
       new FixedSizeDistanceBAMStateMap();
@@ -34,6 +39,16 @@ public class DistanceBAMStateFactory {
     } else {
       return calldistmap.get(pState);
     }
+  }
+
+  @Override
+  public void printStatistics(PrintStream pOut, Result pResult, UnmodifiableReachedSet pReached) {
+    pOut.println("Number of stored call distance:  " + calldistmap.size());
+  }
+
+  @Override
+  public @Nullable String getName() {
+    return "DistanceBAMCPA";
   }
 
   // public int rmCalldist(DistanceBAMState pState) {

@@ -8,6 +8,7 @@
 
 package org.sosy_lab.cpachecker.cpa.distance.bam;
 
+import java.util.Collection;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.defaults.AbstractCPA;
 import org.sosy_lab.cpachecker.core.defaults.AutomaticCPAFactory;
@@ -15,10 +16,12 @@ import org.sosy_lab.cpachecker.core.interfaces.CPAFactory;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysisWithBAM;
 import org.sosy_lab.cpachecker.core.interfaces.Reducer;
 import org.sosy_lab.cpachecker.core.interfaces.StateSpacePartition;
+import org.sosy_lab.cpachecker.core.interfaces.Statistics;
+import org.sosy_lab.cpachecker.core.interfaces.StatisticsProvider;
 import org.sosy_lab.cpachecker.core.interfaces.pcc.ProofChecker.ProofCheckerCPA;
 
 public class DistanceBAMCPA extends AbstractCPA
-    implements ConfigurableProgramAnalysisWithBAM, ProofCheckerCPA {
+    implements ConfigurableProgramAnalysisWithBAM, StatisticsProvider, ProofCheckerCPA {
 
   private final static DistanceBAMStateFactory stateFactory = new DistanceBAMStateFactory();
 
@@ -43,5 +46,10 @@ public class DistanceBAMCPA extends AbstractCPA
     DistanceBAMState init = stateFactory.getEntryState(pNode, null);
     stateFactory.putCalldist(init, Integer.MAX_VALUE);
     return init;
+  }
+
+  @Override
+  public void collectStatistics(Collection<Statistics> pStatsCollection) {
+    pStatsCollection.add(stateFactory);
   }
 }
