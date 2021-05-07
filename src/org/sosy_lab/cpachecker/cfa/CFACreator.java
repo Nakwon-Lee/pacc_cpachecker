@@ -323,6 +323,8 @@ public class CFACreator {
     private final List<Statistics> statisticsCollection;
     private final LogManager logger;
 
+    private final Timer featureTime = new Timer();
+
     private CFACreatorStatistics(LogManager pLogger) {
       logger = pLogger;
       statisticsCollection = new ArrayList<>();
@@ -341,6 +343,7 @@ public class CFACreator {
       out.println("    Time for AST to CFA:      " + conversionTime);
       out.println("    Time for CFA sanity check:" + checkTime);
       out.println("    Time for post-processing: " + processingTime);
+      out.println("    Time for feature extraction: " + featureTime);
 
       if (exportTime.getNumberOfIntervals() > 0) {
         out.println("    Time for CFA export:      " + exportTime);
@@ -591,7 +594,12 @@ public class CFACreator {
 
     stats.processingTime.stop();
 
-    final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification);
+    stats.featureTime.start();
+    EDSfeatures edsft = new EDSfeatures(cfa);
+    stats.featureTime.stop();
+
+    // final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification);
+    final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification, edsft);
 
     // check the super CFA starting at the main function
     stats.checkTime.start();

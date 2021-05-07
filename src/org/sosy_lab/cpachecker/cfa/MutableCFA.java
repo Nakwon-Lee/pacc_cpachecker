@@ -155,6 +155,21 @@ public class MutableCFA implements CFA {
         language);
   }
 
+  public ImmutableCFA
+      makeImmutableCFA(Optional<VariableClassification> pVarClassification, EDSfeatures pedsft) {
+    return new ImmutableCFA(
+        machineModel,
+        functions,
+        allNodes,
+        mainFunction,
+        loopStructure,
+        pVarClassification,
+        liveVariables,
+        fileNames,
+        language,
+        pedsft);
+  }
+
   @Override
   public Optional<VariableClassification> getVarClassification() {
     return Optional.empty();
@@ -177,5 +192,10 @@ public class MutableCFA implements CFA {
   @Override
   public List<Path> getFileNames() {
     return fileNames;
+  }
+
+  @Override
+  public EDSfeatures getFeatures() {
+    return null;
   }
 }

@@ -52,7 +52,6 @@ import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.CFACreator;
 import org.sosy_lab.cpachecker.cfa.export.DOTBuilder;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
-import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
 import org.sosy_lab.cpachecker.core.interfaces.AbstractState;
 import org.sosy_lab.cpachecker.core.interfaces.ConfigurableProgramAnalysis;
@@ -72,7 +71,6 @@ import org.sosy_lab.cpachecker.util.coverage.CoverageReportStdoutSummary;
 import org.sosy_lab.cpachecker.util.cwriter.CExpressionInvariantExporter;
 import org.sosy_lab.cpachecker.util.resources.MemoryStatistics;
 import org.sosy_lab.cpachecker.util.resources.ProcessCpuTime;
-import org.sosy_lab.cpachecker.util.statistics.IntStatistics;
 import org.sosy_lab.cpachecker.util.statistics.StatInt;
 import org.sosy_lab.cpachecker.util.statistics.StatKind;
 import org.sosy_lab.cpachecker.util.statistics.StatisticsUtils;
@@ -521,19 +519,40 @@ class MainCPAStatistics implements Statistics {
             + from(reached).filter(AbstractStates::isTargetState).size());
   }
 
+  // private void printCfaStatistics(PrintStream out) {
+  // if (cfa != null) {
+  // StatisticsWriter.writingStatisticsTo(out)
+  // .put("Number of program locations", cfa.getAllNodes().size())
+  // .put(
+  // StatInt.forStream(
+  // StatKind.SUM,
+  // "Number of CFA edges (per node)",
+  // cfa.getAllNodes().stream().mapToInt(CFANode::getNumLeavingEdges)))
+  // .putIfPresent(
+  // cfa.getVarClassification(),
+  // "Number of relevant variables",
+  // vc -> vc.getRelevantVariables().size())
+  // .put("Number of functions", cfa.getNumberOfFunctions())
+  // .putIfPresent(
+  // cfa.getLoopStructure(),
+  // loops ->
+  // StatInt.forStream(
+  // StatKind.COUNT,
+  // "Number of loops (and loop nodes)",
+  // loops.getAllLoops().stream().mapToInt(loop -> loop.getLoopNodes().size())));
+  // }
+  // }
+
   private void printCfaStatistics(PrintStream out) {
     if (cfa != null) {
       StatisticsWriter.writingStatisticsTo(out)
-          .put("Number of program locations", cfa.getAllNodes().size())
+          .put("Number of program locations", cfa.getFeatures().NODES)
           .put(
               StatInt.forStream(
                   StatKind.SUM,
                   "Number of CFA edges (per node)",
                   cfa.getAllNodes().stream().mapToInt(CFANode::getNumLeavingEdges)))
-          .putIfPresent(
-              cfa.getVarClassification(),
-              "Number of relevant variables",
-              vc -> vc.getRelevantVariables().size())
+          .put("Number of relevant variables", cfa.getFeatures().VARS)
           .put("Number of functions", cfa.getNumberOfFunctions())
           .putIfPresent(
               cfa.getLoopStructure(),
@@ -548,138 +567,26 @@ class MainCPAStatistics implements Statistics {
   private void printExtendedCfaStatistics(PrintStream out) {
     if (cfa != null) {
       StatisticsWriter.writingStatisticsTo(out)
-          .put(
-              "Max number of calls per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getNumEnteringEdges)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getMax())
-          .put(
-              "Avg number of calls per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getNumEnteringEdges)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getAverage())
-          .put(
-              "StdDev number of calls per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getNumEnteringEdges)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getStandardDeviation())
-          .putIfPresent(
-              cfa.getVarClassification(),
-              "Sum of the number of vars used in assumes",
-              vc -> vc.getAssumedVariables().size())
-          .putIfPresent(
-              cfa.getVarClassification(),
-              "Number of relevant fields",
-              vc -> vc.getRelevantFields().size())
-          .putIfPresent(
-              cfa.getLoopStructure(),
-              "Number of loop exit condition variables",
-              loop -> loop.getLoopExitConditionVariables().size())
-          .putIfPresent(
-              cfa.getLoopStructure(),
-              "Number of loop inc/dec variables",
-              loop -> loop.getLoopIncDecVariables().size())
-          .put(
-              "Max number of loops per function",
-              cfa.getAllFunctionNames()
-                  .stream()
-                  .map(
-                      value -> cfa.getLoopStructure().get().getLoopsForFunction(value))
-                  .mapToInt(loops -> loops.size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getMax())
-          .put(
-              "Avg number of loops per function",
-              cfa.getAllFunctionNames()
-                  .stream()
-                  .map(value -> cfa.getLoopStructure().get().getLoopsForFunction(value))
-                  .mapToInt(loops -> loops.size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getAverage())
-          .put(
-              "StdDev of loops per function",
-              cfa.getAllFunctionNames()
-                  .stream()
-                  .map(value -> cfa.getLoopStructure().get().getLoopsForFunction(value))
-                  .mapToInt(loops -> loops.size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getStandardDeviation())
-          .put(
-              "Max Cyclomatic complexity",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getCyclomaticComplexity)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getMax())
-          .put(
-              "Sum of Cyclomatic complexity",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getCyclomaticComplexity)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getSum())
-          .put(
-              "Avg Cyclomatic complexity",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getCyclomaticComplexity)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getAverage())
-          .put(
-              "StdDev Cyclomatic complexity",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(FunctionEntryNode::getCyclomaticComplexity)
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getStandardDeviation())
-          .put(
-              "Max nodes per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(node -> node.getFunctionNodes().get().size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getMax())
-          .put(
-              "Avg nodes per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(node -> node.getFunctionNodes().get().size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getAverage())
-          .put(
-              "StdDev nodes per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(node -> node.getFunctionNodes().get().size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getStandardDeviation())
-          .put(
-              "Max edges per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(node -> node.getFunctionEdges().get().size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getMax())
-          .put(
-              "Avg edges per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(node -> node.getFunctionEdges().get().size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getAverage())
-          .put(
-              "StdDev edges per function",
-              cfa.getAllFunctionHeads()
-                  .stream()
-                  .mapToInt(node -> node.getFunctionEdges().get().size())
-                  .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
-                  .getStandardDeviation());
+          .put("Max number of calls per function", cfa.getFeatures().MXCALLS)
+          .put("Avg number of calls per function", cfa.getFeatures().AVCALLS)
+          .put("StdDev number of calls per function", cfa.getFeatures().SDCALLS)
+          .put("Sum of the number of vars used in assumes", cfa.getFeatures().VARSASM)
+          .put("Number of relevant fields", cfa.getFeatures().VARS)
+          .put("Number of loop exit condition variables", cfa.getFeatures().VARSLOOP)
+          .put("Number of loop inc/dec variables", cfa.getFeatures().VARSINC)
+          .put("Max number of loops per function", cfa.getFeatures().MXLPFN)
+          .put("Avg number of loops per function", cfa.getFeatures().AVLPFN)
+          .put("StdDev of loops per function", cfa.getFeatures().SDLPFN)
+          .put("Max Cyclomatic complexity", cfa.getFeatures().MXCC)
+          .put("Sum of Cyclomatic complexity", cfa.getFeatures().SMCC)
+          .put("Avg Cyclomatic complexity", cfa.getFeatures().AVCC)
+          .put("StdDev Cyclomatic complexity", cfa.getFeatures().SDCC)
+          .put("Max nodes per function", cfa.getFeatures().MXNDFN)
+          .put("Avg nodes per function", cfa.getFeatures().AVNDFN)
+          .put("StdDev nodes per function", cfa.getFeatures().SDNDFN)
+          .put("Max edges per function", cfa.getFeatures().MXEGFN)
+          .put("Avg edges per function", cfa.getFeatures().AVEGFN)
+          .put("StdDev edges per function", cfa.getFeatures().SDEGFN);
     }
   }
 
