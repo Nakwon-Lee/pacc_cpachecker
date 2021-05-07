@@ -54,5 +54,5 @@ public interface CFA {
 
   List<Path> getFileNames();
 
-  EDSfeatures getFeatures();
+  Optional<EDSfeatures> getFeatures();
 }

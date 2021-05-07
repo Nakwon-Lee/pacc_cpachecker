@@ -595,7 +595,7 @@ public class CFACreator {
     stats.processingTime.stop();
 
     stats.featureTime.start();
-    EDSfeatures edsft = new EDSfeatures(cfa);
+    Optional<EDSfeatures> edsft = Optional.of(new EDSfeatures(cfa, varClassification));
     stats.featureTime.stop();
 
     // final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification);

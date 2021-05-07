@@ -50,6 +50,7 @@ import org.sosy_lab.common.time.TimeSpan;
 import org.sosy_lab.common.time.Timer;
 import org.sosy_lab.cpachecker.cfa.CFA;
 import org.sosy_lab.cpachecker.cfa.CFACreator;
+import org.sosy_lab.cpachecker.cfa.EDSfeatures;
 import org.sosy_lab.cpachecker.cfa.export.DOTBuilder;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.core.CPAcheckerResult.Result;
@@ -519,19 +520,39 @@ class MainCPAStatistics implements Statistics {
             + from(reached).filter(AbstractStates::isTargetState).size());
   }
 
+  private void printCfaStatistics(PrintStream out) {
+    if (cfa != null) {
+      StatisticsWriter.writingStatisticsTo(out)
+          .put("Number of program locations", cfa.getAllNodes().size())
+          .put(
+              StatInt.forStream(
+                  StatKind.SUM,
+                  "Number of CFA edges (per node)",
+                  cfa.getAllNodes().stream().mapToInt(CFANode::getNumLeavingEdges)))
+          .putIfPresent(
+              cfa.getVarClassification(),
+              "Number of relevant variables",
+              vc -> vc.getRelevantVariables().size())
+          .put("Number of functions", cfa.getNumberOfFunctions())
+          .putIfPresent(
+              cfa.getLoopStructure(),
+              loops -> StatInt.forStream(
+                  StatKind.COUNT,
+                  "Number of loops (and loop nodes)",
+                  loops.getAllLoops().stream().mapToInt(loop -> loop.getLoopNodes().size())));
+    }
+  }
+
   // private void printCfaStatistics(PrintStream out) {
   // if (cfa != null) {
   // StatisticsWriter.writingStatisticsTo(out)
-  // .put("Number of program locations", cfa.getAllNodes().size())
+  // .put("Number of program locations", cfa.getFeatures().NODES)
   // .put(
   // StatInt.forStream(
   // StatKind.SUM,
   // "Number of CFA edges (per node)",
   // cfa.getAllNodes().stream().mapToInt(CFANode::getNumLeavingEdges)))
-  // .putIfPresent(
-  // cfa.getVarClassification(),
-  // "Number of relevant variables",
-  // vc -> vc.getRelevantVariables().size())
+  // .put("Number of relevant variables", cfa.getFeatures().VARS)
   // .put("Number of functions", cfa.getNumberOfFunctions())
   // .putIfPresent(
   // cfa.getLoopStructure(),
@@ -543,50 +564,32 @@ class MainCPAStatistics implements Statistics {
   // }
   // }
 
-  private void printCfaStatistics(PrintStream out) {
-    if (cfa != null) {
-      StatisticsWriter.writingStatisticsTo(out)
-          .put("Number of program locations", cfa.getFeatures().NODES)
-          .put(
-              StatInt.forStream(
-                  StatKind.SUM,
-                  "Number of CFA edges (per node)",
-                  cfa.getAllNodes().stream().mapToInt(CFANode::getNumLeavingEdges)))
-          .put("Number of relevant variables", cfa.getFeatures().VARS)
-          .put("Number of functions", cfa.getNumberOfFunctions())
-          .putIfPresent(
-              cfa.getLoopStructure(),
-              loops ->
-                  StatInt.forStream(
-                      StatKind.COUNT,
-                      "Number of loops (and loop nodes)",
-                      loops.getAllLoops().stream().mapToInt(loop -> loop.getLoopNodes().size())));
-    }
-  }
-
   private void printExtendedCfaStatistics(PrintStream out) {
     if (cfa != null) {
-      StatisticsWriter.writingStatisticsTo(out)
-          .put("Max number of calls per function", cfa.getFeatures().MXCALLS)
-          .put("Avg number of calls per function", cfa.getFeatures().AVCALLS)
-          .put("StdDev number of calls per function", cfa.getFeatures().SDCALLS)
-          .put("Sum of the number of vars used in assumes", cfa.getFeatures().VARSASM)
-          .put("Number of relevant fields", cfa.getFeatures().VARS)
-          .put("Number of loop exit condition variables", cfa.getFeatures().VARSLOOP)
-          .put("Number of loop inc/dec variables", cfa.getFeatures().VARSINC)
-          .put("Max number of loops per function", cfa.getFeatures().MXLPFN)
-          .put("Avg number of loops per function", cfa.getFeatures().AVLPFN)
-          .put("StdDev of loops per function", cfa.getFeatures().SDLPFN)
-          .put("Max Cyclomatic complexity", cfa.getFeatures().MXCC)
-          .put("Sum of Cyclomatic complexity", cfa.getFeatures().SMCC)
-          .put("Avg Cyclomatic complexity", cfa.getFeatures().AVCC)
-          .put("StdDev Cyclomatic complexity", cfa.getFeatures().SDCC)
-          .put("Max nodes per function", cfa.getFeatures().MXNDFN)
-          .put("Avg nodes per function", cfa.getFeatures().AVNDFN)
-          .put("StdDev nodes per function", cfa.getFeatures().SDNDFN)
-          .put("Max edges per function", cfa.getFeatures().MXEGFN)
-          .put("Avg edges per function", cfa.getFeatures().AVEGFN)
-          .put("StdDev edges per function", cfa.getFeatures().SDEGFN);
+      if (cfa.getFeatures().isPresent()) {
+        EDSfeatures edsft = cfa.getFeatures().get();
+        StatisticsWriter.writingStatisticsTo(out)
+            .put("Max number of calls per function", edsft.MXCALLS)
+            .put("Avg number of calls per function", edsft.AVCALLS)
+            .put("StdDev number of calls per function", edsft.SDCALLS)
+            .put("Sum of the number of vars used in assumes", edsft.VARSASM)
+            .put("Number of relevant fields", edsft.VARS)
+            .put("Number of loop exit condition variables", edsft.VARSLOOP)
+            .put("Number of loop inc/dec variables", edsft.VARSINC)
+            .put("Max number of loops per function", edsft.MXLPFN)
+            .put("Avg number of loops per function", edsft.AVLPFN)
+            .put("StdDev of loops per function", edsft.SDLPFN)
+            .put("Max Cyclomatic complexity", edsft.MXCC)
+            .put("Sum of Cyclomatic complexity", edsft.SMCC)
+            .put("Avg Cyclomatic complexity", edsft.AVCC)
+            .put("StdDev Cyclomatic complexity", edsft.SDCC)
+            .put("Max nodes per function", edsft.MXNDFN)
+            .put("Avg nodes per function", edsft.AVNDFN)
+            .put("StdDev nodes per function", edsft.SDNDFN)
+            .put("Max edges per function", edsft.MXEGFN)
+            .put("Avg edges per function", edsft.AVEGFN)
+            .put("StdDev edges per function", edsft.SDEGFN);
+      }
     }
   }
 

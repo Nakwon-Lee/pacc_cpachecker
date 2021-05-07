@@ -91,7 +91,7 @@ class ImmutableCFA implements CFA, Serializable {
       Optional<LiveVariables> pLiveVariables,
       List<Path> pFileNames,
       Language pLanguage,
-      EDSfeatures pEdsft) {
+      Optional<EDSfeatures> pEdsft) {
 
     machineModel = pMachineModel;
     functions = ImmutableSortedMap.copyOf(pFunctions);
@@ -102,7 +102,7 @@ class ImmutableCFA implements CFA, Serializable {
     liveVariables = pLiveVariables.orElse(null);
     fileNames = ImmutableList.copyOf(pFileNames);
     language = pLanguage;
-    features = pEdsft;
+    features = pEdsft.orElse(null);
 
     checkArgument(mainFunction.equals(functions.get(mainFunction.getFunctionName())));
   }
@@ -245,7 +245,7 @@ class ImmutableCFA implements CFA, Serializable {
   }
 
   @Override
-  public EDSfeatures getFeatures() {
-    return features;
+  public Optional<EDSfeatures> getFeatures() {
+    return Optional.ofNullable(features);
   }
 }

@@ -156,7 +156,9 @@ public class MutableCFA implements CFA {
   }
 
   public ImmutableCFA
-      makeImmutableCFA(Optional<VariableClassification> pVarClassification, EDSfeatures pedsft) {
+      makeImmutableCFA(
+          Optional<VariableClassification> pVarClassification,
+          Optional<EDSfeatures> pedsft) {
     return new ImmutableCFA(
         machineModel,
         functions,
@@ -195,7 +197,7 @@ public class MutableCFA implements CFA {
   }
 
   @Override
-  public EDSfeatures getFeatures() {
+  public Optional<EDSfeatures> getFeatures() {
     return null;
   }
 }

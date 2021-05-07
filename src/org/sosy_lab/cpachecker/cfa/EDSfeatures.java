@@ -8,9 +8,11 @@
 
 package org.sosy_lab.cpachecker.cfa;
 
+import java.util.Optional;
 import org.sosy_lab.cpachecker.cfa.model.CFANode;
 import org.sosy_lab.cpachecker.cfa.model.FunctionEntryNode;
 import org.sosy_lab.cpachecker.util.statistics.IntStatistics;
+import org.sosy_lab.cpachecker.util.variableclassification.VariableClassification;
 
 public class EDSfeatures {
   public int NODES;
@@ -39,7 +41,7 @@ public class EDSfeatures {
   public double AVCC;
   public double SDCC;
 
-  public EDSfeatures(CFA cfa) {
+  public EDSfeatures(CFA cfa, Optional<VariableClassification> vc) {
     NODES = cfa.getAllNodes().size();
     MXNDFN =
         cfa.getAllFunctionHeads()
@@ -121,11 +123,11 @@ public class EDSfeatures {
             .mapToInt(FunctionEntryNode::getNumEnteringEdges)
             .collect(IntStatistics::new, IntStatistics::accept, IntStatistics::combine)
             .getStandardDeviation();
-    cfa.getVarClassification().ifPresent(vc -> {
-      VARS = vc.getRelevantVariables().size();
+    vc.ifPresent(val -> {
+      VARS = val.getRelevantVariables().size();
     });
-    cfa.getVarClassification().ifPresent(vc -> {
-      VARSASM = vc.getAssumedVariables().size();
+    vc.ifPresent(val -> {
+      VARSASM = val.getAssumedVariables().size();
     });
     cfa.getLoopStructure().ifPresent(lps -> {
       VARSLOOP = lps.getLoopExitConditionVariables().size();
@@ -133,8 +135,8 @@ public class EDSfeatures {
     cfa.getLoopStructure().ifPresent(lps -> {
       VARSINC = lps.getLoopIncDecVariables().size();
     });
-    cfa.getVarClassification().ifPresent(vc -> {
-      FIELDS = vc.getRelevantFields().size();
+    vc.ifPresent(val -> {
+      FIELDS = val.getRelevantFields().size();
     });
     MXCC =
         cfa.getAllFunctionHeads()
