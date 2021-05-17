@@ -42,6 +42,7 @@ Note that we do not have configuration files for LA.EDS and BAM.EDS because we m
     SELECT: the selected distance criteria for LA.EDS (1=st,2=bb,3=lh,4=lf) for each target program
     RET.SEL: the model checking result of LA.EDS
     CPU.SEL: the CPU-time of LA.EDS
+    TFE: the time to extract program metrics
 -- DMC.bam.sel.csv stores results of the five BAM-based techniques and BAM.EDS.
 --- columns
     TASK: the name of the verification task file (that includes the target verification program)
@@ -52,6 +53,7 @@ Note that we do not have configuration files for LA.EDS and BAM.EDS because we m
     SELECT: the selected distance criteria for BAM.EDS (1=st,2=bb,3=lh,4=lf) for each target program
     RET.SEL: the model checking result of BAM.EDS
     CPU.SEL: the CPU-time of BAM.EDS
+    TFE: the time to extract program metrics
 -- DMC.lpa.fil.csv stores results of LA.EDS.[0,10,20,30,40,50].
 --- columns
     SMCC: the sum of Cyclomatic Complexity per-function for each target program
@@ -71,5 +73,15 @@ Note that we do not have configuration files for LA.EDS and BAM.EDS because we m
     RET.OBB: indicating whether LA.bb.OD successes to verify a target program (1) or not (0)
     MEM.OBB: the maximum memory usage of LA.bb.OD for a target program
     
-    
+5. Guide for practioners to use EDS
+- "config/svcomp21-bam-eds-nowit.properties" is the configuration file of EDS for BAM, and "config/predicateAnalysis-SBE-dst.properties" is the configuration file of EDS for LA.
+- Both configurations conduct abstraction model checking with EDS by automatically extract 25 program features and select one of the four distance metrics using the rule in "src/org/sosy_lab/cpachecker/cfa/EDSselection.java".
+- Whenever modifying the rule "src/org/sosy_lab/cpachecker/cfa/EDSselection.java", you should compile and build CPAchecker.
+- "DTToJava.py" is the python program to convert rpart object file (csv format) to the "src/org/sosy_lab/cpachecker/cfa/EDSselection.java".
+-- command-line opration: python3 DTToJava.py "rpart object file (csv format)"
+-- rpart object file format: The row names contain the (unique) node numbers that follow a binary ordering indexed by node depth; var, a factor giving the names of the variables used in the split at each node (leaf nodes are denoted by the level "<leaf>"); yval, the fitted value of the response at the node (1:st, 2:bb, 3:lh, 4:lf); index, the numeric split point of the node; ncat, -1 if the split is less than ("<") and 1 if the split is greater than or equal to (">=").
+-- "lpa.tree.frm.csv" is the example rpart object file presented in the Figure 23 of the paper.
+
+
+
     

@@ -304,6 +304,12 @@ public class CFACreator {
     description = "This option is the name of error loc.")
   private String errorlocindi = "reach_error";
 
+  @Option(
+    secure = true,
+    name = "cfa.edsfeature",
+    description = "This option enables the distance metric selection with feature extraction")
+  private boolean iseds = false;
+
   @Option(secure = true, name = "cfa.distancescheme", description = "what distance criteria used")
   private DistanceScheme scheme = DistanceScheme.LOOPHEADS;
 
@@ -554,18 +560,6 @@ public class CFACreator {
 
     // (currently no such post-processings exist)
 
-    if (onlyoneerrorloc) {
-      CFADistanceToError.findErrorLocations(cfa, errorlocindi, scheme);
-    }
-
-    if (distancetoError) {
-      CFADistanceToError.calcRelDistanceToError(cfa, scheme);
-      CFADistanceToError.calcAbsDistanceToError(scheme);
-    }
-
-    logger.log(Level.FINE, "After calculating distance to errors");
-
-
     // SIXTH, get information about the CFA,
     // the cfa should not be modified after this line.
 
@@ -594,9 +588,24 @@ public class CFACreator {
 
     stats.processingTime.stop();
 
-    stats.featureTime.start();
-    Optional<EDSfeatures> edsft = Optional.of(new EDSfeatures(cfa, varClassification));
-    stats.featureTime.stop();
+    Optional<EDSfeatures> edsft = null;
+    if (iseds) {
+      stats.featureTime.start();
+      edsft = Optional.of(new EDSfeatures(cfa, varClassification));
+      scheme = EDSselection.selection(edsft.get());
+      stats.featureTime.stop();
+    }
+
+    if (onlyoneerrorloc) {
+      CFADistanceToError.findErrorLocations(cfa, errorlocindi, scheme);
+    }
+
+    if (distancetoError) {
+      CFADistanceToError.calcRelDistanceToError(cfa, scheme);
+      CFADistanceToError.calcAbsDistanceToError(scheme);
+    }
+
+    logger.log(Level.FINE, "After calculating distance to errors");
 
     // final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification);
     final ImmutableCFA immutableCFA = cfa.makeImmutableCFA(varClassification, edsft);

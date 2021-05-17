@@ -155,10 +155,9 @@ public class MutableCFA implements CFA {
         language);
   }
 
-  public ImmutableCFA
-      makeImmutableCFA(
-          Optional<VariableClassification> pVarClassification,
-          Optional<EDSfeatures> pedsft) {
+  public ImmutableCFA makeImmutableCFA(
+      Optional<VariableClassification> pVarClassification,
+      Optional<EDSfeatures> edsfts) {
     return new ImmutableCFA(
         machineModel,
         functions,
@@ -169,7 +168,7 @@ public class MutableCFA implements CFA {
         liveVariables,
         fileNames,
         language,
-        pedsft);
+        edsfts);
   }
 
   @Override

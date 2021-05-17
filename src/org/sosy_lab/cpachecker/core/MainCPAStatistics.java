@@ -543,27 +543,6 @@ class MainCPAStatistics implements Statistics {
     }
   }
 
-  // private void printCfaStatistics(PrintStream out) {
-  // if (cfa != null) {
-  // StatisticsWriter.writingStatisticsTo(out)
-  // .put("Number of program locations", cfa.getFeatures().NODES)
-  // .put(
-  // StatInt.forStream(
-  // StatKind.SUM,
-  // "Number of CFA edges (per node)",
-  // cfa.getAllNodes().stream().mapToInt(CFANode::getNumLeavingEdges)))
-  // .put("Number of relevant variables", cfa.getFeatures().VARS)
-  // .put("Number of functions", cfa.getNumberOfFunctions())
-  // .putIfPresent(
-  // cfa.getLoopStructure(),
-  // loops ->
-  // StatInt.forStream(
-  // StatKind.COUNT,
-  // "Number of loops (and loop nodes)",
-  // loops.getAllLoops().stream().mapToInt(loop -> loop.getLoopNodes().size())));
-  // }
-  // }
-
   private void printExtendedCfaStatistics(PrintStream out) {
     if (cfa != null) {
       if (cfa.getFeatures().isPresent()) {
